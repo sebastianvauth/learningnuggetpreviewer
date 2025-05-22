@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What's the Function? Introducing Activation Functions</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .option {
+          margin-bottom: 10px;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+      .option:hover {
+          background-color: #f5f5f5;
+      }
+      .option.selected {
+          background-color: #e6ffe6;
+          border-color: #28a745;
+      }
+      .option-feedback {
+          margin-top: 5px;
+          display: none;
+      }
+      .correct {
+          color: #28a745;
+      }
+      .incorrect {
+          color: #dc3545;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="An artistic image of a neuron. The main body (soma) is calculating a sum (Σ), and then a bright, distinct 'spark' or 'filter' (representing the activation function φ) is shown just before the output signal is released. Caption: 'The Spark of Non-Linearity!'">
+      </div>
+      <h1>What's the Function? Introducing Activation Functions</h1>
+      <p>Hey everyone, and welcome back! We've dived deep into how an artificial neuron (and even a whole layer of them!) calculates its <strong>net input</strong>, that $$z$$ value, by taking a weighted sum of its inputs and adding a bias: $$z = \Sigma(w_i \cdot x_i) + b$$ (or $$z^{(l)} = (W^{(l)})^T a^{(l-1)} + b^{(l)}$$ in matrix form).</p>
+      <p>But hold on! The neuron isn't quite done yet. That raw sum $$z$$ is just an intermediate step. Before a neuron fires off its final output $$a$$, the value $$z$$ gets passed through a very special component called an <strong>Activation Function</strong>, often denoted by the Greek letter $$\phi$$ (phi). Think of the activation function as the neuron's final decision-making filter or its 'firing mechanism'. Today, we're going to ask: what exactly <em>is</em> this $$\phi$$ thing, and why is it so incredibly important?</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Peter Asks the Right Question</h2>
+      <p>It's a critical part of the neuron, but sometimes its role can be a bit mysterious at first.</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="Display the GIF/image from Slide 17 of Peter Griffin from Family Guy saying 'Woah, woah, woah.' with a speech bubble above him saying: 'Hang on a sec... we did all that math for 'z'... now there's *another* function `φ`? What gives?!'">
+      </div>
+      <p>Peter's got a point! We calculated $$z$$, so why do we need this extra step $$a = \phi(z)$$? Why not just use $$z$$ as the neuron's output? It's a fair question, and the answer is fundamental to the power of neural networks.</p>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="Re-show the simple artificial neuron diagram from Slide 17 or a similar one: Inputs (x1...xm, and bias b via input 1 with weight w0) → Summation (Σ) which produces z → A prominently highlighted box labeled 'φ (Activation Function)' → Output 'a' (or 'o'). The φ box should be glowing or pulsing to draw attention to it.">
+      </div>
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">Activation Function ($$\phi$$)</h4>
+          <p>In artificial neural networks, an activation function defines the output of a neuron given a set of inputs (or a single net input $$z$$). It's a mathematical function that typically introduces non-linearity into the network, allowing it to learn more complex patterns than a purely linear model.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Why Bother with Non-Linearity?</h2>
+      <p>The key reason we need activation functions, especially <strong>non-linear</strong> ones, comes down to what happens when we stack multiple layers of neurons.</p>
+      <p>Let's imagine for a moment that we <em>didn't</em> use a non-linear activation function. What if our activation function was just the <strong>Identity function</strong>, meaning $$\phi(z) = z$$? So, the output $$a$$ would just be equal to the net input $$z$$.</p>
+      
+      <h3>What if Activations Were All Linear?</h3>
+      <div>
+          <h4>Layer 1 (Linear Activation):</h4>
+          <p>Suppose the first hidden layer calculates its net input $$z^{(1)}$$ and its activation is $$a^{(1)} = z^{(1)}$$. So, $$a^{(1)} = (W^{(1)})^T x + b^{(1)}$$ (where $$x$$ is $$a^{(0)}$$). This is a linear transformation of $$x$$.</p>
+          <p>\[ a^{(1)} = (W^{(1)})^T x + b^{(1)} \]</p>
+          
+          <h4>Layer 2 (Linear Activation):</h4>
+          <p>Now, suppose the second layer takes $$a^{(1)}$$ as input, also has linear activation, so $$a^{(2)} = z^{(2)}$$. The calculation would be $$a^{(2)} = (W^{(2)})^T a^{(1)} + b^{(2)}$$.</p>
+          <p>\[ a^{(2)} = (W^{(2)})^T a^{(1)} + b^{(2)} \]</p>
+          
+          <h4>Substituting Layer 1 into Layer 2:</h4>
+          <p>If we substitute the expression for $$a^{(1)}$$ into the equation for $$a^{(2)}$$:</p>
+          <p>\[ a^{(2)} = (W^{(2)})^T ((W^{(1)})^T x + b^{(1)}) + b^{(2)} \newline a^{(2)} = (W^{(2)})^T (W^{(1)})^T x + (W^{(2)})^T b^{(1)} + b^{(2)} \]</p>
+          
+          <h4>The Result is Still Linear!</h4>
+          <p>Let $$W_{combined} = (W^{(2)})^T (W^{(1)})^T$$ (this is just another matrix) and $$b_{combined} = (W^{(2)})^T b^{(1)} + b^{(2)}$$ (this is just another vector).</p>
+          <p>Then, our two-layer network simplifies to:</p>
+          <p>\[ a^{(2)} = W_{combined} x + b_{combined} \]</p>
+          <p>This final equation is <em>still</em> just a single linear transformation of the original input $$x$$! No matter how many layers you stack, if all the activation functions are linear, the entire network collapses mathematically into a single linear transformation. It would be no more powerful than a single-layer network (like logistic regression or a simple perceptron)!</p>
+      </div>
+      
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>This is a HUGE point! <strong>Non-linear activation functions are the secret ingredient that allows multi-layer neural networks (Deep Learning models) to learn incredibly complex, non-linear relationships in data.</strong> Without them, 'deep' wouldn't mean more powerful, just more complicated for no good reason. They are what enables networks to solve problems like XOR, recognize intricate patterns in images, or understand the nuances of language.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>The 'Spark' of Decision</h2>
+      <p>So, activation functions do more than just pass a signal along; they transform it in a non-linear way.</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A cartoon neuron is shown. Its 'Σ' unit calculates a `z` value. This `z` approaches a 'gate' guarded by `φ`. If `z` is 'boring' (e.g., meets certain criteria of `φ`), the gate barely opens. If `z` is 'exciting', the gate swings wide open, and a strong signal `a` passes through.">
+      </div>
+      <p>You can think of them as introducing a 'decision' or a 'firing threshold' (though it's often a smooth transition rather than a hard threshold) based on the aggregated net input $$z$$.</p>
+      <p>Different activation functions have different shapes and properties, which makes them suitable for different kinds of tasks or different locations within a network (e.g., hidden layers vs. output layer).</p>
+      
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>We saw the XOR problem couldn't be solved by a single neuron because it wasn't linearly separable. How do you think non-linear activation functions in a <em>multi-layer</em> network help overcome this?</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-1')">Reveal</button>
+          <p id="stop-and-think-1" style="display: none;">By applying non-linear transformations at each hidden layer, the network can effectively 'bend' and 'warp' the input data into a new, higher-dimensional representation where the classes <em>do</em> become linearly separable for a subsequent layer. Each layer learns to create a more useful representation for the next layer, thanks to these non-linearities!</p>
+      </div>
+      
+      <div class="test-your-knowledge">
+          <h3>Test Your Knowledge</h3>
+          <h4>What is the primary reason for using non-linear activation functions in multi-layer neural networks?</h4>
+          <div class="options">
+              <div class="option" onclick="selectOption(this, false)">
+                  To make the calculations faster.
+                  <div class="option-feedback incorrect">While some activation functions (like ReLU) are computationally efficient, speed is not the primary reason for non-linearity.</div>
+              </div>
+              <div class="option" onclick="selectOption(this, false)">
+                  To ensure the output of the neuron is always positive.
+                  <div class="option-feedback incorrect">Some activation functions do result in positive outputs (like ReLU or Sigmoid), but not all (e.g., Tanh outputs between -1 and 1). This isn't the main reason for non-linearity.</div>
+              </div>
+              <div class="option" onclick="selectOption(this, true)">
+                  To allow the network to learn complex, non-linear relationships and decision boundaries.
+                  <div class="option-feedback correct">Exactly! Without non-linearity, a deep network would be no more powerful than a shallow linear model.</div>
+              </div>
+              <div class="option" onclick="selectOption(this, false)">
+                  To reduce the number of weights needed in the network.
+                  <div class="option-feedback incorrect">The choice of activation function doesn't directly reduce the number of weights; network architecture does that.</div>
+              </div>
+          </div>
+      </div>
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>Next Stop: The Activation Function Zoo!</h2>
+      <p>So, we know <em>why</em> we need activation functions, and especially non-linear ones. But what do these functions actually <em>look</em> like? What are their mathematical forms? And which ones are commonly used?</p>
+      <p>That's exactly what we're going to explore next! We're about to open the gates to the <strong>Activation Function Zoo</strong>, where we'll meet some of the most popular inhabitants, from the classic Sigmoid and Tanh to the modern superstar ReLU, and understand their unique characteristics. Get your explorer hats on!</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="An inviting, slightly whimsical signpost that reads 'Activation Function Zoo - Next Stop! Discover Sigmoid, Tanh, ReLU & More!' with arrows pointing forward.">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function selectOption(option, isCorrect) {
+          // Remove selected class from all options
+          const options = document.querySelectorAll('.option');
+          options.forEach(opt => {
+              opt.classList.remove('selected');
+              opt.querySelector('.option-feedback').style.display = 'none';
+          });
+          
+          // Add selected class to clicked option
+          option.classList.add('selected');
+          
+          // Show feedback for the selected option
+          const feedback = option.querySelector('.option-feedback');
+          feedback.style.display = 'block';
+      }
+  </script>
+</body>
+</html>

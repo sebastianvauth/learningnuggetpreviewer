@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab Time: Visualizing Gradient Descent Dynamics</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul, ol {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .faq-section {
+          background-color: #fffbea; /* Light yellow background */
+      }
+      .faq-section h3 {
+          color: #ffcc00; /* Bright yellow heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .faq-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .option {
+          margin-bottom: 10px;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+      .option:hover {
+          background-color: #f5f5f5;
+      }
+      .option.selected {
+          border-color: #28a745;
+          background-color: #e6ffe6;
+      }
+      .option-feedback {
+          display: none;
+          margin-top: 5px;
+          padding: 10px;
+          border-radius: 5px;
+      }
+      .option-feedback.correct {
+          background-color: #d4edda;
+          color: #155724;
+      }
+      .option-feedback.incorrect {
+          background-color: #f8d7da;
+          color: #721c24;
+      }
+      .caption {
+          font-style: italic;
+          text-align: center;
+          margin-top: 5px;
+          color: #666;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A friendly robot character wearing a lab coat and safety goggles, pointing towards an interactive control panel labeled 'Gradient Descent Explorer'.">
+      </div>
+      <h1>Lab Time: Visualizing Gradient Descent Dynamics</h1>
+      <p>Hey there, future machine learning scientist! You've learned a lot about the theory behind Gradient Descent – how it navigates cost functions, the importance of learning rates, and the challenge of local versus global minima. Theory is great, but seeing it in action is even better!</p>
+      <p>In this virtual lab, you're in control. You'll get to experiment with Gradient Descent, tweak its settings, and directly observe how it behaves on different 'terrains' (cost functions). Your mission, should you choose to accept it, is to develop an intuition for GD's dynamics!</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Your Experiment Setup: The GD Explorer</h2>
+      <p>Before we start, let's familiarize ourselves with our main piece of equipment: the <strong>Gradient Descent Explorer</strong> interactive tool. It's designed to let you see GD's journey step-by-step.</p>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=400&width=600" alt="A clear screenshot of the 'Gradient Descent Explorer' tool with callouts pointing to key interface elements like Cost Function Selector, Parameter Space Plot, Starting Point Marker, Learning Rate Slider, Run buttons, and Information Display.">
+          <p class="caption">Meet your Gradient Descent Explorer! Get ready to experiment.</p>
+      </div>
+      <p>Take a moment to look over the controls. You'll be selecting different cost functions, choosing where GD starts its journey, setting the learning rate, and then watching it go!</p>
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">Interactive Simulation</h4>
+          <p>A tool that allows users to change parameters and observe the outcomes of a model or algorithm in real-time, helping to build intuition for complex systems.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Experiment 1: The Learning Rate Rollercoaster</h2>
+      <p>Our first experiment focuses on one of the most critical hyperparameters: the <strong>Learning Rate ($$\alpha$$)</strong>. We'll see how it drastically affects GD's behavior, even on a simple, well-behaved cost function.</p>
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <p><strong>Setup for Experiment 1:</strong></p>
+      <ol>
+          <li>In the GD Explorer, select the <strong>'Simple Bowl (Convex)'</strong> cost function from the dropdown. This is our nice, easy-to-navigate terrain with a single global minimum.</li>
+          <li>Choose a starting point ($$\theta_{\text{initial}}$$) somewhere on the slope of the bowl, away from the minimum. Try to use the <em>same</em> starting point for all parts of this experiment so you can compare apples to apples!</li>
+      </ol>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=200&width=400" alt="A mini-snapshot of the GD Explorer showing the 'Simple Bowl' selected and a dot indicating a starting point on one of its slopes.">
+      </div>
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <p><strong>Sub-task 1.1: The Slow Crawl (Tiny $$\alpha$$)</strong></p>
+      <ul>
+          <li><strong>Your Action:</strong> Set the Learning Rate ($$\alpha$$) slider to a very small value (e.g., try 0.001 or the smallest available).</li>
+          <li><strong>Your Action:</strong> Click 'Run N Steps/Auto-Run' (or click 'Run One Step' many times) and observe how Gradient Descent moves. Let it run for, say, 50-100 steps if needed.</li>
+          <li><strong>Observe & Record:</strong> How many steps does it take to get <em>close</em> to the bottom of the bowl? Describe the path it takes – is it smooth? Does it make much progress with each step?</li>
+      </ul>
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>What do you predict will happen with a very small learning rate?</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-1')">Reveal</button>
+          <p id="stop-and-think-1" style="display: none;">You'll likely see very tiny steps, making slow but steady progress towards the minimum. It will take many iterations!</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+  </section>
+
+  <section id="section6">
+      <p><strong>Sub-task 1.2: The Sweet Spot (Moderate $$\alpha$$)</strong></p>
+      <ul>
+          <li><strong>Your Action:</strong> Click 'Reset' to go back to your chosen starting point.</li>
+          <li><strong>Your Action:</strong> Now, increase the Learning Rate ($$\alpha$$) to a moderate value (e.g., try 0.05 or 0.1).</li>
+          <li><strong>Your Action:</strong> Click 'Run N Steps/Auto-Run' and observe.</li>
+          <li><strong>Observe & Record:</strong> Compare the speed of convergence and the path to what you saw in Sub-task 1.1. How many steps does it take now? Is the progress per step more significant?</li>
+      </ul>
+      <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+  </section>
+
+  <section id="section7">
+      <p><strong>Sub-task 1.3: The Wild Ride (Too Large $$\alpha$$)</strong></p>
+      <ul>
+          <li><strong>Your Action:</strong> Click 'Reset' again.</li>
+          <li><strong>Your Action:</strong> Brace yourself! Set the Learning Rate ($$\alpha$$) to a large value (e.g., try 0.7, 0.9, or even slightly above 1.0 if the tool allows, but be careful!).</li>
+          <li><strong>Your Action:</strong> Click 'Run N Steps/Auto-Run' (maybe just a few steps at first if it's very large, by clicking 'Run One Step' repeatedly).</li>
+          <li><strong>Observe & Record:</strong> What happens now? Does Gradient Descent converge to the minimum? Describe its behavior – does it overshoot? Does it oscillate? Does the cost actually <em>increase</em> (divergence)?</li>
+      </ul>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="Three small images showing: 1. Tiny Alpha: Dot slowly inching towards minimum. 2. Good Alpha: Dot moving efficiently to minimum. 3. Large Alpha: Dot overshooting, bouncing wildly, or moving away from minimum.">
+          <p class="caption">Experiment with different learning rates on the 'Simple Bowl' function.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+  </section>
+
+  <section id="section8">
+      <p><strong>Reflection Time for Experiment 1:</strong></p>
+      <p>Based on your observations from these three sub-tasks, answer this in your own words (you can jot it down!):</p>
+      <div class="test-your-knowledge">
+          <h3>Test Your Knowledge</h3>
+          <h4>Why is choosing an appropriate learning rate (α) so critical for the performance and success of Gradient Descent?</h4>
+          <div class="option" onclick="selectOption(this, 1, false)">
+              A small α makes GD find the global minimum faster.
+              <div class="option-feedback incorrect">Actually, a very small α usually makes GD converge very slowly, although it's less likely to overshoot.</div>
+          </div>
+          <div class="option" onclick="selectOption(this, 1, false)">
+              A large α guarantees convergence because it takes big steps.
+              <div class="option-feedback incorrect">Not quite! If α is too large, GD can overshoot the minimum, oscillate, or even diverge (move further away).</div>
+          </div>
+          <div class="option" onclick="selectOption(this, 1, true)">
+              An appropriate α balances speed of convergence with the risk of overshooting or divergence.
+              <div class="option-feedback correct">Exactly! It's about finding that 'Goldilocks' learning rate – not too small, not too large, but just right for efficient and stable convergence.</div>
+          </div>
+      </div>
+      <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+  </section>
+
+  <section id="section9">
+      <h2>Experiment 2: The Starting Line & Tricky Terrains</h2>
+      <p>Now let's explore a more challenging landscape! We'll see how the starting position can determine where GD ends up, especially when there are multiple valleys (local minima).</p>
+      <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+  </section>
+
+  <section id="section10">
+      <p><strong>Setup for Experiment 2:</strong></p>
+      <ol>
+          <li>In the GD Explorer, select the <strong>'Wavy Hills (Non-Convex)'</strong> cost function. This terrain has multiple local minima and one global minimum (the deepest valley).</li>
+          <li>Set your Learning Rate ($$\alpha$$) to a moderate value that you found worked well in Experiment 1.2 (e.g., 0.05 or 0.1). Keep this $$\alpha$$ consistent for this experiment.</li>
+      </ol>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=200&width=400" alt="A mini-snapshot of the GD Explorer showing the 'Wavy Hills' selected. Multiple valleys are visible.">
+      </div>
+      <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+  </section>
+
+  <section id="section11">
+      <p><strong>Sub-task 2.1: Exploring Different Starts</strong></p>
+      <ul>
+          <li><strong>Your Action:</strong> Click on the landscape to choose a starting point ($$\theta_{\text{initial}}$$) for Gradient Descent. Try to pick one in the 'basin of attraction' of one of the shallower local minima.</li>
+          <li><strong>Your Action:</strong> Click 'Run N Steps/Auto-Run' and let GD converge. Note which minimum it settles into.</li>
+          <li><strong>Your Action:</strong> Click 'Reset'. Now, choose a <em>different</em> starting point, perhaps one that looks like it might lead to the global minimum, or to a different local minimum.</li>
+          <li><strong>Your Action:</strong> Run GD again and see where it lands.</li>
+          <li><strong>Your Action:</strong> Repeat this process 2-3 more times, starting from various distinct locations on the 'Wavy Hills' landscape.</li>
+      </ul>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A static image of the 'Wavy Hills' function with 2-3 smaller images, each with a different starting point marked, and an arrowed path leading from that start to a different local minimum.">
+          <p class="caption">Try different starting points on the 'Wavy Hills'. Where does GD end up?</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+  </section>
+
+  <section id="section12">
+      <p><strong>Reflection Time for Experiment 2:</strong></p>
+      <p>Consider your findings from starting GD at different points on the non-convex landscape.</p>
+      <div class="test-your-knowledge">
+          <h3>Test Your Knowledge</h3>
+          <h4>On a non-convex cost function, does Gradient Descent always find the global minimum (the absolute lowest point)? What primarily determines which minimum it finds?</h4>
+          <div class="option" onclick="selectOption(this, 2, false)">
+              Yes, if the learning rate is small enough, it will always find the global minimum.
+              <div class="option-feedback incorrect">Not necessarily. Even with a good learning rate, if GD starts in the basin of a local minimum, it will likely converge there.</div>
+          </div>
+          <div class="option" onclick="selectOption(this, 2, true)">
+              No, it often converges to a local minimum. The starting position (initial parameters) largely determines which local minimum it finds.
+              <div class="option-feedback correct">You got it! GD is a local optimizer. It explores the valley it starts in and typically doesn't 'see' other, potentially deeper, valleys.</div>
+          </div>
+          <div class="option" onclick="selectOption(this, 2, false)">
+              It depends only on the learning rate; the starting position doesn't matter for non-convex functions.
+              <div class="option-feedback incorrect">The learning rate is important for <em>how</em> it converges, but the starting position is very influential on <em>where</em> it converges on non-convex surfaces.</div>
+          </div>
+      </div>
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>This experiment highlights why, in practice for complex models, we often run training multiple times with different random initializations for our parameters. This increases the chance of finding a better local minimum, or even the global minimum.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+  </section>
+
+  <section id="section13">
+      <h2>(Optional) Experiment 3: The Bumpy Ride of SGD</h2>
+      <p>If your GD Explorer tool supports changing the <strong>Batch Size</strong> and you've covered Lesson 4 (on SGD), this is a great time to see the difference between Batch GD and Stochastic GD visually.</p>
+      <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+  </section>
+
+  <section id="section14">
+      <p><strong>Setup for Experiment 3 (Optional):</strong></p>
+      <ol>
+          <li>You can use either the 'Simple Bowl' or the 'Wavy Hills' cost function.</li>
+          <li>Set a moderate Learning Rate ($$\alpha$$).</li>
+      </ol>
+      <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+  </section>
+
+  <section id="section15">
+      <p><strong>Sub-task 3.1: Smooth Sailing with Full Batch</strong></p>
+      <ul>
+          <li><strong>Your Action:</strong> Select 'Full Batch' (or the largest possible batch size) in your GD Explorer.</li>
+          <li><strong>Your Action:</strong> Choose a starting point and run GD until it converges.</li>
+          <li><strong>Observe & Record:</strong> Note the smoothness of the path and how precisely it settles into the minimum.</li>
+      </ul>
+      <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+  </section>
+
+  <section id="section16">
+      <p><strong>Sub-task 3.2: The Stochastic Shuffle</strong></p>
+      <ul>
+          <li><strong>Your Action:</strong> Click 'Reset'. Keep the same starting point and learning rate.</li>
+          <li><strong>Your Action:</strong> Now, select 'Stochastic (Batch Size = 1)' in your GD Explorer.</li>
+          <li><strong>Your Action:</strong> Run GD for a similar number of <em>epochs</em> or iterations (it will take many more individual <em>steps</em> or <em>updates</em> for SGD to complete an epoch compared to Batch GD).</li>
+          <li><strong>Observe & Record:</strong> How does the path taken by SGD compare to Full Batch GD? Is it smoother or noisier? Does it settle exactly at the minimum, or does it seem to 'bounce around' near it?</li>
+      </ul>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="Two paths on the same cost function (e.g., 'Simple Bowl'). One path (Batch GD) is a smooth red line. The other path (SGD) is a jagged blue line that generally heads towards the minimum but oscillates more.">
+          <p class="caption">Comparing the paths of Batch GD (smooth) vs. SGD (noisy).</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+  </section>
+
+  <section id="section17">
+      <p><strong>Reflection Time for Experiment 3 (Optional):</strong></p>
+      <p>What are the visual trade-offs you observed between using a full batch and a stochastic (single sample) approach for updating parameters?</p>
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>Given SGD's noisy path, why might it sometimes be <em>better</em> than Batch GD on very complex, non-convex landscapes with many shallow local minima?</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-2')">Reveal</button>
+          <p id="stop-and-think-2" style="display: none;">The 'noise' in SGD updates can sometimes help it 'jump out' of shallow local minima that Batch GD might get stuck in, potentially allowing it to find a deeper, better minimum elsewhere!</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+  </section>
+
+  <section id="section18">
+      <h2>Lab Report: Your Key Discoveries!</h2>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=200&width=400" alt="A cartoon character looking pleased, holding up a 'Lab Report' with checkmarks and a gold star.">
+      </div>
+      <p>Phew, what a set of experiments! You've manipulated Gradient Descent like a pro and seen its behavior firsthand.</p>
+      <p>Before you leave the lab, take a moment to summarize:</p>
+      <ul>
+          <li><strong>What was the most surprising thing you observed about Gradient Descent today?</strong></li>
+          <li><strong>In your own words, why is the learning rate a 'Goldilocks' parameter (not too big, not too small)?</strong></li>
+          <li><strong>How does the starting point influence GD's destination on a 'Wavy Hills' (non-convex) landscape?</strong></li>
+      </ul>
+      <p>This hands-on experience is invaluable. The intuitions you've built today about how Gradient Descent actually <em>moves</em> and <em>behaves</em> under different conditions will stick with you much better than just reading about it. Great job, scientist!</p>
+      <div class="faq-section">
+          <h3>Frequently Asked Questions</h3>
+          <h4>Is there a 'perfect' learning rate I should always use?</h4>
+          <p>Unfortunately, no! The optimal learning rate is problem-dependent and often needs to be found through experimentation (a process called hyperparameter tuning). It can depend on the scale of your features, the shape of your cost function, and even the specific variant of Gradient Descent you're using. That's why experiments like these are so helpful!</p>
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function selectOption(option, questionId, isCorrect) {
+          // Remove selected class from all options in this question
+          const options = option.parentElement.querySelectorAll('.option');
+          options.forEach(opt => {
+              opt.classList.remove('selected');
+              opt.querySelector('.option-feedback').style.display = 'none';
+          });
+          
+          // Add selected class to clicked option
+          option.classList.add('selected');
+          
+          // Show feedback for this option
+          const feedback = option.querySelector('.option-feedback');
+          feedback.style.display = 'block';
+      }
+  </script>
+</body>
+</html>

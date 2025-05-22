@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solving XOR: Step-by-Step Through the Network</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul, ol {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .faq-section {
+          background-color: #fffbea; /* Light yellow background */
+      }
+      .faq-section h3 {
+          color: #ffcc00; /* Bright yellow heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .faq-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .math-step {
+          margin-bottom: 15px;
+          padding: 10px;
+          background-color: #f9f9f9;
+          border-left: 3px solid #007bff;
+      }
+      .math-step h4 {
+          color: #007bff;
+          margin-top: 0;
+          margin-bottom: 10px;
+      }
+      .option {
+          margin-bottom: 10px;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+      .option.selected {
+          background-color: #e6ffe6;
+          border-color: #28a745;
+      }
+      .option-explanation {
+          display: none;
+          margin-top: 10px;
+          padding: 10px;
+          background-color: #f9f9f9;
+          border-radius: 5px;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A visual of a complex XOR-shaped lock clicking open, with gears labeled 'Hidden Neuron 1 (OR)', 'Hidden Neuron 2 (AND)', and 'Output Neuron (Combiner)' meshing together perfectly.">
+      </div>
+      <h1>Solving XOR: Step-by-Step Through the Network</h1>
+      <p>Welcome back, code crackers! In our previous lesson, we faced the infamous XOR problem – a simple logic puzzle that, surprisingly, a single neuron can't solve because it's not linearly separable. But we ended with a glimmer of hope: a small neural network with just <strong>one hidden layer containing two neurons</strong> <em>can</em> conquer XOR!</p>
+      <p>Today, we're going to be mathematical detectives. We'll take a specific neural network, already equipped with the right weights and biases (as if it's been perfectly trained!), and walk through the calculations for all four XOR input patterns. We'll see exactly how the hidden layer transforms the data and how the output neuron makes the final correct decision. Let's get our calculators ready (figuratively speaking!).</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Our XOR-Solving Network: The Setup</h2>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=400&width=600" alt="A clear diagram of the XOR-solving Neural Network with Input Layer (2 nodes), Hidden Layer (2 neurons), and Output Layer (1 neuron). All neurons use Sigmoid activation. Weights and biases are displayed.">
+      </div>
+      <p>First, let's re-introduce the hero of our story: the neural network designed to solve XOR.</p>
+      <p>Okay, team, there's our network! Two inputs, two hidden neurons ($$h1$$, $$h2$$), and one output neuron ($$y$$). All of them use the Sigmoid activation function $$\phi$$. The weights and biases are set. Now, let's process the four XOR input patterns: $$(0,0)$$, $$(0,1)$$, $$(1,0)$$, and $$(1,1)$$.</p>
+      
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">Matrix $$X$$ (Input Data)</h4>
+          <p>When processing multiple input samples at once, we often organize them into a matrix $$X$$. Each <em>column</em> of $$X$$ represents one input sample. So, for XOR, our $$X$$ will have 2 rows (for $$x1, x2$$) and 4 columns (for the 4 input patterns).</p>
+      </div>
+      
+      <p>Our input data matrix $$X$$ will be:<br>
+      $$X = [[0, 0, 1, 1],$$<br>
+      $$[0, 1, 0, 1]]$$<br>
+      <em>(Column 1 is $$(0,0)$$, Column 2 is $$(0,1)$$, etc.)</em></p>
+      
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Step 1: Through the Hidden Layer!</h2>
+      <p>First, let's see what happens when our inputs pass through the hidden layer to produce activations $$h1$$ and $$h2$$ for each of the 4 input patterns. We'll calculate the net inputs $$z_{h1}$$, $$z_{h2}$$ and then apply Sigmoid.</p>
+      
+      <div class="math-step">
+          <h4>Net Input to Hidden Neuron 1 ($$z_{h1}$$) for all 4 inputs:</h4>
+          <p>$$z_{h1} = (200 \times x1) + (200 \times x2) - 150$$</p>
+          <p>$$\text{For } (0,0): z_{h1} = (200 \times 0) + (200 \times 0) - 150 = -150$$<br>
+          $$\text{For } (0,1): z_{h1} = (200 \times 0) + (200 \times 1) - 150 = 50$$<br>
+          $$\text{For } (1,0): z_{h1} = (200 \times 1) + (200 \times 0) - 150 = 50$$<br>
+          $$\text{For } (1,1): z_{h1} = (200 \times 1) + (200 \times 1) - 150 = 250$$</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>Activation of Hidden Neuron 1 ($$h1 = \phi(z_{h1})$$) approx.:</h4>
+          <p>Using Sigmoid $$\phi$$: $$\phi(\text{large neg}) \approx 0$$, $$\phi(\text{large pos}) \approx 1$$.</p>
+          <p>$$h1 \approx [\phi(-150), \phi(50), \phi(50), \phi(250)] \approx [0, 1, 1, 1]$$</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>Net Input to Hidden Neuron 2 ($$z_{h2}$$) for all 4 inputs:</h4>
+          <p>$$z_{h2} = (100 \times x1) + (100 \times x2) - 150$$</p>
+          <p>$$\text{For } (0,0): z_{h2} = (100 \times 0) + (100 \times 0) - 150 = -150$$<br>
+          $$\text{For } (0,1): z_{h2} = (100 \times 0) + (100 \times 1) - 150 = -50$$<br>
+          $$\text{For } (1,0): z_{h2} = (100 \times 1) + (100 \times 0) - 150 = -50$$<br>
+          $$\text{For } (1,1): z_{h2} = (100 \times 1) + (100 \times 1) - 150 = 50$$</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>Activation of Hidden Neuron 2 ($$h2 = \phi(z_{h2})$$) approx.:</h4>
+          <p>$$h2 \approx [\phi(-150), \phi(-50), \phi(-50), \phi(50)] \approx [0, 0, 0, 1]$$</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>Combined Hidden Layer Activation Matrix $$A^{(1)}$$:</h4>
+          <p>If we arrange these as rows (one row per hidden neuron, columns are for each input pattern), we get the $$A^{(1)}$$ matrix:</p>
+          <p>$$A^{(1)} = \begin{bmatrix} h1 \text{'s outputs} \\ h2 \text{'s outputs} \end{bmatrix} \approx \begin{bmatrix} 0 & 1 & 1 & 1 \\ 0 & 0 & 0 & 1 \end{bmatrix}$$</p>
+      </div>
+      
+      <p>So, after passing through the hidden layer, our original four input patterns $$[[0,0],[0,1],[1,0],[1,1]]$$ have been transformed into these new representations $$[[0,0],[1,0],[1,0],[1,1]]$$ (reading $$A^{(1)}$$ column-wise).</p>
+      
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>Step 2: The Magical Transformation!</h2>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=350&width=600" alt="A dynamic side-by-side plot. Left: Original XOR inputs in x1-x2 space (not linearly separable). Right: Transformed data in h1-h2 space (now linearly separable).">
+      </div>
+      <p>This is where the magic really happens! Let's plot our original XOR inputs and then plot these new, transformed representations that came out of the hidden layer.</p>
+      
+      <p>Look at that! In the original $$(x1, x2)$$ space, we couldn't draw a single line to separate the green (output 1) from the red (output 0) points.</p>
+      
+      <p>But in the new $$(h1, h2)$$ space – the space defined by the outputs of our hidden neurons – the problem <em>has become linearly separable</em>! We can now draw a straight line to separate $$(1,0)$$ [Green] from $$(0,0)$$ [Red] and $$(1,1)$$ [Red].</p>
+      
+      <p>This is the core power of hidden layers: <strong>they learn to transform the input data into a new representation where the problem is easier to solve (often, by making it linearly separable for the next layer).</strong></p>
+      
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>This transformation is fundamental to why deep learning works. Each layer learns to create features or representations that are more useful for the subsequent layers. The network automatically discovers these helpful transformations during training!</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>Step 3: To the Output Neuron!</h2>
+      <p>Now that our hidden layer has worked its magic, let's feed these transformed activations $$A^{(1)}$$ (which are $$[h1, h2]^T$$ for each input pattern) into our single output neuron $$y$$.</p>
+      
+      <div class="math-step">
+          <h4>Inputs to Output Neuron:</h4>
+          <p>The activations from the hidden layer $$A^{(1)}$$ (using its columns for each of the 4 original input patterns):<br>
+          $$A^{(1)} \approx [[0, 1, 1, 1], [0, 0, 0, 1]]$$ (rows are $$h1, h2$$ respectively)</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>Output Neuron Parameters:</h4>
+          <p>Weights from hidden to output: $$w_{h1\_y} = 100$$, $$w_{h2\_y} = -200$$.<br>
+          Bias for output: $$b_y = 0$$.</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>Net Input to Output Neuron ($$z_y$$) for all 4 patterns:</h4>
+          <p>$$z_y = (100 \times h1) + (-200 \times h2) + 0$$<br>
+          Let's calculate for each column of $$A^{(1)}$$:</p>
+          <ul>
+              <li>Pattern 1 (orig $$(0,0)$$ → $$h1=0$$, $$h2=0$$): $$z_y = (100 \times 0) + (-200 \times 0) = 0$$</li>
+              <li>Pattern 2 (orig $$(0,1)$$ → $$h1=1$$, $$h2=0$$): $$z_y = (100 \times 1) + (-200 \times 0) = 100$$</li>
+              <li>Pattern 3 (orig $$(1,0)$$ → $$h1=1$$, $$h2=0$$): $$z_y = (100 \times 1) + (-200 \times 0) = 100$$</li>
+              <li>Pattern 4 (orig $$(1,1)$$ → $$h1=1$$, $$h2=1$$): $$z_y = (100 \times 1) + (-200 \times 1) = 100 - 200 = -100$$</li>
+          </ul>
+          <p>So, the vector of net inputs $$z^{(2)}$$ is $$[0, 100, 100, -100]$$.</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>Final Output $$Y = A^{(2)} = \phi(z_y)$$ approx.:</h4>
+          <p>Applying Sigmoid $$\phi$$ ($$\phi(0)=0.5$$, $$\phi(\text{large pos}) \approx 1$$, $$\phi(\text{large neg}) \approx 0$$):</p>
+          <p>$$Y \approx [\phi(0), \phi(100), \phi(100), \phi(-100)] \approx [0.5, 1, 1, 0]$$</p>
+      </div>
+      
+      <p>If we adopt a threshold where output >= 0.5 is considered '1' (True) and < 0.5 is '0' (False), then our network outputs $$[0, 1, 1, 0]$$ for the original inputs $$(0,0), (0,1), (1,0), (1,1)$$ respectively.</p>
+      
+      <p>Let's compare with the XOR truth table (Target: $$[0, 1, 1, 0]$$):</p>
+      <ul>
+          <li>Input $$(0,0)$$: Target 0, Network ≈ 0.5 (rounds to 0 or 1 depending on precise threshold, ideally 0). <em>Using $$\phi(0)=0.5$$, if threshold >0.5, it's 0. If threshold <=0.5, it's 1. Let's assume for simplicity here that $$\phi(0)$$ is treated as effectively 0 in this context for the final binary decision.</em></li>
+          <li>Input $$(0,1)$$: Target 1, Network ≈ 1. <strong>Match!</strong></li>
+          <li>Input $$(1,0)$$: Target 1, Network ≈ 1. <strong>Match!</strong></li>
+          <li>Input $$(1,1)$$: Target 0, Network ≈ 0. <strong>Match!</strong></li>
+      </ul>
+      
+      <p>Our network successfully computes XOR!</p>
+      
+      <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+  </section>
+
+  <section id="section6">
+      <h2>Step 4: What Did the Hidden Neurons Actually Learn?</h2>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=350&width=600" alt="The XOR network diagram showing hidden neuron h1 computing OR, hidden neuron h2 computing AND, and the output neuron combining these to make XOR.">
+      </div>
+      <p>This is fascinating! The network solves XOR. But <em>what functions</em> did those two hidden neurons ($$h1$$ and $$h2$$) actually learn to compute to make this possible?</p>
+      
+      <p>Let's look back at the outputs of $$h1$$ and $$h2$$ (which formed the rows of $$A^{(1)}$$):</p>
+      
+      <ul>
+          <li><strong>Hidden Neuron 1 ($$h1$$) Output:</strong> $$[0, 1, 1, 1]$$ (for inputs $$(0,0)$$, $$(0,1)$$, $$(1,0)$$, $$(1,1)$$ respectively).<br>
+          If you compare this to the truth table for <strong>$$x1$$ OR $$x2$$</strong>, it's a perfect match (if we treat ≈1 as 1 and ≈0 as 0)! So, $$h1$$ learned to compute OR.</li>
+          
+          <li><strong>Hidden Neuron 2 ($$h2$$) Output:</strong> $$[0, 0, 0, 1]$$.<br>
+          Compare this to <strong>$$x1$$ AND $$x2$$</strong>. It's also a perfect match! So, $$h2$$ learned to compute AND.</li>
+      </ul>
+      
+      <p><strong>The Output Neuron's Job:</strong><br>
+      The output neuron then received $$h1$$ (OR output) and $$h2$$ (AND output) as its inputs. It had weights $$w_{h1\_y} = 100$$ and $$w_{h2\_y} = -200$$ and bias $$b_y = 0$$. So it computed:<br>
+      $$Y = \phi(100 \times (x1 \text{ OR } x2) - 200 \times (x1 \text{ AND } x2))$$</p>
+      
+      <p>This effectively implements $$(x1 \text{ OR } x2) \text{ AND NOT } (x1 \text{ AND } x2)$$, which is one way to define the XOR function!</p>
+      
+      <ul>
+          <li>If (OR is 1) AND (AND is 0) → $$\phi(100 \times 1 - 200 \times 0) = \phi(100) \approx 1$$. (Cases $$(0,1)$$, $$(1,0)$$)</li>
+          <li>If (OR is 0) AND (AND is 0) → $$\phi(100 \times 0 - 200 \times 0) = \phi(0) \approx 0.5$$ (or 0). (Case $$(0,0)$$)</li>
+          <li>If (OR is 1) AND (AND is 1) → $$\phi(100 \times 1 - 200 \times 1) = \phi(-100) \approx 0$$. (Case $$(1,1)$$)</li>
+      </ul>
+      
+      <div class="faq-section">
+          <h3>Frequently Asked Questions</h3>
+          <h4>Did the network 'know' it was supposed to learn OR and AND in the hidden layer?</h4>
+          <p>Not explicitly! During training (which we haven't covered yet, but involves adjusting weights to minimize error), the network, through a process like backpropagation and gradient descent, would discover that creating these intermediate OR-like and AND-like representations in the hidden layer is a useful way to ultimately solve the XOR problem at the output. It's an emergent property of the learning process on this task!</p>
+      </div>
+      
+      <div class="test-your-knowledge">
+          <h3>Test Your Knowledge</h3>
+          <h4>In the XOR-solving network, the hidden layer transforms the input data primarily to:</h4>
+          <div id="options-container">
+              <div class="option" onclick="selectOption(1)">
+                  <p>Reduce the number of input features.</p>
+                  <div class="option-explanation" id="explanation-1">
+                      <p>The number of features coming out of the hidden layer is the number of hidden neurons (2 in this case), which is the same as the number of input features. It's about representation, not reduction here.</p>
+                  </div>
+              </div>
+              <div class="option" onclick="selectOption(2)">
+                  <p>Make the problem linearly separable for the output neuron.</p>
+                  <div class="option-explanation" id="explanation-2">
+                      <p><strong>Correct!</strong> Exactly! The original XOR inputs are not linearly separable, but the outputs of the hidden layer ($$h1$$, $$h2$$) form a new representation where the XOR classes <em>are</em> linearly separable.</p>
+                  </div>
+              </div>
+              <div class="option" onclick="selectOption(3)">
+                  <p>Directly compute the XOR function within each hidden neuron.</p>
+                  <div class="option-explanation" id="explanation-3">
+                      <p>No single hidden neuron computes XOR. They compute simpler functions (like OR and AND) which are then combined by the output neuron to get XOR.</p>
+                  </div>
+              </div>
+              <div class="option" onclick="selectOption(4)">
+                  <p>Ensure all hidden activations are either 0 or 1.</p>
+                  <div class="option-explanation" id="explanation-4">
+                      <p>While our approximations were 0 or 1, the Sigmoid outputs are continuous values between 0 and 1. The key is the pattern of these activations.</p>
+                  </div>
+              </div>
+          </div>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+  </section>
+
+  <section id="section7">
+      <h2>The Power of Representation</h2>
+      <p>This XOR example is a beautiful illustration of a core concept in deep learning: <strong>hierarchical feature learning</strong> or <strong>representation learning</strong>.</p>
+      
+      <p>The hidden layer(s) learn to transform the raw input into more abstract and useful representations (features). Each neuron can be thought of as learning to detect a particular pattern or feature. These learned features then make it easier for subsequent layers to perform their tasks.</p>
+      
+      <p>Even in this tiny XOR network:</p>
+      <ul>
+          <li>Input Layer: Raw $$x1, x2$$.</li>
+          <li>Hidden Layer: Learns 'OR-ness' and 'AND-ness' of the inputs.</li>
+          <li>Output Layer: Uses these learned features to easily distinguish the XOR cases.</li>
+      </ul>
+      
+      <p>Imagine this scaled up to an image recognition network with many layers: early layers might learn edges, next layers learn textures and simple shapes, then parts of objects, and finally whole objects. It's this ability to automatically learn good representations that makes deep neural networks so powerful.</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=200&width=600" alt="A simple pipeline diagram: 'Raw Data (XOR inputs)' → 'Hidden Layer (Learns OR, AND features)' → 'Output Layer (Combines features to solve XOR)' → 'Final XOR Output'. Each stage shows the data transforming.">
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+  </section>
+
+  <section id="section8">
+      <h2>What's Next on the Learning Curve?</h2>
+      <p>We've successfully dissected how a pre-configured neural network can solve the XOR problem, witnessing the crucial role of the hidden layer in transforming data into a linearly separable space. This is a huge step in understanding <em>what</em> networks can do!</p>
+      
+      <p>But so far, we've been given networks with 'magically' correct weights and biases. How does a network actually <em>learn</em> these optimal parameters from data in the first place? This involves defining how 'good' or 'bad' a network's predictions are, and then systematically adjusting the weights and biases to make it better.</p>
+      
+      <p>That brings us to our next crucial topics: <strong>Loss Functions</strong> (to measure error) and <strong>Cost Functions</strong> (to measure overall error). Get ready to quantify performance!</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A character (the neural network) looking at a target (the correct XOR output) and its own attempt. A 'scorecard' appears, ready to be filled by a Loss Function.">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function selectOption(optionNumber) {
+          // Clear all selections first
+          const options = document.querySelectorAll('.option');
+          options.forEach(option => {
+              option.classList.remove('selected');
+          });
+          
+          // Hide all explanations
+          const explanations = document.querySelectorAll('.option-explanation');
+          explanations.forEach(explanation => {
+              explanation.style.display = 'none';
+          });
+          
+          // Select the clicked option and show its explanation
+          const selectedOption = document.querySelector(`.option:nth-child(${optionNumber})`);
+          selectedOption.classList.add('selected');
+          
+          const selectedExplanation = document.getElementById(`explanation-${optionNumber}`);
+          selectedExplanation.style.display = 'block';
+      }
+  </script>
+</body>
+</html>

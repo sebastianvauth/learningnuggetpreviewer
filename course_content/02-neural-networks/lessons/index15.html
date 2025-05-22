@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multiclass Classification with Neural Networks</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .option {
+          margin-bottom: 10px;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+      .option:hover {
+          background-color: #f5f5f5;
+      }
+      .option-explanation {
+          margin-top: 10px;
+          padding: 10px;
+          background-color: #f9f9f9;
+          border-radius: 5px;
+          display: none;
+      }
+      .correct {
+          border-color: #28a745;
+          background-color: #d4edda;
+      }
+      .incorrect {
+          border-color: #dc3545;
+          background-color: #f8d7da;
+      }
+      .mathematical-steps {
+          background-color: #f8f9fa;
+          padding: 15px;
+          border-radius: 8px;
+          margin: 20px 0;
+      }
+      .mathematical-steps h3 {
+          color: #333;
+          margin-top: 0;
+      }
+      .step {
+          margin-bottom: 15px;
+          padding-bottom: 15px;
+          border-bottom: 1px solid #eee;
+      }
+      .step:last-child {
+          border-bottom: none;
+      }
+      .step-title {
+          font-weight: bold;
+          margin-bottom: 5px;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A vibrant image showing a diverse set of distinct objects (e.g., an apple, a car, a dog, a book, a tree) each in its own 'category box', symbolizing the task of assigning items to one of several classes.">
+      </div>
+      <h1>Lesson 15: More Than Two: Multiclass Classification with Neural Networks</h1>
+      <h2>Beyond Just Yes or No</h2>
+      <p>Hey AI adventurers! So far, many of our examples have revolved around binary decisions – like a neuron outputting a 0 or a 1, or deciding if an email is 'spam' or 'not spam'. That's super useful, but the world is full of situations where we need to choose from <em>more than two</em> options!</p>
+      <p>Think about it:</p>
+      <ul>
+          <li>Classifying a handwritten digit (0 through 9 – that's 10 classes!).</li>
+          <li>Identifying the breed of a dog from a photo (could be hundreds of classes!).</li>
+          <li>Determining the topic of a news article (sports, politics, technology, etc.).</li>
+      </ul>
+      <p>This task, where we need to assign an input to one of <strong>K</strong> possible categories (where K > 2), is called <strong>Multiclass Classification</strong>. Today, we'll explore how we set up our neural network's output layer to handle these multi-way decisions. (This lesson focuses on the setup described in the top half of Slide 25).</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Structuring the Output Layer for Many Choices</h2>
+      <p>So, if our network needs to choose between, say, 5 different types of fruit (apple, banana, orange, grape, mango), how do we design the output layer?</p>
+      <p>The approach is quite intuitive and builds on what we already know:</p>
+      <ul>
+          <li><strong>One Neuron Per Class:</strong> If you have <strong>K</strong> distinct classes you want your network to predict, your output layer will have exactly <strong>K neurons</strong> (or nodes).</li>
+          <li><strong>Dedicated Responsibility:</strong> Each of these K output neurons becomes responsible for representing one specific class. So, one neuron might represent 'apple', another 'banana', and so on.</li>
+      </ul>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A clear diagram illustrating a multiclass output layer setup: A hidden layer (represented by a few generic nodes) is shown on the left. Fully connected lines go from the hidden layer to an Output Layer on the right. The Output Layer explicitly shows K distinct neurons. Neuron 1 is labeled: 'Output Neuron for Class 1 (e.g., Apple)', Neuron 2 is labeled: 'Output Neuron for Class 2 (e.g., Banana)', ... (dots indicating more neurons) ..., Neuron K is labeled: 'Output Neuron for Class K (e.g., Mango)'. Each output neuron j is shown receiving its weighted inputs from the hidden layer and having its own bias b_j^(L), leading to its raw score z_j^(L).">
+      </div>
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">K (in K-class classification)</h4>
+          <p>In machine learning, 'K' is commonly used to denote the total number of distinct classes or categories that a classification model is trying to predict. For binary classification, K=2. For multiclass classification, K > 2.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Getting Raw Scores: The Logits</h2>
+      <p>Just like the neurons in hidden layers, these K output neurons will also perform the familiar calculation: a weighted sum of their inputs (which come from the last hidden layer) plus their own bias.</p>
+      <div class="mathematical-steps">
+          <h3>Calculating Raw Scores for Each Class</h3>
+          <div class="step">
+              <div class="step-title">Inputs to the Output Layer</div>
+              <p>Let $$a^{(L-1)}$$ be the vector of activations coming from the last hidden layer (Layer $$L-1$$). This is the input to our output layer (Layer $$L$$).</p>
+          </div>
+          <div class="step">
+              <div class="step-title">Weights and Biases for Output Neurons</div>
+              <p>Each output neuron $$j$$ (from 1 to $$K$$) in Layer $$L$$ will have its own vector of weights $$W_{:,j}^{(L)}$$ connecting it to all neurons in $$a^{(L-1)}$$, and its own bias $$b_j^{(L)}$$.</p>
+          </div>
+          <div class="step">
+              <div class="step-title">Calculating the Score $$z_j^{(L)}$$</div>
+              <p>The net input, or raw score, for output neuron $$j$$ (representing class $$j$$) is calculated as:</p>
+              <p>\[ z_j^{(L)} = (W_{:,j}^{(L)})^T a^{(L-1)} + b_j^{(L)} \]</p>
+          </div>
+          <div class="step">
+              <div class="step-title">A Vector of Scores (Logits)</div>
+              <p>We do this for all K output neurons, resulting in a vector of K raw scores: $$z^{(L)} = [z_1^{(L)}, z_2^{(L)}, ..., z_K^{(L)}]^T$$.</p>
+              <p>These raw scores are often called <strong>logits</strong> in the context of classification.</p>
+              <p>\[ z^{(L)} = (W^{(L)})^T a^{(L-1)} + b^{(L)} \]</p>
+          </div>
+      </div>
+      <p>At this point, these $$z_j^{(L)}$$ values are just numbers. A larger $$z_j^{(L)}$$ might suggest that the network <em>thinks</em> class $$j$$ is more likely for the given input, but these scores have a few characteristics that make them not quite ready to be our final answer:</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A cartoon image showing K 'thermometers', each labeled 'Class 1 Score', 'Class 2 Score', ..., 'Class K Score'. The mercury levels (representing the z_j values) are all at different, arbitrary positive and negative levels. A character looks at them, puzzled, with a thought bubble: 'Okay, scores... but which one WINS? And how confident are we?'">
+      </div>
+      <ul>
+          <li><strong>Unbounded:</strong> They can be any real number – positive, negative, very large, or very small.</li>
+          <li><strong>Not Probabilities:</strong> They don't necessarily fall between 0 and 1, and they certainly don't sum up to 1.</li>
+      </ul>
+      <p>So, if output neuron 1 (for 'apple') gives a score $$z_1 = 3.2$$, neuron 2 ('banana') gives $$z_2 = -0.5$$, and neuron 3 ('orange') gives $$z_3 = 1.7$$, how do we translate this into a clear, probabilistic choice?</p>
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>If we just picked the class corresponding to the neuron with the highest raw score $$z_j$$, would that be enough? What information might we be missing?</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-1')">Reveal</button>
+          <p id="stop-and-think-1" style="display: none;">While picking the highest score is often how the final decision is made <em>after</em> probabilities are calculated, the raw scores themselves don't tell us the <em>confidence</em> of the prediction in a standardized way. A score of 10 vs 9 is different from a score of 1 vs 0 in terms of how much more confident the network is. We also lose the sense of how probable other classes might be. We want a proper probability distribution!</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>The Need for Normalization: Enter Softmax!</h2>
+      <p>We need a way to transform this vector of K raw scores (logits) $$[z_1, z_2, ..., z_K]$$ into a vector of K probabilities $$[p_1, p_2, ..., p_K]$$ such that:</p>
+      <ol>
+          <li>Each probability $$p_j$$ is between 0 and 1.</li>
+          <li>All probabilities $$p_j$$ sum up to 1 (i.e., $$\Sigma p_j = 1$$).</li>
+      </ol>
+      <p>This process is a form of 'normalization' – taking arbitrary scores and putting them onto a common, interpretable scale (probabilities).</p>
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>Having probabilistic outputs is very useful. It tells us not only <em>which</em> class the network thinks is most likely, but also <em>how confident</em> it is in that prediction, and what it thinks about the other possibilities. This can be crucial for decision-making in real-world applications.</p>
+      </div>
+      <div class="test-your-knowledge">
+          <h3>Test Your Knowledge</h3>
+          <h4>If a neural network is designed to classify images into 100 different animal species, how many neurons should its output layer have (before applying a function like Softmax)?</h4>
+          <div class="option" onclick="checkAnswer(this, false)">
+              1 neuron, which outputs a number from 1 to 100.
+              <div class="option-explanation">While possible in theory with some encoding, it's not the standard or most effective way for neural networks to handle multiclass classification directly. We usually want a score for each class.</div>
+          </div>
+          <div class="option" onclick="checkAnswer(this, false)">
+              2 neurons, one for 'animal' and one for 'not animal'.
+              <div class="option-explanation">This would be for binary classification, not for distinguishing between 100 different species.</div>
+          </div>
+          <div class="option" onclick="checkAnswer(this, true)">
+              100 neurons, one dedicated to each animal species.
+              <div class="option-explanation">Exactly! Each of the 100 output neurons will produce a raw score for its assigned species.</div>
+          </div>
+          <div class="option" onclick="checkAnswer(this, false)">
+              It depends on the number of hidden layers.
+              <div class="option-explanation">The number of hidden layers affects the network's ability to learn complex features, but the output layer size for K-class classification is determined by K.</div>
+          </div>
+      </div>
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>Next Up: The Softmax Solution</h2>
+      <p>So, we have our K raw scores, and we know we need to turn them into a nice, clean probability distribution. What magical function can do this for us?</p>
+      <p>Get ready to meet the <strong>Softmax function</strong>! It's the standard, go-to solution for converting logits into probabilities in multiclass classification problems. In the next lesson, we'll dive into its formula, see how it works with an example, and understand why it's so perfectly suited for this task.</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A visual of K raw, uneven bars representing logits. An arrow points from these to a 'Softmax Machine' (a stylized box). Out of the machine come K neat, normalized bars (representing probabilities) that all add up to a total height representing '100%' or '1.0'.">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function checkAnswer(element, isCorrect) {
+          // Remove previous classes
+          const options = document.querySelectorAll('.option');
+          options.forEach(option => {
+              option.classList.remove('correct', 'incorrect');
+          });
+          
+          // Add appropriate class
+          if (isCorrect) {
+              element.classList.add('correct');
+          } else {
+              element.classList.add('incorrect');
+          }
+          
+          // Show explanation
+          const explanation = element.querySelector('.option-explanation');
+          explanation.style.display = 'block';
+      }
+  </script>
+</body>
+</html>

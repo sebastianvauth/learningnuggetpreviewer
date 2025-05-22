@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercise Lesson 16.1: Softmax by Hand - Probability Power-Up!</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .faq-section {
+          background-color: #fffbea; /* Light yellow background */
+      }
+      .faq-section h3 {
+          color: #ffcc00; /* Bright yellow heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .faq-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .exercise-problem {
+          background-color: #f5f5f5;
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+          margin-bottom: 20px;
+      }
+      .exercise-problem h4 {
+          margin-top: 0;
+      }
+      .solution {
+          margin-top: 15px;
+          display: none;
+      }
+      .interactive-answer {
+          margin-top: 20px;
+          padding: 15px;
+          background-color: #f9f9f9;
+          border-radius: 8px;
+      }
+      .interactive-answer label {
+          display: block;
+          margin-bottom: 5px;
+          font-weight: bold;
+      }
+      .interactive-answer input {
+          padding: 8px;
+          margin-bottom: 10px;
+          width: 100%;
+          max-width: 200px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+      }
+      .feedback {
+          margin-top: 10px;
+          padding: 10px;
+          border-radius: 4px;
+          display: none;
+      }
+      .correct {
+          background-color: #d4edda;
+          color: #155724;
+      }
+      .incorrect {
+          background-color: #f8d7da;
+          color: #721c24;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A cartoon character carefully dividing a pie (representing the total probability of 1) into slices of different sizes (representing individual class probabilities calculated by Softmax). Each slice is labeled s_j.">
+      </div>
+      <h1>Exercise Lesson 16.1: Softmax by Hand - Probability Power-Up!</h1>
+      <p>Hey probability pros! In our conceptual Lesson 16, we met the super-important <strong>Softmax function</strong>. We learned how it takes a set of raw, uncalibrated scores (logits) from the output layer of a multiclass classification network and magically transforms them into a meaningful set of probabilities – where each probability is between 0 and 1, and they all add up to 1!</p>
+      <p>Today, we're going to get our hands dirty and calculate some Softmax outputs manually. This will really help you understand the mechanics of the function: the exponentiation, the summation (normalization), and the final division. Ready to turn scores into proper probability shares? Let's do it!</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Softmax Formula: Our Guiding Star</h2>
+      <p>Before we dive into the numbers, let's quickly refresh the Softmax formula. If we have $$K$$ raw scores (logits) $$z_1, z_2, ..., z_K$$, the Softmax probability $$s_j$$ for class $$j$$ is:</p>
+      
+      <div class="vocab-section">
+          <h3>Softmax Recap</h3>
+          <p>Softmax Probability for Class $$j$$</p>
+          <p>\[ s_j = \frac{e^{z_j}}{\sum_{k=1}^{K} e^{z_k}} = \frac{\text{exp}(z_j)}{\text{exp}(z_1) + \text{exp}(z_2) + \dots + \text{exp}(z_K)} \]</p>
+      </div>
+      
+      <p>Remember the three key steps:</p>
+      <ol>
+          <li><strong>Exponentiate</strong> each logit $$z_j$$ to get $$e^{z_j}$$.</li>
+          <li><strong>Sum</strong> all these exponentiated values to get the normalization constant $$\sum e^{z_k}$$.</li>
+          <li><strong>Divide</strong> each individual $$e^{z_j}$$ by this sum to get $$s_j$$.</li>
+      </ol>
+      
+      <p>For these exercises, you might find a calculator handy for the $$e^x$$ (exp(x)) function. Here are a few common values to help:</p>
+      <ul>
+          <li>$$e^0 = 1$$</li>
+          <li>$$e^1 \approx 2.718$$</li>
+          <li>$$e^2 \approx 7.389$$</li>
+          <li>$$e^3 \approx 20.086$$</li>
+          <li>$$e^{-1} \approx 0.368$$</li>
+      </ul>
+      
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Difficulty 1: Easy - Two Equal Scores</h2>
+      <p>Let's start with a very simple case with just two classes.</p>
+      
+      <div class="exercise-problem">
+          <h4>Problem 1: A network's output layer produces the following logits for 2 classes:</h4>
+          <ul>
+              <li>$$z_1 = 1$$</li>
+              <li>$$z_2 = 1$$</li>
+          </ul>
+          <p>Calculate the Softmax probabilities $$s_1$$ and $$s_2$$. What do you notice?</p>
+          
+          <button class="reveal-button" onclick="revealSolution('solution-1')">Show Solution</button>
+          
+          <div id="solution-1" class="solution">
+              <h4>Solution:</h4>
+              <p>1. Exponentiate the logits:</p>
+              <p>\[ e^{z_1} = e^1 \approx 2.718 \]</p>
+              <p>\[ e^{z_2} = e^1 \approx 2.718 \]</p>
+              
+              <p>2. Sum the exponentiated values:</p>
+              <p>\[ \sum e^{z_k} = e^{z_1} + e^{z_2} \approx 2.718 + 2.718 = 5.436 \]</p>
+              
+              <p>3. Calculate the probabilities:</p>
+              <p>\[ s_1 = \frac{e^{z_1}}{\sum e^{z_k}} \approx \frac{2.718}{5.436} \]</p>
+              <p>\[ s_2 = \frac{e^{z_2}}{\sum e^{z_k}} \approx \frac{2.718}{5.436} \]</p>
+              
+              <p>Result:</p>
+              <p>\[ s_1 \approx 0.5 \]</p>
+              <p>\[ s_2 \approx 0.5 \]</p>
+              
+              <p><strong>Observation:</strong> When the input logits are equal, the Softmax probabilities are also equal and distribute the probability mass evenly among the classes.</p>
+              
+              <p><strong>Final Answer:</strong> $$s_1 \approx 0.5$$, $$s_2 \approx 0.5$$. They are equal, as expected for equal logits.</p>
+          </div>
+          
+          <div class="interactive-answer">
+              <h4>Your Answer:</h4>
+              <div>
+                  <label for="s1_1611">s_1 (approx):</label>
+                  <input type="number" id="s1_1611" step="0.001">
+              </div>
+              <div>
+                  <label for="s2_1611">s_2 (approx):</label>
+                  <input type="number" id="s2_1611" step="0.001">
+              </div>
+              <button class="check-button" onclick="checkAnswer1()">Check Answer</button>
+              <div id="feedback-1" class="feedback"></div>
+          </div>
+      </div>
+      
+      <p>Easy peasy, right? If the initial 'evidence' (logits) for all classes is the same, Softmax rightly says they are all equally probable.</p>
+      
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>Difficulty 2: Medium - Three Unequal Scores</h2>
+      <p>Now for a slightly more involved calculation with three classes and different logit values.</p>
+      
+      <div class="exercise-problem">
+          <h4>Problem 2: A network outputs the following logits for 3 classes:</h4>
+          <ul>
+              <li>$$z_1 = 3.0$$</li>
+              <li>$$z_2 = 1.0$$</li>
+              <li>$$z_3 = 0.2$$</li>
+          </ul>
+          <p>Calculate the exponentiated values $$e^{z_1}$$, $$e^{z_2}$$, $$e^{z_3}$$, their sum, and finally the Softmax probabilities $$s_1$$, $$s_2$$, $$s_3$$. (Round final probabilities to 3 decimal places).</p>
+          
+          <button class="reveal-button" onclick="revealSolution('solution-2')">Show Solution</button>
+          
+          <div id="solution-2" class="solution">
+              <h4>Solution:</h4>
+              <p>1. Exponentiate the logits:</p>
+              <p>\[ e^{z_1} = e^{3.0} \approx 20.086 \]</p>
+              <p>\[ e^{z_2} = e^{1.0} \approx 2.718 \]</p>
+              <p>\[ e^{z_3} = e^{0.2} \approx 1.221 \quad \text{(Using } e^{0.2} \approx 1.2214 \text{ for more precision if using a calculator)} \]</p>
+              
+              <p>2. Sum the exponentiated values:</p>
+              <p>\[ \sum e^{z_k} = e^{z_1} + e^{z_2} + e^{z_3} \approx 20.086 + 2.718 + 1.221 = 24.025 \]</p>
+              
+              <p>3. Calculate the probabilities:</p>
+              <p>\[ s_1 = \frac{e^{z_1}}{\sum e^{z_k}} \approx \frac{20.086}{24.025} \]</p>
+              <p>\[ s_2 = \frac{e^{z_2}}{\sum e^{z_k}} \approx \frac{2.718}{24.025} \]</p>
+              <p>\[ s_3 = \frac{e^{z_3}}{\sum e^{z_k}} \approx \frac{1.221}{24.025} \]</p>
+              
+              <p>Result (to 3 decimal places):</p>
+              <p>\[ s_1 \approx 0.836 \]</p>
+              <p>\[ s_2 \approx 0.113 \]</p>
+              <p>\[ s_3 \approx 0.051 \]</p>
+              
+              <p><strong>Check sum:</strong> $$0.836 + 0.113 + 0.051 = 1.000$$.</p>
+              
+              <p><strong>Final Answer:</strong> $$\exp(z_1) \approx 20.086$$, $$\exp(z_2) \approx 2.718$$, $$\exp(z_3) \approx 1.221$$. Sum $$\approx 24.025$$. $$s_1 \approx 0.836$$, $$s_2 \approx 0.113$$, $$s_3 \approx 0.051$$.</p>
+          </div>
+          
+          <div class="interactive-answer">
+              <h4>Your Answer:</h4>
+              <div>
+                  <label for="exp_z1_1612">exp(z1) (3dp):</label>
+                  <input type="number" id="exp_z1_1612" step="0.001">
+              </div>
+              <div>
+                  <label for="exp_z2_1612">exp(z2) (3dp):</label>
+                  <input type="number" id="exp_z2_1612" step="0.001">
+              </div>
+              <div>
+                  <label for="exp_z3_1612">exp(z3) (3dp):</label>
+                  <input type="number" id="exp_z3_1612" step="0.001">
+              </div>
+              <div>
+                  <label for="sum_exp_z_1612">Sum of exp(z_k) (3dp):</label>
+                  <input type="number" id="sum_exp_z_1612" step="0.001">
+              </div>
+              <div>
+                  <label for="s1_1612">s1 (3dp):</label>
+                  <input type="number" id="s1_1612" step="0.001">
+              </div>
+              <div>
+                  <label for="s2_1612">s2 (3dp):</label>
+                  <input type="number" id="s2_1612" step="0.001">
+              </div>
+              <div>
+                  <label for="s3_1612">s3 (3dp):</label>
+                  <input type="number" id="s3_1612" step="0.001">
+              </div>
+              <button class="check-button" onclick="checkAnswer2()">Check Answer</button>
+              <div id="feedback-2" class="feedback"></div>
+          </div>
+      </div>
+      
+      <p>Notice how the class with the highest logit ($$z_1 = 3.0$$) ended up with a much, much higher probability ($$s_1 \approx 0.836$$) than the others. The exponentiation step really amplifies these differences!</p>
+      
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>What would happen to the Softmax probabilities if you added a constant $$C$$ to *all* the logits $$z_k$$ before applying Softmax? (e.g., $$z_{new} = [3+C, 1+C, 0.2+C]$$). Would the probabilities change?</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-1')">Reveal</button>
+          <p id="stop-and-think-1" style="display: none;">Interestingly, the Softmax probabilities would *not* change! If you add a constant $$C$$ to all logits, then $$e^{z_k + C} = e^{z_k} \cdot e^C$$. When you calculate the Softmax, the $$e^C$$ term will appear in both the numerator and every term in the denominator's sum, so it will cancel out! $$s_j = (e^{z_j} \cdot e^C) / (\sum e^{z_k} \cdot e^C) = e^{z_j} / \sum e^{z_k}$$. This property is called 'shift invariance' and is used for numerical stability (by subtracting the max logit from all logits before exponentiating to prevent overflow).</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>Difficulty 3: Hard - Thinking About Relative Scores</h2>
+      <p>This one requires a bit more thought about how Softmax works rather than just plugging numbers into the full formula directly.</p>
+      
+      <div class="exercise-problem">
+          <h4>Problem 3: You have a Softmax output for two classes, and you know $$s_1 = 0.8$$ and $$s_2 = 0.2$$.</h4>
+          <p>If you also know that the logit for the first class $$z_1 = 2.0$$, can you determine (or at least find a relationship involving) the logit for the second class, $$z_2$$?</p>
+          <p>(Hint: $$s_1/s_2 = e^{z_1} / e^{z_2} = e^{z_1 - z_2}$$). You'll likely need $$\ln(x)$$ (natural logarithm). $$\ln(4) \approx 1.386$$.</p>
+          
+          <button class="reveal-button" onclick="revealSolution('solution-3')">Show Solution</button>
+          
+          <div id="solution-3" class="solution">
+              <h4>Solution:</h4>
+              <p>1. We know the relationship from the hint:</p>
+              <p>\[ \frac{s_1}{s_2} = e^{(z_1 - z_2)} \]</p>
+              
+              <p>2. Substitute the given probabilities:</p>
+              <p>\[ \frac{0.8}{0.2} = e^{(z_1 - z_2)} \]</p>
+              
+              <p>Simplify the left side:</p>
+              <p>\[ 4 = e^{(z_1 - z_2)} \]</p>
+              
+              <p>3. To solve for $$(z_1 - z_2)$$, take the natural logarithm (ln) of both sides:</p>
+              <p>\[ \ln(4) = \ln(e^{(z_1 - z_2)}) \]</p>
+              
+              <p>Simplify using $$\ln(e^x) = x$$:</p>
+              <p>\[ \ln(4) = z_1 - z_2 \]</p>
+              
+              <p>4. We are given $$\ln(4) \approx 1.386$$ and $$z_1 = 2.0$$:</p>
+              <p>\[ 1.386 \approx 2.0 - z_2 \]</p>
+              
+              <p>5. Solve for $$z_2$$:</p>
+              <p>\[ z_2 \approx 2.0 - 1.386 \]</p>
+              <p>\[ z_2 \approx 0.614 \]</p>
+              
+              <p><strong>Final Answer:</strong> $$z_2 \approx 0.614$$. The key is that the *difference* between logits determines the *ratio* of probabilities.</p>
+          </div>
+          
+          <div class="interactive-answer">
+              <h4>Your Answer:</h4>
+              <div>
+                  <label for="z2_1613">z2 (approx, 3dp):</label>
+                  <input type="number" id="z2_1613" step="0.001">
+              </div>
+              <button class="check-button" onclick="checkAnswer3()">Check Answer</button>
+              <div id="feedback-3" class="feedback"></div>
+          </div>
+      </div>
+      
+      <p>That last one was a bit more of a puzzle! It highlights that it's the *differences* between the logits that really drive the final probability distribution from Softmax, not their absolute values (due to the shift invariance property we discussed earlier).</p>
+      
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>Being able to do these Softmax calculations (or at least understand them) helps you interpret what your network is outputting. When you see a vector of probabilities, you now know how it was derived from an underlying set of raw scores (logits) that the network computed. It demystifies one more piece of the neural network puzzle!</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+  </section>
+
+  <section id="section6">
+      <h2>You've Mastered the Softmax Shuffle!</h2>
+      <p>Fantastic work calculating those Softmax probabilities!</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A character confidently holding a 'Softmax Certificate of Proficiency', with bar charts of probabilities neatly displayed in the background.">
+      </div>
+      
+      <p>You've now practiced:</p>
+      <ul>
+          <li>The <strong>exponentiation</strong> step.</li>
+          <li>The <strong>summation/normalization</strong> step.</li>
+          <li>The final <strong>division</strong> to get probabilities.</li>
+          <li>And even thought about the <strong>relative impact</strong> of logits.</li>
+      </ul>
+      
+      <p>This is a crucial function in the multiclass classification toolkit.</p>
+      
+      <div class="faq-section">
+          <h3>Frequently Asked Questions</h3>
+          <h4>Why do we use $$e^x$$ (the exponential function) in Softmax? Could other functions work?</h4>
+          <p>That's a very insightful question! The $$e^x$$ function has several nice properties for Softmax:</p>
+          <ol>
+              <li><strong>Always Positive:</strong> Ensures the terms we're summing and dividing are positive, which is necessary for probabilities.</li>
+              <li><strong>Monotonically Increasing:</strong> Larger inputs $$z$$ lead to larger $$e^z$$, so it preserves the ordering of scores (the largest logit will still correspond to the largest $$e^z$$ and thus the largest probability).</li>
+              <li><strong>Differentiability:</strong> $$e^x$$ is smoothly differentiable everywhere, which is vital for gradient-based training (backpropagation).</li>
+              <li><strong>Accentuates Larger Values:</strong> It makes larger logits contribute much more significantly to the probability distribution, leading to more 'decisive' probability outputs when one logit is clearly higher than others.</li>
+          </ol>
+          <p>While other functions could theoretically be used to map scores to a 0-1 range that sums to 1, the specific mathematical properties of $$e^x$$ (especially its simple derivative $$d(e^x)/dx = e^x$$) make it particularly convenient and well-behaved in the context of neural network training and the cross-entropy loss function (which often uses logarithms, the inverse of exponentiation).</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+  </section>
+
+  <section id="section7">
+      <h2>What's Next?</h2>
+      <p>You're becoming quite the neural network mechanic! You can calculate individual neuron outputs and now you can even handle the Softmax transformation for multiclass outputs.</p>
+      
+      <p>The next step on our coding journey (after a quick look at Softmax in action and its derivative) will be to actually *implement* this Softmax function in Python using NumPy. This will take your manual calculation skills and turn them into reusable code! Get ready for <strong>Coding Lesson 17.1</strong> soon!</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A blackboard showing the Softmax formula, with an arrow pointing to a computer screen displaying Python code that implements the same formula. Caption: 'From Math to Code!'">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealSolution(id) {
+          const solution = document.getElementById(id);
+          const revealButton = event.target;
+          
+          solution.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function checkAnswer1() {
+          const s1 = parseFloat(document.getElementById("s1_1611").value);
+          const s2 = parseFloat(document.getElementById("s2_1611").value);
+          const feedback = document.getElementById("feedback-1");
+          
+          // Check if answers are approximately correct (allowing for small rounding errors)
+          const isCorrect = Math.abs(s1 - 0.5) < 0.01 && Math.abs(s2 - 0.5) < 0.01;
+          
+          feedback.style.display = "block";
+          if (isCorrect) {
+              feedback.className = "feedback correct";
+              feedback.innerHTML = "Correct! When the logits are equal, the Softmax probabilities are equal too.";
+          } else {
+              feedback.className = "feedback incorrect";
+              feedback.innerHTML = "Not quite right. Remember, when the logits are equal, the Softmax probabilities should be equal too. Try again!";
+          }
+      }
+
+      function checkAnswer2() {
+          const expZ1 = parseFloat(document.getElementById("exp_z1_1612").value);
+          const expZ2 = parseFloat(document.getElementById("exp_z2_1612").value);
+          const expZ3 = parseFloat(document.getElementById("exp_z3_1612").value);
+          const sumExp = parseFloat(document.getElementById("sum_exp_z_1612").value);
+          const s1 = parseFloat(document.getElementById("s1_1612").value);
+          const s2 = parseFloat(document.getElementById("s2_1612").value);
+          const s3 = parseFloat(document.getElementById("s3_1612").value);
+          const feedback = document.getElementById("feedback-2");
+          
+          // Check if answers are approximately correct (allowing for small rounding errors)
+          const isExpZ1Correct = Math.abs(expZ1 - 20.086) < 0.01;
+          const isExpZ2Correct = Math.abs(expZ2 - 2.718) < 0.01;
+          const isExpZ3Correct = Math.abs(expZ3 - 1.221) < 0.01;
+          const isSumExpCorrect = Math.abs(sumExp - 24.025) < 0.01;
+          const isS1Correct = Math.abs(s1 - 0.836) < 0.01;
+          const isS2Correct = Math.abs(s2 - 0.113) < 0.01;
+          const isS3Correct = Math.abs(s3 - 0.051) < 0.01;
+          
+          const isAllCorrect = isExpZ1Correct && isExpZ2Correct && isExpZ3Correct && 
+                              isSumExpCorrect && isS1Correct && isS2Correct && isS3Correct;
+          
+          feedback.style.display = "block";
+          if (isAllCorrect) {
+              feedback.className = "feedback correct";
+              feedback.innerHTML = "Excellent work! Your calculations are correct. Notice how the highest logit (z_1 = 3.0) results in a much higher probability (s_1 ≈ 0.836).";
+          } else {
+              feedback.className = "feedback incorrect";
+              feedback.innerHTML = "Some of your calculations need adjustment. Double-check your exponentiation, summation, and division steps. Remember to round to 3 decimal places.";
+          }
+      }
+
+      function checkAnswer3() {
+          const z2 = parseFloat(document.getElementById("z2_1613").value);
+          const feedback = document.getElementById("feedback-3");
+          
+          // Check if answer is approximately correct (allowing for small rounding errors)
+          const isCorrect = Math.abs(z2 - 0.614) < 0.01;
+          
+          feedback.style.display = "block";
+          if (isCorrect) {
+              feedback.className = "feedback correct";
+              feedback.innerHTML = "Perfect! You've correctly determined that z_2 ≈ 0.614. This shows how the difference between logits (z_1 - z_2) determines the ratio of probabilities (s_1/s_2).";
+          } else {
+              feedback.className = "feedback incorrect";
+              feedback.innerHTML = "Not quite right. Remember to use the relationship s_1/s_2 = e^(z_1 - z_2), then solve for z_2 using the natural logarithm.";
+          }
+      }
+  </script>
+</body>
+</html>

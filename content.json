@@ -1,0 +1,128 @@
+{
+  "learningPaths": [
+    {
+      "id": "foundational-math",
+      "title": "Foundational Math",
+      "description": "Master problem solving essentials in math",
+      "icon": "course_content/assets/icons/math-icon.svg",
+      "folder": "01-foundational-math",
+      "modules": [
+        {
+          "id": "solving-equations",
+          "title": "Solving Equations",
+          "icon": "course_content/assets/icons/equations-icon.svg",
+          "folder": "01-solving-equations",
+          "lessons": [
+            { "id": "intro-to-equations", "title": "Introduction to Equations", "file": "01-intro.html", "level": "Level 1" },
+            { "id": "one-step-equations", "title": "One-Step Equations", "file": "02-one-step.html", "level": "Level 1" }
+          ]
+        },
+        {
+          "id": "advanced-algebra",
+          "title": "Advanced Algebra",
+          "icon": "course_content/assets/icons/algebra-icon.svg",
+          "folder": "02-advanced-algebra",
+          "lessons": [
+            { "id": "intro-to-algebra", "title": "Introduction to Algebra", "file": "01-intro-algebra.html", "level": "Level 1" },
+            { "id": "quadratic-equations", "title": "Quadratic Equations", "file": "02-quadratic.html", "level": "Level 2" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "intro-to-programming",
+      "title": "Introduction to Programming",
+      "description": "Learn the basics of programming with Python",
+      "icon": "course_content/assets/icons/programming-icon.svg",
+      "folder": "02-intro-to-programming",
+      "modules": [
+        {
+          "id": "python-basics",
+          "title": "Python Basics",
+          "icon": "course_content/assets/icons/python-icon.svg",
+          "folder": "01-python-basics",
+          "lessons": [
+            { "id": "hello-world", "title": "Hello, World!", "file": "01-hello-world.html", "level": "Level 1" },
+            { "id": "variables-types", "title": "Variables and Data Types", "file": "02-variables.html", "level": "Level 1" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gradient-descent",
+      "title": "Gradient Descent",
+      "description": "Understanding the Gradient Descent algorithm.",
+      "icon": "course_content/assets/icons/gradient-descent-icon.svg",
+      "folder": "01-gradient-descent",
+      "modules": [
+        {
+          "id": "core-concepts-gd",
+          "title": "Core Concepts",
+          "icon": "course_content/assets/icons/gradient-descent-icon.svg",
+          "folder": "lessons",
+          "lessons": [
+            { "id": "gd-part1", "title": "Gradient Descent Part 1", "file": "index1.html", "level": "Level 1" },
+            { "id": "gd-part2", "title": "Gradient Descent Part 2", "file": "index2.html", "level": "Level 1" },
+            { "id": "gd-part3", "title": "Gradient Descent Part 3", "file": "index3.html", "level": "Level 1" },
+            { "id": "gd-part4", "title": "Gradient Descent Part 4", "file": "index4.html", "level": "Level 1" },
+            { "id": "gd-part5", "title": "Gradient Descent Part 5", "file": "index5.html", "level": "Level 1" },
+            { "id": "gd-part6", "title": "Gradient Descent Part 6", "file": "index6.html", "level": "Level 1" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "neural-networks",
+      "title": "Neural Networks",
+      "description": "Introduction to Neural Networks.",
+      "icon": "course_content/assets/icons/neural-networks-icon.svg",
+      "folder": "02-neural-networks",
+      "modules": [
+        {
+          "id": "fundamentals-nn",
+          "title": "Fundamentals",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "lessons",
+          "lessons": [
+            { "id": "nn-part1", "title": "Neural Networks Part 1", "file": "index1.html", "level": "Level 1" },
+            { "id": "nn-part2", "title": "Neural Networks Part 2", "file": "index2.html", "level": "Level 1" },
+            { "id": "nn-part3", "title": "Neural Networks Part 3", "file": "index3.html", "level": "Level 1" },
+            { "id": "nn-part4", "title": "Neural Networks Part 4", "file": "index4.html", "level": "Level 1" },
+            { "id": "nn-part5", "title": "Neural Networks Part 5", "file": "index5.html", "level": "Level 1" },
+            { "id": "nn-part6", "title": "Neural Networks Part 6", "file": "index6.html", "level": "Level 1" },
+            { "id": "nn-part7", "title": "Neural Networks Part 7", "file": "index7.html", "level": "Level 1" },
+            { "id": "nn-part8", "title": "Neural Networks Part 8", "file": "index8.html", "level": "Level 1" },
+            { "id": "nn-part9", "title": "Neural Networks Part 9", "file": "index9.html", "level": "Level 1" },
+            { "id": "nn-part10", "title": "Neural Networks Part 10", "file": "index10.html", "level": "Level 1" },
+            { "id": "nn-part11", "title": "Neural Networks Part 11", "file": "index11.html", "level": "Level 1" },
+            { "id": "nn-part12", "title": "Neural Networks Part 12", "file": "index12.html", "level": "Level 1" },
+            { "id": "nn-part13", "title": "Neural Networks Part 13", "file": "index13.html", "level": "Level 1" },
+            { "id": "nn-part14", "title": "Neural Networks Part 14", "file": "index14.html", "level": "Level 1" },
+            { "id": "nn-part15", "title": "Neural Networks Part 15", "file": "index15.html", "level": "Level 1" },
+            { "id": "nn-part16", "title": "Neural Networks Part 16", "file": "index16.html", "level": "Level 1" },
+            { "id": "nn-part17", "title": "Neural Networks Part 17", "file": "index17.html", "level": "Level 1" },
+            { "id": "nn-part18", "title": "Neural Networks Part 18", "file": "index18.html", "level": "Level 1" },
+            { "id": "nn-part19", "title": "Neural Networks Part 19", "file": "index19.html", "level": "Level 1" },
+            { "id": "nn-part20", "title": "Neural Networks Part 20", "file": "index20.html", "level": "Level 1" },
+            { "id": "nn-part21", "title": "Neural Networks Part 21", "file": "index21.html", "level": "Level 1" },
+            { "id": "nn-part22", "title": "Neural Networks Part 22", "file": "index22.html", "level": "Level 1" },
+            { "id": "nn-part23", "title": "Neural Networks Part 23", "file": "index23.html", "level": "Level 1" },
+            { "id": "nn-part24", "title": "Neural Networks Part 24", "file": "index24.html", "level": "Level 1" },
+            { "id": "nn-part25", "title": "Neural Networks Part 25", "file": "index25.html", "level": "Level 1" },
+            { "id": "nn-part26", "title": "Neural Networks Part 26", "file": "index26.html", "level": "Level 1" },
+            { "id": "nn-part27", "title": "Neural Networks Part 27", "file": "index27.html", "level": "Level 1" },
+            { "id": "nn-part28", "title": "Neural Networks Part 28", "file": "index28.html", "level": "Level 1" },
+            { "id": "nn-part29", "title": "Neural Networks Part 29", "file": "index29.html", "level": "Level 1" },
+            { "id": "nn-part30", "title": "Neural Networks Part 30", "file": "index30.html", "level": "Level 1" },
+            { "id": "nn-part31", "title": "Neural Networks Part 31", "file": "index31.html", "level": "Level 1" },
+            { "id": "nn-part32", "title": "Neural Networks Part 32", "file": "index32.html", "level": "Level 1" },
+            { "id": "nn-part33", "title": "Neural Networks Part 33", "file": "index33.html", "level": "Level 1" },
+            { "id": "nn-part34", "title": "Neural Networks Part 34", "file": "index34.html", "level": "Level 1" },
+            { "id": "nn-part35", "title": "Neural Networks Part 35", "file": "index35.html", "level": "Level 1" },
+            { "id": "nn-part36", "title": "Neural Networks Part 36", "file": "index36.html", "level": "Level 1" }
+          ]
+        }
+      ]
+    }
+  ]
+} 

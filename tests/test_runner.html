@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Tests - Learning Nugget Previewer</title>
+    <link rel="stylesheet" href="../style.css"> <!-- Optional: for some basic styling -->
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        #test-results ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        #test-results li {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+        #test-results li.passed {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        #test-results li.failed {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        #test-results li.failed pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f1f1f1;
+            padding: 5px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            font-size: 0.9em;
+        }
+        h1, h3 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Unit Test Results for <code>content.json</code> Parser</h1>
+    <p>These tests target the <code>validateAndSanitizeContent</code> function from <code>script.js</code>.</p>
+    <p>Open the browser's developer console to see detailed logs, including any caught errors or warnings during tests.</p>
+
+    <div id="test-results">
+        <p>Running tests...</p>
+    </div>
+
+    <!-- Load the main script which contains the function to be tested -->
+    <!-- IMPORTANT: Ensure the path to script.js is correct relative to this HTML file -->
+    <script src="../script.js"></script>
+
+    <!-- Load the test script -->
+    <script src="test_content_parser.js"></script>
+
+    <script>
+        // Run the tests once both scripts are loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if the function to be tested is available
+            if (typeof validateAndSanitizeContent === 'function') {
+                console.log("'validateAndSanitizeContent' function found. Running tests...");
+                runTests(); // This function is defined in test_content_parser.js
+            } else {
+                console.error("'validateAndSanitizeContent' function NOT found. Check script paths and ensure it's globally accessible or properly exported/imported if using modules for tests.");
+                const resultsDiv = document.getElementById('test-results');
+                if (resultsDiv) {
+                    resultsDiv.innerHTML = "<h3>Error: Could not find the 'validateAndSanitizeContent' function. Tests cannot run. Check console.</h3>";
+                    resultsDiv.className = 'failed';
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

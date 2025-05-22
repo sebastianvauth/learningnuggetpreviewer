@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coding Lesson 9.1: Implementing a Single Layer Forward Pass (NumPy)</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .faq-section {
+          background-color: #fffbea; /* Light yellow background */
+      }
+      .faq-section h3 {
+          color: #ffcc00; /* Bright yellow heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .faq-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      pre {
+          background-color: #f5f5f5;
+          padding: 15px;
+          border-radius: 5px;
+          overflow-x: auto;
+          font-size: 0.8em;
+          line-height: 1.4;
+      }
+      code {
+          font-family: 'Courier New', Courier, monospace;
+      }
+      .solution {
+          background-color: #f0fff0;
+          padding: 15px;
+          border-radius: 5px;
+          border-left: 5px solid #28a745;
+          margin-top: 20px;
+          display: none;
+      }
+      .solution h4 {
+          color: #28a745;
+          margin-top: 0;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A visual metaphor: A mathematical equation for a layer's forward pass (a = φ(W^T A_prev + b)) being fed into a 'Python/NumPy Compiler' machine, which then outputs clean, efficient code. Python and NumPy logos are prominent.">
+      </div>
+      <h1>Coding Lesson 9.1: Implementing a Single Layer Forward Pass (NumPy)</h1>
+      <h2>From Math to Machine: Coding a Layer</h2>
+      <p>Hey coders! We've crunched the numbers by hand in our exercise lesson, using matrix notation to calculate the output of a neural network layer. You saw how vectors and matrices make these calculations neat and organized, especially compared to writing out individual neuron sums.</p>
+      <p>Now, it's time to take the next big step: translating that mathematical understanding into actual <strong>code</strong>! In this lesson, we'll use Python and the powerful <strong>NumPy</strong> library to implement the 'forward pass' for a single, fully connected neural network layer. This is a fundamental building block for constructing and understanding larger networks.</p>
+      <p>Get your favorite Python environment ready (like a Jupyter Notebook or Google Colab), and let's turn those equations into working code!</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Our Goal: The Forward Pass Equation</h2>
+      <p>Remember the core equation for calculating the activation $$A$$ of a layer, given the activation $$A_{prev}$$ from the previous layer, the weight matrix $$W$$, the bias vector $$b$$, and an activation function $$\phi$$?</p>
+      
+      <h3>The Equations We'll Code</h3>
+      <h4>1. Net Input Vector $$Z$$ (Logits)</h4>
+      <p>First, we calculate the linear part, the net input vector $$Z$$ (we used $$z^{(l)}$$ before, let's use uppercase for our code variables). Assuming our $$W$$ is $$n_{inputs} \times n_{outputs\_in\_this\_layer}$$ (i.e., $$n_{l-1} \times n_l$$ as per our previous exercises) and $$A_{prev}$$ is a column vector of inputs from the previous layer.</p>
+      <p>\[ Z = W^T A_{prev} + b \]</p>
+      
+      <h4>2. Activation Vector $$A$$ (Output of this layer)</h4>
+      <p>Then, we apply an activation function $$\phi$$ element-wise to $$Z$$.</p>
+      <p>\[ A = \phi(Z) \]</p>
+      
+      <p>Our mission is to write Python code using NumPy that performs these two steps.</p>
+      
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">NumPy</h4>
+          <p>A fundamental package for scientific computing with Python. It provides support for large, multi-dimensional arrays and matrices, along with a collection of high-level mathematical functions to operate on these arrays. It's the backbone of many data science and machine learning libraries in Python.</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Setting Up Our Python Environment (NumPy)</h2>
+      <p>Before we start coding the tasks, let's set up some example data using NumPy arrays. If you're in a Jupyter Notebook or Colab, the first step is usually to import NumPy.</p>
+      
+      <pre><code># Import the NumPy library
+import numpy as np
+
+# Let's define an example:
+# A_prev: Activation from the previous layer (e.g., 3 input features)
+# Assume we have ONE training example here for simplicity in display.
+# A_prev will be a column vector (3 features, 1 example)
+A_prev = np.array([[1.0], 
+                   [2.0], 
+                   [-1.0]])
+
+# W: Weight matrix for the current layer
+# This layer will have 2 neurons. 
+# W should be (n_inputs_from_A_prev, n_neurons_in_this_layer) -> (3, 2)
+W = np.array([[0.5, -0.2],  # Weights for neuron 1 (col 1), neuron 2 (col 2) from input 1
+                [0.1,  0.7],  # Weights for neuron 1, neuron 2 from input 2
+                [-0.3, 0.4]]) # Weights for neuron 1, neuron 2 from input 3
+
+# b: Bias vector for the current layer (one bias per neuron in this layer)
+# b should be a column vector (n_neurons_in_this_layer, 1) -> (2, 1)
+b = np.array([[0.1], 
+                [-0.5]])
+
+# Let's also define our Sigmoid activation function
+def sigmoid(Z):
+    A = 1 / (1 + np.exp(-Z))
+    return A
+
+print("A_prev (Input Activations):\n", A_prev)
+print("W (Weights):\n", W)
+print("b (Biases):\n", b)</code></pre>
+      
+      <p>Run this setup code in your notebook. You should see the matrices and vectors printed out. Notice the shapes: $$A_{prev}$$ is 3x1, $$W$$ is 3x2, and $$b$$ is 2x1.</p>
+      
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>Given $$W$$ is 3x2 (meaning $$n_{l-1}=3, n_l=2$$), what will be the shape of $$W^T$$ (W transpose)? And what will be the shape of the resulting $$Z$$ vector before adding $$b$$?</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-1')">Reveal</button>
+          <p id="stop-and-think-1" style="display: none;">$$W^T$$ will be 2x3. <br>When we calculate $$W^T \cdot A_{prev}$$, it will be $$(2 \times 3) \cdot (3 \times 1)$$, resulting in a $$2 \times 1$$ vector for $$Z$$. This matches the shape of $$b$$ (2x1), so the addition is valid!</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>Task 1: Calculate the Net Input Vector $$Z$$</h2>
+      <p>Alright, first mission! Using the NumPy arrays $$A_{prev}$$, $$W$$, and $$b$$ we just defined, your task is to calculate the net input vector $$Z$$ according to the formula: $$Z = W^T A_{prev} + b$$.</p>
+      
+      <pre><code># Task 1: Calculate Z = W.T @ A_prev + b
+# Remember: 
+# - W.T gives the transpose of W
+# - The '@' symbol is used for matrix multiplication in Python 3.5+ (or use np.dot())
+
+# YOUR CODE HERE for Z:
+
+# ------------
+
+print("Z (Net Inputs):\n", Z)</code></pre>
+      
+      <p>Add your line of code to calculate $$Z$$ and then print it.</p>
+      
+      <p><strong>Expected Output for Z (based on our example values):</strong><br>
+      If you did it right, $$Z$$ should be approximately:</p>
+      <pre><code>Z (Net Inputs):
+ [[1.1]
+  [0.3]]</code></pre>
+      
+      <p>Let's quickly verify that by hand for the first element of Z:<br>
+      $$Z_1 = (W_{col1})^T \cdot A_{prev} + b_1 = [0.5, 0.1, -0.3] \cdot [[1.0],[2.0],[-1.0]] + 0.1$$<br>
+      $$Z_1 = (0.5 \cdot 1.0 + 0.1 \cdot 2.0 + (-0.3) \cdot (-1.0)) + 0.1$$<br>
+      $$Z_1 = (0.5 + 0.2 + 0.3) + 0.1 = 1.0 + 0.1 = 1.1$$</p>
+      
+      <button class="reveal-button" onclick="revealSolution('solution-1')">Show Solution</button>
+      <div id="solution-1" class="solution">
+          <h4>Solution for Task 1</h4>
+          <pre><code>Z = W.T @ A_prev + b
+# Or using np.dot():
+# Z = np.dot(W.T, A_prev) + b</code></pre>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>Task 2: Calculate the Activation Vector $$A$$</h2>
+      <p>Great! Now that you have the net input vector $$Z$$, the next step is to pass it through our $$sigmoid$$ activation function to get the final activation vector $$A$$ for this layer: $$A = sigmoid(Z)$$.</p>
+      
+      <pre><code># Task 2: Calculate A = sigmoid(Z)
+# We already defined the sigmoid function earlier.
+
+# YOUR CODE HERE for A:
+
+# ------------
+
+print("A (Activations):\n", A)</code></pre>
+      
+      <p>Add your line of code to calculate $$A$$ and print it.</p>
+      
+      <p><strong>Expected Output for A (based on $$Z = [[1.1], [0.3]]$$):</strong><br>
+      $$sigmoid(1.1) \approx 1 / (1 + exp(-1.1)) \approx 1 / (1 + 0.3328) \approx 1 / 1.3328 \approx 0.750$$<br>
+      $$sigmoid(0.3) \approx 1 / (1 + exp(-0.3)) \approx 1 / (1 + 0.7408) \approx 1 / 1.7408 \approx 0.574$$</p>
+      
+      <p>So, $$A$$ should be approximately:</p>
+      <pre><code>A (Activations):
+ [[0.75026011]
+  [0.57444252]]</code></pre>
+      
+      <button class="reveal-button" onclick="revealSolution('solution-2')">Show Solution</button>
+      <div id="solution-2" class="solution">
+          <h4>Solution for Task 2</h4>
+          <pre><code>A = sigmoid(Z)</code></pre>
+      </div>
+      
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>You've just implemented the core computation of a neural network layer! This 'forward pass' – taking inputs and producing activations – is what happens in every single layer of a deep network when it's making a prediction. NumPy handles all the complex matrix math efficiently under the hood.</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+  </section>
+
+  <section id="section6">
+      <h2>Bonus Task: Creating a Reusable Function</h2>
+      <p>To make our code more organized and reusable (which is always good practice!), let's wrap these calculations into a Python function.</p>
+      
+      <p>Your task is to create a function called $$linear\_activation\_forward$$ that takes $$A_{prev}$$, $$W$$, $$b$$, and a string $$activation\_type$$ (which can be 'sigmoid' or 'relu') as inputs.</p>
+      
+      <p>This function should:<br>
+      1. Calculate $$Z = W^T \cdot A_{prev} + b$$.<br>
+      2. Apply the specified activation function ($$sigmoid$$ or $$relu$$). You'll need to define a $$relu$$ function too: $$def\ relu(Z): return\ np.maximum(0, Z)$$.<br>
+      3. Return both the activation $$A$$ and the net input $$Z$$ (we often need $$Z$$ for calculations in the backward pass during training, so it's good to keep it).</p>
+      
+      <pre><code># Bonus Task: Implement linear_activation_forward function
+
+def relu(Z):
+    A = np.maximum(0, Z)
+    return A
+
+def linear_activation_forward(A_prev, W, b, activation_type):
+    """
+    Implements the forward propagation for the LINEAR->ACTIVATION layer
+
+    Arguments:
+    A_prev -- activations from previous layer (or input data): (size of previous layer, number of examples)
+    W -- weights matrix: numpy array of shape (size of previous layer, size of current layer)
+    b -- bias vector, numpy array of shape (size of current layer, 1)
+    activation_type -- the activation to be used in this layer, stored as a text string: "sigmoid" or "relu"
+
+    Returns:
+    A -- output of the activation function
+    cache -- a python tuple containing "linear_cache" and "activation_cache";
+             stored for computing the backward pass efficiently. For now, just return (A_prev, W, b, Z)
+    """
+    
+    # Calculate Z (Linear Part)
+    # YOUR CODE HERE
+    
+    # ----
+    
+    if activation_type == "sigmoid":
+        # YOUR CODE HERE
+        
+        # ----
+    elif activation_type == "relu":
+        # YOUR CODE HERE
+        
+        # ----
+    
+    # For now, our 'cache' will just be Z. In a full implementation, it's more structured.
+    # We also need A_prev, W, b for the backward pass. Let's return them with Z.
+    return A, Z
+
+# Test with Sigmoid
+A_sigmoid, Z_sigmoid = linear_activation_forward(A_prev, W, b, "sigmoid")
+print("Sigmoid Z:\n", Z_sigmoid)
+print("Sigmoid A:\n", A_sigmoid)
+
+# Test with ReLU
+# Let's use a Z that would show ReLU's effect, e.g., Z_for_relu = np.array([[-0.5],[2.0]])
+# Or re-calculate Z with new parameters if needed for a good ReLU example.
+# For now, just use the same W, b, A_prev for consistency of the function call.
+A_relu, Z_relu = linear_activation_forward(A_prev, W, b, "relu") # Z_relu will be same as Z_sigmoid
+print("ReLU Z:\n", Z_relu)
+print("ReLU A:\n", A_relu)</code></pre>
+      
+      <button class="reveal-button" onclick="revealSolution('solution-3')">Show Solution</button>
+      <div id="solution-3" class="solution">
+          <h4>Solution for Bonus Task</h4>
+          <pre><code>def relu(Z):
+    A = np.maximum(0, Z)
+    return A
+
+def linear_activation_forward(A_prev, W, b, activation_type):
+    # Calculate Z (Linear Part)
+    Z = W.T @ A_prev + b
+    
+    if activation_type == "sigmoid":
+        A = sigmoid(Z)
+    elif activation_type == "relu":
+        A = relu(Z)
+    
+    # For now, our 'cache' will just be Z. In a full implementation, it's more structured.
+    # We also need A_prev, W, b for the backward pass. Let's return them with Z.
+    return A, Z</code></pre>
+      </div>
+      
+      <p>By creating such a function, you can easily compute the forward pass for any layer by just providing its inputs, parameters, and the type of activation you want to use. This is a step towards building a multi-layer network!</p>
+      
+      <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+  </section>
+
+  <section id="section7">
+      <h2>Congratulations, Code Warrior!</h2>
+      <p>You've successfully translated the math of a neural network layer into working Python code using NumPy! This is a significant step.</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A character cheering, holding a Python logo in one hand and a NumPy logo in the other, with lines of code and matrix equations happily intertwined in the background.">
+      </div>
+      
+      <p>You now understand how to:</p>
+      <ul>
+          <li>Represent inputs, weights, and biases as NumPy arrays.</li>
+          <li>Perform matrix multiplication for the weighted sum.</li>
+          <li>Implement activation functions like Sigmoid and ReLU.</li>
+          <li>Structure your code into reusable functions.</li>
+      </ul>
+      
+      <p>This forward pass calculation is half of the story for how neural networks operate. The other half, which involves learning the weights and biases, is called the 'backward pass' or backpropagation, which uses the derivatives we've talked about. We'll explore that in much more detail in future, more advanced modules!</p>
+      
+      <div class="faq-section">
+          <h3>Frequently Asked Questions</h3>
+          <h4>In the bonus task, $$A_{prev}$$ was a single column vector (one example). How would this change if I had multiple training examples?</h4>
+          <p>Excellent question! If you have multiple training examples, $$A_{prev}$$ would become a matrix where each <em>column</em> is one training example. So, if you had $$m$$ training examples and $$n_{prev\_features}$$, $$A_{prev}$$ would be $$n_{prev\_features} \times m$$.</p>
+          <p>The formula $$Z = W^T \cdot A_{prev} + b$$ still works beautifully thanks to NumPy's broadcasting!</p>
+          <ul>
+              <li>$$W^T$$ is $$n_{curr\_neurons} \times n_{prev\_features}$$.</li>
+              <li>$$A_{prev}$$ is $$n_{prev\_features} \times m_{examples}$$.</li>
+              <li>$$W^T \cdot A_{prev}$$ becomes $$n_{curr\_neurons} \times m_{examples}$$ (this is $$Z$$ before bias).</li>
+              <li>$$b$$ is $$n_{curr\_neurons} \times 1$$. NumPy will 'broadcast' $$b$$ by adding it to each column of $$Z$$.</li>
+          </ul>
+          <p>So your $$Z$$ and $$A$$ outputs will also be $$n_{curr\_neurons} \times m_{examples}$$, with each column holding the results for one training example. This is super efficient!</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+  </section>
+
+  <section id="section8">
+      <h2>Next Steps in Our Activation Journey</h2>
+      <p>We've built a solid understanding of individual neurons, how they form layers, and even coded up a layer's forward pass.</p>
+      
+      <p>Now, it's time to revisit our <strong>Activation Function Zoo</strong> with more depth. We'll explore their specific properties, common use cases, and the pros and cons of using functions like Identity, Sigmoid, Tanh, and the ever-popular ReLU. We'll also see how a small tweak to ReLU gives us 'Leaky ReLU' and why their derivatives are so important for learning. Get ready for Part 2 of our Zoo Tour!</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A path leading towards a sign that says 'Activation Function Zoo - Part 2: Deeper Dive!' with stylized graphs of Sigmoid, Tanh, ReLU in the background.">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function revealSolution(id) {
+          const solution = document.getElementById(id);
+          const revealButton = event.target;
+          
+          solution.style.display = "block";
+          revealButton.style.display = "none";
+      }
+  </script>
+</body>
+</html>

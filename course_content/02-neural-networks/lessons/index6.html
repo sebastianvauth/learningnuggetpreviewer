@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weaving the Web: Layers and Connections in Neural Networks</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .option {
+          margin-bottom: 10px;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+      .option:hover {
+          background-color: #f5f5f5;
+      }
+      .option.selected {
+          background-color: #e6ffe6;
+          border-color: #28a745;
+      }
+      .option.correct {
+          background-color: #d4edda;
+          border-color: #28a745;
+      }
+      .option.incorrect {
+          background-color: #f8d7da;
+          border-color: #dc3545;
+      }
+      .explanation {
+          margin-top: 10px;
+          padding: 10px;
+          background-color: #f8f9fa;
+          border-radius: 5px;
+          display: none;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="An artistic image of glowing nodes (neurons) interconnected by pathways (connections) forming a complex, multi-layered web or network structure, symbolizing the architecture of a neural network.">
+      </div>
+      <h1>Weaving the Web: Layers and Connections in Neural Networks</h1>
+      <p>Hey there, network architects! In our last lesson, we got up close and personal with the artificial neuron – that fundamental little processing unit. We saw how it takes inputs, weighs them, adds a bias, and uses an activation function to produce an output. Pretty neat for a single 'cell'!</p>
+      <p>But, as you can imagine, one neuron alone can only do so much. The real power, the kind that can recognize images or understand language, comes when we connect <em>many</em> of these neurons together. Just like in our brains, it's the <em>network</em> that holds the magic! Today, we're going to explore how these neurons are typically organized into <strong>layers</strong> and how information flows through them. Get ready to see how we go from a single brick to building a whole castle!</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>The Layered Look: Input, Hidden, and Output</h2>
+      <p>When we build artificial neural networks, we don't just throw neurons together randomly. We organize them into well-defined <strong>layers</strong>.</p>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=400&width=600" alt="An animated build-up of a simple feedforward neural network diagram, showing input layer with 2 nodes, a hidden layer with 3 neurons, and an output layer with 1 neuron, with connections between all nodes in adjacent layers.">
+      </div>
+      <p>Let's walk through these typical layers:</p>
+      <ul>
+          <li><strong>Input Layer:</strong> This is the very first layer and it's where your data enters the network. If you're feeding an image, the input layer might represent the pixel values. If you're predicting house prices, it might represent features like square footage and number of bedrooms. Importantly, the 'nodes' in the input layer don't usually perform any computation; they just pass the input values along to the first hidden layer.</li>
+          <li><strong>Hidden Layer(s):</strong> This is where the real computational heavy lifting happens! Neurons in a hidden layer receive inputs from all the neurons in the previous layer (which could be the input layer or another hidden layer). Each hidden neuron does its usual job: calculates a weighted sum of its inputs, adds a bias, and passes the result through an activation function. The outputs of these hidden neurons then become inputs for the <em>next</em> layer. A network can have just one hidden layer, or it can have many, stacked one after another. Networks with multiple hidden layers are often called <strong>Deep Neural Networks</strong>.</li>
+          <li><strong>Output Layer:</strong> This is the final layer of the network. It receives inputs from the last hidden layer and produces the network's final output or prediction. The structure of the output layer (how many neurons it has, and what activation functions they use) depends heavily on the type of problem you're trying to solve (e.g., predicting a single number, or classifying into one of many categories).</li>
+      </ul>
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">Feedforward Neural Network</h4>
+          <p>A type of artificial neural network where connections between the nodes do <em>not</em> form a cycle. Information moves in only one direction: forward, from the input nodes, through the hidden layers (if any), and to the output nodes. There are no loops or cycles in the network.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Going with the Flow: Feedforward and Fully Connected</h2>
+      <p>One of the most common types of neural network architectures you'll encounter, especially when starting out, has a specific way information travels and how its neurons are linked.</p>
+      <p>Notice in our diagram how the information flows strictly in one direction: from the input layer, through the hidden layer(s), to the output layer. There are no connections that loop back to a previous layer. This uni-directional flow defines a <strong>Feedforward Neural Net</strong>.</p>
+      <p>Another term you'll hear a lot is <strong>fully connected</strong> (or sometimes 'dense'). Look at the connections between, say, the Input Layer and the Hidden Layer in our diagram. Every node in the Input Layer is connected to <em>every</em> neuron in the Hidden Layer. Similarly, every neuron in the Hidden Layer is connected to <em>every</em> neuron in the Output Layer. When all units in one layer connect to all units in the next, we call those layers <strong>fully connected</strong>.</p>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=400&width=600" alt="A diagram of a neural network with 3 hidden layers, showing data flow from input through hidden layers to output, with highlighted connections demonstrating the fully connected nature of the network.">
+      </div>
+      <p>Most of the networks we'll discuss initially will be feedforward and have fully connected layers. It's a very common and powerful starting point!</p>
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>If a network has 3 input nodes, a hidden layer with 5 neurons, and an output layer with 2 neurons, and all layers are fully connected, how many weights (not including biases) would there be between the input and hidden layer? And between the hidden and output layer?</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-1')">Reveal</button>
+          <p id="stop-and-think-1" style="display: none;">Between Input (3 nodes) and Hidden (5 neurons): Each of the 5 hidden neurons receives input from all 3 input nodes. So, that's 3 weights per hidden neuron. With 5 hidden neurons, it's <code>3 * 5 = 15</code> weights.<br><br>Between Hidden (5 neurons) and Output (2 neurons): Each of the 2 output neurons receives input from all 5 hidden neurons. So, that's 5 weights per output neuron. With 2 output neurons, it's <code>5 * 2 = 10</code> weights.<br><br>Total weights (excluding biases) = 15 + 10 = 25.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>The Power of Depth</h2>
+      <p>We mentioned that networks can have one or <em>many</em> hidden layers.</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A visual metaphor: A single-layer 'shallow' wading pool next to a multi-layered 'deep' diving pool. The shallow pool has simple toys. The deep pool has complex underwater structures and treasures. Caption: 'Shallow vs. Deep: Depth allows for more complex discoveries!'">
+      </div>
+      <p>Why would we want many hidden layers (a 'deep' network)?</p>
+      <p>While a network with a single, sufficiently wide hidden layer can theoretically approximate any function (as we'll see later with the Universal Approximation Theorem), deep networks often have practical advantages:</p>
+      <ul>
+          <li><strong>Learning Hierarchies of Features:</strong> Deep networks are thought to learn features in a hierarchical way. Early layers might learn very simple patterns (like edges or basic shapes in an image). Subsequent layers then combine these simpler features to learn more complex ones (like 'an eye' or 'a wheel'), and even later layers might combine those to recognize entire objects ('a cat', 'a car'). This hierarchical feature extraction is very powerful for complex data.</li>
+          <li><strong>Efficiency:</strong> Often, a deep network can represent a complex function more efficiently (with fewer total neurons and weights) than a very wide but shallow network.</li>
+      </ul>
+      <p>We'll touch more on this when we discuss why deep learning is so effective.</p>
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>Understanding this layered, feedforward, and often fully connected structure is key to visualizing how a neural network processes information. Each layer performs a transformation on the data it receives from the previous layer, ideally extracting more and more meaningful patterns as the data flows through, until the output layer can make a good prediction.</p>
+      </div>
+      <div class="test-your-knowledge">
+          <h3>Test Your Knowledge</h3>
+          <h4>In a feedforward neural network, can a connection go from Layer 3 directly back to Layer 1?</h4>
+          <div class="options">
+              <div class="option" onclick="selectOption(this, false)">
+                  Yes, if it's a fully connected network.
+                  <div class="explanation">Fully connected refers to connections between <em>adjacent</em> layers. Feedforward means information only flows forward.</div>
+              </div>
+              <div class="option" onclick="selectOption(this, true)">
+                  No, because information only flows in one direction (forward).
+                  <div class="explanation">That's right! In a feedforward network, information moves from input towards output, layer by layer, without looping back.</div>
+              </div>
+              <div class="option" onclick="selectOption(this, false)">
+                  Only if the network has a special 'skip connection'.
+                  <div class="explanation">While 'skip connections' (which can bypass layers) exist in some advanced architectures, the fundamental definition of a simple feedforward network doesn't include backward loops.</div>
+              </div>
+          </div>
+      </div>
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>What's Next?</h2>
+      <p>So, we've assembled our neurons into layers and seen how they connect to form a basic feedforward neural network. We understand the roles of the input, hidden, and output layers.</p>
+      <p>But as these networks get larger, with many neurons and many layers, how do we manage all the math? Writing out equations for every single neuron would become incredibly tedious! Thankfully, there are more efficient ways to represent these calculations using the power of linear algebra – specifically, <strong>matrix notation</strong>.</p>
+      <p>And, even more practically, we don't usually code these from scratch every time. We use powerful <strong>Deep Learning Frameworks</strong>. In our next module, we'll briefly look at these frameworks and then dive into the elegance of matrix notation. Stay tuned!</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A drawing of a complex blueprint for a skyscraper (representing a large neural network), with a tiny architect looking overwhelmed. Then, another panel shows the architect using a powerful CAD program (representing matrix notation/frameworks) to manage the design easily.">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function selectOption(option, isCorrect) {
+          // Remove selected class from all options
+          const options = document.querySelectorAll('.option');
+          options.forEach(opt => {
+              opt.classList.remove('selected', 'correct', 'incorrect');
+          });
+          
+          // Add selected class to clicked option
+          option.classList.add('selected');
+          
+          // Show if correct or incorrect
+          if (isCorrect) {
+              option.classList.add('correct');
+          } else {
+              option.classList.add('incorrect');
+          }
+          
+          // Show explanation
+          const explanation = option.querySelector('.explanation');
+          if (explanation) {
+              explanation.style.display = 'block';
+          }
+          
+          // Hide explanations for other options
+          options.forEach(opt => {
+              if (opt !== option) {
+                  const exp = opt.querySelector('.explanation');
+                  if (exp) {
+                      exp.style.display = 'none';
+                  }
+              }
+          });
+      }
+  </script>
+</body>
+</html>

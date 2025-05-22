@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 17: Softmax in Action & Its Derivative</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .option {
+          margin-bottom: 10px;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+      .option:hover {
+          background-color: #f5f5f5;
+      }
+      .option.selected {
+          background-color: #e6ffe6;
+          border-color: #28a745;
+      }
+      .option.correct {
+          background-color: #d4edda;
+          border-color: #28a745;
+      }
+      .option.incorrect {
+          background-color: #f8d7da;
+          border-color: #dc3545;
+      }
+      .explanation {
+          margin-top: 10px;
+          padding: 10px;
+          background-color: #f8f9fa;
+          border-radius: 5px;
+          display: none;
+      }
+      .faq-section {
+          background-color: #fffbea; /* Light yellow background */
+      }
+      .faq-section h3 {
+          color: #ffcc00; /* Bright yellow heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .faq-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .math-step {
+          margin-bottom: 20px;
+          padding: 15px;
+          background-color: #f9f9f9;
+          border-radius: 5px;
+          border-left: 4px solid #007bff;
+      }
+      .math-step h4 {
+          color: #007bff;
+          margin-top: 0;
+          margin-bottom: 10px;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A Softmax output visualized as a bar chart with K bars. One bar is extremely tall (close to 1.0) labeled 'Predicted Class!', while all other K-1 bars are tiny (close to 0), symbolizing a very confident prediction.">
+      </div>
+      <h1>Lesson 17: Softmax in Action & Its Derivative</h1>
+      <p>Hey probability wranglers! Last time, we saw how the amazing Softmax function takes a bunch of raw scores (logits) from our output layer and transforms them into a neat set of probabilities that sum to 1. This is perfect for multiclass classification.</p>
+      <p>Today, we're going to see what Softmax looks like when our neural network is doing a <em>really good job</em> – when it's very confident about its prediction. And then, because it's so vital for learning, we'll carefully unpack the <strong>derivative of the Softmax function</strong>. (This lesson covers content from Slides 27 & 28).</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Softmax and the 'Good Classifier'</h2>
+      <p>Imagine our neural network has been trained well and is now looking at an image it's pretty sure is, say, a 'cat' (Class $$k$$). What would the raw scores (logits) from the output layer likely be in such a scenario? (Referencing Slide 27).</p>
+      <p>For a <strong>good, confident classifier</strong>:</p>
+      <ul>
+          <li>The raw score $$z_k$$ for the <strong>correct class $$k$$</strong> will typically be <strong>very large</strong> and positive (e.g., $$z_k = 10$$).</li>
+          <li>The raw scores $$z_j$$ for all <strong>other incorrect classes</strong> ($$j \neq k$$) will be <strong>very small</strong> or even negative (e.g., $$z_j = -2$$ for all other classes).</li>
+      </ul>
+      <p>Now, what happens when we feed these kinds of scores into the Softmax function $$s_j = \exp(z_j) / \sum\exp(z_i)$$?</p>
+      
+      <div class="math-step">
+          <h4>Softmax Output for a Confident Prediction</h4>
+          <p><strong>Example Scores:</strong></p>
+          <p>Let's say we have 3 classes (K=3), and the network is very confident about Class 2.</p>
+          <ul>
+              <li>Score for Class 1: $$z_1 = -3.0$$</li>
+              <li>Score for Class 2 (Correct & Confident): $$z_2 = 5.0$$</li>
+              <li>Score for Class 3: $$z_3 = -1.0$$</li>
+          </ul>
+          
+          <p><strong>1. Exponentiate Scores:</strong></p>
+          <p>\[ e^{z_1} = e^{-3.0} \approx 0.0498 \]</p>
+          <p>\[ e^{z_2} = e^{5.0} \approx 148.413 \]</p>
+          <p>\[ e^{z_3} = e^{-1.0} \approx 0.3679 \]</p>
+          
+          <p><strong>2. Sum Exponentiated Scores (Normalization Constant):</strong></p>
+          <p>\[ \sum e^{z_i} = 0.0498 + 148.413 + 0.3679 \approx 148.8307 \]</p>
+          
+          <p><strong>3. Calculate Probabilities $$s_j$$:</strong></p>
+          <p>\[ s_1 = \frac{0.0498}{148.8307} \approx 0.0003 \]</p>
+          <p>\[ s_2 = \frac{148.413}{148.8307} \approx 0.9972 \]</p>
+          <p>\[ s_3 = \frac{0.3679}{148.8307} \approx 0.0025 \]</p>
+      </div>
+      
+      <p>Look at those probabilities! $$s_2$$ (for the confident Class 2) is almost 1 (99.72%), while $$s_1$$ and $$s_3$$ are incredibly tiny, almost 0.</p>
+      <p><strong>The Softmax output vector $$s = [s_1, s_2, ..., s_K]$$ effectively approximates a one-hot encoded vector (or indicator vector).</strong> For our example, $$s \approx [0, 1, 0]$$.</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A bar chart showing the Softmax probabilities from the example above: s1 and s3 are barely visible slivers, while s2 is a tall bar almost reaching 1.0. Next to it, show the one-hot vector [0, 1, 0] for comparison, emphasizing their similarity.">
+      </div>
+      
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>This behavior is desirable. When the network is confident, we want its probabilistic output to clearly reflect that strong conviction by assigning almost all the probability mass to the predicted class. This makes the decision very unambiguous.</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>The Derivative of Softmax: A Bit More Involved</h2>
+      <p>Alright, calculus time! We know that derivatives are essential for training neural networks via backpropagation. Since Softmax is usually the function at the very end of our network for multiclass classification, its derivative with respect to its inputs (the logits $$z_j$$) is super important for calculating the gradients that flow back into the rest of the network. (Referencing Slide 28).</p>
+      
+      <p>The Softmax function $$s(z)$$ takes a vector $$z$$ of $$K$$ logits and outputs a vector $$s$$ of $$K$$ probabilities. So, its 'derivative' isn't a single number, but a <strong>Jacobian matrix</strong>. This matrix, let's call it $$Ds$$, will have $$K$$ rows and $$K$$ columns. An element $$(Ds)_{ij}$$ in this matrix will be the partial derivative $$\partial s_i / \partial z_j$$ – it tells us how the $$i$$-th probability output ($$s_i$$) changes if we make a tiny change to the $$j$$-th logit input ($$z_j$$).</p>
+      
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">Jacobian Matrix</h4>
+          <p>In vector calculus, the Jacobian matrix of a vector-valued function of several variables is the matrix of all its first-order partial derivatives. If a function takes $$n$$ input variables and produces $$m$$ output values, its Jacobian matrix is $$m \times n$$.</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>Partial Derivative $$\partial s_i / \partial z_j$$</h4>
+          <p>The formula for this partial derivative turns out to have a very neat form:</p>
+          <p>\[ \frac{\partial s_i}{\partial z_j} = s_i (\delta_{ij} - s_j) \]</p>
+          <p>Let's break down that $$\delta_{ij}$$. It's the <strong>Kronecker Delta</strong>, which is very simple:</p>
+          <ul>
+              <li>$$\delta_{ij} = 1$$ if $$i = j$$ (i.e., if we're looking at how $$s_i$$ changes with its <em>own</em> direct input logit $$z_i$$).</li>
+              <li>$$\delta_{ij} = 0$$ if $$i \neq j$$ (i.e., if we're looking at how $$s_i$$ changes with some <em>other</em> logit $$z_j$$).</li>
+          </ul>
+          <p>So, we have two distinct cases for the derivative:</p>
+          
+          <p><strong>Case 1: $$i = j$$ (Derivative of $$s_i$$ with respect to $$z_i$$)</strong></p>
+          <p>When $$i = j$$, then $$\delta_{ij} = 1$$. So the formula becomes:</p>
+          <p>\[ \frac{\partial s_i}{\partial z_i} = s_i (1 - s_i) \]</p>
+          <p>This is the derivative of a Softmax output component with respect to its corresponding input logit. Notice the similarity to the derivative of the Sigmoid function $$\phi(z)(1-\phi(z))$$! This is for the diagonal elements of the Jacobian matrix.</p>
+          
+          <p><strong>Case 2: $$i \neq j$$ (Derivative of $$s_i$$ with respect to $$z_j$$)</strong></p>
+          <p>When $$i \neq j$$, then $$\delta_{ij} = 0$$. So the formula becomes:</p>
+          <p>\[ \frac{\partial s_i}{\partial z_j} = s_i (0 - s_j) = -s_i s_j \]</p>
+          <p>This is the derivative of a Softmax output component $$s_i$$ with respect to a <em>different</em> input logit $$z_j$$. This is for the off-diagonal elements of the Jacobian matrix.</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>The Softmax Jacobian Matrix Visualized</h2>
+      <p>If we were to write out the full Jacobian matrix $$Ds$$ for, say, K=3 classes, where $$(Ds)_{ij} = \partial s_i / \partial z_j$$, it would look like this:</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A 3x3 matrix is shown, representing the Jacobian Ds for K=3. The diagonal elements are highlighted (e.g., in green) and show the s_i(1-s_i) form. The off-diagonal elements are highlighted (e.g., in blue) and show the -s_i s_j form. The full matrix is: Ds = [[s1(1-s1), -s1s2, -s1s3], [-s2s1, s2(1-s2), -s2s3], [-s3s1, -s3s2, s3(1-s3)]]">
+      </div>
+      
+      <p>You can see the two different forms of the derivative clearly in the diagonal and off-diagonal positions.</p>
+      <p><strong>Why is this matrix important?</strong></p>
+      <p>When we train our network, we'll have a Cost Function (like Cross-Entropy Loss, which we'll see soon) that depends on these Softmax probabilities $$s_i$$. To update the weights $$W^{(L)}$$ and biases $$b^{(L)}$$ of the output layer that produced the logits $$z_j$$, backpropagation needs to know how the Cost changes with respect to $$z_j$$. This involves the chain rule, and $$\partial s_i / \partial z_j$$ (the elements of this Jacobian) are crucial links in that chain.</p>
+      
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>If $$s_1 = 0.8$$, $$s_2 = 0.1$$, $$s_3 = 0.1$$, what would be $$\partial s_1/\partial z_1$$? And what would be $$\partial s_1/\partial z_2$$?</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-1')">Reveal</button>
+          <p id="stop-and-think-1" style="display: none;">$$\partial s_1/\partial z_1 = s_1(1-s_1) = 0.8 \times (1 - 0.8) = 0.8 \times 0.2 = 0.16$$.<br>$$\partial s_1/\partial z_2 = -s_1 s_2 = - (0.8 \times 0.1) = -0.08$$.</p>
+      </div>
+      
+      <div class="faq-section">
+          <h3>Frequently Asked Questions</h3>
+          <h4>Do I need to calculate this Jacobian matrix by hand every time I use Softmax?</h4>
+          <p>Absolutely not! Phew, right? The wonderful Deep Learning Frameworks (like PyTorch and TensorFlow) that we talked about earlier have automatic differentiation capabilities. They automatically compute these gradients (which involve these Jacobian elements) for you during the backpropagation step. Understanding the <em>form</em> of the derivative helps you appreciate what's happening under the hood and why Softmax behaves the way it does, but the frameworks handle the heavy lifting of the actual computation.</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>Wrapping Up Softmax</h2>
+      <p>Softmax is truly a workhorse function in multiclass classification. It gives us those clean probabilities, helps make clear predictions when the model is confident, and has well-defined derivatives that allow our networks to learn effectively.</p>
+      
+      <div class="test-your-knowledge">
+          <h3>Test Your Knowledge</h3>
+          <h4>If $$s_i$$ is the Softmax probability for class $$i$$ and $$z_j$$ is the logit for class $$j$$, the partial derivative $$\partial s_i / \partial z_j$$ is equal to $$s_i(1-s_i)$$ when:</h4>
+          <div class="option" onclick="selectOption(this, 0)">
+              $$i$$ is not equal to $$j$$ ($$i \neq j$$)
+              <div class="explanation">When $$i \neq j$$, the derivative is $$-s_i s_j$$.</div>
+          </div>
+          <div class="option" onclick="selectOption(this, 1)">
+              $$i$$ is equal to $$j$$ ($$i = j$$)
+              <div class="explanation">Correct! This is the formula for the diagonal elements of the Softmax Jacobian, where you're differentiating an output probability with respect to its own direct input logit.</div>
+          </div>
+          <div class="option" onclick="selectOption(this, 2)">
+              Always, regardless of $$i$$ and $$j$$.
+              <div class="explanation">No, the formula changes depending on whether $$i$$ and $$j$$ are the same index or different.</div>
+          </div>
+          <div class="option" onclick="selectOption(this, 3)">
+              Never; that's the derivative of the Sigmoid function.
+              <div class="explanation">While it <em>looks</em> like the Sigmoid derivative, it is indeed the form for the diagonal elements of the Softmax Jacobian.</div>
+          </div>
+          <button class="check-button" onclick="checkAnswer()">Check Answer</button>
+      </div>
+      
+      <p>We've now covered how individual neurons work, how they are layered, the crucial role of activation functions, and how to handle multiclass outputs with Softmax. That's a huge chunk of foundational knowledge!</p>
+      <p>Next, we're going to switch gears a bit. We'll step back from the internal mechanics and look at how even very simple networks, composed of just a few of these neurons, can be used to solve interesting logical puzzles. This will give us more intuition about what these networks are capable of representing. First up: can a neuron do basic logic like AND?</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A completed jigsaw puzzle piece labeled 'Softmax' fitting neatly into a larger puzzle representing a 'Multiclass Neural Network'.">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      let selectedOption = null;
+      const correctAnswer = 1; // Index of the correct option (0-based)
+
+      function selectOption(option, index) {
+          // Reset all options
+          const options = document.querySelectorAll('.option');
+          options.forEach(opt => {
+              opt.classList.remove('selected');
+              opt.classList.remove('correct');
+              opt.classList.remove('incorrect');
+          });
+          
+          // Select the clicked option
+          option.classList.add('selected');
+          selectedOption = index;
+      }
+
+      function checkAnswer() {
+          if (selectedOption === null) {
+              alert('Please select an option first!');
+              return;
+          }
+          
+          const options = document.querySelectorAll('.option');
+          const explanations = document.querySelectorAll('.explanation');
+          
+          // Show all explanations
+          explanations.forEach(exp => {
+              exp.style.display = 'block';
+          });
+          
+          // Mark correct and incorrect options
+          options.forEach((opt, index) => {
+              if (index === correctAnswer) {
+                  opt.classList.add('correct');
+              } else if (index === selectedOption) {
+                  opt.classList.add('incorrect');
+              }
+          });
+          
+          // Disable further selection
+          options.forEach(opt => {
+              opt.onclick = null;
+              opt.style.cursor = 'default';
+          });
+          
+          // Hide the check button
+          document.querySelector('.check-button').style.display = 'none';
+      }
+  </script>
+</body>
+</html>

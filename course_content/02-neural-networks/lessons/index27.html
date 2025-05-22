@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matrix Math for Layers - The Numbers Game!</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul, ol {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .faq-section {
+          background-color: #fffbea; /* Light yellow background */
+      }
+      .faq-section h3 {
+          color: #ffcc00; /* Bright yellow heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .faq-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .exercise-problem {
+          background-color: #f5f5f5;
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+          margin-bottom: 20px;
+      }
+      .solution-steps {
+          margin-top: 15px;
+          display: none;
+      }
+      .solution-step {
+          margin-bottom: 10px;
+      }
+      .interactive-answer {
+          background-color: #f0f8ff;
+          padding: 15px;
+          border-radius: 8px;
+          margin-top: 15px;
+      }
+      .answer-field {
+          margin-bottom: 10px;
+      }
+      .answer-field label {
+          display: inline-block;
+          width: 150px;
+          font-weight: bold;
+      }
+      .answer-field input {
+          padding: 5px;
+          border-radius: 4px;
+          border: 1px solid #ccc;
+          font-size: 1em;
+      }
+      .feedback {
+          margin-top: 10px;
+          font-weight: bold;
+          display: none;
+      }
+      .correct {
+          color: #28a745;
+      }
+      .incorrect {
+          color: #dc3545;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A dynamic image of numbers and math symbols ( +, ×, T for transpose) flowing into a matrix structure, which then outputs a neat vector. Caption: 'Matrix Power: Simplifying Layer Calculations!'">
+      </div>
+      <h1>Exercise Lesson 8.1: Matrix Math for Layers - The Numbers Game!</h1>
+      <h2>Crunching Layers with Matrices</h2>
+      <p>Hey matrix masters! In our conceptual Lesson 8, we saw how powerful <strong>matrix notation</strong> is for describing the calculations within an entire layer of a neural network. Instead of writing out tons of individual summations, we can use vectors and matrices to express the computation for all neurons in a layer very compactly.</p>
+      <p>Remember the key formula for the net input vector $$z^{(l)}$$ and activation vector $$a^{(l)}$$ for layer $$l$$?</p>
+      <p>\[z^{(l)} = (W^{(l)})^T a^{(l-1)} + b^{(l)}\]</p>
+      <p>\[a^{(l)} = \phi^{(l)} (z^{(l)})\]</p>
+      <p>Today, we're going to put this into practice! We'll work through some numerical examples to calculate these vectors by hand (well, with a calculator if you need it for basic arithmetic!). This will help you get really comfortable with the dimensions and operations involved. Let's get to it!</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Quick Recap: Matrix Dimensions & Operations</h2>
+      <p>Before we start, let's refresh a couple of key points for our setup (based on Slides 15 & 16):</p>
+      <ul>
+          <li>$$a^{(l-1)}$$: Activation vector from the <em>previous</em> layer (Layer $$l-1$$). If Layer $$l-1$$ has $$n_{l-1}$$ neurons, this is an $$n_{l-1} \times 1$$ column vector.</li>
+          <li>$$W^{(l)}$$: Weight matrix connecting Layer $$l-1$$ to Layer $$l$$. It has $$n_{l-1}$$ rows (from previous layer) and $$n_l$$ columns (to current layer). So, it's an $$n_{l-1} \times n_l$$ matrix.</li>
+          <li>$$(W^{(l)})^T$$: The transpose of $$W^{(l)}$$. It will be an $$n_l \times n_{l-1}$$ matrix.</li>
+          <li>$$b^{(l)}$$: Bias vector for Layer $$l$$. It's an $$n_l \times 1$$ column vector.</li>
+          <li>$$z^{(l)}$$ and $$a^{(l)}$$: Net input and activation vectors for Layer $$l$$. Both will be $$n_l \times 1$$ column vectors.</li>
+      </ul>
+      <p><strong>Key Operation:</strong> Matrix multiplication $$(W^{(l)})^T @ a^{(l-1)}$$. Remember, for $$C = A @ B$$, if $$A$$ is $$m \times n$$ and $$B$$ is $$n \times p$$, then $$C$$ will be $$m \times p$$. Each element $$C_{ij}$$ is the dot product of the $$i$$-th row of $$A$$ and the $$j$$-th column of $$B$$.</p>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A simple animated graphic showing matrix multiplication: Matrix A (m x n) and Matrix B (n x p). Highlight the first row of A and the first column of B. Show their elements being multiplied and summed to produce the C_11 element of the Result Matrix C (m x p). Repeat for another element, like C_12 (first row of A, second column of B).">
+      </div>
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Difficulty 1: Easy Matrix Warm-up</h2>
+      <p>Let's start with a small, friendly example. All numbers are integers to keep the arithmetic simple.</p>
+      
+      <div class="exercise-problem">
+          <h3>Problem 1:</h3>
+          <p>You are given the following for a layer $$l$$:</p>
+          <ul>
+              <li>Activation from previous layer $$l-1$$:<br>
+                  \[a^{(l-1)} = \begin{bmatrix} 2 \\ 1 \end{bmatrix}\]
+              </li>
+              <li>Weight matrix $$W^{(l)}$$:<br>
+                  \[W^{(l)} = \begin{bmatrix} 1 & 0 \\ 2 & 3 \end{bmatrix}\]<br>
+                  (Here $$n_{l-1}=2$$, $$n_l=2$$)
+              </li>
+              <li>Bias vector $$b^{(l)}$$:<br>
+                  \[b^{(l)} = \begin{bmatrix} 0.5 \\ -0.1 \end{bmatrix}\]
+              </li>
+          </ul>
+          <p>Calculate the net input vector $$z^{(l)} = (W^{(l)})^T a^{(l-1)} + b^{(l)}$$.</p>
+          
+          <div class="interactive-answer">
+              <div class="answer-field">
+                  <label for="z1_1_811">z_1^(l):</label>
+                  <input type="number" id="z1_1_811" step="0.1">
+              </div>
+              <div class="answer-field">
+                  <label for="z2_1_811">z_2^(l):</label>
+                  <input type="number" id="z2_1_811" step="0.1">
+              </div>
+              <button class="check-button" onclick="checkAnswer('problem1')">Check Answer</button>
+              <div id="feedback-problem1" class="feedback"></div>
+          </div>
+          
+          <button class="reveal-button" onclick="revealSolution('solution-problem1')">Show Solution</button>
+          
+          <div id="solution-problem1" class="solution-steps">
+              <div class="solution-step">
+                  <p>1. First, find the transpose of $$W^{(l)}$$:</p>
+                  \[(W^{(l)})^T = \begin{bmatrix} 1 & 2 \\ 0 & 3 \end{bmatrix}\]
+              </div>
+              <div class="solution-step">
+                  <p>2. Now, calculate $$(W^{(l)})^T a^{(l-1)}$$:</p>
+                  \[(W^{(l)})^T a^{(l-1)} = \begin{bmatrix} 1 & 2 \\ 0 & 3 \end{bmatrix} \begin{bmatrix} 2 \\ 1 \end{bmatrix}\]
+              </div>
+              <div class="solution-step">
+                  <p>Perform the matrix multiplication:</p>
+                  \[= \begin{bmatrix} (1 \times 2) + (2 \times 1) \\ (0 \times 2) + (3 \times 1) \end{bmatrix} = \begin{bmatrix} 2 + 2 \\ 0 + 3 \end{bmatrix} = \begin{bmatrix} 4 \\ 3 \end{bmatrix}\]
+              </div>
+              <div class="solution-step">
+                  <p>3. Finally, add the bias vector $$b^{(l)}$$:</p>
+                  \[z^{(l)} = \begin{bmatrix} 4 \\ 3 \end{bmatrix} + \begin{bmatrix} 0.5 \\ -0.1 \end{bmatrix} = \begin{bmatrix} 4 + 0.5 \\ 3 - 0.1 \end{bmatrix}\]
+              </div>
+              <div class="solution-step">
+                  <p>Result:</p>
+                  \[z^{(l)} = \begin{bmatrix} 4.5 \\ 2.9 \end{bmatrix}\]
+              </div>
+          </div>
+      </div>
+      
+      <p>Good job! That first one helps get the feel for transposing the weight matrix and then doing the multiplication and addition. Notice how the dimensions all worked out to give us a $$z^{(l)}$$ vector with 2 elements, matching the number of neurons in layer $$l$$ (which was 2, based on the number of columns in $$W^{(l)}$$ or rows in $$b^{(l)}$$).</p>
+      
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>Difficulty 2: Adding an Activation Function</h2>
+      <p>Now let's make it a bit more complete by including an activation function. For this problem, we'll use the <strong>ReLU activation function</strong>: $$\phi(z) = \max(0, z)$$.</p>
+      
+      <div class="exercise-problem">
+          <h3>Problem 2:</h3>
+          <p>You are given:</p>
+          <ul>
+              <li>$$a^{(l-1)} = \begin{bmatrix} 1 \\ -2 \\ 0 \end{bmatrix}$$</li>
+              <li>$$W^{(l)} = \begin{bmatrix} 1 & 0 \\ 0 & 2 \\ -1 & 1 \end{bmatrix}$$<br>
+                  (Here $$n_{l-1}=3$$, $$n_l=2$$)
+              </li>
+              <li>$$b^{(l)} = \begin{bmatrix} -1 \\ 0.5 \end{bmatrix}$$</li>
+          </ul>
+          <p>First, calculate $$z^{(l)} = (W^{(l)})^T a^{(l-1)} + b^{(l)}$$.<br>
+          Then, calculate $$a^{(l)} = \text{ReLU}(z^{(l)})$$.</p>
+          
+          <div class="interactive-answer">
+              <div class="answer-field">
+                  <label for="z1_1_812">z_1^(l):</label>
+                  <input type="number" id="z1_1_812" step="0.1">
+              </div>
+              <div class="answer-field">
+                  <label for="z2_1_812">z_2^(l):</label>
+                  <input type="number" id="z2_1_812" step="0.1">
+              </div>
+              <div class="answer-field">
+                  <label for="a1_1_812">a_1^(l) (after ReLU):</label>
+                  <input type="number" id="a1_1_812" step="0.1">
+              </div>
+              <div class="answer-field">
+                  <label for="a2_1_812">a_2^(l) (after ReLU):</label>
+                  <input type="number" id="a2_1_812" step="0.1">
+              </div>
+              <button class="check-button" onclick="checkAnswer('problem2')">Check Answer</button>
+              <div id="feedback-problem2" class="feedback"></div>
+          </div>
+          
+          <button class="reveal-button" onclick="revealSolution('solution-problem2')">Show Solution</button>
+          
+          <div id="solution-problem2" class="solution-steps">
+              <div class="solution-step">
+                  <p>1. Transpose $$W^{(l)}$$:</p>
+                  \[(W^{(l)})^T = \begin{bmatrix} 1 & 0 & -1 \\ 0 & 2 & 1 \end{bmatrix}\]
+              </div>
+              <div class="solution-step">
+                  <p>2. Calculate $$(W^{(l)})^T a^{(l-1)}$$:</p>
+                  \[(W^{(l)})^T a^{(l-1)} = \begin{bmatrix} 1 & 0 & -1 \\ 0 & 2 & 1 \end{bmatrix} \begin{bmatrix} 1 \\ -2 \\ 0 \end{bmatrix}\]
+              </div>
+              <div class="solution-step">
+                  <p>Perform multiplication:</p>
+                  \[= \begin{bmatrix} (1 \times 1) + (0 \times -2) + (-1 \times 0) \\ (0 \times 1) + (2 \times -2) + (1 \times 0) \end{bmatrix} = \begin{bmatrix} 1 + 0 + 0 \\ 0 - 4 + 0 \end{bmatrix} = \begin{bmatrix} 1 \\ -4 \end{bmatrix}\]
+              </div>
+              <div class="solution-step">
+                  <p>3. Add $$b^{(l)}$$ to get $$z^{(l)}$$:</p>
+                  \[z^{(l)} = \begin{bmatrix} 1 \\ -4 \end{bmatrix} + \begin{bmatrix} -1 \\ 0.5 \end{bmatrix} = \begin{bmatrix} 1 - 1 \\ -4 + 0.5 \end{bmatrix}\]
+              </div>
+              <div class="solution-step">
+                  <p>Result for $$z^{(l)}$$:</p>
+                  \[z^{(l)} = \begin{bmatrix} 0 \\ -3.5 \end{bmatrix}\]
+              </div>
+              <div class="solution-step">
+                  <p>4. Apply ReLU element-wise to $$z^{(l)}$$ to get $$a^{(l)}$$:</p>
+                  <p>$$\text{ReLU}(0) = \max(0,0) = 0$$<br>
+                  $$\text{ReLU}(-3.5) = \max(0, -3.5) = 0$$</p>
+                  \[a^{(l)} = \text{ReLU} \left( \begin{bmatrix} 0 \\ -3.5 \end{bmatrix} \right) = \begin{bmatrix} \max(0,0) \\ \max(0,-3.5) \end{bmatrix}\]
+              </div>
+              <div class="solution-step">
+                  <p>Result for $$a^{(l)}$$:</p>
+                  \[a^{(l)} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}\]
+              </div>
+          </div>
+      </div>
+      
+      <p>Interesting result for $$a^{(l)}$$ in that one, right? Both neurons in layer $$l$$ ended up with an activation of 0 after the ReLU. This can happen if their net inputs are zero or negative. This is a glimpse of how ReLU can lead to sparse activations!</p>
+      
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>Difficulty 3: Thinking about Dimensions and Missing Pieces</h2>
+      <p>For this last one, it's less about calculation and more about understanding the shapes of these matrices and vectors. This is a bit of a puzzle!</p>
+      
+      <div class="exercise-problem">
+          <h3>Problem 3:</h3>
+          <p>You are designing a layer $$l$$ in a neural network.</p>
+          <ul>
+              <li>You know the previous layer $$l-1$$ has <strong>4 neurons</strong> (so $$n_{l-1}=4$$).</li>
+              <li>You want the current layer $$l$$ to have <strong>3 neurons</strong> (so $$n_l=3$$).</li>
+          </ul>
+          <p>Based on this information and our formula $$z^{(l)} = (W^{(l)})^T a^{(l-1)} + b^{(l)}$$:</p>
+          <ol type="a">
+              <li>What must be the dimensions of the activation vector $$a^{(l-1)}$$?</li>
+              <li>What must be the dimensions of the weight matrix $$W^{(l)}$$?</li>
+              <li>What must be the dimensions of its transpose, $$(W^{(l)})^T$$?</li>
+              <li>What must be the dimensions of the bias vector $$b^{(l)}$$?</li>
+              <li>What will be the dimensions of the resulting net input vector $$z^{(l)}$$?</li>
+          </ol>
+          
+          <div class="interactive-answer">
+              <div class="answer-field">
+                  <label for="dims_a_prev">Dims a^(l-1) (e.g., RxC):</label>
+                  <input type="text" id="dims_a_prev">
+              </div>
+              <div class="answer-field">
+                  <label for="dims_W">Dims W^(l):</label>
+                  <input type="text" id="dims_W">
+              </div>
+              <div class="answer-field">
+                  <label for="dims_WT">Dims (W^(l))^T:</label>
+                  <input type="text" id="dims_WT">
+              </div>
+              <div class="answer-field">
+                  <label for="dims_b">Dims b^(l):</label>
+                  <input type="text" id="dims_b">
+              </div>
+              <div class="answer-field">
+                  <label for="dims_z">Dims z^(l):</label>
+                  <input type="text" id="dims_z">
+              </div>
+              <button class="check-button" onclick="checkAnswer('problem3')">Check Answer</button>
+              <div id="feedback-problem3" class="feedback"></div>
+          </div>
+          
+          <button class="reveal-button" onclick="revealSolution('solution-problem3')">Show Solution</button>
+          
+          <div id="solution-problem3" class="solution-steps">
+              <div class="solution-step">
+                  <p>a) Dimensions of $$a^{(l-1)}$$:</p>
+                  <p>If Layer $$l-1$$ has 4 neurons, its activation vector $$a^{(l-1)}$$ will have 4 elements, arranged as a column vector.</p>
+                  \[\text{Dimensions of } a^{(l-1)}: 4 \times 1\]
+              </div>
+              <div class="solution-step">
+                  <p>b) Dimensions of $$W^{(l)}$$:</p>
+                  <p>We defined $$W^{(l)}$$ as $$n_{l-1} \times n_l$$. Here $$n_{l-1}=4$$ and $$n_l=3$$.</p>
+                  \[\text{Dimensions of } W^{(l)}: 4 \times 3\]
+              </div>
+              <div class="solution-step">
+                  <p>c) Dimensions of $$(W^{(l)})^T$$:</p>
+                  <p>The transpose flips rows and columns.</p>
+                  \[\text{Dimensions of } (W^{(l)})^T: 3 \times 4\]
+              </div>
+              <div class="solution-step">
+                  <p>d) Dimensions of $$b^{(l)}$$:</p>
+                  <p>The bias vector $$b^{(l)}$$ has one element for each neuron in layer $$l$$. Layer $$l$$ has 3 neurons.</p>
+                  \[\text{Dimensions of } b^{(l)}: 3 \times 1\]
+              </div>
+              <div class="solution-step">
+                  <p>e) Dimensions of $$z^{(l)}$$:</p>
+                  <p>Let's check $$(W^{(l)})^T a^{(l-1)}$$. $$(W^{(l)})^T$$ is $$3 \times 4$$. $$a^{(l-1)}$$ is $$4 \times 1$$.<br>
+                  So, $$(W^{(l)})^T a^{(l-1)}$$ will be $$(3 \times 4) \times (4 \times 1) = 3 \times 1$$.<br>
+                  Then we add $$b^{(l)}$$ which is $$3 \times 1$$. The result $$z^{(l)}$$ will also be $$3 \times 1$$.</p>
+                  \[\text{Dimensions of } z^{(l)}: 3 \times 1\]
+              </div>
+          </div>
+      </div>
+      
+      <p>Thinking about the shapes and dimensions of these matrices and vectors is super important! It helps you catch errors if you were to implement this in code, and it solidifies your understanding of how information from one layer (with $$n_{l-1}$$ neurons) is transformed to produce information for the next layer (with $$n_l$$ neurons).</p>
+      
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>In Problem 3, how many individual weight parameters are there in the matrix $$W^{(l)}$$? How many bias parameters in $$b^{(l)}$$?</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-1')">Reveal</button>
+          <p id="stop-and-think-1" style="display: none;">The weight matrix $$W^{(l)}$$ has dimensions 4x3 (4 rows, 3 columns), so it contains $$4 * 3 = 12$$ individual weight parameters.<br>The bias vector $$b^{(l)}$$ has dimensions 3x1, so it contains $$3$$ individual bias parameters.</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+  </section>
+
+  <section id="section6">
+      <h2>You're a Matrix Mechanic!</h2>
+      <p>Awesome work on those exercises!</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A character looking confident, with correctly assembled matrix equations floating around them like well-oiled gears in a machine. Perhaps a 'Matrix Master' badge appears.">
+      </div>
+      
+      <p>You've now had hands-on practice with:</p>
+      <ul>
+          <li>Transposing weight matrices.</li>
+          <li>Performing matrix-vector multiplication for the weighted sum.</li>
+          <li>Adding bias vectors.</li>
+          <li>Applying activation functions element-wise.</li>
+          <li>Thinking about the dimensions of these components.</li>
+      </ul>
+      
+      <p>This is the core arithmetic of a feedforward neural network's 'forward pass' – how it takes an input and propagates it through the layers to get an output. Having a good grasp of this matrix math is invaluable.</p>
+      
+      <div class="faq-section">
+          <h3>Frequently Asked Questions</h3>
+          <h4>Why do we transpose $$W^{(l)}$$ in the formula $$z^{(l)} = (W^{(l)})^T a^{(l-1)} + b^{(l)}$$? Can't we define $$W^{(l)}$$ differently?</h4>
+          <p>That's an excellent and very common question! The convention for defining the dimensions of $$W^{(l)}$$ can indeed vary.</p>
+          <p>With <em>our chosen convention</em> where $$W^{(l)}$$ is $$n_{l-1} \times n_l$$ (rows = previous layer units, columns = current layer units), the transpose $$(W^{(l)})^T$$ (which becomes $$n_l \times n_{l-1}$$) is needed so that when you multiply it by $$a^{(l-1)}$$ (an $$n_{l-1} \times 1$$ vector), you get an $$n_l \times 1$$ result for $$z^{(l)}$$. Each row of $$(W^{(l)})^T$$ effectively contains the weights leading to one specific neuron in layer $$l$$.</p>
+          <p>Some textbooks or courses might define $$W^{(l)}$$ directly as an $$n_l \times n_{l-1}$$ matrix (rows = current layer units, columns = previous layer units). If they use that convention, the formula would become $$z^{(l)} = W^{(l)} a^{(l-1)} + b^{(l)}$$ (no transpose on $$W^{(l)}$$ needed).</p>
+          <p>Both are mathematically equivalent; it's just a difference in how $$W^{(l)}$$ is initially defined and indexed. The key is to be consistent with the definition you're using! Our slides (15 & 16) implicitly used the $$(W^{(l)})^T$$ approach by how $$W^{(l)}$$'s columns were described.</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+  </section>
+
+  <section id="section7">
+      <h2>What's Next?</h2>
+      <p>You're building a fantastic toolkit of understanding! We've seen the theory of matrix notation for layers, and now you've crunched the numbers.</p>
+      
+      <p>The next logical step is to see if you can <em>write the code</em> to do these calculations. In our upcoming <strong>Coding Lesson 9.1</strong>, you'll get to implement a single layer's forward pass using Python and the NumPy library. This will bridge the gap from manual calculation to actual implementation. Get your coding fingers ready!</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A character looking at a math equation on a blackboard, then turning to a computer with a Python logo, ready to translate the math into code.">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealSolution(solutionId) {
+          const solutionSteps = document.getElementById(solutionId);
+          const revealButton = event.target;
+          
+          solutionSteps.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function checkAnswer(problemId) {
+          let isCorrect = false;
+          let feedbackElement = document.getElementById('feedback-' + problemId);
+          
+          if (problemId === 'problem1') {
+              const z1 = parseFloat(document.getElementById('z1_1_811').value);
+              const z2 = parseFloat(document.getElementById('z2_1_811').value);
+              
+              isCorrect = Math.abs(z1 - 4.5) < 0.1 && Math.abs(z2 - 2.9) < 0.1;
+              
+              if (isCorrect) {
+                  feedbackElement.textContent = "Correct! Your answer matches the expected result.";
+                  feedbackElement.className = "feedback correct";
+              } else {
+                  feedbackElement.textContent = "Not quite right. Try again or check the solution.";
+                  feedbackElement.className = "feedback incorrect";
+              }
+          } else if (problemId === 'problem2') {
+              const z1 = parseFloat(document.getElementById('z1_1_812').value);
+              const z2 = parseFloat(document.getElementById('z2_1_812').value);
+              const a1 = parseFloat(document.getElementById('a1_1_812').value);
+              const a2 = parseFloat(document.getElementById('a2_1_812').value);
+              
+              isCorrect = Math.abs(z1 - 0) < 0.1 && Math.abs(z2 - (-3.5)) < 0.1 && 
+                          Math.abs(a1 - 0) < 0.1 && Math.abs(a2 - 0) < 0.1;
+              
+              if (isCorrect) {
+                  feedbackElement.textContent = "Correct! Your answer matches the expected result.";
+                  feedbackElement.className = "feedback correct";
+              } else {
+                  feedbackElement.textContent = "Not quite right. Try again or check the solution.";
+                  feedbackElement.className = "feedback incorrect";
+              }
+          } else if (problemId === 'problem3') {
+              const aDims = document.getElementById('dims_a_prev').value.toLowerCase().replace(/\s+/g, '');
+              const wDims = document.getElementById('dims_W').value.toLowerCase().replace(/\s+/g, '');
+              const wtDims = document.getElementById('dims_WT').value.toLowerCase().replace(/\s+/g, '');
+              const bDims = document.getElementById('dims_b').value.toLowerCase().replace(/\s+/g, '');
+              const zDims = document.getElementById('dims_z').value.toLowerCase().replace(/\s+/g, '');
+              
+              const validADims = ['4x1', '4×1', '4*1', '4,1'];
+              const validWDims = ['4x3', '4×3', '4*3', '4,3'];
+              const validWTDims = ['3x4', '3×4', '3*4', '3,4'];
+              const validBDims = ['3x1', '3×1', '3*1', '3,1'];
+              const validZDims = ['3x1', '3×1', '3*1', '3,1'];
+              
+              isCorrect = validADims.includes(aDims) && validWDims.includes(wDims) && 
+                          validWTDims.includes(wtDims) && validBDims.includes(bDims) && 
+                          validZDims.includes(zDims);
+              
+              if (isCorrect) {
+                  feedbackElement.textContent = "Correct! Your dimensions are accurate.";
+                  feedbackElement.className = "feedback correct";
+              } else {
+                  feedbackElement.textContent = "Some dimensions are incorrect. Try again or check the solution.";
+                  feedbackElement.className = "feedback incorrect";
+              }
+          }
+          
+          feedbackElement.style.display = "block";
+      }
+  </script>
+</body>
+</html>

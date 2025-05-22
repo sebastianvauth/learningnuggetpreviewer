@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perceptron Logic Gate Playground</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .faq-section {
+          background-color: #fffbea; /* Light yellow background */
+      }
+      .faq-section h3 {
+          color: #ffcc00; /* Bright yellow heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .faq-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      /* Perceptron Playground Specific Styles */
+      #perceptron-playground {
+          border: 1px solid #ddd;
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+          background-color: #f9f9f9;
+      }
+      .playground-controls {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+          margin-bottom: 20px;
+      }
+      .slider-container {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+      }
+      .slider-container label {
+          width: 30px;
+          text-align: right;
+      }
+      .slider-container input {
+          flex-grow: 1;
+      }
+      .slider-container span {
+          width: 40px;
+          text-align: left;
+      }
+      #plot-container {
+          width: 100%;
+          height: 300px;
+          position: relative;
+          margin-bottom: 20px;
+          border: 1px solid #ddd;
+          background-color: white;
+      }
+      .plot-point {
+          position: absolute;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          color: white;
+          border: 3px solid transparent;
+      }
+      .decision-line {
+          position: absolute;
+          background-color: #333;
+          height: 2px;
+          transform-origin: 0 0;
+      }
+      .region {
+          position: absolute;
+          opacity: 0.1;
+      }
+      .output-display {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+          margin-bottom: 20px;
+      }
+      .output-item {
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          background-color: white;
+      }
+      .button-container {
+          display: flex;
+          gap: 10px;
+      }
+      #feedback-message {
+          margin-top: 15px;
+          padding: 10px;
+          border-radius: 5px;
+          display: none;
+      }
+      .success {
+          background-color: #d4edda;
+          color: #155724;
+      }
+      .error {
+          background-color: #f8d7da;
+          color: #721c24;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A cartoon single neuron character holding a pencil, trying to draw a straight line on a canvas to separate different colored dots (representing classes). A logic gate symbol (AND/OR) is in its thought bubble.">
+      </div>
+      <h1>Experiment Lesson 18.1: The Perceptron Logic Gate Playground - Line Artist!</h1>
+      <h2>Can a Single Neuron Be Logical?</h2>
+      <p>Hey logic designers! In our conceptual Lesson 18, we explored the fascinating idea that a single artificial neuron (a perceptron) can actually learn to perform basic logical operations like AND and OR. We discovered that the key to this ability is whether the logic function is <strong>linearly separable</strong> – meaning, can we draw a single straight line to separate its 'True' outputs from its 'False' outputs?</p>
+      <p>Today, you get to be the 'trainer' of a single perceptron! In this interactive experiment, you'll try to find the right <strong>weights ($$w_1$$, $$w_2$$)</strong> and <strong>bias ($$b$$)</strong> that allow a single neuron to correctly implement the AND and OR logic gates. You'll be visually adjusting the neuron's decision boundary. Let's see if you can teach our neuron some logic!</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Your Perceptron Playground Setup</h2>
+      <p>Here's the interactive playground. You'll see a 2D plot representing the input space for two binary inputs, $$x_1$$ and $$x_2$$ (which can be 0 or 1).</p>
+      
+      <div id="perceptron-playground">
+          <div class="playground-controls">
+              <div>
+                  <label for="gate-selector">Select Logic Gate:</label>
+                  <select id="gate-selector" onchange="updateGate()">
+                      <option value="AND">AND Gate</option>
+                      <option value="OR">OR Gate</option>
+                  </select>
+              </div>
+              
+              <div class="slider-container">
+                  <label for="w1-slider">$$w_1$$:</label>
+                  <input type="range" id="w1-slider" min="-2" max="2" step="0.1" value="0" oninput="updatePerceptron()">
+                  <span id="w1-value">0.0</span>
+              </div>
+              
+              <div class="slider-container">
+                  <label for="w2-slider">$$w_2$$:</label>
+                  <input type="range" id="w2-slider" min="-2" max="2" step="0.1" value="0" oninput="updatePerceptron()">
+                  <span id="w2-value">0.0</span>
+              </div>
+              
+              <div class="slider-container">
+                  <label for="b-slider">$$b$$:</label>
+                  <input type="range" id="b-slider" min="-2" max="2" step="0.1" value="0" oninput="updatePerceptron()">
+                  <span id="b-value">0.0</span>
+              </div>
+          </div>
+          
+          <div id="plot-container">
+              <!-- Plot will be rendered here by JavaScript -->
+              <div class="region" id="region-positive"></div>
+              <div class="region" id="region-negative"></div>
+              <div class="decision-line" id="decision-line"></div>
+              <div class="plot-point" id="point-0-0" data-x="0" data-y="0">(0,0)</div>
+              <div class="plot-point" id="point-0-1" data-x="0" data-y="1">(0,1)</div>
+              <div class="plot-point" id="point-1-0" data-x="1" data-y="0">(1,0)</div>
+              <div class="plot-point" id="point-1-1" data-x="1" data-y="1">(1,1)</div>
+          </div>
+          
+          <div class="output-display">
+              <div class="output-item" id="output-0-0">
+                  <strong>Input (0,0):</strong> <span id="output-value-0-0">0</span>
+              </div>
+              <div class="output-item" id="output-0-1">
+                  <strong>Input (0,1):</strong> <span id="output-value-0-1">0</span>
+              </div>
+              <div class="output-item" id="output-1-0">
+                  <strong>Input (1,0):</strong> <span id="output-value-1-0">0</span>
+              </div>
+              <div class="output-item" id="output-1-1">
+                  <strong>Input (1,1):</strong> <span id="output-value-1-1">0</span>
+              </div>
+          </div>
+          
+          <div class="button-container">
+              <button class="check-button" onclick="checkSolution()">Check My Solution</button>
+              <button class="continue-button" onclick="resetSliders()">Reset Sliders</button>
+          </div>
+          
+          <div id="feedback-message"></div>
+          
+          <div id="gate-instructions">
+              <h3>Your Mission: Configure the AND Gate!</h3>
+              <p>1. Select 'AND Gate' from the dropdown (if not already selected). Notice how the target colors of the points (0,0), (0,1), (1,0), (1,1) update.</p>
+              <p>2. Adjust the sliders for $$w_1$$, $$w_2$$, and $$b$$.</p>
+              <p>3. Observe how the <strong>Decision Boundary Line</strong> moves and how the <strong>Perceptron's Output Display</strong> changes.</p>
+              <p>4. Your goal is to find $$w_1$$, $$w_2$$, $$b$$ values such that the perceptron's output matches the AND gate's output for ALL FOUR input combinations.</p>
+              <p>5. Click 'Check My Solution' when you think you've got it!</p>
+              <p><em>(Hint: For AND, you want the point (1,1) to be on one side of the line, and the other three points on the other side. What should the net input $$z$$ be for (1,1)? What about for the others?)</em></p>
+          </div>
+      </div>
+      
+      <p>How did you do? Were you able to find weights and a bias that correctly implemented both the AND and OR gates?</p>
+      <p>You might have noticed a few things:</p>
+      
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">Decision Boundary</h4>
+          <p>In a classification problem, this is the surface (a line in 2D) that separates regions of the input space assigned to different classes. For a single perceptron with inputs $$x_1$$, $$x_2$$, the decision boundary is defined by the equation $$w_1 \cdot x_1 + w_2 \cdot x_2 + b = 0$$.</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Observations and Insights</h2>
+      <p>Playing with the sliders should have given you some intuition:</p>
+      <ul>
+          <li><strong>Weights $$w_1$$ and $$w_2$$ control the slope</strong> of the decision boundary. Changing their relative values rotates the line.</li>
+          <li><strong>The bias $$b$$ shifts the line</strong> up/down or left/right without changing its slope. It effectively moves the threshold for activation.</li>
+          <li><strong>Multiple Solutions:</strong> You might have found that there isn't just <em>one</em> unique set of $$w_1$$, $$w_2$$, $$b$$ that solves the problem. Often, there's a range of values that will work, as long as the line correctly separates the points.</li>
+      </ul>
+      
+      <p><strong>Example Solution Values (yours might be different but still correct!):</strong></p>
+      <ul>
+          <li><strong>For AND:</strong> One solution could be $$w_1 = 1$$, $$w_2 = 1$$, $$b = -1.5$$.<br>
+              Let's check:
+              <ul>
+                  <li>(0,0): $$1 \cdot 0 + 1 \cdot 0 - 1.5 = -1.5$$ (&lt;0, output 0). Correct.</li>
+                  <li>(0,1): $$1 \cdot 0 + 1 \cdot 1 - 1.5 = -0.5$$ (&lt;0, output 0). Correct.</li>
+                  <li>(1,0): $$1 \cdot 1 + 1 \cdot 0 - 1.5 = -0.5$$ (&lt;0, output 0). Correct.</li>
+                  <li>(1,1): $$1 \cdot 1 + 1 \cdot 1 - 1.5 = 0.5$$ (≥0, output 1). Correct.</li>
+              </ul>
+          </li>
+          <li><strong>For OR:</strong> One solution could be $$w_1 = 1$$, $$w_2 = 1$$, $$b = -0.5$$.<br>
+              Let's check:
+              <ul>
+                  <li>(0,0): $$1 \cdot 0 + 1 \cdot 0 - 0.5 = -0.5$$ (&lt;0, output 0). Correct.</li>
+                  <li>(0,1): $$1 \cdot 0 + 1 \cdot 1 - 0.5 = 0.5$$ (≥0, output 1). Correct.</li>
+                  <li>(1,0): $$1 \cdot 1 + 1 \cdot 0 - 0.5 = 0.5$$ (≥0, output 1). Correct.</li>
+                  <li>(1,1): $$1 \cdot 1 + 1 \cdot 1 - 0.5 = 1.5$$ (≥0, output 1). Correct.</li>
+              </ul>
+          </li>
+      </ul>
+      
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>This experiment demonstrates visually that if a problem is linearly separable, a single perceptron can indeed learn to solve it by finding an appropriate linear decision boundary. The 'learning' process in a real neural network is an automated way of searching for these good $$w$$ and $$b$$ values by trying to minimize a cost function.</p>
+      </div>
+      
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>Could you use the same playground to try and solve the XOR gate (where (0,0) and (1,1) are target 0, and (0,1) and (1,0) are target 1)? What do you think would happen?</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-1')">Reveal</button>
+          <p id="stop-and-think-1" style="display: none;">You'd find it impossible! No matter how you adjust $$w_1$$, $$w_2$$, $$b$$, you wouldn't be able to draw a single straight line that correctly separates the XOR classes. This is because XOR, as we'll confirm in the next lesson, is NOT linearly separable. This is the fundamental limitation of a single perceptron.</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>You're a Perceptron Trainer!</h2>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A character giving a 'Perceptron Trainer' certificate to the student, with the AND/OR gate plots correctly solved in the background.">
+      </div>
+      <p>Excellent work! You've successfully 'trained' (by hand) a single perceptron to perform logical AND and OR operations.</p>
+      <p>This hands-on experience should have given you a much better feel for:</p>
+      <ul>
+          <li>What a <strong>decision boundary</strong> is and how it's shaped by weights and bias.</li>
+          <li>The concept of <strong>linear separability</strong> in action.</li>
+          <li>How a single neuron makes its 'decision'.</li>
+      </ul>
+      <p>This intuition is vital because it forms the basis for understanding more complex, multi-layer networks.</p>
+      
+      <div class="faq-section">
+          <h3>Frequently Asked Questions</h3>
+          <h4>The weights $$w_1=150$$, $$w_2=150$$, $$b=-200$$ were used for AND in the conceptual lesson, but here $$w_1=1$$, $$w_2=1$$, $$b=-1.5$$ also worked. Why?</h4>
+          <p>Great observation! The absolute magnitude of the weights and bias matters in conjunction with the activation function's behavior, but for a step activation (output 0 if sum < threshold, 1 if sum >= threshold), what really matters is the <em>position and orientation of the decision boundary line</em> ($$w_1 \cdot x_1 + w_2 \cdot x_2 + b = 0$$).</p>
+          <p>Both $$x_1 + x_2 - 1.5 = 0$$ and $$150x_1 + 150x_2 - 200 = 0$$ (which simplifies to $$x_1 + x_2 - (200/150) = 0$$ or $$x_1 + x_2 - 1.33 = 0$$) represent lines that correctly separate the AND points.</p>
+          <p>If we were using a Sigmoid, larger weights/bias values (like 150, -200) would push the net input $$z$$ further into the saturated regions of the Sigmoid, making the output closer to a hard 0 or 1, mimicking a step function more closely. Smaller weights/bias (like 1, -1.5) would result in $$z$$ values closer to zero, and thus Sigmoid outputs that are 'softer' (e.g., 0.3, 0.7 instead of nearly 0 or 1).</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>Next Up: The Unsolvable Puzzle (for one neuron!)</h2>
+      <p>We've seen a single neuron succeed with AND and OR. But what happens when we give it a puzzle that isn't linearly separable?</p>
+      <p>Our next stop is the famous <strong>XOR problem</strong>. We'll define it, see why a single neuron just can't crack it, and then understand why this was such a pivotal moment in AI history, pushing researchers towards the multi-layer networks we use today. Get ready for a classic challenge!</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A path leading from the 'Logic Gate Playground' towards a sign with a big question mark and 'XOR Problem Ahead!' written on it. The path looks a bit more winding and challenging.">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      // Global variables for the perceptron playground
+      let currentGate = "AND";
+      let w1 = 0;
+      let w2 = 0;
+      let b = 0;
+      
+      // Gate truth tables
+      const gateTruthTables = {
+          "AND": {
+              "0,0": 0,
+              "0,1": 0,
+              "1,0": 0,
+              "1,1": 1
+          },
+          "OR": {
+              "0,0": 0,
+              "0,1": 1,
+              "1,0": 1,
+              "1,1": 1
+          }
+      };
+      
+      // Initialize the playground
+      window.onload = function() {
+          initializePlayground();
+          updateGate();
+      };
+      
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+      
+      function initializePlayground() {
+          // Set up the plot container
+          const plotContainer = document.getElementById("plot-container");
+          const plotWidth = plotContainer.clientWidth;
+          const plotHeight = plotContainer.clientHeight;
+          
+          // Position the points
+          const points = document.querySelectorAll(".plot-point");
+          points.forEach(point => {
+              const x = parseFloat(point.dataset.x);
+              const y = parseFloat(point.dataset.y);
+              
+              // Scale to plot size (leaving margins)
+              const plotX = 50 + x * (plotWidth - 100);
+              const plotY = plotHeight - (50 + y * (plotHeight - 100));
+              
+              point.style.left = plotX + "px";
+              point.style.top = plotY + "px";
+          });
+          
+          // Initialize the decision line
+          updatePerceptron();
+      }
+      
+      function updateGate() {
+          currentGate = document.getElementById("gate-selector").value;
+          
+          // Update point colors based on the gate's truth table
+          const truthTable = gateTruthTables[currentGate];
+          
+          for (let x = 0; x <= 1; x++) {
+              for (let y = 0; y <= 1; y++) {
+                  const point = document.getElementById(`point-${x}-${y}`);
+                  const targetOutput = truthTable[`${x},${y}`];
+                  
+                  // Set color based on target output
+                  point.style.backgroundColor = targetOutput === 1 ? "#28a745" : "#dc3545";
+              }
+          }
+          
+          // Update instructions
+          const instructionsDiv = document.getElementById("gate-instructions");
+          if (currentGate === "AND") {
+              instructionsDiv.innerHTML = `
+                  <h3>Your Mission: Configure the AND Gate!</h3>
+                  <p>1. Select 'AND Gate' from the dropdown (if not already selected). Notice how the target colors of the points (0,0), (0,1), (1,0), (1,1) update.</p>
+                  <p>2. Adjust the sliders for \$$w_1\$$, \$$w_2\$$, and \$$b\$$.</p>
+                  <p>3. Observe how the <strong>Decision Boundary Line</strong> moves and how the <strong>Perceptron's Output Display</strong> changes.</p>
+                  <p>4. Your goal is to find \$$w_1\$$, \$$w_2\$$, \$$b\$$ values such that the perceptron's output matches the AND gate's output for ALL FOUR input combinations.</p>
+                  <p>5. Click 'Check My Solution' when you think you've got it!</p>
+                  <p><em>(Hint: For AND, you want the point (1,1) to be on one side of the line, and the other three points on the other side. What should the net input \$$z\$$ be for (1,1)? What about for the others?)</em></p>
+              `;
+          } else {
+              instructionsDiv.innerHTML = `
+                  <h3>Next Challenge: Configure the OR Gate!</h3>
+                  <p>1. Select 'OR Gate' from the dropdown. See the target colors change!</p>
+                  <p>2. Reset your sliders (or start fresh).</p>
+                  <p>3. Adjust \$$w_1\$$, \$$w_2\$$, and \$$b\$$ to make the perceptron behave like an OR gate.</p>
+                  <p>4. Click 'Check My Solution'.</p>
+                  <p><em>(Hint: For OR, you want (0,0) on one side, and (0,1), (1,0), (1,1) on the other.)</em></p>
+              `;
+          }
+          
+          // Update perceptron with current values
+          updatePerceptron();
+          
+          // Render MathJax for the updated content
+          if (window.MathJax) {
+              MathJax.typeset();
+          }
+      }
+      
+      function updatePerceptron() {
+          // Get values from sliders
+          w1 = parseFloat(document.getElementById("w1-slider").value);
+          w2 = parseFloat(document.getElementById("w2-slider").value);
+          b = parseFloat(document.getElementById("b-slider").value);
+          
+          // Update value displays
+          document.getElementById("w1-value").textContent = w1.toFixed(1);
+          document.getElementById("w2-value").textContent = w2.toFixed(1);
+          document.getElementById("b-value").textContent = b.toFixed(1);
+          
+          // Update decision boundary line
+          updateDecisionBoundary();
+          
+          // Update perceptron outputs
+          updateOutputs();
+          
+          // Hide feedback message when parameters change
+          document.getElementById("feedback-message").style.display = "none";
+      }
+      
+      function updateDecisionBoundary() {
+          const plotContainer = document.getElementById("plot-container");
+          const plotWidth = plotContainer.clientWidth;
+          const plotHeight = plotContainer.clientHeight;
+          
+          // The decision boundary is the line w1*x + w2*y + b = 0
+          // Solving for y: y = (-w1*x - b) / w2
+          
+          // Handle special cases
+          if (Math.abs(w1) < 0.1 && Math.abs(w2) < 0.1) {
+              // Both weights are close to zero, can't draw a meaningful line
+              document.getElementById("decision-line").style.display = "none";
+              return;
+          }
+          
+          const line = document.getElementById("decision-line");
+          line.style.display = "block";
+          
+          // Calculate two points on the line to determine its position and angle
+          let x1, y1, x2, y2;
+          
+          if (Math.abs(w2) < 0.1) {
+              // Line is nearly vertical (x = -b/w1)
+              const x = -b / w1;
+              x1 = x2 = 50 + x * (plotWidth - 100);
+              y1 = 50;
+              y2 = plotHeight - 50;
+          } else {
+              // Calculate y for x=0 and x=1
+              const y0 = -b / w2;
+              const y1Value = (-w1 - b) / w2;
+              
+              x1 = 50; // x=0 position
+              y1 = plotHeight - (50 + y0 * (plotHeight - 100));
+              x2 = plotWidth - 50; // x=1 position
+              y2 = plotHeight - (50 + y1Value * (plotHeight - 100));
+          }
+          
+          // Position and rotate the line
+          const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+          const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+          
+          line.style.width = length + "px";
+          line.style.left = x1 + "px";
+          line.style.top = y1 + "px";
+          line.style.transform = `rotate(${angle}deg)`;
+          
+          // Update the regions
+          updateRegions();
+      }
+      
+      function updateRegions() {
+          const plotContainer = document.getElementById("plot-container");
+          const plotWidth = plotContainer.clientWidth;
+          const plotHeight = plotContainer.clientHeight;
+          
+          const regionPos = document.getElementById("region-positive");
+          const regionNeg = document.getElementById("region-negative");
+          
+          // For simplicity, we'll just color the top and bottom halves of the plot
+          // based on the sign of w2
+          if (w2 > 0) {
+              // Positive region is below the line
+              regionPos.style.top = "50%";
+              regionPos.style.left = "0";
+              regionPos.style.width = "100%";
+              regionPos.style.height = "50%";
+              regionPos.style.backgroundColor = "#28a745";
+              
+              regionNeg.style.top = "0";
+              regionNeg.style.left = "0";
+              regionNeg.style.width = "100%";
+              regionNeg.style.height = "50%";
+              regionNeg.style.backgroundColor = "#dc3545";
+          } else {
+              // Positive region is above the line
+              regionPos.style.top = "0";
+              regionPos.style.left = "0";
+              regionPos.style.width = "100%";
+              regionPos.style.height = "50%";
+              regionPos.style.backgroundColor = "#28a745";
+              
+              regionNeg.style.top = "50%";
+              regionNeg.style.left = "0";
+              regionNeg.style.width = "100%";
+              regionNeg.style.height = "50%";
+              regionNeg.style.backgroundColor = "#dc3545";
+          }
+      }
+      
+      function updateOutputs() {
+          // Calculate perceptron outputs for all four input combinations
+          for (let x = 0; x <= 1; x++) {
+              for (let y = 0; y <= 1; y++) {
+                  // Calculate net input z = w1*x1 + w2*x2 + b
+                  const z = w1 * x + w2 * y + b;
+                  
+                  // Apply step activation function
+                  const output = z >= 0 ? 1 : 0;
+                  
+                  // Update output display
+                  document.getElementById(`output-value-${x}-${y}`).textContent = output;
+                  
+                  // Update point border to indicate perceptron's prediction
+                  const point = document.getElementById(`point-${x}-${y}`);
+                  point.style.borderColor = output === 1 ? "#28a745" : "#dc3545";
+              }
+          }
+      }
+      
+      function checkSolution() {
+          const truthTable = gateTruthTables[currentGate];
+          let correct = true;
+          let incorrectPoints = [];
+          
+          // Check each input combination
+          for (let x = 0; x <= 1; x++) {
+              for (let y = 0; y <= 1; y++) {
+                  // Calculate perceptron output
+                  const z = w1 * x + w2 * y + b;
+                  const output = z >= 0 ? 1 : 0;
+                  
+                  // Compare with target output
+                  const targetOutput = truthTable[`${x},${y}`];
+                  if (output !== targetOutput) {
+                      correct = false;
+                      incorrectPoints.push(`(${x},${y})`);
+                  }
+              }
+          }
+          
+          // Display feedback
+          const feedbackMessage = document.getElementById("feedback-message");
+          feedbackMessage.style.display = "block";
+          
+          if (correct) {
+              feedbackMessage.className = "success";
+              feedbackMessage.textContent = `Perfect! You've solved the ${currentGate} gate! Your weights (w₁=${w1.toFixed(1)}, w₂=${w2.toFixed(1)}, b=${b.toFixed(1)}) correctly implement the ${currentGate} function.`;
+          } else {
+              feedbackMessage.className = "error";
+              feedbackMessage.textContent = `Not quite! Points ${incorrectPoints.join(", ")} are misclassified. Keep adjusting the parameters.`;
+          }
+      }
+      
+      function resetSliders() {
+          document.getElementById("w1-slider").value = 0;
+          document.getElementById("w2-slider").value = 0;
+          document.getElementById("b-slider").value = 0;
+          updatePerceptron();
+      }
+  </script>
+</body>
+</html>

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Original Blueprint: The Biological Neuron</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .option-container {
+          margin-bottom: 10px;
+      }
+      .option-label {
+          display: block;
+          padding: 10px;
+          background-color: #f9f9f9;
+          border-radius: 5px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+      }
+      .option-label:hover {
+          background-color: #e9e9e9;
+      }
+      .option-feedback {
+          margin-top: 5px;
+          padding: 10px;
+          border-radius: 5px;
+          display: none;
+      }
+      .correct-feedback {
+          background-color: #d4edda;
+          color: #155724;
+      }
+      .incorrect-feedback {
+          background-color: #f8d7da;
+          color: #721c24;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A captivating, artistic rendering of a biological neuron with glowing synapses, emphasizing its complexity and beauty. Perhaps a tagline: 'Nature's Original Deep Learner?'">
+      </div>
+      <h1>The Original Blueprint: The Biological Neuron</h1>
+      <p>Welcome back, explorers of AI! We've seen the incredible feats neural networks can achieve, like conquering the ImageNet challenge. But where did the whole idea for these 'neural networks' even come from? The name itself gives a pretty big clue: they're inspired by the <strong>neurons</strong> in our own brains, the very cells that make up our nervous system and allow us to think, learn, and perceive the world!</p>
+      <p>In this lesson, we're going to take a peek at this amazing biological blueprint. Understanding the basics of how a real neuron works will give us a fantastic foundation for understanding its much simpler cousin, the artificial neuron, which we'll tackle next. Let's dive into some basic neurobiology – don't worry, it'll be fun!</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Meet the Neuron: The Brain's Messenger</h2>
+      <p>Our brains are packed with billions of these tiny communication experts called neurons. Each one is like a mini-processor and messenger, all rolled into one.</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=400&width=600" alt="A clear, beautifully labeled diagram of a biological neuron. Dendrites shown as branching structures with small electrical signals arriving. Soma (Cell Body) as the central part where dendrites connect. Axon as a long, cable-like projection with an electrical pulse traveling down. Axon Terminals as the branched endings of the axon with neurotransmitter icons being released.">
+      </div>
+      <p>Let's break down the main parts and their jobs:</p>
+      <ol>
+          <li><strong>Dendrites (The Receivers):</strong> These are like a tree's branches, reaching out to receive signals from thousands of other neurons. Think of them as the neuron's 'inbox' for messages.</li>
+          <li><strong>Soma or Cell Body (The Processor):</strong> This is the neuron's main body. It collects all the signals coming in from the dendrites and integrates them. It's like a little calculator, summing up all the 'yes' and 'no' votes it's receiving.</li>
+          <li><strong>Axon (The Transmitter):</strong> If the combined signal in the soma reaches a certain threshold – if there's enough 'excitement' – the neuron 'fires'! When it fires, it sends an electrical pulse down a long cable called the axon. This axon can be quite long, carrying the signal to distant parts of the brain or body.</li>
+          <li><strong>Axon Terminals (The Connectors):</strong> At the end of the axon are tiny branches called axon terminals. These are the points where the neuron passes its message on to the dendrites of <em>other</em> neurons, across a tiny gap called a synapse. This is how neurons form vast, interconnected networks.</li>
+      </ol>
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">Synapse</h4>
+          <p>A tiny gap or junction between two nerve cells (a neuron's axon terminal and another neuron's dendrite) across which impulses pass by diffusion of a neurotransmitter. This is where the 'connection strength' in biological networks can change, which is analogous to 'weights' in artificial networks.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>The Flow of Information: Input, Process, Output</h2>
+      <p>So, the basic operation of a biological neuron follows a pretty clear pattern, which is exactly what inspired the design of artificial neurons.</p>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=350&width=600" alt="A simplified, interactive animation of a biological neuron with three stages labeled: '1. Input Impulses', '2. Processing the Impulses', '3. Passing on the Processed Impulses'. Shows dendrites receiving signals, soma processing them, and if threshold is met, an electrical pulse traveling down the axon to the terminals.">
+      </div>
+      <p>Let's recap that flow:</p>
+      <ol>
+          <li><strong>Input Impulses:</strong> The dendrites are constantly receiving chemical or electrical signals from other neurons. These are the inputs.</li>
+          <li><strong>Processing the Impulses:</strong> The soma integrates these inputs. It's a complex process, but a key aspect is summing up the excitatory (fire!) and inhibitory (don't fire!) signals. If the net effect crosses a certain activation threshold, the neuron decides to fire.</li>
+          <li><strong>Passing on the Processed Impulses:</strong> If the neuron fires, it generates an action potential – an electrical signal – that travels down its axon. This output signal is then transmitted to other neurons via the axon terminals and synapses.</li>
+      </ol>
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>This input-process-output model is fundamental. It's a highly simplified view of what really happens in the brain (which involves complex chemistry, timing, and different neuron types), but it provides the core inspiration for the artificial neurons we use in our computer models. We take this basic idea and translate it into mathematics.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>From Biology to Bits: The Inspiration</h2>
+      <p>It's truly awe-inspiring how these biological cells create the richness of our thoughts and experiences!</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A split image: On one side, a beautiful, intricate network of biological neurons glowing. On the other side, a clean, abstract diagram of interconnected nodes representing an artificial neural network. An arrow connects the biological side to the artificial side, labeled 'Inspiration'.">
+      </div>
+      <p>The key takeaways from our biological neuron that we'll carry forward are:</p>
+      <ul>
+          <li><strong>Inputs:</strong> Neurons receive multiple inputs.</li>
+          <li><strong>Weighted Summation (kind of):</strong> The inputs are combined or integrated in some way (in artificial neurons, this will be a weighted sum).</li>
+          <li><strong>Threshold/Activation:</strong> There's a mechanism that determines if the neuron 'fires' or activates based on this integrated input.</li>
+          <li><strong>Output:</strong> If activated, the neuron produces an output signal that is passed on.</li>
+      </ul>
+      <p>It's important to remember that artificial neural networks are a <em>very simplified</em> mathematical abstraction of their biological counterparts. We don't try to replicate all the biological complexity, just the core principles of distributed, interconnected processing units learning from signals.</p>
+      <div class="test-your-knowledge">
+          <h3>Test Your Knowledge</h3>
+          <h4>Which part of the biological neuron is primarily responsible for <em>receiving</em> signals from other neurons?</h4>
+          <div class="option-container">
+              <label class="option-label">
+                  <input type="radio" name="question1" value="axon"> Axon
+              </label>
+              <div class="option-feedback incorrect-feedback" id="feedback-axon">
+                  The axon is more like the output cable, transmitting the neuron's own signal.
+              </div>
+          </div>
+          <div class="option-container">
+              <label class="option-label">
+                  <input type="radio" name="question1" value="soma"> Soma (Cell Body)
+              </label>
+              <div class="option-feedback incorrect-feedback" id="feedback-soma">
+                  The soma processes the signals, but the dendrites are the primary receivers.
+              </div>
+          </div>
+          <div class="option-container">
+              <label class="option-label">
+                  <input type="radio" name="question1" value="dendrites"> Dendrites
+              </label>
+              <div class="option-feedback correct-feedback" id="feedback-dendrites">
+                  You got it! The dendrites are the branch-like structures that act as the main input receivers.
+              </div>
+          </div>
+          <div class="option-container">
+              <label class="option-label">
+                  <input type="radio" name="question1" value="synapse"> Synapse
+              </label>
+              <div class="option-feedback incorrect-feedback" id="feedback-synapse">
+                  The synapse is the tiny gap <em>between</em> neurons where signals are passed, not the main receiving structure of a single neuron itself.
+              </div>
+          </div>
+          <button class="check-button" onclick="checkAnswer()">Check Answer</button>
+      </div>
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>What's Next?</h2>
+      <p>Now that we've seen the amazing 'original blueprint' – the biological neuron – we're ready to see how engineers and scientists took this inspiration and created a mathematical model: the <strong>artificial neuron</strong>.</p>
+      <p>In the next lesson, we'll dive into the components of an artificial neuron, see how it processes information using weights, biases, and activation functions, and write down its fundamental equation. It's where the biology meets the math!</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A drawing of a bridge, with one side being a biological neuron and the other side being a diagram of an artificial neuron. The bridge is labeled 'The Leap to Artificial Intelligence'.">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function checkAnswer() {
+          const selectedOption = document.querySelector('input[name="question1"]:checked');
+          if (selectedOption) {
+              const feedbackId = "feedback-" + selectedOption.value;
+              document.getElementById(feedbackId).style.display = "block";
+          } else {
+              alert("Please select an answer.");
+          }
+      }
+  </script>
+</body>
+</html>

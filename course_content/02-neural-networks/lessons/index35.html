@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercise Lesson 21.1: Calculating Loss - Grading the Network!</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .faq-section {
+          background-color: #fffbea; /* Light yellow background */
+      }
+      .faq-section h3 {
+          color: #ffcc00; /* Bright yellow heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .faq-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .exercise-problem {
+          background-color: #f5f5f5;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+      }
+      .solution {
+          background-color: #f9f9f9;
+          padding: 15px;
+          border-radius: 8px;
+          margin-top: 10px;
+          display: none;
+      }
+      .interactive-answer {
+          background-color: #f0f0f0;
+          padding: 15px;
+          border-radius: 8px;
+          margin-top: 10px;
+      }
+      .interactive-answer input {
+          padding: 8px;
+          margin: 5px 0;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          width: 150px;
+      }
+      .interactive-answer label {
+          display: inline-block;
+          width: 150px;
+          margin-right: 10px;
+      }
+      .feedback {
+          margin-top: 10px;
+          font-weight: bold;
+          display: none;
+      }
+      .correct {
+          color: #28a745;
+      }
+      .incorrect {
+          color: #dc3545;
+      }
+      .math-steps {
+          background-color: #f8f9fa;
+          padding: 15px;
+          border-radius: 8px;
+          margin: 15px 0;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A cartoon character looking like a stern teacher with a red pen, marking a neural network's 'test paper'. The paper has 'Predictions vs True Values' and the teacher is calculating a 'Loss Score'.">
+      </div>
+      <h1>Exercise Lesson 21.1: Calculating Loss - Grading the Network!</h1>
+      <p>Hey performance analysts! In our conceptual Lesson 21, we learned about <strong>Loss Functions</strong> and <strong>Cost Functions</strong>. These are super important because they give us a way to measure how 'wrong' our neural network's predictions are compared to the actual true values. The loss function tells us the error for a single example, and the cost function gives us the average error over a whole dataset.</p>
+      <p>Today, we're going to put on our grading hats and practice calculating these loss values for a few common scenarios. We'll focus on <strong>L2 Loss (Squared Error)</strong> for regression-type problems and <strong>Binary Cross-Entropy Loss</strong> for binary classification problems. This will make the concept of 'quantifying error' much more concrete. Let's get to it!</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Recall: The Loss Formulas</h2>
+      <p>Before we start calculating, let's quickly jot down the loss formulas we'll be using:</p>
+      
+      <div class="math-steps">
+          <h3>Loss Function Quick Reference</h3>
+          
+          <h4>1. L2 Loss (Squared Error) - For Regression</h4>
+          <p>Used when predicting a continuous numerical value. If $$y$$ is the true value and $$f(x)$$ is the network's prediction:</p>
+          <p>\[ L_{L2}(y, f(x)) = (y - f(x))^2 \]</p>
+          
+          <h4>2. Binary Cross-Entropy Loss - For Binary Classification</h4>
+          <p>Used when predicting a probability for one of two classes (e.g., class 0 or class 1). If $$y$$ is the true class label (0 or 1) and $$p = f_1(x)$$ is the predicted probability of the input belonging to Class 1:</p>
+          <p>\[ L_{BCE}(y, p) = - [ y \cdot \log(p) + (1-y) \cdot \log(1-p) ] \]</p>
+          <p>(We'll use $$\log$$ to mean the natural logarithm, $$\ln$$, as is common in this context. You'll be given log values where needed.)</p>
+      </div>
+      
+      <p>Keep these formulas handy!</p>
+      
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">Logarithm (Natural Log, $$\ln$$ or $$\log$$)</h4>
+          <p>The natural logarithm of a number $$x$$ (written $$\ln(x)$$ or often just $$\log(x)$$ in machine learning contexts) is the power to which $$e$$ (Euler's number, ~2.718) must be raised to equal $$x$$. For example, $$\ln(e) = 1$$, $$\ln(1) = 0$$. For probabilities $$p$$ between 0 and 1, $$\log(p)$$ will be negative (or 0 if p=1).</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Difficulty 1: Easy - L2 Loss Calculations</h2>
+      <p>Let's start with some simple L2 Loss calculations for regression scenarios.</p>
+      
+      <div class="exercise-problem">
+          <h3>Problem 1 (L2 Loss):</h3>
+          <p>A neural network is predicting house prices.</p>
+          <ul>
+              <li>True Price ($$y$$): $300,000</li>
+              <li>Network's Prediction ($$f(x)$$): $280,000</li>
+          </ul>
+          <p>Calculate the L2 Loss. (Don't worry about the units like '$' for the calculation, just use the numbers).</p>
+          
+          <div class="interactive-answer">
+              <label for="l2_loss_1">L2 Loss:</label>
+              <input type="number" id="l2_loss_1">
+              <button class="check-button" onclick="checkAnswer('l2_loss_1', 400000000)">Check Answer</button>
+              <div id="feedback_l2_loss_1" class="feedback"></div>
+          </div>
+          
+          <button class="reveal-button" onclick="revealSolution('solution_1')">Show Solution</button>
+          <div id="solution_1" class="solution">
+              <h4>Solution:</h4>
+              <ol>
+                  <li>Identify $$y$$ and $$f(x)$$: $$y = 300000$$, $$f(x) = 280000$$</li>
+                  <li>Calculate the difference $$(y - f(x))$$: $$300000 - 280000 = 20000$$</li>
+                  <li>Square the difference: $$L_{L2} = (20000)^2 = 400,000,000$$</li>
+              </ol>
+              <p><strong>L2 Loss = 400,000,000</strong></p>
+          </div>
+      </div>
+      
+      <div class="exercise-problem">
+          <h3>Problem 2 (L2 Loss):</h3>
+          <p>A network predicts daily temperature.</p>
+          <ul>
+              <li>True Temperature ($$y$$): 25°C</li>
+              <li>Network's Prediction ($$f(x)$$): 28°C</li>
+          </ul>
+          <p>Calculate the L2 Loss.</p>
+          
+          <div class="interactive-answer">
+              <label for="l2_loss_2">L2 Loss:</label>
+              <input type="number" id="l2_loss_2">
+              <button class="check-button" onclick="checkAnswer('l2_loss_2', 9)">Check Answer</button>
+              <div id="feedback_l2_loss_2" class="feedback"></div>
+          </div>
+          
+          <button class="reveal-button" onclick="revealSolution('solution_2')">Show Solution</button>
+          <div id="solution_2" class="solution">
+              <h4>Solution:</h4>
+              <ol>
+                  <li>Identify $$y$$ and $$f(x)$$: $$y = 25$$, $$f(x) = 28$$</li>
+                  <li>Calculate $$(y - f(x))$$: $$25 - 28 = -3$$</li>
+                  <li>Square the difference: $$L_{L2} = (-3)^2 = 9$$</li>
+              </ol>
+              <p><strong>L2 Loss = 9</strong></p>
+          </div>
+      </div>
+      
+      <p>Notice how even a seemingly small error in prediction (like 3°C) can result in a proportionally larger L2 loss due to the squaring. And very large errors (like $20,000) result in a <em>much</em> larger loss.</p>
+      
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>Difficulty 2: Medium - Binary Cross-Entropy Loss</h2>
+      <p>Now, let's switch to binary classification and calculate Binary Cross-Entropy (BCE) Loss. Remember, $$p$$ is the predicted probability of the positive class (Class 1).</p>
+      
+      <p>For calculations, you might need these log values:</p>
+      <ul>
+          <li>$$\log(0.1) \approx -2.303$$</li>
+          <li>$$\log(0.2) \approx -1.609$$</li>
+          <li>$$\log(0.3) \approx -1.204$$</li>
+          <li>$$\log(0.4) \approx -0.916$$</li>
+          <li>$$\log(0.5) = -0.693$$</li>
+          <li>$$\log(0.6) \approx -0.511$$</li>
+          <li>$$\log(0.7) \approx -0.357$$</li>
+          <li>$$\log(0.8) \approx -0.223$$</li>
+          <li>$$\log(0.9) \approx -0.105$$</li>
+          <li>$$\log(0.99) \approx -0.010$$</li>
+      </ul>
+      
+      <div class="exercise-problem">
+          <h3>Problem 3 (BCE Loss):</h3>
+          <p>A network classifies an email as spam (Class 1) or not-spam (Class 0).</p>
+          <ul>
+              <li>True Label ($$y$$): 1 (it IS spam)</li>
+              <li>Network's Predicted Probability of being Spam ($$p = f_1(x)$$): 0.9</li>
+          </ul>
+          <p>Calculate the Binary Cross-Entropy Loss. Round to 3 decimal places.</p>
+          
+          <div class="interactive-answer">
+              <label for="bce_loss_3">BCE Loss (3dp):</label>
+              <input type="number" id="bce_loss_3" step="0.001">
+              <button class="check-button" onclick="checkAnswer('bce_loss_3', 0.105, 0.001)">Check Answer</button>
+              <div id="feedback_bce_loss_3" class="feedback"></div>
+          </div>
+          
+          <button class="reveal-button" onclick="revealSolution('solution_3')">Show Solution</button>
+          <div id="solution_3" class="solution">
+              <h4>Solution:</h4>
+              <ol>
+                  <li>Identify $$y$$ and $$p$$: $$y = 1$$, $$p = 0.9$$</li>
+                  <li>Use the BCE Loss formula: $$L = - [ y \cdot \log(p) + (1-y) \cdot \log(1-p) ]$$</li>
+                  <li>Since $$y=1$$, the second term $$(1-y) \cdot \log(1-p)$$ becomes $$0$$.<br>
+                      $$L = - [ 1 \cdot \log(0.9) + (1-1) \cdot \log(1-0.9) ] = - [\log(0.9) + 0] = -\log(0.9)$$</li>
+                  <li>Using $$\log(0.9) \approx -0.105$$: $$L \approx -(-0.105) = 0.105$$</li>
+              </ol>
+              <p><strong>BCE Loss ≈ 0.105</strong></p>
+          </div>
+      </div>
+      
+      <div class="exercise-problem">
+          <h3>Problem 4 (BCE Loss):</h3>
+          <p>Another email classification.</p>
+          <ul>
+              <li>True Label ($$y$$): 0 (it is NOT spam)</li>
+              <li>Network's Predicted Probability of being Spam ($$p = f_1(x)$$): 0.7</li>
+          </ul>
+          <p>Calculate the Binary Cross-Entropy Loss. Round to 3 decimal places.</p>
+          
+          <div class="interactive-answer">
+              <label for="bce_loss_4">BCE Loss (3dp):</label>
+              <input type="number" id="bce_loss_4" step="0.001">
+              <button class="check-button" onclick="checkAnswer('bce_loss_4', 1.204, 0.001)">Check Answer</button>
+              <div id="feedback_bce_loss_4" class="feedback"></div>
+          </div>
+          
+          <button class="reveal-button" onclick="revealSolution('solution_4')">Show Solution</button>
+          <div id="solution_4" class="solution">
+              <h4>Solution:</h4>
+              <ol>
+                  <li>Identify $$y$$ and $$p$$: $$y = 0$$, $$p = 0.7$$</li>
+                  <li>Use the BCE Loss formula: $$L = - [ y \cdot \log(p) + (1-y) \cdot \log(1-p) ]$$</li>
+                  <li>Since $$y=0$$, the first term $$y \cdot \log(p)$$ becomes $$0$$.<br>
+                      $$L = - [ 0 \cdot \log(0.7) + (1-0) \cdot \log(1-0.7) ] = - [0 + 1 \cdot \log(0.3)] = -\log(0.3)$$</li>
+                  <li>Using $$\log(0.3) \approx -1.204$$: $$L \approx -(-1.204) = 1.204$$</li>
+              </ol>
+              <p><strong>BCE Loss ≈ 1.204</strong></p>
+          </div>
+      </div>
+      
+      <p>Notice in Problem 3, the network was quite confident ($$p=0.9$$) and correct ($$y=1$$), so the loss was small (0.105).</p>
+      <p>In Problem 4, the network was quite confident ($$p=0.7$$ that it <em>was</em> spam) but it was <em>incorrect</em> ($$y=0$$, it was not spam). So the probability of the true class (Not Spam, $$1-p = 0.3$$) was low, leading to a higher loss (1.204). This shows how BCE penalizes confident mistakes.</p>
+      
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>What would the BCE loss be if y=1 and the network confidently predicts p=0.01 (i.e., 1% chance it's class 1)? Use $$\log(0.01) \approx -4.605$$.</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-1')">Reveal</button>
+          <p id="stop-and-think-1" style="display: none;">If y=1, p=0.01, then Loss = -log(p) = -log(0.01) ≈ -(-4.605) = 4.605. This is a much higher loss, reflecting a very confident but very wrong prediction!</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>Difficulty 3: Hard - Calculating Average Cost</h2>
+      <p>Now, let's combine these ideas to calculate the <strong>Cost Function</strong>, which is the average loss over a small dataset.</p>
+      
+      <div class="exercise-problem">
+          <h3>Problem 5 (Average BCE Cost):</h3>
+          <p>You have a mini-dataset of 3 emails for spam classification.</p>
+          <ul>
+              <li>Email 1: True Label $$y^{(1)}=1$$ (spam), Predicted Prob $$p^{(1)}=0.8$$</li>
+              <li>Email 2: True Label $$y^{(2)}=0$$ (not spam), Predicted Prob $$p^{(2)}=0.1$$</li>
+              <li>Email 3: True Label $$y^{(3)}=1$$ (spam), Predicted Prob $$p^{(3)}=0.6$$</li>
+          </ul>
+          <p>Calculate the Binary Cross-Entropy loss for each sample, and then calculate the average Cost $$C$$ for this dataset. (Round individual losses and final cost to 3 decimal places).</p>
+          <p>(Use log values from previous section: $$\log(0.8)\approx-0.223$$, $$\log(0.1)\approx-2.303$$, $$\log(1-0.1)=\log(0.9)\approx-0.105$$, $$\log(0.6)\approx-0.511$$)</p>
+          
+          <div class="interactive-answer">
+              <label for="L1_2115">Loss L1 (3dp):</label>
+              <input type="number" id="L1_2115" step="0.001">
+              <br>
+              <label for="L2_2115">Loss L2 (3dp):</label>
+              <input type="number" id="L2_2115" step="0.001">
+              <br>
+              <label for="L3_2115">Loss L3 (3dp):</label>
+              <input type="number" id="L3_2115" step="0.001">
+              <br>
+              <label for="Cost_2115">Average Cost C (3dp):</label>
+              <input type="number" id="Cost_2115" step="0.001">
+              <br>
+              <button class="check-button" onclick="checkMultipleAnswers()">Check Answers</button>
+              <div id="feedback_multiple" class="feedback"></div>
+          </div>
+          
+          <button class="reveal-button" onclick="revealSolution('solution_5')">Show Solution</button>
+          <div id="solution_5" class="solution">
+              <h4>Solution:</h4>
+              <ol>
+                  <li>Calculate Loss for Email 1 ($$L^{(1)}$$):
+                      <p>$$y^{(1)}=1, p^{(1)}=0.8$$. So $$L^{(1)} = -\log(p^{(1)}) = -\log(0.8)$$</p>
+                      <p>$$L^{(1)} \approx -(-0.223) = 0.223$$</p>
+                  </li>
+                  <li>Calculate Loss for Email 2 ($$L^{(2)}$$):
+                      <p>$$y^{(2)}=0, p^{(2)}=0.1$$. So $$L^{(2)} = -\log(1-p^{(2)}) = -\log(1-0.1) = -\log(0.9)$$</p>
+                      <p>$$L^{(2)} \approx -(-0.105) = 0.105$$</p>
+                  </li>
+                  <li>Calculate Loss for Email 3 ($$L^{(3)}$$):
+                      <p>$$y^{(3)}=1, p^{(3)}=0.6$$. So $$L^{(3)} = -\log(p^{(3)}) = -\log(0.6)$$</p>
+                      <p>$$L^{(3)} \approx -(-0.511) = 0.511$$</p>
+                  </li>
+                  <li>Calculate the Average Cost $$C$$:
+                      <p>$$C = \frac{1}{3} (L^{(1)} + L^{(2)} + L^{(3)}) \approx \frac{1}{3} (0.223 + 0.105 + 0.511)$$</p>
+                      <p>Sum of losses: $$0.223 + 0.105 + 0.511 = 0.839$$</p>
+                      <p>Average Cost: $$C \approx \frac{0.839}{3} \approx 0.280$$</p>
+                  </li>
+              </ol>
+              <p><strong>$$L1\approx0.223, L2\approx0.105, L3\approx0.511$$. Average Cost $$C \approx 0.280$$.</strong></p>
+          </div>
+      </div>
+      
+      <p>Great! Calculating the average cost gives us a single number that represents how well our model is performing across all the examples it has seen so far in training. The goal of training will be to tweak the network's weights and biases to make this average cost as low as possible.</p>
+      
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>The Cost Function is the primary metric that gradient descent algorithms try to minimize. By calculating it, the network gets a 'score' for its current set of parameters. By understanding how changes to parameters affect this score (via derivatives/gradients), the network can 'learn' to improve.</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+  </section>
+
+  <section id="section6">
+      <h2>Loss Calculation Mastered!</h2>
+      <p>You've done an excellent job working through these loss and cost calculations!</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A character holding a 'Loss Calculation Expert' certificate, with graphs of L2 Loss and Cross-Entropy Loss in the background.">
+      </div>
+      
+      <p>You now have practical experience calculating:</p>
+      <ul>
+          <li><strong>L2 Loss (Squared Error)</strong> for regression tasks.</li>
+          <li><strong>Binary Cross-Entropy Loss</strong> for binary classification tasks.</li>
+          <li>The <strong>Average Cost</strong> over a small dataset.</li>
+      </ul>
+      
+      <p>This ability to quantify error is absolutely fundamental. It's how we objectively evaluate models and, more importantly, it's what drives the automated learning process in neural networks.</p>
+      
+      <div class="faq-section">
+          <h3>Frequently Asked Questions</h3>
+          <h4>Why is $$\log(probability)$$ used in Cross-Entropy Loss? What's special about $$\log$$?</h4>
+          <p>That's a deep and excellent question with connections to information theory! Here are a few reasons:</p>
+          <ol>
+              <li><strong>Penalizes Confident Mistakes Heavily:</strong> As $$p$$ (probability of true class) goes to 0, $$\log(p)$$ goes to $$-\infty$$, so $$-\log(p)$$ goes to $$+\infty$$. This means if the model is very confident (p≈0) but wrong, it gets a huge penalty, which strongly encourages it to fix that mistake.</li>
+              <li><strong>Information Theory Connection:</strong> Cross-entropy is related to the Kullback-Leibler (KL) divergence, which measures how one probability distribution differs from a reference distribution. Minimizing cross-entropy is like trying to make the model's predicted probability distribution match the true (often one-hot encoded) probability distribution of the labels.</li>
+              <li><strong>Gradient Properties:</strong> When combined with a Sigmoid or Softmax output layer, the logarithm in the cross-entropy loss leads to very nice and simple gradient calculations during backpropagation, which makes learning more stable and efficient.</li>
+              <li><strong>Additive for Independent Events:</strong> Log probabilities have the nice property that the log probability of independent events occurring together is the sum of their individual log probabilities, which simplifies some derivations.</li>
+          </ol>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+  </section>
+
+  <section id="section7">
+      <h2>What's Next on Our AI Odyssey?</h2>
+      <p>We now know how to tell if our network is doing well or poorly. But there's a big theoretical question looming: just how powerful <em>can</em> these networks be?</p>
+      
+      <p>Can a neural network, even a relatively simple one, theoretically learn to approximate <em>any</em> function we might care about? This leads us to a cornerstone theorem in neural network theory: the <strong>Universal Approximation Theorem</strong>. We'll explore its fascinating implications in our very next conceptual lesson. It will give you a sense of the incredible potential these models hold!</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A neural network looking up at a vast, starry sky filled with complex function shapes, with a signpost pointing towards 'Universal Approximation Theorem - The Outer Limits!'">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealSolution(solutionId) {
+          const solution = document.getElementById(solutionId);
+          const revealButton = event.target;
+          
+          solution.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function checkAnswer(inputId, correctAnswer, tolerance = 0) {
+          const userAnswer = parseFloat(document.getElementById(inputId).value);
+          const feedbackElement = document.getElementById("feedback_" + inputId);
+          
+          if (isNaN(userAnswer)) {
+              feedbackElement.textContent = "Please enter a valid number.";
+              feedbackElement.className = "feedback incorrect";
+              feedbackElement.style.display = "block";
+              return;
+          }
+          
+          if (tolerance === 0) {
+              // Exact match required
+              if (userAnswer === correctAnswer) {
+                  feedbackElement.textContent = "Correct! Well done!";
+                  feedbackElement.className = "feedback correct";
+              } else {
+                  feedbackElement.textContent = "Not quite. Try again or check the solution.";
+                  feedbackElement.className = "feedback incorrect";
+              }
+          } else {
+              // Allow for rounding differences
+              if (Math.abs(userAnswer - correctAnswer) <= tolerance) {
+                  feedbackElement.textContent = "Correct! Well done!";
+                  feedbackElement.className = "feedback correct";
+              } else {
+                  feedbackElement.textContent = "Not quite. Try again or check the solution.";
+                  feedbackElement.className = "feedback incorrect";
+              }
+          }
+          
+          feedbackElement.style.display = "block";
+      }
+
+      function checkMultipleAnswers() {
+          const L1 = parseFloat(document.getElementById("L1_2115").value);
+          const L2 = parseFloat(document.getElementById("L2_2115").value);
+          const L3 = parseFloat(document.getElementById("L3_2115").value);
+          const Cost = parseFloat(document.getElementById("Cost_2115").value);
+          
+          const feedbackElement = document.getElementById("feedback_multiple");
+          
+          if (isNaN(L1) || isNaN(L2) || isNaN(L3) || isNaN(Cost)) {
+              feedbackElement.textContent = "Please enter valid numbers for all fields.";
+              feedbackElement.className = "feedback incorrect";
+              feedbackElement.style.display = "block";
+              return;
+          }
+          
+          const tolerance = 0.001;
+          const correctL1 = 0.223;
+          const correctL2 = 0.105;
+          const correctL3 = 0.511;
+          const correctCost = 0.280;
+          
+          if (Math.abs(L1 - correctL1) <= tolerance && 
+              Math.abs(L2 - correctL2) <= tolerance && 
+              Math.abs(L3 - correctL3) <= tolerance && 
+              Math.abs(Cost - correctCost) <= tolerance) {
+              feedbackElement.textContent = "All answers are correct! Excellent work!";
+              feedbackElement.className = "feedback correct";
+          } else {
+              feedbackElement.textContent = "One or more answers are incorrect. Try again or check the solution.";
+              feedbackElement.className = "feedback incorrect";
+          }
+          
+          feedbackElement.style.display = "block";
+      }
+  </script>
+</body>
+</html>

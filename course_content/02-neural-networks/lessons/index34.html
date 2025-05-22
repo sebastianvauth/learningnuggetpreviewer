@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coding Lesson 20.1: Building the XOR Network (NumPy)</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+
+      .faq-section {
+          background-color: #fffbea; /* Light yellow background */
+      }
+      .faq-section h3 {
+          color: #ffcc00; /* Bright yellow heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .faq-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      pre {
+          background-color: #f5f5f5;
+          padding: 10px;
+          border-radius: 5px;
+          overflow-x: auto;
+          font-size: 0.9em;
+          font-family: monospace;
+      }
+      .option {
+          margin-bottom: 10px;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+      .option:hover {
+          background-color: #f5f5f5;
+      }
+      .option-feedback {
+          display: none;
+          margin-top: 10px;
+          padding: 10px;
+          border-radius: 5px;
+      }
+      .correct {
+          background-color: #d4edda;
+          color: #155724;
+      }
+      .incorrect {
+          background-color: #f8d7da;
+          color: #721c24;
+      }
+      .code-inline {
+          font-family: monospace;
+          background-color: #f5f5f5;
+          padding: 2px 4px;
+          border-radius: 3px;
+          font-size: 0.9em;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A Python snake character confidently assembling a small neural network diagram (2 inputs, 2 hidden, 1 output) on a computer screen, with 'XOR Solved!' flashing. NumPy logo is prominent.">
+      </div>
+      <h1>Coding Lesson 20.1: Building the XOR Network (NumPy) - Cracking the Code!</h1>
+      <p>Hey Pythonic problem-solvers! In our conceptual Lesson 20, we meticulously walked through the calculations of a small, 2-layer neural network that could successfully solve the <strong>XOR problem</strong>. We saw how the hidden layer transformed the non-linearly separable XOR inputs into a new representation where the output neuron could easily make the final classification.</p>
+      <p>Now, it's time to bring that network to life with code! We'll use Python and NumPy to implement the <strong>forward pass</strong> of this specific XOR-solving network. You'll define the inputs, the pre-defined weights and biases, and then code the calculations for both the hidden layer and the output layer. This will be a fantastic exercise in translating a network diagram and its parameters directly into working NumPy code. Let's build our XOR cracker!</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Our XOR Network Blueprint (Slides 34-38)</h2>
+      <p>Let's quickly recall the architecture and parameters of the XOR-solving network we'll be implementing. This is crucial for setting up our NumPy arrays correctly.</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A clear, static diagram of the XOR-solving network from Slide 34, with all weights and biases explicitly labeled: Inputs: x1, x2. Hidden Neuron 1 (h1): Receives x1 (weight w_x1_h1=200), x2 (weight w_x2_h1=200). Bias b_h1=-150. Hidden Neuron 2 (h2): Receives x1 (weight w_x1_h2=100), x2 (weight w_x2_h2=100). Bias b_h2=-150. Output Neuron (y): Receives h1 (weight w_h1_y=100), h2 (weight w_h2_y=-200). Bias b_y=0. Activation Function: Sigmoid φ for ALL neurons.">
+      </div>
+      <p><strong>Key Parameters:</strong></p>
+      <ul>
+          <li><strong>Input Matrix $$X$$ (features x examples):</strong> We'll process all 4 XOR inputs at once.<br>
+              <span class="code-inline">X = [[0, 0, 1, 1],  # x1 values for (0,0), (0,1), (1,0), (1,1)</span><br>
+              <span class="code-inline">     [0, 1, 0, 1]]  # x2 values</span></li>
+          <li><strong>Hidden Layer (Layer 1) Weights $$W1$$ ($$n\_inputs \times n\_hidden\_neurons$$ i.e., 2x2):</strong><br>
+              <span class="code-inline">W1 = [[200, 100],  # col1 for h1, col2 for h2 (from x1)</span><br>
+              <span class="code-inline">      [200, 100]]  # col1 for h1, col2 for h2 (from x2)</span></li>
+          <li><strong>Hidden Layer Biases $$b1$$ ($$n\_hidden\_neurons \times 1$$ i.e., 2x1):</strong><br>
+              <span class="code-inline">b1 = [[-150], [-150]]</span></li>
+          <li><strong>Output Layer (Layer 2) Weights $$W2$$ ($$n\_hidden\_neurons \times n\_output\_neurons$$ i.e., 2x1):</strong><br>
+              <span class="code-inline">W2 = [[100], [-200]]</span></li>
+          <li><strong>Output Layer Bias $$b2$$ ($$n\_output\_neurons \times 1$$ i.e., 1x1):</strong><br>
+              <span class="code-inline">b2 = [[0]]</span></li>
+      </ul>
+      <p>Our forward pass equations will be:</p>
+      <ol>
+          <li>$$Z1 = W1^T \cdot X + b1$$ (Net input to hidden layer)</li>
+          <li>$$A1 = sigmoid(Z1)$$ (Activation of hidden layer)</li>
+          <li>$$Z2 = W2^T \cdot A1 + b2$$ (Net input to output layer)</li>
+          <li>$$A2 = sigmoid(Z2)$$ (Final output $$Y$$ of the network)</li>
+      </ol>
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Setup: Python, NumPy, and Our Network Parameters</h2>
+      <p>Let's start by importing NumPy and defining all our inputs, weights, and biases as NumPy arrays. We'll also need our trusty $$sigmoid$$ function.</p>
+      <pre># Import NumPy
+import numpy as np
+
+# Define the Sigmoid function
+def sigmoid(Z):
+    A = 1 / (1 + np.exp(-Z))
+    return A
+
+# --- Input Data X ---
+# Each column is an XOR input pattern: (0,0), (0,1), (1,0), (1,1)
+# Shape: (number_of_features, number_of_examples) = (2, 4)
+X = np.array([[0, 0, 1, 1],
+                [0, 1, 0, 1]])
+
+# --- Layer 1 (Hidden Layer) Parameters ---
+# W1: weights, shape (n_features_input, n_neurons_hidden) = (2, 2)
+# Column 0 for hidden neuron 1, Column 1 for hidden neuron 2
+W1 = np.array([[200, 100],
+                 [200, 100]])
+
+# b1: biases, shape (n_neurons_hidden, 1) = (2, 1)
+# Bias for hidden neuron 1, Bias for hidden neuron 2
+b1 = np.array([[-150],
+                 [-150]])
+
+# --- Layer 2 (Output Layer) Parameters ---
+# W2: weights, shape (n_features_hidden_A1, n_neurons_output) = (2, 1)
+W2 = np.array([[100],
+                 [-200]])
+
+# b2: biases, shape (n_neurons_output, 1) = (1, 1)
+b2 = np.array([[0]])
+
+print("X (Inputs):\n", X)
+print("\nW1 (Hidden Layer Weights):\n", W1)
+print("b1 (Hidden Layer Biases):\n", b1)
+print("\nW2 (Output Layer Weights):\n", W2)
+print("b2 (Output Layer Bias):\n", b2)</pre>
+      <p>Run this setup code in your Python environment. Make sure all the shapes print out as expected. This careful setup is key to making the matrix math work smoothly!</p>
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>What will be the shape of $$W1^T$$? And what will be the shape of the product $$W1^T \cdot X$$?</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-1')">Reveal</button>
+          <p id="stop-and-think-1" style="display: none;">$$W1$$ is 2x2, so $$W1^T$$ is also 2x2.<br>$$X$$ is 2x4.<br>So, $$W1^T \cdot X$$ will be $$(2 \times 2) \cdot (2 \times 4)$$, resulting in a $$2 \times 4$$ matrix. Each column will represent the net inputs (before bias) to the two hidden neurons for one of the four input examples.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>Task 1: Forward Pass Through the Hidden Layer</h2>
+      <p>First up, let's calculate the activations of our two hidden neurons ($$A1$$) for all four input examples.</p>
+      <pre># Task 1: Calculate Z1 and A1 for the Hidden Layer
+
+# Calculate net inputs Z1 = W1.T @ X + b1
+# Remember NumPy's broadcasting will handle adding b1 (2x1) to W1.T @ X (2x4)
+# YOUR CODE HERE for Z1:
+Z1 = W1.T @ X + b1
+# ------------
+
+# Calculate activations A1 = sigmoid(Z1)
+# YOUR CODE HERE for A1:
+A1 = sigmoid(Z1)
+# ------------
+
+print("Z1 (Net Inputs to Hidden Layer):\n", Z1)
+print("\nA1 (Activations of Hidden Layer - Approx.):\n", np.round(A1)) # Rounding to see 0s and 1s clearly</pre>
+      <p>Implement the calculations for $$Z1$$ and $$A1$$.</p>
+      <p><strong>Expected Output for Z1 (from Slide 35):</strong></p>
+      <pre>Z1 (Net Inputs to Hidden Layer):
+ [[-150.   50.   50.  250.]
+  [-150.  -50.  -50.   50.]]</pre>
+      <p><strong>Expected Output for A1 (approximate, after rounding, from Slide 35):</strong></p>
+      <pre>A1 (Activations of Hidden Layer - Approx.):
+ [[0. 1. 1. 1.]
+  [0. 0. 0. 1.]]</pre>
+      <p>Does your output match? This $$A1$$ matrix now holds the transformed features that the hidden layer has learned! Each column is the $$[h1, h2]$$ activation pair for one of the original XOR inputs.</p>
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>Task 2: Forward Pass Through the Output Layer</h2>
+      <p>Excellent! Now we take the activations from our hidden layer ($$A1$$) and pass them through the output layer to get our final predictions $$A2$$ (which we called $$Y$$ previously).</p>
+      <pre># Task 2: Calculate Z2 and A2 for the Output Layer
+
+# A1 from the previous step is the input to this layer.
+# Calculate net inputs Z2 = W2.T @ A1 + b2
+# YOUR CODE HERE for Z2:
+Z2 = W2.T @ A1 + b2
+# ------------
+
+# Calculate activations A2 = sigmoid(Z2) (This is our final network output Y)
+# YOUR CODE HERE for A2:
+A2 = sigmoid(Z2)
+# ------------
+
+print("Z2 (Net Inputs to Output Layer):\n", Z2)
+print("\nA2 (Final Network Output Y - Approx.):\n", np.round(A2, decimals=1)) # Rounding to 1 decimal to see 0.5 clearly</pre>
+      <p>Complete the code for $$Z2$$ and $$A2$$.</p>
+      <p><strong>Expected Output for Z2 (from Slide 37):</strong></p>
+      <pre>Z2 (Net Inputs to Output Layer):
+ [[   0.  100.  100. -100.]]</pre>
+      <p><em>(Note: This will be a 1x4 row vector because $$W2^T$$ is 1x2 and $$A1$$ is 2x4)</em></p>
+      <p><strong>Expected Output for A2 (approximate, from Slide 37, after rounding to 1 decimal):</strong></p>
+      <pre>A2 (Final Network Output Y - Approx.):
+ [[0.5 1.  1.  0. ]]</pre>
+      <p>This $$A2$$ vector $$[0.5, 1.0, 1.0, 0.0]$$ corresponds to the predictions for inputs $$(0,0), (0,1), (1,0), (1,1)$$. If we threshold at >0.5 (or just round for 0.5), we get $$[0, 1, 1, 0]$$ which is exactly XOR!</p>
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>You've just successfully implemented a complete forward pass for a 2-layer neural network that solves a non-linearly separable problem! This demonstrates how matrix operations in NumPy allow for efficient computation across multiple examples and multiple neurons simultaneously. This is exactly what deep learning libraries do, but on a much larger scale and often on GPUs.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+  </section>
+
+  <section id="section6">
+      <h2>Discussion: What Did We Achieve?</h2>
+      <p>Let's pause and reflect on what our code just did, connecting it back to the concepts from Lesson 20 (Slide 38).</p>
+      <p>Our $$A1$$ matrix (outputs of the hidden layer) was approximately:<br>
+      <span class="code-inline">[[0, 1, 1, 1],  &lt;- Neuron h1's output (OR-like)</span><br>
+      <span class="code-inline"> [0, 0, 0, 1]]  &lt;- Neuron h2's output (AND-like)</span></p>
+      <ul>
+          <li>The first row (from hidden neuron 1) learned an OR-like function.</li>
+          <li>The second row (from hidden neuron 2) learned an AND-like function.</li>
+      </ul>
+      <p>Then, the output layer, with its weights $$W2^T = [100, -200]$$ and bias $$b2=0$$, effectively computed:<br>
+      \[ Output \approx sigmoid(100 \cdot (h1\_output) - 200 \cdot (h2\_output)) \]<br>
+      This combination allowed it to produce the XOR result!</p>
+      <p>This reinforces the idea that <strong>hidden layers learn to create new, more useful representations (features) of the data</strong>, which then allow simpler (often linear) separations in subsequent layers.</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A split panel. Left: The non-linearly separable XOR plot. Right: The linearly separable plot of hidden layer activations (h1, h2). An arrow connects them labeled 'Learned Transformation by Hidden Layer Code!'">
+      </div>
+      <div class="test-your-knowledge">
+          <h3>Test Your Knowledge</h3>
+          <h4>In our NumPy implementation, if $$X$$ is $$(n\_features, m\_examples)$$ and $$W1$$ is $$(n\_features, n\_hidden\_units)$$, then $$Z1 = W1^T \cdot X + b1$$ computes the net inputs for:</h4>
+          <div class="option" onclick="checkAnswer(1, false)">One hidden unit across all examples.</div>
+          <div class="option-feedback" id="feedback-1">This operation calculates for <em>all</em> hidden units across all examples simultaneously.</div>
+          
+          <div class="option" onclick="checkAnswer(2, false)">All hidden units for one example.</div>
+          <div class="option-feedback" id="feedback-2">This calculates for all hidden units and <em>all</em> examples provided in X.</div>
+          
+          <div class="option" onclick="checkAnswer(3, true)">All hidden units across all examples provided in X.</div>
+          <div class="option-feedback" id="feedback-3">Correct! $$W1^T \cdot X$$ will result in a matrix of shape $$(n\_hidden\_units, m\_examples)$$, where each column contains the net inputs (before bias) for one example, across all hidden units.</div>
+          
+          <div class="option" onclick="checkAnswer(4, false)">One input feature across all hidden units.</div>
+          <div class="option-feedback" id="feedback-4">It processes all input features through all hidden units for all examples.</div>
+      </div>
+      <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+  </section>
+
+  <section id="section7">
+      <h2>XOR Conquered with Code!</h2>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A Python snake character high-fiving a happy XOR logic gate. The NumPy logo is in the background, perhaps as a medal.">
+      </div>
+      <p>Congratulations, XOR-solver! You've not only understood the theory but also implemented it.</p>
+      <p>You've successfully:</p>
+      <ul>
+          <li>Set up network parameters (weights, biases, inputs) as NumPy arrays.</li>
+          <li>Implemented the forward pass for a hidden layer using matrix multiplication and an activation function.</li>
+          <li>Implemented the forward pass for an output layer.</li>
+          <li>Verified that the network produces the correct XOR outputs.</li>
+      </ul>
+      <p>This is a huge step! It shows how the abstract concepts of neural networks translate into concrete, computable operations. This foundation is essential for understanding how more complex networks are built and trained.</p>
+      <div class="faq-section">
+          <h3>Frequently Asked Questions</h3>
+          <h4>The bias vectors $$b1$$ (2x1) and $$b2$$ (1x1) were added to matrices $$W1^T \cdot X$$ (2x4) and $$W2^T \cdot A1$$ (1x4) respectively. How does Python/NumPy handle this addition with mismatched shapes?</h4>
+          <p>That's an excellent question about a powerful NumPy feature called <strong>Broadcasting</strong>! When NumPy performs an operation between two arrays of different (but compatible) shapes, it can 'broadcast' the smaller array across the larger array so that they have compatible shapes.</p>
+          <p>In our case:</p>
+          <ul>
+              <li>$$W1^T \cdot X$$ is $$2 \times 4$$. $$b1$$ is $$2 \times 1$$. NumPy effectively 'stretches' or 'tiles' $$b1$$ to become a $$2 \times 4$$ matrix $$[[b1\_h1, b1\_h1, b1\_h1, b1\_h1], [b1\_h2, b1\_h2, b1\_h2, b1\_h2]]$$ and then performs element-wise addition. This means the bias for each hidden neuron is correctly added to its net input for <em>every training example</em> processed in the batch $$X$$.</li>
+              <li>Similarly for $$b2$$ being added to $$W2^T \cdot A1$$.</li>
+          </ul>
+          <p>Broadcasting is extremely useful and efficient, allowing us to write concise code that operates on entire batches of data.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+  </section>
+
+  <section id="section8">
+      <h2>What's Next in Our Learning Adventure?</h2>
+      <p>We've now seen a neural network in conceptual detail AND in code, solving a classic problem.</p>
+      <p>The big missing piece is still: how did we get those 'magic' weights and biases for the XOR network? We just plugged them in! In real scenarios, the network has to <em>learn</em> them from data.</p>
+      <p>To understand learning, we first need to quantify how 'good' or 'bad' a network's predictions are. This brings us to our next crucial topic: <strong>Loss Functions and Cost Functions</strong>. These will be our yardstick for measuring network performance and guiding the learning process. Get ready to grade some networks!</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A fork in the road. One path, labeled 'Network Implementation (Done!)', has a checkmark. The next path, labeled 'How Do Networks Learn? Loss Functions Up Next!', beckons forward.">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function checkAnswer(optionNumber, isCorrect) {
+          const feedback = document.getElementById("feedback-" + optionNumber);
+          feedback.style.display = "block";
+          
+          if (isCorrect) {
+              feedback.classList.add("correct");
+          } else {
+              feedback.classList.add("incorrect");
+          }
+          
+          // Show all feedback after an option is selected
+          for (let i = 1; i <= 4; i++) {
+              document.getElementById("feedback-" + i).style.display = "block";
+          }
+      }
+  </script>
+</body>
+</html>

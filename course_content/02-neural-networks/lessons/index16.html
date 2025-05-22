@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Softmax: Turning Scores into Probabilities</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think, .visual-aid-placeholder {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img, .visual-aid-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .option {
+          margin-bottom: 10px;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+      .option:hover {
+          background-color: #f5f5f5;
+      }
+      .option.selected {
+          background-color: #e6ffe6;
+          border-color: #28a745;
+      }
+      .option.correct {
+          background-color: #d4edda;
+          border-color: #28a745;
+      }
+      .option.incorrect {
+          background-color: #f8d7da;
+          border-color: #dc3545;
+      }
+      .feedback {
+          margin-top: 10px;
+          padding: 10px;
+          border-radius: 5px;
+          display: none;
+      }
+      .feedback.correct {
+          background-color: #d4edda;
+          color: #155724;
+      }
+      .feedback.incorrect {
+          background-color: #f8d7da;
+          color: #721c24;
+      }
+      .math-step {
+          margin-bottom: 20px;
+          padding: 15px;
+          background-color: #f9f9f9;
+          border-left: 4px solid #007bff;
+          border-radius: 4px;
+      }
+      .math-step h4 {
+          margin-top: 0;
+          color: #007bff;
+      }
+      .softmax-calculator {
+          background-color: #f8f9fa;
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .softmax-calculator h4 {
+          margin-top: 0;
+          color: #333;
+      }
+      .input-group {
+          margin-bottom: 15px;
+      }
+      .input-group label {
+          display: inline-block;
+          width: 100px;
+          font-weight: bold;
+      }
+      .input-group input {
+          width: 80px;
+          padding: 5px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+      }
+      .results {
+          margin-top: 20px;
+      }
+      .bar-container {
+          margin-top: 15px;
+      }
+      .bar {
+          height: 30px;
+          background-color: #007bff;
+          margin-bottom: 5px;
+          border-radius: 4px;
+          transition: width 0.3s ease;
+          position: relative;
+      }
+      .bar.highest {
+          background-color: #28a745;
+      }
+      .bar-label {
+          position: absolute;
+          left: 10px;
+          top: 5px;
+          color: white;
+          font-weight: bold;
+      }
+      .bar-value {
+          position: absolute;
+          right: 10px;
+          top: 5px;
+          color: white;
+      }
+      .faq-section {
+          background-color: #fffbea; /* Light yellow background */
+      }
+      .faq-section h3 {
+          color: #ffcc00; /* Bright yellow heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .faq-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A stylized 'converter machine' with 'Raw Scores (Logits)' going in one side, and neat 'Probabilities (0-1, Sum to 1)' coming out the other. The machine is labeled 'The Softmax Function'.">
+      </div>
+      <h1>Softmax: Turning Scores into Probabilities</h1>
+      <p>Alright class-ifiers! In our last lesson, we saw that for multiclass classification, our neural network's output layer produces a set of $$K$$ raw scores (or <strong>logits</strong>), one for each of the K possible classes. These scores give us an idea of how strongly the network leans towards each class, but they aren't probabilities yet – they can be any number, and they don't sum to one.</p>
+      <p>Today, we're going to meet the function that elegantly transforms these raw scores into a proper probability distribution: the <strong>Softmax function</strong>. It's a cornerstone of multiclass classification with neural networks!</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Defining Softmax: The Math Behind the Magic</h2>
+      <p>So, how does Softmax take a vector of K arbitrary scores $$z = [z_1, z_2, ..., z_K]$$ and turn it into a vector of K probabilities $$s = [s_1, s_2, ..., s_K]$$ where each $$s_j$$ is between 0 and 1, and they all sum to 1?</p>
+      
+      <h3>The Softmax Function Formula</h3>
+      
+      <div class="math-step">
+          <h4>The Goal</h4>
+          <p>Given $$K$$ raw scores (logits): $$z_1, z_2, ..., z_K$$.<br>
+          We want to compute $$K$$ probabilities: $$s_1, s_2, ..., s_K$$ such that $$0 \leq s_j \leq 1$$ for all $$j$$, and $$\sum s_j = 1$$ (sum over $$j$$ from 1 to $$K$$).</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>Step 1: Exponentiate Each Score</h4>
+          <p>The first thing Softmax does is take the exponential of each raw score $$z_j$$. Remember $$e$$ (Euler's number) is approximately 2.718. So, for each score $$z_j$$, we calculate $$e^{z_j}$$ (or $$\exp(z_j)$$).</p>
+          <p>\[ \text{Intermediate value for class } j = e^{z_j} \]</p>
+          <p>Why exponentiate?</p>
+          <ol>
+              <li><strong>Makes everything positive:</strong> $$$$ raised to any real power is always positive. This is good, as probabilities can't be negative.</li>
+              <li><strong>Accentuates differences:</strong> The exponential function grows very rapidly. This means that larger scores become <em>much</em> larger after exponentiation compared to smaller scores. This helps the class with the highest score stand out more.</li>
+          </ol>
+      </div>
+      
+      <div class="math-step">
+          <h4>Step 2: Sum All Exponentiated Scores</h4>
+          <p>Next, we sum up all these exponentiated values. This sum will serve as our normalization constant.</p>
+          <p>\[ \text{Normalization Constant (Sum)} = \sum_{k=1}^{K} e^{z_k} = e^{z_1} + e^{z_2} + \dots + e^{z_K} \]</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>Step 3: Divide to Get Probabilities</h4>
+          <p>Finally, to get the probability $$s_j$$ for each class $$j$$, we divide its exponentiated score $$e^{z_j}$$ by the normalization constant (the sum we just calculated).</p>
+          <p>\[ s_j = \frac{e^{z_j}}{\sum_{k=1}^{K} e^{z_k}} \]</p>
+          <p>And that's it! Because we're dividing each positive $$e^{z_j}$$ by the sum of all positive $$e^{z_k}$$ values, each resulting $$s_j$$ will be between 0 and 1, and they will all sum up to 1. We have our probability distribution!</p>
+      </div>
+      
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">Softmax</h4>
+          <p>A function that takes a vector of K real numbers (logits) and normalizes it into a probability distribution consisting of K probabilities proportional to the exponentials of the input numbers. The 'soft' part comes from it being a smooth (differentiable) approximation of the 'argmax' function (which would just pick the maximum and make it 1, others 0).</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Softmax in Action: An Example Calculation</h2>
+      <p>Math formulas are great, but let's see Softmax work its magic with some actual numbers! Suppose our network is trying to classify an image into one of 3 classes (e.g., Cat, Dog, Bird), and the output layer produces these raw scores (logits):</p>
+      
+      <h3>Example: 3-Class Softmax Calculation</h3>
+      
+      <div class="math-step">
+          <h4>Raw Scores (Logits):</h4>
+          <ul>
+              <li>Class 1 (Cat): $$z_1 = 2.0$$</li>
+              <li>Class 2 (Dog): $$z_2 = 1.0$$</li>
+              <li>Class 3 (Bird): $$z_3 = 0.1$$</li>
+          </ul>
+      </div>
+      
+      <div class="math-step">
+          <h4>1. Exponentiate Scores:</h4>
+          <p>\[ e^{z_1} = e^{2.0} \approx 7.389 \]</p>
+          <p>\[ e^{z_2} = e^{1.0} \approx 2.718 \]</p>
+          <p>\[ e^{z_3} = e^{0.1} \approx 1.105 \]</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>2. Sum Exponentiated Scores (Normalization Constant):</h4>
+          <p>\[ \sum e^{z_k} = 7.389 + 2.718 + 1.105 = 11.212 \]</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>3. Calculate Probabilities $$s_j$$:</h4>
+          <p>\[ s_1 (\text{Prob Cat}) = \frac{e^{z_1}}{\sum e^{z_k}} = \frac{7.389}{11.212} \approx 0.659 \text{ (or 65.9\%)} \]</p>
+          <p>\[ s_2 (\text{Prob Dog}) = \frac{e^{z_2}}{\sum e^{z_k}} = \frac{2.718}{11.212} \approx 0.242 \text{ (or 24.2\%)} \]</p>
+          <p>\[ s_3 (\text{Prob Bird}) = \frac{e^{z_3}}{\sum e^{z_k}} = \frac{1.105}{11.212} \approx 0.099 \text{ (or 9.9\%)} \]</p>
+      </div>
+      
+      <div class="math-step">
+          <h4>Check the Sum:</h4>
+          <p>Let's see if they sum to 1: $$0.659 + 0.242 + 0.099 = 1.000$$. Perfect!</p>
+          <p>So, based on these logits, the network, after applying Softmax, would predict 'Cat' with the highest probability (65.9%).</p>
+      </div>
+      
+      <div class="softmax-calculator">
+          <h4>Softmax Calculator</h4>
+          <p>Try it yourself! Adjust the raw scores and see how the probabilities change.</p>
+          
+          <div class="input-group">
+              <label for="z1">Class 1 (Cat):</label>
+              <input type="number" id="z1" value="2.0" step="0.1" onchange="calculateSoftmax()">
+          </div>
+          
+          <div class="input-group">
+              <label for="z2">Class 2 (Dog):</label>
+              <input type="number" id="z2" value="1.0" step="0.1" onchange="calculateSoftmax()">
+          </div>
+          
+          <div class="input-group">
+              <label for="z3">Class 3 (Bird):</label>
+              <input type="number" id="z3" value="0.1" step="0.1" onchange="calculateSoftmax()">
+          </div>
+          
+          <div class="results">
+              <h4>Exponentiated Values:</h4>
+              <p id="exp-values">e^2.0 ≈ 7.389, e^1.0 ≈ 2.718, e^0.1 ≈ 1.105</p>
+              
+              <h4>Sum (Normalization Constant):</h4>
+              <p id="sum-value">11.212</p>
+              
+              <h4>Probabilities:</h4>
+              <div class="bar-container" id="bar-container">
+                  <!-- Bars will be added here by JavaScript -->
+              </div>
+          </div>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>Visualizing the Softmax Layer</h2>
+      <p>It's helpful to visualize where Softmax fits into the network architecture.</p>
+      
+      <div class="visual-aid-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="An animated diagram showing a previous (hidden) layer feeding into K summation units in the output layer, producing raw scores z_1 to z_K, which then flow into a Softmax function box, outputting probabilities s_1 to s_K.">
+      </div>
+      
+      <p>As you can see, the Softmax function is typically applied as the very <strong>final step</strong> in the output layer of a multiclass classification network. The neurons in the output layer first compute their raw scores (logits), and then these logits are passed <em>en masse</em> to the Softmax function, which transforms them into the final probability distribution over the K classes.</p>
+      
+      <div class="why-it-matters">
+          <h3>Why It Matters</h3>
+          <p>Softmax provides a principled way to obtain a probability distribution from a set of arbitrary real-valued scores. This is essential not only for making a final prediction (picking the class with the highest probability) but also for training the network using loss functions like Cross-Entropy, which expect probabilistic inputs.</p>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>Making the Final Call</h2>
+      <p>Once the Softmax function has done its job and given us a nice vector of probabilities $$[s_1, s_2, ..., s_K]$$, how do we actually decide which class the input belongs to?</p>
+      
+      <p>It's usually very simple: <strong>We pick the class that has the highest probability!</strong></p>
+      
+      <p>In our example calculation:</p>
+      <ul>
+          <li>Prob(Cat) ≈ 0.659</li>
+          <li>Prob(Dog) ≈ 0.242</li>
+          <li>Prob(Bird) ≈ 0.099</li>
+      </ul>
+      
+      <p>Since 0.659 is the highest, our network's final prediction for that input would be 'Cat'. This process of picking the maximum is sometimes called an <strong>argmax</strong> operation (finding the argument/index that maximizes the function).</p>
+      
+      <div class="test-your-knowledge">
+          <h3>Test Your Knowledge</h3>
+          <h4>If a Softmax output for 4 classes is $$s = [0.1, 0.6, 0.2, 0.1]$$, which class would the model predict?</h4>
+          
+          <div class="option" onclick="selectOption(this, 1)">Class 1 (probability 0.1)</div>
+          <div class="option" onclick="selectOption(this, 2)">Class 2 (probability 0.6)</div>
+          <div class="option" onclick="selectOption(this, 3)">Class 3 (probability 0.2)</div>
+          <div class="option" onclick="selectOption(this, 4)">It's a tie, the model is confused.</div>
+          
+          <div class="feedback" id="feedback-1">While Class 1 is a possibility, it doesn't have the highest probability.</div>
+          <div class="feedback" id="feedback-2">Correct! Class 2 has the highest probability (0.6), so it would be the predicted class.</div>
+          <div class="feedback" id="feedback-3">Class 3 has a higher probability than Class 1 or 4, but Class 2 is higher still.</div>
+          <div class="feedback" id="feedback-4">There's no tie here; Class 2 has a distinctly higher probability than the others.</div>
+          
+          <button class="check-button" id="check-button" style="display: none;" onclick="checkAnswer()">Check Answer</button>
+      </div>
+      
+      <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+  </section>
+
+  <section id="section6">
+      <h2>What's Next?</h2>
+      <p>Softmax is a fantastic tool for turning raw scores into a well-behaved probability distribution for multiclass problems. But what happens when our classifier is <em>really good</em> and very confident about one particular class? How does Softmax behave then? And, as always, what about its <strong>derivative</strong>, which we know is crucial for training?</p>
+      
+      <p>In the next lesson, we'll explore how Softmax outputs look for a confident classifier, and we'll take a peek at the mathematics of its derivative. Get ready for 'Softmax in Action'!</p>
+      
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A Softmax function depicted as a judge's gavel, decisively pointing to one winner (the class with highest probability) out of K options, while also showing the probabilities for the runners-up.">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+      
+      // Softmax calculator functionality
+      function calculateSoftmax() {
+          const z1 = parseFloat(document.getElementById("z1").value);
+          const z2 = parseFloat(document.getElementById("z2").value);
+          const z3 = parseFloat(document.getElementById("z3").value);
+          
+          // Calculate exponentials
+          const exp1 = Math.exp(z1);
+          const exp2 = Math.exp(z2);
+          const exp3 = Math.exp(z3);
+          
+          // Calculate sum
+          const sum = exp1 + exp2 + exp3;
+          
+          // Calculate probabilities
+          const s1 = exp1 / sum;
+          const s2 = exp2 / sum;
+          const s3 = exp3 / sum;
+          
+          // Update display
+          document.getElementById("exp-values").textContent = 
+              `e^${z1.toFixed(1)} ≈ ${exp1.toFixed(3)}, e^${z2.toFixed(1)} ≈ ${exp2.toFixed(3)}, e^${z3.toFixed(1)} ≈ ${exp3.toFixed(3)}`;
+          
+          document.getElementById("sum-value").textContent = sum.toFixed(3);
+          
+          // Update bars
+          const barContainer = document.getElementById("bar-container");
+          barContainer.innerHTML = '';
+          
+          // Find highest probability
+          const maxProb = Math.max(s1, s2, s3);
+          
+          // Create bars
+          createBar(barContainer, "Cat", s1, s1 === maxProb);
+          createBar(barContainer, "Dog", s2, s2 === maxProb);
+          createBar(barContainer, "Bird", s3, s3 === maxProb);
+      }
+      
+      function createBar(container, label, value, isHighest) {
+          const barDiv = document.createElement("div");
+          barDiv.className = isHighest ? "bar highest" : "bar";
+          barDiv.style.width = `${value * 100}%`;
+          
+          const labelSpan = document.createElement("span");
+          labelSpan.className = "bar-label";
+          labelSpan.textContent = label;
+          
+          const valueSpan = document.createElement("span");
+          valueSpan.className = "bar-value";
+          valueSpan.textContent = `${(value * 100).toFixed(1)}%`;
+          
+          barDiv.appendChild(labelSpan);
+          barDiv.appendChild(valueSpan);
+          container.appendChild(barDiv);
+      }
+      
+      // Initialize the calculator
+      calculateSoftmax();
+      
+      // Test Your Knowledge functionality
+      let selectedOption = null;
+      
+      function selectOption(element, optionNumber) {
+          // Reset all options
+          const options = document.querySelectorAll('.option');
+          options.forEach(opt => {
+              opt.classList.remove('selected');
+              opt.classList.remove('correct');
+              opt.classList.remove('incorrect');
+          });
+          
+          // Hide all feedback
+          const feedbacks = document.querySelectorAll('.feedback');
+          feedbacks.forEach(fb => {
+              fb.style.display = 'none';
+          });
+          
+          // Select the clicked option
+          element.classList.add('selected');
+          selectedOption = optionNumber;
+          
+          // Show the check button
+          document.getElementById('check-button').style.display = 'inline-block';
+      }
+      
+      function checkAnswer() {
+          if (selectedOption === null) return;
+          
+          const options = document.querySelectorAll('.option');
+          const correctOption = 2; // Class 2 is the correct answer
+          
+          // Mark the selected option as correct or incorrect
+          options[selectedOption - 1].classList.remove('selected');
+          if (selectedOption === correctOption) {
+              options[selectedOption - 1].classList.add('correct');
+          } else {
+              options[selectedOption - 1].classList.add('incorrect');
+              options[correctOption - 1].classList.add('correct');
+          }
+          
+          // Show feedback for the selected option
+          document.getElementById(`feedback-${selectedOption}`).style.display = 'block';
+          
+          // Hide the check button
+          document.getElementById('check-button').style.display = 'none';
+      }
+  </script>
+</body>
+</html>

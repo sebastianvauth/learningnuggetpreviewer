@@ -1,0 +1,342 @@
+/* Basic styles will go here */
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+header {
+    background-color: #0056b3; /* Brilliant.org-ish blue */
+    color: #fff;
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+header p {
+    font-size: 1.1rem;
+}
+
+main {
+    padding: 1rem;
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+.course-list h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: #333;
+}
+
+.course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.course-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.course-card img {
+    width: 100%;
+    height: 150px; /* Fixed height for consistency */
+    object-fit: cover; /* Ensures image covers the area well */
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.course-card h3 {
+    font-size: 1.5rem;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: #0056b3;
+}
+
+.course-card p {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    flex-grow: 1; /* Makes description take available space */
+}
+
+.btn {
+    display: inline-block;
+    background-color: #007bff;
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: #333;
+    color: #fff;
+    margin-top: 2rem;
+}
+
+.error-message {
+    background-color: #ffdddd; /* Light red */
+    color: #d8000c; /* Dark red */
+    border: 1px solid #d8000c;
+    padding: 1rem;
+    margin: 1rem auto;
+    border-radius: 5px;
+    text-align: center;
+    max-width: 800px;
+}
+
+.error-message:focus {
+    outline: 2px solid #d8000c; /* Or your preferred focus color */
+    outline-offset: 2px;
+}
+
+/* View Titles */
+.view-title {
+    text-align: center;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 2.2rem; /* Slightly smaller than header h1 */
+    color: #333;
+}
+
+/* Basic Breadcrumbs */
+nav[aria-label="Breadcrumb"] {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+}
+
+nav[aria-label="Breadcrumb"] a {
+    text-decoration: none;
+    color: #0056b3;
+}
+
+nav[aria-label="Breadcrumb"] a:hover {
+    text-decoration: underline;
+}
+
+nav[aria-label="Breadcrumb"] span {
+    color: #6c757d;
+}
+
+/* Module Overview Panel */
+.module-overview-panel {
+    background-color: #fff;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    max-width: 800px; /* Add max-width for consistency on large screens */
+    margin-left: auto; /* Center it if max-width is applied */
+    margin-right: auto; /* Center it if max-width is applied */
+}
+
+.module-overview-icon {
+    width: 60px; /* Adjust as needed */
+    height: 60px;
+    object-fit: contain;
+    margin-right: 1rem;
+    border-radius: 4px;
+}
+
+.module-overview-panel h3 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #0056b3;
+}
+
+/* Lesson Progression */
+.lesson-progression-container {
+    margin-bottom: 1.5rem;
+    max-width: 800px; /* Add max-width */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.lesson-level-heading {
+    font-size: 1.4rem;
+    color: #333;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 2px solid #0056b3;
+}
+
+.lesson-progression-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.lesson-progression-item {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    font-size: 1.1rem;
+}
+
+.lesson-progression-item:hover,
+.lesson-progression-item:focus {
+    background-color: #f0f8ff; /* Light blue hover */
+    border-color: #007bff;
+    outline: 2px solid #007bff; /* Explicit focus outline */
+    outline-offset: 1px;
+}
+
+.lesson-progression-item.active-lesson {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #0056b3;
+    font-weight: bold;
+}
+
+.lesson-progression-item.active-lesson:hover,
+.lesson-progression-item.active-lesson:focus {
+    background-color: #0056b3;
+}
+
+/* Placeholder for iframe area */
+#lesson-content-frame {
+    border: 1px dashed #ccc;
+    padding: 1rem;
+    margin-top: 1rem;
+    min-height: 200px; /* Example minimum height */
+    background-color: #f9f9f9;
+    max-width: 800px; /* Add max-width */
+    margin-left: auto;
+    margin-right: auto;
+    display: flex; /* To help center content like loading indicator */
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-indicator {
+    font-style: italic;
+    color: #555;
+    padding: 2rem;
+}
+
+/* Lesson Navigation Buttons */
+.lesson-navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem; /* Space above the buttons */
+    padding: 0.5rem 0; /* Some padding around the container */
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-lesson-nav {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: bold;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.btn-lesson-nav:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.btn-lesson-nav:focus {
+    outline: 2px solid #0056b3;
+    outline-offset: 2px;
+}
+
+.btn-lesson-nav:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) { /* For tablets and smaller */
+    header h1 {
+        font-size: 2rem; /* Slightly smaller header on smaller screens */
+    }
+
+    .view-title {
+        font-size: 1.8rem; /* Slightly smaller view titles */
+    }
+
+    .course-card h3 {
+        font-size: 1.3rem; /* Adjust card titles */
+    }
+
+    .module-overview-panel {
+        flex-direction: column; /* Stack icon and title */
+        text-align: center;
+    }
+
+    .module-overview-icon {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) { /* For mobile phones */
+    header h1 {
+        font-size: 1.8rem;
+    }
+    /* header p {} */ /* Assuming no <p> in header currently, but placeholder if added */
+
+    .view-title {
+        font-size: 1.6rem;
+    }
+    .course-card {
+        padding: 1rem;
+    }
+    .course-card h3 {
+        font-size: 1.2rem;
+    }
+    .btn-lesson-nav {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    nav[aria-label="Breadcrumb"] {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+    }
+} 

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Activation Function Zoo: Part 1</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+          font-size: 150%;
+      }
+      section {
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: #ffffff;
+          display: none;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      h1, h2, h3, h4 {
+          color: #333;
+          margin-top: 20px;
+      }
+      p, li {
+          line-height: 1.6;
+          color: #444;
+          margin-bottom: 20px;
+      }
+      ul {
+          padding-left: 20px;
+      }
+      .image-placeholder, .interactive-placeholder, .continue-button, .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          text-align: left;
+      }
+      .image-placeholder img, .interactive-placeholder img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 5px;
+      }
+      .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, .stop-and-think {
+          padding: 20px;
+          border-radius: 8px;
+          margin-top: 20px;
+      }
+      .vocab-section {
+          background-color: #f0f8ff;
+      }
+      .vocab-section h3 {
+          color: #1e90ff;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .vocab-section h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .vocab-term {
+          font-weight: bold;
+          color: #1e90ff;
+      }
+      .why-it-matters {
+          background-color: #ffe6f0;
+      }
+      .why-it-matters h3 {
+          color: #d81b60;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .stop-and-think {
+          background-color: #e6e6ff;
+      }
+      .stop-and-think h3 {
+          color: #4b0082;
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .continue-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #007bff;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .reveal-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #4b0082;
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .test-your-knowledge {
+          background-color: #e6ffe6; /* Light green background */
+      }
+      .test-your-knowledge h3 {
+          color: #28a745; /* Dark green heading */
+          font-size: 0.75em;
+          margin-bottom: 5px;
+          margin-top: 5px;
+      }
+      .test-your-knowledge h4 {
+          color: #000;
+          font-size: 0.9em;
+          margin-top: 10px;
+          margin-bottom: 8px;
+      }
+      .test-your-knowledge p {
+          margin-bottom: 15px;
+      }
+      .check-button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin-top: 15px;
+          color: #ffffff;
+          background-color: #28a745; /* Green background */
+          border-radius: 5px;
+          text-decoration: none;
+          cursor: pointer;
+          border: none;
+          font-size: 1em;
+      }
+      .option {
+          margin-bottom: 10px;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+      .option:hover {
+          background-color: #f5f5f5;
+      }
+      .option-feedback {
+          display: none;
+          margin-top: 5px;
+          padding: 10px;
+          border-radius: 5px;
+      }
+      .correct {
+          background-color: #d4edda;
+          color: #155724;
+      }
+      .incorrect {
+          background-color: #f8d7da;
+          color: #721c24;
+      }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <section id="section1">
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A fun, cartoonish entrance to a zoo. Instead of animal enclosures, there are exhibits labeled 'Identity Den', 'Sigmoid Swamps', 'Tanh Hills', 'ReLU Rocks'. Each exhibit has a vague shape of the function's graph.">
+      </div>
+      <h1>The Activation Function Zoo: Part 1 (Identity, Sigmoid, Tanh, ReLU)</h1>
+      <p>Welcome, brave explorers, to the first part of our tour through the <strong>Activation Function Zoo</strong>! In our last lesson, we discovered just how crucial these functions are for giving neural networks their learning superpowers, especially their ability to model complex, non-linear relationships.</p>
+      <p>Today, we're going to meet four of the most fundamental and frequently encountered 'species' in this zoo. For each one, we'll look at its mathematical formula, what its graph looks like, and the typical range of values it outputs. These are the workhorses you'll see in many network diagrams!</p>
+      <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+  </section>
+
+  <section id="section2">
+      <h2>Exhibit 1: The Identity Function - The Straight Shooter</h2>
+      <p>Our first stop is perhaps the simplest of them all: the <strong>Identity Function</strong>.</p>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A clear plot of the Identity function (a straight diagonal line y=x or φ(z)=z). Axes clearly labeled: z (Net Input) on the horizontal, φ(z) (Activation Output) on the vertical. The equation φ(z) = z is displayed prominently next to the graph. An annotation indicates its output range: (-∞, +∞). An animation: as a dot moves along the z-axis, another dot representing φ(z) moves perfectly along the φ(z)=z line, showing no change or 'squashing'.">
+      </div>
+      <p>Think of the Identity function as a perfectly clear window: whatever value of <code>z</code> (the net input) goes in, the exact same value <code>a</code> comes out. No transformation, no squashing, no fuss.</p>
+      <p><strong>Equation:</strong><br>
+      \[ \phi(z) = z \]</p>
+      <p><strong>Output Range:</strong> $$(-\infty, +\infty)$$ (all real numbers)</p>
+      <p><strong>Behavior:</strong> It simply passes the net input value <code>z</code> directly as the activation <code>a</code>.</p>
+      <p><strong>Why have it?</strong> If it doesn't do anything non-linear, why is it useful? Well, while it's not typically used in <em>hidden</em> layers (because that would negate the benefits of depth, as we discussed!), it's very common in the <strong>output layer</strong> of a neural network when you're trying to solve a <strong>regression problem</strong>. For example, if you're predicting a house price, which could be any positive number, you wouldn't want to squash it into a small range. The Identity function lets the network output any real value directly.</p>
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">Regression (in Machine Learning)</h4>
+          <p>A type of supervised learning task where the goal is to predict a continuous output value. Examples include predicting stock prices, temperature, or the age of a person from a photo.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+  </section>
+
+  <section id="section3">
+      <h2>Exhibit 2: The Sigmoid Function - The Classic Squasher</h2>
+      <p>Next up, we visit a true classic, one of the earliest and most famous activation functions: the <strong>Logistic Sigmoid Function</strong>, often just called 'Sigmoid'.</p>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A clear plot of the Sigmoid function (the S-shaped curve). Axes: z (Net Input) and φ(z) (Activation Output). Equation: φ(z) = 1 / (1 + e^(-z)) or φ(z) = 1 / (1 + exp(-z)) displayed. Output Range: (0, 1) clearly marked on the y-axis. Animation: As a dot moves along the z-axis from large negative to large positive values, the corresponding φ(z) dot smoothly traverses the S-curve from near 0, through 0.5 (at z=0), to near 1. This visually shows the 'squashing' effect into the (0,1) range.">
+      </div>
+      <p>The Sigmoid function has a characteristic 'S' shape (that's what 'sigmoid' means!). Its most important feature is that it takes any real-valued input <code>z</code> and 'squashes' it into an output <code>a</code> that is always between 0 and 1.</p>
+      <p><strong>Equation:</strong><br>
+      \[ \phi(z) = \frac{1}{1 + e^{-z}} \]
+      (Where <code>e</code> is Euler's number, approximately 2.71828. <code>e^(-z)</code> is the same as <code>exp(-z)</code>).</p>
+      <p><strong>Output Range:</strong> $$(0, 1)$$ (strictly greater than 0 and strictly less than 1).</p>
+      <p><strong>Behavior:</strong></p>
+      <ul>
+          <li>If <code>z</code> is a large negative number (e.g., -10), <code>e^(-z)</code> becomes very large, so <code>φ(z)</code> is close to 0.</li>
+          <li>If <code>z</code> is 0, then <code>e^(0) = 1</code>, so <code>φ(0) = 1 / (1 + 1) = 0.5</code>.</li>
+          <li>If <code>z</code> is a large positive number (e.g., +10), <code>e^(-z)</code> becomes very small (close to 0), so <code>φ(z)</code> is close to <code>1 / (1 + 0) = 1</code>.</li>
+      </ul>
+      <p><strong>Why is it useful?</strong> Its (0, 1) output range makes it perfect for situations where we want to interpret the neuron's output as a <strong>probability</strong>. For instance, in the output layer of a network doing <strong>binary classification</strong> (e.g., is this email spam or not spam?), the Sigmoid output can represent the probability that the input belongs to the 'positive' class.</p>
+      <div class="stop-and-think">
+          <h3>Stop and Think</h3>
+          <h4>If a neuron using a Sigmoid activation outputs 0.9, what might that signify in a binary classification task (e.g., detecting if an image contains a cat)?</h4>
+          <button class="reveal-button" onclick="revealAnswer('stop-and-think-1')">Reveal</button>
+          <p id="stop-and-think-1" style="display: none;">It would likely signify a high probability (90%) that the input (image) belongs to the 'cat' class, according to the neuron's current learned weights and bias.</p>
+      </div>
+      <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+  </section>
+
+  <section id="section4">
+      <h2>Exhibit 3: The Tanh Function - Sigmoid's Zero-Centered Cousin</h2>
+      <p>Moving along, we meet the <strong>Hyperbolic Tangent Function</strong>, usually just called <strong>Tanh</strong> (pronounced 'tanch' or 'tan-H'). It looks a bit like Sigmoid, but with a key difference in its output range.</p>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A clear plot of the Tanh function (S-shaped curve, but centered at 0). Axes: z (Net Input) and φ(z) (Activation Output). Equation: φ(z) = tanh(z) = (e^z - e^(-z)) / (e^z + e^(-z)) displayed. Output Range: (-1, 1) clearly marked on the y-axis. Animation: Similar to Sigmoid, showing a point traversing the S-curve from near -1, through 0 (at z=0), to near 1, as z changes.">
+      </div>
+      <p>Tanh also has an 'S' shape and squashes its input, but it maps <code>z</code> to an output <code>a</code> that is always between -1 and 1.</p>
+      <p><strong>Equation:</strong><br>
+      \[ \phi(z) = \tanh(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}} \]</p>
+      <p><strong>Output Range:</strong> $$(-1, 1)$$</p>
+      <p><strong>Behavior:</strong></p>
+      <ul>
+          <li>If <code>z</code> is large negative, <code>φ(z)</code> is close to -1.</li>
+          <li>If <code>z</code> is 0, <code>φ(0) = (1 - 1) / (1 + 1) = 0</code>.</li>
+          <li>If <code>z</code> is large positive, <code>φ(z)</code> is close to 1.</li>
+      </ul>
+      <p><strong>Key Difference from Sigmoid:</strong> Tanh's output is <strong>zero-centered</strong> (it ranges from -1 to 1, with 0 in the middle). Sigmoid's output is always positive (0 to 1). This zero-centered property of Tanh can sometimes be advantageous for training deep networks, as it can help to keep the inputs to subsequent layers more centered around zero, which can lead to faster convergence during training. For this reason, Tanh was often preferred over Sigmoid for hidden layers (before ReLU came along!).</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=200&width=400" alt="A simple graphic comparing Sigmoid and Tanh. Sigmoid's S-curve is shown entirely above the x-axis (0 to 1). Tanh's S-curve is shown centered on the x-axis (-1 to 1). An arrow points from Tanh to a label 'Zero-Centered Output!'">
+      </div>
+      <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+  </section>
+
+  <section id="section5">
+      <h2>Exhibit 4: ReLU - The Modern Favorite</h2>
+      <p>And now, for our final exhibit in Part 1, the current reigning champion in many deep learning architectures: <strong>ReLU</strong>, which stands for <strong>Rectified Linear Unit</strong>.</p>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A clear plot of the ReLU function (flat at 0 for z < 0, then a linear ramp φ(z)=z for z >= 0). Axes: z (Net Input) and φ(z) (Activation Output). Equation: φ(z) = max(0, z) displayed. Output Range: [0, +∞) clearly marked (starts at 0, goes up). Animation: As a dot moves along the z-axis: When z is negative, φ(z) stays fixed at 0. When z crosses 0 and becomes positive, φ(z) starts increasing linearly along with z.">
+      </div>
+      <p>ReLU has a surprisingly simple definition, but it's proven to be incredibly effective, especially in deep networks.</p>
+      <p><strong>Equation:</strong><br>
+      \[ \phi(z) = \max(0, z) \]</p>
+      <p><strong>Output Range:</strong> $$[0, +\infty)$$ (zero or any positive number).</p>
+      <p><strong>Behavior:</strong> It's very straightforward:</p>
+      <ul>
+          <li>If the net input <code>z</code> is negative (or zero), the ReLU unit outputs 0.</li>
+          <li>If the net input <code>z</code> is positive, the ReLU unit outputs <code>z</code> itself.</li>
+      </ul>
+      <p>It's like a gate that only lets positive signals pass through unchanged, and blocks (sets to zero) all negative signals.</p>
+      <div class="vocab-section">
+          <h3>Build Your Vocab</h3>
+          <h4 class="vocab-term">Rectified</h4>
+          <p>In signal processing, 'rectification' usually means converting an alternating current (AC) which flows in both positive and negative directions into a direct current (DC) which flows in only one direction. The 'Rectified' in ReLU refers to this idea of cutting off the negative part of the signal.</p>
+      </div>
+      <p><strong>Why is ReLU so popular?</strong></p>
+      <ol>
+          <li><strong>Computationally Cheap:</strong> It's very fast to compute (<code>max(0,z)</code> is a simple operation).</li>
+          <li><strong>Reduces Vanishing Gradients (for positive inputs):</strong> Unlike Sigmoid and Tanh which 'saturate' (their gradients become very small) for large inputs, ReLU has a constant gradient of 1 for all positive inputs. This helps signals propagate better through deep networks during training. (We'll talk more about gradients later!).</li>
+      </ol>
+      <p>It's the go-to choice for hidden layers in many modern neural networks.</p>
+      <div class="test-your-knowledge">
+          <h3>Test Your Knowledge</h3>
+          <h4>If a neuron uses a ReLU activation function and its net input <code>z</code> is -5, what will be its output activation <code>a</code>?</h4>
+          <div class="option" onclick="checkAnswer(this, false)">-5
+              <div class="option-feedback">ReLU outputs <code>max(0, z)</code>. Since -5 is less than 0, the output will be 0.</div>
+          </div>
+          <div class="option" onclick="checkAnswer(this, true)">0
+              <div class="option-feedback">Correct! For any negative input (or zero), ReLU outputs 0.</div>
+          </div>
+          <div class="option" onclick="checkAnswer(this, false)">1
+              <div class="option-feedback">ReLU doesn't output 1 for negative inputs. It outputs the input itself if it's positive, or 0 otherwise.</div>
+          </div>
+          <div class="option" onclick="checkAnswer(this, false)">0.5
+              <div class="option-feedback">That's what Sigmoid outputs if z=0. ReLU's behavior is different.</div>
+          </div>
+      </div>
+      <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+  </section>
+
+  <section id="section6">
+      <h2>Zoo Tour Part 1: Recap & Next Steps</h2>
+      <p>What a tour! We've met four foundational members of our Activation Function Zoo:</p>
+      <div class="interactive-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A 'Meet the Activations' matching game. Four cards, each with a name: 'Identity', 'Sigmoid', 'Tanh', 'ReLU'. Four other cards, each with a key characteristic or graph snippet: 'Outputs input unchanged: φ(z)=z', 'S-shaped, outputs (0,1), good for probabilities', 'S-shaped, outputs (-1,1), zero-centered', 'Outputs max(0,z), popular in hidden layers'. Students drag the characteristic/graph to the correct function name. Feedback is given.">
+      </div>
+      <p>Each of these activation functions plays a different role and has different strengths.</p>
+      <ul>
+          <li><strong>Identity:</strong> For direct, un-squashed output (e.g., regression).</li>
+          <li><strong>Sigmoid:</strong> For outputs between 0 and 1 (e.g., binary probability).</li>
+          <li><strong>Tanh:</strong> For zero-centered outputs between -1 and 1 (often good for hidden layers).</li>
+          <li><strong>ReLU:</strong> For fast computation and mitigating vanishing gradients in hidden layers (for positive inputs).</li>
+      </ul>
+      <p>In our next lesson, we'll dig a bit deeper into the <em>properties</em> of these functions, discuss their pros and cons in more detail, and see why, for example, Tanh might be preferred over Sigmoid in hidden layers, or why ReLU, despite its simplicity, can sometimes run into its own little problems. Get ready for Part 2 of our Zoo exploration!</p>
+      <div class="image-placeholder">
+          <img src="/placeholder.svg?height=300&width=600" alt="A zookeeper character standing in front of the four exhibit signs ('Identity', 'Sigmoid', 'Tanh', 'ReLU'), tipping their hat, with a sign saying 'Tour Continues Next Lesson! More Behaviors & Quirks Ahead!'">
+      </div>
+  </section>
+
+  <script>
+      // Show the first section initially
+      document.getElementById("section1").style.display = "block";
+      document.getElementById("section1").style.opacity = "1";
+
+      function showNextSection(nextSectionId) {
+          const currentButton = event.target;
+          const nextSection = document.getElementById("section" + nextSectionId);
+          
+          currentButton.style.display = "none";
+          
+          nextSection.style.display = "block";
+          setTimeout(() => {
+              nextSection.style.opacity = "1";
+          }, 10);
+
+          setTimeout(() => {
+              nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 500);
+      }
+
+      function revealAnswer(id) {
+          const revealText = document.getElementById(id);
+          const revealButton = event.target;
+          
+          revealText.style.display = "block";
+          revealButton.style.display = "none";
+      }
+
+      function checkAnswer(element, isCorrect) {
+          const feedback = element.querySelector('.option-feedback');
+          feedback.style.display = 'block';
+          
+          if (isCorrect) {
+              element.classList.add('correct');
+          } else {
+              element.classList.add('incorrect');
+          }
+          
+          // Disable all options after selection
+          const options = document.querySelectorAll('.option');
+          options.forEach(option => {
+              option.style.pointerEvents = 'none';
+          });
+      }
+  </script>
+</body>
+</html>
