@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <!-- Add Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <header class="main-header">
@@ -25,6 +27,8 @@
             <nav class="header-nav">
                 <button class="nav-btn" onclick="navigateToHome()">🏠 Home</button>
                 <button class="nav-btn" onclick="showAllCourses()">📚 Courses</button>
+                <!-- Auth container will be populated by JavaScript -->
+                <div id="auth-container" class="auth-container"></div>
             </nav>
         </div>
     </header>
@@ -34,6 +38,110 @@
     <footer>
         <p>&copy; 2023 Learning Nugget Previewer</p>
     </footer>
+
+    <!-- Authentication Modal -->
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-backdrop" onclick="hideAuthModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Welcome Back</h2>
+                <button onclick="hideAuthModal()" class="close-btn">&times;</button>
+            </div>
+            
+            <div class="auth-form">
+                <form id="auth-form">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required placeholder="Enter your email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required placeholder="Enter your password">
+                    </div>
+                    
+                    <div class="form-group" id="username-group" style="display: none;">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" placeholder="Choose a username">
+                    </div>
+                    
+                    <button type="submit" class="auth-submit-btn" id="auth-submit-btn">Sign In</button>
+                </form>
+                
+                <div class="auth-divider">
+                    <span>or continue with</span>
+                </div>
+                
+                <div class="social-auth">
+                    <button onclick="authManager.signInWithProvider('google')" class="social-btn google-btn">
+                        <span class="social-icon">🔍</span>
+                        Google
+                    </button>
+                    <button onclick="authManager.signInWithProvider('github')" class="social-btn github-btn">
+                        <span class="social-icon">📁</span>
+                        GitHub
+                    </button>
+                </div>
+                
+                <div class="auth-switch">
+                    <span id="auth-switch-text">Don't have an account?</span>
+                    <button type="button" onclick="toggleAuthMode()" class="auth-switch-btn" id="auth-switch-btn">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-backdrop" onclick="hideProfileModal()"></div>
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h2>Your Learning Profile</h2>
+                <button onclick="hideProfileModal()" class="close-btn">&times;</button>
+            </div>
+            
+            <div class="profile-content">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <img id="profile-avatar" src="/api/placeholder/80/80" alt="Profile Avatar">
+                    </div>
+                    <div class="profile-info">
+                        <h3 id="profile-name">Loading...</h3>
+                        <p id="profile-email">Loading...</p>
+                        <div class="profile-join-date">
+                            <span>Joined: </span><span id="profile-join-date">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="lessons-completed">0</div>
+                        <div class="stat-label">Lessons Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="modules-completed">0</div>
+                        <div class="stat-label">Modules Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="learning-streak">0</div>
+                        <div class="stat-label">Day Streak</div>
+                    </div>
+                </div>
+                
+                <div class="recent-progress">
+                    <h3>Recent Progress</h3>
+                    <div id="recent-lessons" class="recent-lessons-list">
+                        <!-- Recent lessons will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Messages Container -->
+    <div id="success-messages" class="success-messages-container"></div>
+
     <script type="module" src="script.js"></script>
 </body>
 </html> 

@@ -1,6 +1,590 @@
 // ES6 Module
 console.log("Learning Nugget Previewer script loaded.");
 
+// ===========================
+// SUPABASE CONFIGURATION
+// ===========================
+
+// Initialize Supabase client
+const SUPABASE_URL = 'https://hvfbibsjabcuqjmrdmtd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2ZmJpYnNqYWJjdXFqbXJkbXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MTk5OTYsImV4cCI6MjA2OTM5NTk5Nn0.piwg5dlJRMz9P6LDje_yKZ2MZznm5wpj2VElnyhPFz4';
+
+let supabase;
+if (typeof window !== 'undefined' && window.supabase) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('Supabase client initialized successfully');
+} else {
+    console.warn('Supabase not available - running in offline mode');
+}
+
+// ===========================
+// AUTHENTICATION MANAGER
+// ===========================
+
+class AuthManager {
+    constructor() {
+        this.user = null;
+        this.profile = null;
+        this.isInitialized = false;
+        this.authMode = 'signin'; // 'signin' or 'signup'
+        
+        if (supabase) {
+            this.initializeAuth();
+        } else {
+            this.isInitialized = true;
+            this.updateUI();
+        }
+    }
+
+    async initializeAuth() {
+        try {
+            // Check existing session
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error) throw error;
+            
+            if (session) {
+                this.user = session.user;
+                await this.loadUserProfile();
+                await this.syncLocalProgress();
+            }
+
+            // Listen for auth changes
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                console.log('Auth state changed:', event);
+                
+                if (event === 'SIGNED_IN') {
+                    this.user = session.user;
+                    await this.loadUserProfile();
+                    this.showSuccessMessage('Welcome back! 🎉');
+                    await this.syncLocalProgress();
+                } else if (event === 'SIGNED_OUT') {
+                    this.user = null;
+                    this.profile = null;
+                    this.showSuccessMessage('Signed out successfully');
+                }
+                this.updateUI();
+            });
+        } catch (error) {
+            console.error('Auth initialization error:', error);
+        } finally {
+            this.isInitialized = true;
+            this.updateUI();
+        }
+    }
+
+    async signUp(email, password, username) {
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: { username: username || email.split('@')[0] }
+                }
+            });
+
+            if (error) throw error;
+
+            if (data.user) {
+                await this.createUserProfile(data.user, username);
+                this.showSuccessMessage('Account created! Please check your email to verify.');
+                return { success: true, data };
+            }
+        } catch (error) {
+            console.error('Sign up error:', error);
+            this.showErrorMessage(error.message);
+            return { success: false, error };
+        }
+    }
+
+    async signIn(email, password) {
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({ 
+                email, 
+                password 
+            });
+
+            if (error) throw error;
+
+            return { success: true, data };
+        } catch (error) {
+            console.error('Sign in error:', error);
+            this.showErrorMessage(error.message);
+            return { success: false, error };
+        }
+    }
+
+    async signInWithProvider(provider) {
+        try {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider,
+                options: {
+                    redirectTo: window.location.origin
+                }
+            });
+
+            if (error) throw error;
+            return { success: true, data };
+        } catch (error) {
+            console.error(`${provider} sign in error:`, error);
+            this.showErrorMessage(`Failed to sign in with ${provider}`);
+            return { success: false, error };
+        }
+    }
+
+    async signOut() {
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('Sign out error:', error);
+            this.showErrorMessage('Failed to sign out');
+            return { success: false, error };
+        }
+    }
+
+    async createUserProfile(user, username) {
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .insert({
+                    id: user.id,
+                    username: username || user.email.split('@')[0],
+                    full_name: user.user_metadata.full_name || '',
+                    avatar_url: user.user_metadata.avatar_url || ''
+                });
+            
+            if (error && error.code !== '23505') { // Ignore duplicate key error
+                throw error;
+            }
+            
+            await this.loadUserProfile();
+        } catch (error) {
+            console.error('Profile creation error:', error);
+        }
+    }
+
+    async loadUserProfile() {
+        if (!this.user) return;
+
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', this.user.id)
+                .single();
+
+            if (!error) {
+                this.profile = data;
+            } else if (error.code === 'PGRST116') {
+                // Profile doesn't exist, create it
+                await this.createUserProfile(this.user);
+            }
+        } catch (error) {
+            console.error('Profile loading error:', error);
+        }
+    }
+
+    async syncLocalProgress() {
+        if (!this.user) return;
+
+        try {
+            // Get all local progress
+            const localProgress = ProgressTracker.getAllProgress();
+            
+            for (const [lessonKey, isCompleted] of Object.entries(localProgress)) {
+                if (isCompleted && lessonKey.includes('.')) {
+                    const parts = lessonKey.replace('lesson-completed-', '').split('.');
+                    if (parts.length >= 4) {
+                        const [courseId, pathId, moduleId, lessonId] = parts;
+                        await this.markLessonComplete(courseId, pathId, moduleId, lessonId);
+                    }
+                }
+            }
+            
+            console.log('Local progress synced to Supabase');
+        } catch (error) {
+            console.error('Progress sync error:', error);
+        }
+    }
+
+    async markLessonComplete(courseId, pathId, moduleId, lessonId) {
+        if (!this.user) return;
+
+        try {
+            const { error } = await supabase
+                .from('course_progress')
+                .upsert({
+                    user_id: this.user.id,
+                    course_id: courseId,
+                    path_id: pathId,
+                    module_id: moduleId,
+                    lesson_id: lessonId,
+                    completed_at: new Date().toISOString()
+                });
+
+            if (!error) {
+                // Track achievement
+                await this.trackAchievement('lesson_completed', { 
+                    courseId, pathId, moduleId, lessonId 
+                });
+            }
+        } catch (error) {
+            console.error('Lesson completion error:', error);
+        }
+    }
+
+    async trackAchievement(type, data) {
+        if (!this.user) return;
+        
+        try {
+            await supabase.from('achievements').insert({
+                user_id: this.user.id,
+                achievement_type: type,
+                achievement_data: data
+            });
+        } catch (error) {
+            console.error('Achievement tracking error:', error);
+        }
+    }
+
+    async getUserProgress() {
+        if (!this.user) return [];
+
+        try {
+            const { data, error } = await supabase
+                .from('course_progress')
+                .select('*')
+                .eq('user_id', this.user.id);
+
+            return error ? [] : data;
+        } catch (error) {
+            console.error('Progress retrieval error:', error);
+            return [];
+        }
+    }
+
+    async getProgressStats() {
+        if (!this.user) return this.getLocalProgressStats();
+
+        try {
+            const progress = await this.getUserProgress();
+            const achievements = await this.getUserAchievements();
+            
+            const modulesCompleted = new Set(
+                progress.map(p => `${p.course_id}.${p.path_id}.${p.module_id}`)
+            ).size;
+            
+            const coursesStarted = new Set(
+                progress.map(p => p.course_id)
+            ).size;
+
+            return {
+                lessonsCompleted: progress.length,
+                modulesCompleted,
+                coursesStarted,
+                streak: this.calculateStreak(achievements)
+            };
+        } catch (error) {
+            console.error('Stats calculation error:', error);
+            return this.getLocalProgressStats();
+        }
+    }
+
+    async getUserAchievements() {
+        if (!this.user) return [];
+
+        try {
+            const { data, error } = await supabase
+                .from('achievements')
+                .select('*')
+                .eq('user_id', this.user.id)
+                .order('earned_at', { ascending: false });
+
+            return error ? [] : data;
+        } catch (error) {
+            console.error('Achievements retrieval error:', error);
+            return [];
+        }
+    }
+
+    getLocalProgressStats() {
+        const localProgress = ProgressTracker.getAllProgress();
+        const completedCount = Object.values(localProgress).filter(Boolean).length;
+        
+        return {
+            lessonsCompleted: completedCount,
+            modulesCompleted: Math.ceil(completedCount / 3), // Rough estimate
+            coursesStarted: completedCount > 0 ? 1 : 0,
+            streak: 1
+        };
+    }
+
+    calculateStreak(achievements) {
+        // Simple streak calculation based on recent lesson completions
+        const lessonCompletions = achievements.filter(a => a.achievement_type === 'lesson_completed');
+        if (lessonCompletions.length === 0) return 0;
+        
+        const today = new Date();
+        let streak = 0;
+        let currentDate = new Date(today);
+        
+        for (let i = 0; i < 7; i++) { // Check last 7 days
+            const dayStart = new Date(currentDate);
+            dayStart.setHours(0, 0, 0, 0);
+            const dayEnd = new Date(currentDate);
+            dayEnd.setHours(23, 59, 59, 999);
+            
+            const hasActivity = lessonCompletions.some(completion => {
+                const completionDate = new Date(completion.earned_at);
+                return completionDate >= dayStart && completionDate <= dayEnd;
+            });
+            
+            if (hasActivity) {
+                streak++;
+            } else if (i > 0) { // Allow for today to not have activity yet
+                break;
+            }
+            
+            currentDate.setDate(currentDate.getDate() - 1);
+        }
+        
+        return streak;
+    }
+
+    isAuthenticated() {
+        return !!this.user;
+    }
+
+    updateUI() {
+        if (!this.isInitialized) return;
+        
+        this.renderAuthUI();
+        this.updateProgressDisplay();
+    }
+
+    renderAuthUI() {
+        const authContainer = document.getElementById('auth-container');
+        if (!authContainer) return;
+
+        if (this.isAuthenticated()) {
+            const avatarUrl = this.profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.profile?.username || this.user.email)}&background=2563eb&color=fff`;
+            
+            authContainer.innerHTML = `
+                <div class="user-menu" onclick="showProfileModal()">
+                    <img src="${avatarUrl}" alt="Avatar" class="user-avatar">
+                    <span class="username">${this.profile?.username || this.user.email.split('@')[0]}</span>
+                    <button onclick="authManager.signOut(); event.stopPropagation();" class="sign-out-btn">Sign Out</button>
+                </div>
+            `;
+        } else {
+            authContainer.innerHTML = `
+                <div class="auth-buttons">
+                    <button onclick="showAuthModal('signin')" class="auth-btn signin-btn">Sign In</button>
+                    <button onclick="showAuthModal('signup')" class="auth-btn signup-btn">Sign Up</button>
+                </div>
+            `;
+        }
+    }
+
+    async updateProgressDisplay() {
+        // Update any progress displays on the current page
+        const stats = await this.getProgressStats();
+        
+        // Update profile modal stats if open
+        const lessonsElement = document.getElementById('lessons-completed');
+        const modulesElement = document.getElementById('modules-completed');
+        const streakElement = document.getElementById('learning-streak');
+        
+        if (lessonsElement) lessonsElement.textContent = stats.lessonsCompleted;
+        if (modulesElement) modulesElement.textContent = stats.modulesCompleted;
+        if (streakElement) streakElement.textContent = stats.streak;
+    }
+
+    showSuccessMessage(message) {
+        const container = document.getElementById('success-messages');
+        if (!container) return;
+
+        const messageEl = document.createElement('div');
+        messageEl.className = 'success-message';
+        messageEl.textContent = message;
+        container.appendChild(messageEl);
+
+        // Animate in
+        setTimeout(() => messageEl.classList.add('show'), 100);
+
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            messageEl.classList.add('hide');
+            setTimeout(() => {
+                if (messageEl.parentNode) {
+                    messageEl.parentNode.removeChild(messageEl);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    showErrorMessage(message) {
+        // For now, just use alert, but you could create a similar system for errors
+        alert(`Error: ${message}`);
+    }
+}
+
+// ===========================
+// AUTH MODAL FUNCTIONS
+// ===========================
+
+function showAuthModal(mode = 'signin') {
+    authManager.authMode = mode;
+    const modal = document.getElementById('auth-modal');
+    const title = document.getElementById('modal-title');
+    const submitBtn = document.getElementById('auth-submit-btn');
+    const usernameGroup = document.getElementById('username-group');
+    const switchText = document.getElementById('auth-switch-text');
+    const switchBtn = document.getElementById('auth-switch-btn');
+    
+    if (mode === 'signup') {
+        title.textContent = 'Create Account';
+        submitBtn.textContent = 'Sign Up';
+        usernameGroup.style.display = 'block';
+        switchText.textContent = 'Already have an account?';
+        switchBtn.textContent = 'Sign In';
+    } else {
+        title.textContent = 'Welcome Back';
+        submitBtn.textContent = 'Sign In';
+        usernameGroup.style.display = 'none';
+        switchText.textContent = "Don't have an account?";
+        switchBtn.textContent = 'Sign Up';
+    }
+    
+    modal.classList.remove('hidden');
+    document.getElementById('email').focus();
+}
+
+function hideAuthModal() {
+    const modal = document.getElementById('auth-modal');
+    modal.classList.add('hidden');
+    
+    // Reset form
+    document.getElementById('auth-form').reset();
+}
+
+function toggleAuthMode() {
+    const newMode = authManager.authMode === 'signin' ? 'signup' : 'signin';
+    showAuthModal(newMode);
+}
+
+// Handle auth form submission
+document.addEventListener('DOMContentLoaded', () => {
+    const authForm = document.getElementById('auth-form');
+    if (authForm) {
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Loading...';
+            submitBtn.disabled = true;
+            
+            const formData = new FormData(e.target);
+            const email = formData.get('email');
+            const password = formData.get('password');
+            const username = formData.get('username');
+            
+            let result;
+            if (authManager.authMode === 'signup') {
+                result = await authManager.signUp(email, password, username);
+            } else {
+                result = await authManager.signIn(email, password);
+            }
+            
+            if (result.success) {
+                hideAuthModal();
+            }
+            
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+    }
+});
+
+// ===========================
+// PROFILE MODAL FUNCTIONS
+// ===========================
+
+async function showProfileModal() {
+    const modal = document.getElementById('profile-modal');
+    const nameEl = document.getElementById('profile-name');
+    const emailEl = document.getElementById('profile-email');
+    const joinDateEl = document.getElementById('profile-join-date');
+    const avatarEl = document.getElementById('profile-avatar');
+    
+    if (authManager.isAuthenticated()) {
+        const user = authManager.user;
+        const profile = authManager.profile;
+        
+        nameEl.textContent = profile?.username || user.email.split('@')[0];
+        emailEl.textContent = user.email;
+        joinDateEl.textContent = new Date(user.created_at).toLocaleDateString();
+        avatarEl.src = profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.username || user.email)}&background=2563eb&color=fff`;
+        
+        // Update stats
+        await authManager.updateProgressDisplay();
+        
+        // Load recent lessons
+        await loadRecentLessons();
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function hideProfileModal() {
+    const modal = document.getElementById('profile-modal');
+    modal.classList.add('hidden');
+}
+
+async function loadRecentLessons() {
+    const container = document.getElementById('recent-lessons');
+    if (!container) return;
+    
+    if (authManager.isAuthenticated()) {
+        try {
+            const progress = await authManager.getUserProgress();
+            const recentLessons = progress
+                .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))
+                .slice(0, 5);
+            
+            if (recentLessons.length === 0) {
+                container.innerHTML = '<p class="loading-text">No lessons completed yet. Start learning!</p>';
+                return;
+            }
+            
+            container.innerHTML = recentLessons.map(lesson => `
+                <div class="recent-lesson-item">
+                    <div class="recent-lesson-icon">📚</div>
+                    <div class="recent-lesson-info">
+                        <div class="recent-lesson-title">${lesson.lesson_id.replace(/-/g, ' ')}</div>
+                        <div class="recent-lesson-course">${lesson.course_id}</div>
+                    </div>
+                    <div class="recent-lesson-date">${new Date(lesson.completed_at).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading recent lessons:', error);
+            container.innerHTML = '<p class="loading-text">Unable to load recent lessons</p>';
+        }
+    } else {
+        container.innerHTML = '<p class="loading-text">Sign in to see your progress</p>';
+    }
+}
+
+// ===========================
+// ENHANCED PROGRESS TRACKER
+// ===========================
+
+// Enhanced ProgressTracker with Supabase integration
+// Original ProgressTracker object will be enhanced
+
 // Progress Tracking System
 const ProgressTracker = {
     // Storage keys
@@ -216,6 +800,30 @@ const ProgressTracker = {
         return courseId;
     },
 
+    // Get all progress (for Supabase sync)
+    getAllProgress() {
+        // Convert internal progress format to simple completed lessons map
+        const progressMap = {};
+        
+        Object.entries(this.progressData).forEach(([key, progress]) => {
+            if (progress.state === this.STATES.COMPLETED) {
+                progressMap[`lesson-completed-${key}`] = true;
+            }
+        });
+
+        // Also check localStorage for any lesson completion flags
+        if (typeof localStorage !== 'undefined') {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('lesson-completed-') && localStorage.getItem(key) === 'true') {
+                    progressMap[key] = true;
+                }
+            }
+        }
+
+        return progressMap;
+    },
+
     // Mark lesson as viewed
     markLessonViewed(courseId, pathId, moduleId, lessonId) {
         const key = this.getLessonKey(courseId, pathId, moduleId, lessonId);
@@ -242,8 +850,8 @@ const ProgressTracker = {
         console.log(`Lesson marked as viewed: ${key}`);
     },
 
-    // Mark lesson as completed
-    markLessonCompleted(courseId, pathId, moduleId, lessonId) {
+    // Mark lesson as completed (Enhanced with Supabase sync)
+    async markLessonCompleted(courseId, pathId, moduleId, lessonId) {
         const key = this.getLessonKey(courseId, pathId, moduleId, lessonId);
         const now = Date.now();
         
@@ -264,6 +872,16 @@ const ProgressTracker = {
         this.saveProgress();
         this.addDailyActivity(); // Track daily activity
         console.log(`Lesson marked as completed: ${key}`);
+        
+        // Sync to Supabase if user is authenticated
+        if (typeof authManager !== 'undefined' && authManager.isAuthenticated()) {
+            try {
+                await authManager.markLessonComplete(courseId, pathId, moduleId, lessonId);
+                console.log(`Lesson synced to Supabase: ${key}`);
+            } catch (error) {
+                console.warn('Failed to sync lesson completion to Supabase:', error);
+            }
+        }
     },
 
     // Get lesson progress state
@@ -2252,6 +2870,24 @@ function displayError(message) {
 }
 
 loadContent(); // This will also trigger the initial parseHash and renderCurrentView via its success path.
+
+// ===========================
+// INITIALIZATION
+// ===========================
+
+// Initialize AuthManager
+let authManager;
+if (typeof window !== 'undefined') {
+    authManager = new AuthManager();
+    
+    // Make auth functions globally accessible
+    window.authManager = authManager;
+    window.showAuthModal = showAuthModal;
+    window.hideAuthModal = hideAuthModal;
+    window.toggleAuthMode = toggleAuthMode;
+    window.showProfileModal = showProfileModal;
+    window.hideProfileModal = hideProfileModal;
+}
 
 // Expose ProgressTracker globally for debugging
 window.ProgressTracker = ProgressTracker;
