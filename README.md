@@ -52,11 +52,18 @@ This project consists of static HTML, CSS, and JavaScript files. You can run it 
 
 The previewer's content and structure are primarily managed through the `content.json` file and the organization of your lesson files within the `course_content` directory.
 
-### 1. `content.json` Structure and Schema (v1)
+### 1. `content.json` Structure and Schema (v2 - Course Hierarchy)
 
-This JSON file defines the hierarchy of your course. The root object must contain a `learningPaths` array.
+This JSON file defines the hierarchy of your courses. The root object must contain a `courses` array.
 
-*   **`learningPaths`** (Array of Learning Path Objects): Each object represents a top-level topic.
+*   **`courses`** (Array of Course Objects): Each object represents a top-level course.
+    *   `id` (string, required): Unique identifier for the course (used in URL hash). *Example: "machine-learning-2"*
+    *   `title` (string, required): Display title of the course. *Example: "Machine Learning 2"*
+    *   `description` (string, optional): Short description displayed on the course card. *Example: "Advanced machine learning concepts, neural networks, and optimization techniques"*
+    *   `icon` (string, optional): Path to an icon image (SVG preferred) relative to the project root. *Example: "course_content/assets/icons/neural-networks-icon.svg"*
+    *   `learningPaths` (Array of Learning Path Objects, required): Contains the learning paths for this course.
+
+*   **Learning Path Object** (within `courses[n].learningPaths` array): Each object represents a topic within a course.
     *   `id` (string, required): Unique identifier for the learning path (used in URL hash). *Example: "foundational-math"*
     *   `title` (string, required): Display title of the learning path. *Example: "Foundational Math"*
     *   `description` (string, optional): Short description displayed on the learning path card. *Example: "Master problem solving essentials in math"*

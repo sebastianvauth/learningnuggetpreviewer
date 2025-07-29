@@ -1,53 +1,11 @@
-{
+﻿{
+  "courses": [
+    {
+      "id": "machine-learning-2",
+      "title": "Machine Learning 2",
+      "description": "Advanced machine learning concepts, neural networks, and optimization techniques",
+      "icon": "course_content/assets/icons/neural-networks-icon.svg",
   "learningPaths": [
-    {
-      "id": "foundational-math",
-      "title": "Foundational Math",
-      "description": "Master problem solving essentials in math",
-      "icon": "course_content/assets/icons/math-icon.svg",
-      "folder": "01-foundational-math",
-      "modules": [
-        {
-          "id": "solving-equations",
-          "title": "Solving Equations",
-          "icon": "course_content/assets/icons/equations-icon.svg",
-          "folder": "01-solving-equations",
-          "lessons": [
-            { "id": "intro-to-equations", "title": "Introduction to Equations", "file": "01-intro.html", "level": "Level 1" },
-            { "id": "one-step-equations", "title": "One-Step Equations", "file": "02-one-step.html", "level": "Level 1" }
-          ]
-        },
-        {
-          "id": "advanced-algebra",
-          "title": "Advanced Algebra",
-          "icon": "course_content/assets/icons/algebra-icon.svg",
-          "folder": "02-advanced-algebra",
-          "lessons": [
-            { "id": "intro-to-algebra", "title": "Introduction to Algebra", "file": "01-intro-algebra.html", "level": "Level 1" },
-            { "id": "quadratic-equations", "title": "Quadratic Equations", "file": "02-quadratic.html", "level": "Level 2" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "intro-to-programming",
-      "title": "Introduction to Programming",
-      "description": "Learn the basics of programming with Python",
-      "icon": "course_content/assets/icons/programming-icon.svg",
-      "folder": "02-intro-to-programming",
-      "modules": [
-        {
-          "id": "python-basics",
-          "title": "Python Basics",
-          "icon": "course_content/assets/icons/python-icon.svg",
-          "folder": "01-python-basics",
-          "lessons": [
-            { "id": "hello-world", "title": "Hello, World!", "file": "01-hello-world.html", "level": "Level 1" },
-            { "id": "variables-types", "title": "Variables and Data Types", "file": "02-variables.html", "level": "Level 1" }
-          ]
-        }
-      ]
-    },
     {
       "id": "gradient-descent",
       "title": "Gradient Descent",
@@ -56,17 +14,18 @@
       "folder": "01-gradient-descent",
       "modules": [
         {
-          "id": "core-concepts-gd",
-          "title": "Core Concepts",
+          "id": "gd-m1-mastering-gd",
+          "title": "Mastering Gradient Descent",
           "icon": "course_content/assets/icons/gradient-descent-icon.svg",
-          "folder": "lessons",
+          "folder": "gd-m1-mastering-gd",
           "lessons": [
-            { "id": "gd-part1", "title": "Gradient Descent Part 1", "file": "index1.html", "level": "Level 1" },
-            { "id": "gd-part2", "title": "Gradient Descent Part 2", "file": "index2.html", "level": "Level 1" },
-            { "id": "gd-part3", "title": "Gradient Descent Part 3", "file": "index3.html", "level": "Level 1" },
-            { "id": "gd-part4", "title": "Gradient Descent Part 4", "file": "index4.html", "level": "Level 1" },
-            { "id": "gd-part5", "title": "Gradient Descent Part 5", "file": "index5.html", "level": "Level 1" },
-            { "id": "gd-part6", "title": "Gradient Descent Part 6", "file": "index6.html", "level": "Level 1" }
+            { "id": "gd-l1-why-what", "title": "Lesson 1: The \"Why\" and \"What\" of Gradient Descent", "file": "l1-why-what-gd.html" },
+            { "id": "gd-l2-linear-regression", "title": "Lesson 2: Gradient Descent for Linear Regression", "file": "l2-gd-linear-regression.html" },
+            { "id": "gd-ex2.1-calculations", "title": "Exercise Lesson 2.1 - Gradient Descent Calculations", "file": "ex2.1-gd-calculations.html" },
+            { "id": "gd-l3-algorithm-quirks", "title": "Lesson 3: The Gradient Descent Algorithm & Its Quirks", "file": "l3-gd-algorithm-quirks.html" },
+            { "id": "gd-exp3.1-visualizing-dynamics", "title": "Experiment Lesson 3.1 - Visualizing Gradient Descent Dynamics", "file": "exp3.1-visualizing-gd-dynamics.html" },
+            { "id": "gd-l4-sgd-intro", "title": "Lesson 4: Introducing Stochastic Gradient Descent (SGD)", "file": "l4-sgd-intro.html" },
+            { "id": "gd-cod4.1-implementing-gd", "title": "Coding Lesson 4.1 - Implementing Basic Gradient Descent", "file": "cod4.1-implementing-basic-gd.html" }
           ]
         }
       ]
@@ -79,47 +38,1666 @@
       "folder": "02-neural-networks",
       "modules": [
         {
-          "id": "fundamentals-nn",
-          "title": "Fundamentals",
+          "id": "nn-m1-groundwork",
+          "title": "Module 1: Laying the Groundwork - Introduction to Neural Networks",
           "icon": "course_content/assets/icons/neural-networks-icon.svg",
-          "folder": "lessons",
+          "folder": "nn-m1-groundwork",
           "lessons": [
-            { "id": "nn-part1", "title": "Neural Networks Part 1", "file": "index1.html", "level": "Level 1" },
-            { "id": "nn-part2", "title": "Neural Networks Part 2", "file": "index2.html", "level": "Level 1" },
-            { "id": "nn-part3", "title": "Neural Networks Part 3", "file": "index3.html", "level": "Level 1" },
-            { "id": "nn-part4", "title": "Neural Networks Part 4", "file": "index4.html", "level": "Level 1" },
-            { "id": "nn-part5", "title": "Neural Networks Part 5", "file": "index5.html", "level": "Level 1" },
-            { "id": "nn-part6", "title": "Neural Networks Part 6", "file": "index6.html", "level": "Level 1" },
-            { "id": "nn-part7", "title": "Neural Networks Part 7", "file": "index7.html", "level": "Level 1" },
-            { "id": "nn-part8", "title": "Neural Networks Part 8", "file": "index8.html", "level": "Level 1" },
-            { "id": "nn-part9", "title": "Neural Networks Part 9", "file": "index9.html", "level": "Level 1" },
-            { "id": "nn-part10", "title": "Neural Networks Part 10", "file": "index10.html", "level": "Level 1" },
-            { "id": "nn-part11", "title": "Neural Networks Part 11", "file": "index11.html", "level": "Level 1" },
-            { "id": "nn-part12", "title": "Neural Networks Part 12", "file": "index12.html", "level": "Level 1" },
-            { "id": "nn-part13", "title": "Neural Networks Part 13", "file": "index13.html", "level": "Level 1" },
-            { "id": "nn-part14", "title": "Neural Networks Part 14", "file": "index14.html", "level": "Level 1" },
-            { "id": "nn-part15", "title": "Neural Networks Part 15", "file": "index15.html", "level": "Level 1" },
-            { "id": "nn-part16", "title": "Neural Networks Part 16", "file": "index16.html", "level": "Level 1" },
-            { "id": "nn-part17", "title": "Neural Networks Part 17", "file": "index17.html", "level": "Level 1" },
-            { "id": "nn-part18", "title": "Neural Networks Part 18", "file": "index18.html", "level": "Level 1" },
-            { "id": "nn-part19", "title": "Neural Networks Part 19", "file": "index19.html", "level": "Level 1" },
-            { "id": "nn-part20", "title": "Neural Networks Part 20", "file": "index20.html", "level": "Level 1" },
-            { "id": "nn-part21", "title": "Neural Networks Part 21", "file": "index21.html", "level": "Level 1" },
-            { "id": "nn-part22", "title": "Neural Networks Part 22", "file": "index22.html", "level": "Level 1" },
-            { "id": "nn-part23", "title": "Neural Networks Part 23", "file": "index23.html", "level": "Level 1" },
-            { "id": "nn-part24", "title": "Neural Networks Part 24", "file": "index24.html", "level": "Level 1" },
-            { "id": "nn-part25", "title": "Neural Networks Part 25", "file": "index25.html", "level": "Level 1" },
-            { "id": "nn-part26", "title": "Neural Networks Part 26", "file": "index26.html", "level": "Level 1" },
-            { "id": "nn-part27", "title": "Neural Networks Part 27", "file": "index27.html", "level": "Level 1" },
-            { "id": "nn-part28", "title": "Neural Networks Part 28", "file": "index28.html", "level": "Level 1" },
-            { "id": "nn-part29", "title": "Neural Networks Part 29", "file": "index29.html", "level": "Level 1" },
-            { "id": "nn-part30", "title": "Neural Networks Part 30", "file": "index30.html", "level": "Level 1" },
-            { "id": "nn-part31", "title": "Neural Networks Part 31", "file": "index31.html", "level": "Level 1" },
-            { "id": "nn-part32", "title": "Neural Networks Part 32", "file": "index32.html", "level": "Level 1" },
-            { "id": "nn-part33", "title": "Neural Networks Part 33", "file": "index33.html", "level": "Level 1" },
-            { "id": "nn-part34", "title": "Neural Networks Part 34", "file": "index34.html", "level": "Level 1" },
-            { "id": "nn-part35", "title": "Neural Networks Part 35", "file": "index35.html", "level": "Level 1" },
-            { "id": "nn-part36", "title": "Neural Networks Part 36", "file": "index36.html", "level": "Level 1" }
+            { "id": "nn-m1-l1-welcome-history", "title": "Lesson 1: Welcome to the World of Neural Networks! A Brief History", "file": "l1-welcome-history.html" },
+            { "id": "nn-m1-l2-fuel-data", "title": "Lesson 2: The Fuel for the Fire: Data, Performance, and Deep Learning", "file": "l2-fuel-data-performance.html" },
+            { "id": "nn-m1-l3-imagenet", "title": "Lesson 3: Seeing is Believing: The ImageNet Revolution", "file": "l3-imagenet-revolution.html" }
+          ]
+        },
+        {
+          "id": "nn-m2-building-blocks",
+          "title": "Module 2: The Building Blocks - Understanding Neurons and Networks",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "nn-m2-building-blocks",
+          "lessons": [
+            { "id": "nn-m2-l1-bio-neuron", "title": "Lesson 4: The Original Blueprint: The Biological Neuron", "file": "l1-biological-neuron.html" },
+            { "id": "nn-m2-l2-artificial-neuron", "title": "Lesson 5: The Artificial Neuron: A Mathematical Model", "file": "l2-artificial-neuron.html" },
+            { "id": "nn-m2-ex2.1-neuron-calcs", "title": "Exercise Lesson 5.1: Neuron Calculations - Let's Get Practical!", "file": "ex2.1-neuron-calculations.html" },
+            { "id": "nn-m2-l3-layers-connections", "title": "Lesson 6: Weaving the Web: Layers and Connections in Neural Networks", "file": "l3-layers-connections.html" },
+            { "id": "nn-m2-exp3.1-mini-network", "title": "Experiment Lesson 6.1: Building a Mini-Network - Your First Design!", "file": "exp3.1-mini-network.html" }
+          ]
+        },
+        {
+          "id": "nn-m3-tools-notation",
+          "title": "Module 3: Tools & Notation - Managing Complexity",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "nn-m3-tools-notation",
+          "lessons": [
+            { "id": "nn-m3-l1-dl-frameworks", "title": "Lesson 7: Power Tools for Brain Builders: Deep Learning Frameworks", "file": "l1-dl-frameworks.html" },
+            { "id": "nn-m3-l2-matrix-notation1", "title": "Lesson 8: Speaking Fluent Neuron: Matrix Notation Part 1 (Layer Calculations)", "file": "l2-matrix-notation1.html" },
+            { "id": "nn-m3-ex2.1-matrix-math", "title": "Exercise Lesson 8.1: Matrix Math for Layers - The Numbers Game!", "file": "ex2.1-matrix-math.html" },
+            { "id": "nn-m3-l3-neuron-processing-matrix", "title": "Lesson 9: Zooming In: Neuron Processing with Matrix Notation", "file": "l3-neuron-processing-matrix.html" },
+            { "id": "nn-m3-cod3.1-numpy-forward-pass", "title": "Coding Lesson 9.1: Implementing a Single Layer Forward Pass (NumPy)", "file": "cod3.1-numpy-forward-pass.html" }
+          ]
+        },
+        {
+          "id": "nn-m4-activation-functions",
+          "title": "Module 4: The Spark of Non-linearity - Activation Functions",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "nn-m4-activation-functions",
+          "lessons": [
+            { "id": "nn-m4-l1-intro-activation", "title": "Lesson 10: What's the Function? Introducing Activation Functions", "file": "l1-intro-activation.html" },
+            { "id": "nn-m4-l2-activation-zoo1", "title": "Lesson 11: The Activation Function Zoo: Part 1 (Identity, Sigmoid, Tanh, ReLU)", "file": "l2-activation-zoo1.html" },
+            { "id": "nn-m4-exp2.1-activation-viz", "title": "Experiment Lesson 11.1: Activation Function Visualizer - Shape Shifters!", "file": "exp2.1-activation-visualizer.html" },
+            { "id": "nn-m4-l3-activation-zoo2", "title": "Lesson 12: Activation Function Zoo: Part 2 (Properties, Use Cases & Pros/Cons)", "file": "l3-activation-zoo2.html" },
+            { "id": "nn-m4-l4-beyond-relu", "title": "Lesson 13: Beyond ReLU: Leaky ReLU and The Importance of Derivatives", "file": "l4-beyond-relu-derivatives.html" },
+            { "id": "nn-m4-ex4.1-calc-derivatives", "title": "Exercise Lesson 13.1: Calculating Derivatives - The Slope Story!", "file": "ex4.1-calculating-derivatives.html" },
+            { "id": "nn-m4-l5-more-activations", "title": "Lesson 14: The Extended Family: A Quick Tour of More Activations", "file": "l5-more-activations.html" }
+          ]
+        },
+        {
+          "id": "nn-m5-multiclass-softmax",
+          "title": "Module 5: Handling Multiple Choices - Multiclass Classification & Softmax",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "nn-m5-multiclass-softmax",
+          "lessons": [
+            { "id": "nn-m5-l1-multiclass-intro", "title": "Lesson 15: More Than Two: Multiclass Classification with Neural Networks", "file": "l1-multiclass-intro.html" },
+            { "id": "nn-m5-l2-softmax-intro", "title": "Lesson 16: Softmax: Turning Scores into Probabilities", "file": "l2-softmax-intro.html" },
+            { "id": "nn-m5-ex2.1-softmax-by-hand", "title": "Exercise Lesson 16.1: Softmax by Hand - Probability Power-Up!", "file": "ex2.1-softmax-by-hand.html" },
+            { "id": "nn-m5-l3-softmax-action", "title": "Lesson 17: Softmax in Action & Its Derivative", "file": "l3-softmax-action-derivative.html" },
+            { "id": "nn-m5-cod3.1-softmax-numpy", "title": "Coding Lesson 17.1: Implementing Softmax (NumPy) - Code the Probabilities!", "file": "cod3.1-softmax-numpy.html" }
+          ]
+        },
+        {
+          "id": "nn-m6-logic-xor",
+          "title": "Module 6: Neural Networks Solving Puzzles - Logic Operations & The XOR Problem",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "nn-m6-logic-xor",
+          "lessons": [
+            { "id": "nn-m6-l1-simple-logic", "title": "Lesson 18: Simple Logic: Can a Neuron Do AND, OR, NOT?", "file": "l1-simple-logic.html" },
+            { "id": "nn-m6-exp1.1-perceptron-playground", "title": "Experiment Lesson 18.1: The Perceptron Logic Gate Playground - Line Artist!", "file": "exp1.1-perceptron-playground.html" },
+            { "id": "nn-m6-l2-xor-challenge", "title": "Lesson 19: The XOR Challenge: A Non-Linear Puzzle", "file": "l2-xor-challenge.html" },
+            { "id": "nn-m6-l3-solving-xor", "title": "Lesson 20: Solving XOR: Step-by-Step Through the Network", "file": "l3-solving-xor.html" },
+            { "id": "nn-m6-cod3.1-xor-numpy", "title": "Coding Lesson 20.1: Building the XOR Network (NumPy) - Cracking the Code!", "file": "cod3.1-xor-numpy.html" }
+          ]
+        },
+        {
+          "id": "nn-m7-measuring-success",
+          "title": "Module 7: Measuring Success & The Bigger Picture",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "nn-m7-measuring-success",
+          "lessons": [
+            { "id": "nn-m7-l1-loss-cost", "title": "Lesson 21: How Good Is It? Loss and Cost Functions", "file": "l1-loss-cost-functions.html" },
+            { "id": "nn-m7-ex1.1-calc-loss", "title": "Exercise Lesson 21.1: Calculating Loss - Grading the Network!", "file": "ex1.1-calculating-loss.html" },
+            { "id": "nn-m7-l2-universal-approx", "title": "Lesson 22: The Power and Promise: Universal Approximation Theorem", "file": "l2-universal-approximation.html" },
+            { "id": "nn-m7-l3-why-universal", "title": "Lesson 23: Why Universal? Bayes, Bias, and Practical Reality", "file": "l3-why-universal-bayes-bias.html" },
+            { "id": "nn-m7-l4-universal-action", "title": "Lesson 24: Universal Approximation in Action: Examples & Reflections", "file": "l4-universal-action-examples.html" },
+            { "id": "nn-m7-exp4.1-overfitting-playground", "title": "Experiment Lesson 24.1: The Overfitting/Underfitting Playground - Finding the Sweet Spot!", "file": "exp4.1-overfitting-playground.html" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "weight-initialization",
+      "title": "Weight Initialization",
+      "description": "Understanding how to initialize weights in a neural network.",
+      "icon": "course_content/assets/icons/neural-networks-icon.svg",
+      "folder": "03-weight-initialization",
+      "modules": []
+    },
+    {
+      "id": "optimizer",
+      "title": "Optimizer",
+      "description": "Exploring different optimization algorithms.",
+      "icon": "course_content/assets/icons/gradient-descent-icon.svg",
+      "folder": "04-optimizer",
+      "modules": []
+    },
+    {
+      "id": "regularization",
+      "title": "Regularization",
+      "description": "Techniques to prevent overfitting.",
+      "icon": "course_content/assets/icons/neural-networks-icon.svg",
+      "folder": "05-regularization",
+      "modules": []
+    },
+    {
+      "id": "convolutional-neural-networks",
+      "title": "Convolutional Neural Networks",
+      "description": "Deep dive into CNNs for image processing.",
+      "icon": "course_content/assets/icons/neural-networks-icon.svg",
+      "folder": "06-convolutional-neural-networks",
+      "modules": []
+    },
+    {
+      "id": "batch-normalization",
+      "title": "Batch Normalization",
+      "description": "Stabilizing and accelerating deep neural network training.",
+      "icon": "course_content/assets/icons/neural-networks-icon.svg",
+      "folder": "07-batch-normalization",
+      "modules": []
+    },
+    {
+      "id": "recurrent-neural-networks",
+      "title": "Recurrent Neural Networks",
+      "description": "Understanding RNNs for sequential data.",
+      "icon": "course_content/assets/icons/neural-networks-icon.svg",
+      "folder": "08-recurrent-neural-networks",
+      "modules": []
+    },
+    {
+      "id": "vanishing-exploding-gradient",
+      "title": "Vanishing and Exploding Gradient",
+      "description": "Challenges in training deep networks.",
+      "icon": "course_content/assets/icons/gradient-descent-icon.svg",
+      "folder": "09-vanishing-exploding-gradient",
+      "modules": []
+    },
+    {
+      "id": "hyperparameter-optimization",
+      "title": "Hyperparameter Optimization",
+      "description": "Strategies for finding the best hyperparameters.",
+      "icon": "course_content/assets/icons/neural-networks-icon.svg",
+      "folder": "10-hyperparameter-optimization",
+      "modules": []
+    },
+    {
+      "id": "support-vector-machines",
+      "title": "Support Vector Machines",
+      "description": "Understanding SVMs for classification.",
+      "icon": "course_content/assets/icons/math-icon.svg",
+      "folder": "11-support-vector-machines",
+      "modules": []
+    },
+    {
+      "id": "clustering",
+      "title": "Clustering",
+      "description": "Unsupervised learning techniques for grouping data.",
+      "icon": "course_content/assets/icons/math-icon.svg",
+      "folder": "12-clustering",
+      "modules": []
+    },
+    {
+      "id": "active-learning",
+      "title": "Active Learning",
+      "description": "Intelligently querying data to improve model performance.",
+      "icon": "course_content/assets/icons/neural-networks-icon.svg",
+      "folder": "13-active-learning",
+      "modules": []
+    },
+    {
+      "id": "mlops",
+      "title": "MLOps",
+      "description": "Practices for deploying and maintaining machine learning models.",
+      "icon": "course_content/assets/icons/programming-icon.svg",
+      "folder": "14-mlops",
+      "modules": []
+    },
+    {
+      "id": "deep-reinforcement-learning",
+      "title": "Deep Reinforcement Learning",
+      "description": "Combining deep learning with reinforcement learning.",
+      "icon": "course_content/assets/icons/neural-networks-icon.svg",
+      "folder": "15-deep-reinforcement-learning",
+      "modules": []
+        },
+        {
+          "id": "generative-adversarial-networks",
+          "title": "Generative Adversarial Networks",
+          "description": "This chapter ventures into the \"creative universe\" of deep learning. We will dissect the ingenious adversarial framework of Generative Adversarial Networks (GANs), learning how two competing networks can be trained to generate stunningly realistic images from nothing but random noise. We'll explore the theory, master the training, and discover the common pitfalls and advanced techniques that revolutionized generative AI.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch21-generative-adversarial-networks",
+          "modules": [
+            {
+              "id": "ml-foundation-generative-art",
+              "title": "The Foundation of Generative Art",
+              "description": "Before we build an AI artist, we must first learn how to be an art critic. This module introduces the core concept of generative modeling and explores the crucial metrics, Inception Score (IS) and Fréchet Inception Distance (FID), that allow us to objectively score the quality and diversity of AI-generated art.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch21-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "ml-l1-what-building-how-judge", "title": "Lesson 1: What Are We Building and How Do We Judge It?", "file": "l1.1-lesson-1-generative-adversar.html" },
+                { "id": "ml-vid1-visualizing-evaluation-metrics", "title": "Manim Video: Visualizing Evaluation Metrics", "file": "vid5.5-lesson-5-generative-adversar.html" },
+                { "id": "ml-pod1-critic-creator", "title": "Podcast: The Critic and The Creator", "file": "pod4.4-lesson-4-generative-adversar.html" }
+              ]
+            },
+            {
+              "id": "ml-adversarial-game",
+              "title": "The Adversarial Game",
+              "description": "Discover the elegant \"cat-and-mouse\" game at the heart of GANs. We'll meet the two key players—the Generator and the Discriminator—and break down the minimax objective function that pits them against each other in a duel that drives both to perfection.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch21-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "ml-l2-gan-framework-two-player-game", "title": "Lesson 2: The GAN Framework: A Two-Player Game", "file": "l1.1-lesson-1-generative-adversar.html" },
+                { "id": "ml-vid2-minimax-game", "title": "Manim Video: The Minimax Game", "file": "vid5.5-lesson-5-generative-adversar.html" },
+                { "id": "ml-example1-faces-never-were", "title": "Example Lesson: The Faces That Never Were", "file": "ex2.2-lesson-2-generative-adversar.html" },
+                { "id": "ml-pod2-art-rivalry", "title": "Podcast: The Art of the Rivalry", "file": "pod4.4-lesson-4-generative-adversar.html" }
+              ]
+            },
+            {
+              "id": "ml-reality-training",
+              "title": "The Reality of Training",
+              "description": "Step into the role of the trainer and learn the delicate, alternating dance of GAN training. We'll explore why this process is notoriously unstable and then get hands-on experience in the \"GAN Playground\" to witness and diagnose common pitfalls like mode collapse and vanishing gradients.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch21-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "ml-l3-training-gans-common-pitfalls", "title": "Lesson 3: Training GANs and Common Pitfalls", "file": "l1.1-lesson-1-generative-adversar.html" },
+                { "id": "ml-exp1-gan-playground", "title": "Experiment Lesson: The GAN Playground", "file": "exp6.6-lesson-6-generative-adversar.html" },
+                { "id": "ml-pod3-why-so-hard", "title": "Podcast: Why Is This So Hard?", "file": "pod4.4-lesson-4-generative-adversar.html" }
+              ]
+            },
+            {
+              "id": "ml-gaining-control-power",
+              "title": "Gaining Control and Power",
+              "description": "Move beyond random generation to directed creation. This module introduces advanced architectures that give us control over the GAN's output. We'll explore Conditional GANs for specific requests and the magic of CycleGAN, which can translate between image domains—like horses to zebras—without any paired data.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch21-m4-module-4-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "ml-l4-leveling-up-conditional-gans", "title": "Lesson 4: Leveling Up: Conditional GANs and Image Translation", "file": "l1.1-lesson-1-generative-adversar.html" },
+                { "id": "ml-cod1-first-conditional-gan", "title": "Coding Lesson: Your First Conditional GAN", "file": "cod3.3-lesson-3-generative-adversar.html" },
+                { "id": "ml-pod4-creative-explosion", "title": "Podcast: The Creative Explosion", "file": "pod4.4-lesson-4-generative-adversar.html" }
+              ]
+            },
+            {
+              "id": "ml-big-picture-beyond",
+              "title": "The Big Picture and Beyond",
+              "description": "This capstone module places GANs in the broader context of modern AI. We'll look at the current state-of-the-art with Diffusion Models and reflect on the profound and lasting legacy of the adversarial idea, solidifying your understanding of the generative AI landscape.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch21-m5-module-5-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "ml-l5-beyond-gans-big-picture", "title": "Lesson 5: Beyond GANs and The Big Picture", "file": "l1.1-lesson-1-generative-adversar.html" },
+                { "id": "ml-example2-rise-diffusion-models", "title": "Example Lesson: The Rise of the Diffusion Models", "file": "ex2.2-lesson-2-generative-adversar.html" },
+                { "id": "ml-pod5-shoulders-giants", "title": "Podcast: The Shoulders of Giants", "file": "pod4.4-lesson-4-generative-adversar.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "perception-systems",
+          "title": "Perception Systems - From Human Vision to Digital Images",
+          "description": "Understanding how vision works from biological systems to digital processing",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision",
+          "modules": [
+            {
+              "id": "cv-nature-of-light",
+              "title": "The Nature of Light",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch02-perception-systems-from-human-vision-to-digital-im/cv-ch02-m1-the-nature-of-light",
+              "lessons": [
+                { 
+                  "id": "cv-l1-secret-ingredient", 
+                  "title": "Lesson 1: The Secret Ingredient - What is Light?", 
+                  "file": "l1.1-lesson-1-the-secret-ingredien.html" 
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "computer-vision",
+      "title": "Computer Vision",
+      "description": "Image processing, object detection, and computer vision techniques",
+      "icon": "course_content/assets/icons/neural-networks-icon.svg",
+      "learningPaths": [
+        {
+          "id": "introduction-to-vision",
+          "title": "An Introduction to Vision",
+          "description": "This chapter explores the fascinating world of human perception to understand its flaws and strengths. Through interactive illusions, we'll define the core challenge of computer vision: teaching a machine to see like us.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch01-an-introduction-to-vision",
+          "modules": [
+            {
+              "id": "cv-selective-filter",
+              "title": "The Selective Filter",
+              "description": "Learn why our vision isn't a camera but an evolutionary filter. We'll explore how we recognize objects and why we only perceive a tiny fraction of the world.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch01-m1-how-we-see-the-human-vision-filter",
+              "lessons": [
+                { "id": "cv-l1-human-vision-filter", "title": "Lesson 1: The Human Vision Filter", "file": "l1.1-the-human-vision-filter.html" },
+                { "id": "cv-pod1-invisible-world", "title": "Podcast: The Invisible World", "file": "pod2.2-the-invisible-world.html" }
+              ]
+            },
+            {
+              "id": "cv-light-to-meaning",
+              "title": "From Light to Meaning",
+              "description": "Discover the model of how our brain turns raw light into meaning. We'll differentiate between objective data and our subjective experience of the world.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch01-m2-from-light-to-meaning-a-model-of-perception",
+              "lessons": [
+                { "id": "cv-l2-perception-model", "title": "Lesson 2: A Model of Perception: From Light to Meaning", "file": "l1.1-a-model-of-perception-from-li.html" },
+                { "id": "cv-pod2-red-same", "title": "Podcast: Is Your Red the Same as My Red?", "file": "pod2.2-is-your-red-the-same-as-my-red.html" }
+              ]
+            },
+            {
+              "id": "cv-power-context",
+              "title": "The Power of Context",
+              "description": "Explore how context rules our perception. Through classic illusions, we'll see how what surrounds an object can completely change how we perceive it.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch01-m3-the-interpreting-brain-context-is-everything",
+              "lessons": [
+                { "id": "cv-l3-context-everything", "title": "Lesson 3: The Interpreting Brain: Context is Everything", "file": "l1.1-the-interpreting-brain-contex.html" },
+                { "id": "cv-math1-lightness-constancy", "title": "Math Explainer: The Lightness Constancy Equation", "file": "vid2.2-the-lightness-constancy-equati.html" },
+                { "id": "cv-pod3-brain-storyteller", "title": "Podcast: Your Brain the Storyteller", "file": "pod3.3-your-brain-the-storyteller.html" }
+              ]
+            },
+            {
+              "id": "cv-hands-on-illusions",
+              "title": "Hands-On with Illusions",
+              "description": "Witness how the brain invents motion and color that aren't there. Then, step into the 'Illusion Playground' to experiment with these phenomena yourself.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch01-m4-the-fallible-brain-illusions-and-inventions",
+              "lessons": [
+                { "id": "cv-l4-phantom-motion", "title": "Lesson 4: The Fallible Brain: Phantom Motion & Colors", "file": "l1.1-the-fallible-brain-phantom-mo.html" },
+                { "id": "cv-exp1-illusion-playground", "title": "Experiment: Hands-On: The Illusion Playground", "file": "exp2.2-the-illusion-playground.html" },
+                { "id": "cv-ex1-perception-detective", "title": "Exercise: Perception Detective", "file": "ex3.3-perception-detective.html" },
+                { "id": "cv-pod4-ghosts-machine", "title": "Podcast: Ghosts in the Machine", "file": "pod4.4-ghosts-in-the-machine.html" }
+              ]
+            },
+            {
+              "id": "cv-attentional-spotlight",
+              "title": "The Attentional Spotlight",
+              "description": "Discover the power and limits of attention. Through interactive demos, we'll explore 'change blindness' and why we often miss things happening right in front of us.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch01-m5-the-attentive-brain-the-art-of-ignoring",
+              "lessons": [
+                { "id": "cv-l5-what-you-dont-see", "title": "Lesson 5: The Attentive Brain: What You Don't See", "file": "l1.1-the-attentive-brain-what-you.html" },
+                { "id": "cv-pod5-spotlight-mind", "title": "Podcast: The Spotlight of a Mind", "file": "pod2.2-the-spotlight-of-a-mind.html" }
+              ]
+            },
+            {
+              "id": "cv-core-challenge",
+              "title": "The Core Challenge",
+              "description": "This capstone module connects human perception to machines. We'll define the core challenge of computer vision: bridging the gap between a meaningless pixel and true understanding.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch01-m6-human-vs-machine-the-core-challenge",
+              "lessons": [
+                { "id": "cv-l6-human-vs-machine", "title": "Lesson 6: Human vs. Machine: The Core Challenge", "file": "l1.1-human-vs-machine-the-core-ch.html" },
+                { "id": "cv-math2-computer-sees-image", "title": "Math Explainer: How a Computer REALLY Sees an Image", "file": "vid2.2-how-a-computer-really-sees-an.html" },
+                { "id": "cv-example1-captcha-story", "title": "Real-World Example: Why You Can Read This, But a Robot Can't (The Story of CAPTCHA)", "file": "case3.3-why-you-can-read-this-but-a-r.html" },
+                { "id": "cv-pod6-building-bridge", "title": "Podcast: Building the Bridge of Bytes", "file": "pod4.4-building-the-bridge-of-bytes.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "perception-systems",
+          "title": "Perception Systems: From Human Vision to Digital Images",
+          "description": "This chapter bridges the gap between biology and technology. We'll start by dissecting the human eye and brain to understand nature's masterpiece of vision. Then, we'll build a digital camera from the ground up, exploring the physics, hardware, and software that turn light into the digital images that power computer vision.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch02-perception-systems-from-human-vision-to-digital-im",
+          "modules": [
+            {
+              "id": "cv-nature-of-light",
+              "title": "The Nature of Light",
+              "description": "Explore the fundamental ingredient of all vision: light. We'll uncover its dual nature as both a wave and a particle, see where it fits in the vast electromagnetic spectrum, and understand how its interaction with objects creates the colors of our world.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch02-m1-the-nature-of-light",
+              "lessons": [
+                { "id": "cv-l1-secret-ingredient", "title": "Lesson 1: The Secret Ingredient - What is Light?", "file": "l1.1-lesson-1-the-secret-ingredien.html" },
+                { "id": "cv-pod1-see-wifi", "title": "Podcast: Can You See Wi-Fi?", "file": "pod2.2-lesson-11-can-you-see-wi-fi.html" }
+              ]
+            },
+            {
+              "id": "cv-biological-sensor",
+              "title": "The Biological Sensor",
+              "description": "Take a tour of the human eye, nature's original camera. We'll examine its key components and meet the specialized photoreceptor cells—Rods and Cones—that form the powerhouse duo for our day and night vision.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch02-m2-the-biological-sensor",
+              "lessons": [
+                { "id": "cv-l2-human-sensor", "title": "Lesson 2: The Human Sensor - How the Eye Works", "file": "l1.1-lesson-2-the-human-sensor-h.html" },
+                { "id": "cv-pod2-built-backwards", "title": "Podcast: Built Backwards and Seeing Stars", "file": "pod2.2-lesson-21-built-backwards-an.html" }
+              ]
+            },
+            {
+              "id": "cv-visual-brain",
+              "title": "The Visual Brain",
+              "description": "Follow the neural signal from the retina into the brain's complex processing centers. Discover how we perceive millions of colors with only three types of cone cells and how the brain splits its visual processing into two fundamental streams: \"What\" and \"Where.\"",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch02-m2-the-biological-sensor",
+              "lessons": [
+                { "id": "cv-l3-signal-to-sight", "title": "Lesson 3: From Signal to Sight - Color and the Brain", "file": "l3.3-lesson-3-from-signal-to-sight.html" },
+                { "id": "cv-pod3-what-where-yellow", "title": "Podcast: The What, The Where, and The Yellow", "file": "pod4.4-lesson-31-the-what-the-wher.html" }
+              ]
+            },
+            {
+              "id": "cv-artificial-eye",
+              "title": "The Artificial Eye",
+              "description": "Build a camera from first principles. We'll start with the elegant geometry of the pinhole camera, derive its core mathematical equations, and then see how lenses and apertures are used to control focus and create artistic effects like a blurry background.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch02-m3-the-artificial-eye",
+              "lessons": [
+                { "id": "cv-l4-camera-basics", "title": "Lesson 4: The Artificial Eye - Camera Basics", "file": "l1.1-lesson-4-the-artificial-eye.html" },
+                { "id": "cv-vid1-pinhole-geometry", "title": "Manim Video: The Geometry of a Pinhole", "file": "vid2.2-lesson-41-the-geometry-of-a.html" },
+                { "id": "cv-ex2-pinhole-calculations", "title": "Exercise: Pinhole Calculations", "file": "ex3.3-lesson-42-pinhole-calculatio.html" }
+              ]
+            },
+            {
+              "id": "cv-digital-retina",
+              "title": "The Digital Retina",
+              "description": "Dive into the heart of a modern camera: the image sensor. Learn how colorblind photodiodes are given color vision by a Bayer Filter and compare the two rival sensor technologies, CCD and CMOS, that have shaped the world of photography.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch02-m4-the-digital-sensor",
+              "lessons": [
+                { "id": "cv-l5-digital-sensor", "title": "Lesson 5: Inside the Digital Camera - The Sensor", "file": "l1.1-lesson-5-inside-the-digital-c.html" },
+                { "id": "cv-pod4-bucket-brigade", "title": "Podcast: The Bucket Brigade and the Color Puzzle", "file": "pod2.2-lesson-51-the-bucket-brigade.html" }
+              ]
+            },
+            {
+              "id": "cv-dark-side-speed",
+              "title": "The Dark Side of Speed",
+              "description": "Uncover the strange side effect of modern CMOS sensors. We'll explore the 'rolling shutter' phenomenon and see how it can warp reality, bending propellers and creating 'jello' effects in video, a critical concept for professionals in VFX and sports.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch02-m4-the-digital-sensor",
+              "lessons": [
+                { "id": "cv-l6-rolling-shutter", "title": "Lesson 6: The Dark Side of Speed - Rolling Shutter", "file": "l3.3-lesson-6-the-dark-side-of-spe.html" },
+                { "id": "cv-case1-vfx-jello", "title": "Real-World Case Study: VFX vs. The Jello Effect", "file": "case4.4-lesson-61-real-world-case-st.html" },
+                { "id": "cv-pod5-bent-propellers", "title": "Podcast: Bent Propellers and Wobbly Videos", "file": "pod5.5-lesson-62-bent-propellers-an.html" }
+              ]
+            },
+            {
+              "id": "cv-image-is-born",
+              "title": "An Image is Born",
+              "description": "Witness the final steps where raw sensor data becomes a recognizable image. We'll see how the camera's software fills in missing colors, applies finishing touches, and finally quantizes the image into the 3D grid of numbers that we will work with for the rest of this course.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch02-m5-from-raw-data-to-final-image",
+              "lessons": [
+                { "id": "cv-l7-making-image", "title": "Lesson 7: Making the Image - Pixels and Values", "file": "l1.1-lesson-7-making-the-image-p.html" },
+                { "id": "cv-cod1-numpy-array", "title": "Coding Lesson: An Image is Just a NumPy Array", "file": "cod2.2-lesson-71-an-image-is-just-a.html" },
+                { "id": "cv-pod6-all-numbers", "title": "Podcast: It's All Just Numbers", "file": "pod3.3-lesson-72-its-all-just-numb.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "image-representation",
+          "title": "Image Representation",
+          "description": "This chapter deconstructs the digital image, revealing how the continuous, vibrant real world is translated into a structured grid of numbers. We will explore how space and color are quantized, discover the universal language of color science, and learn the fundamental analysis tools that form the bedrock of all computer vision.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch03-image-representation",
+          "modules": [
+            {
+              "id": "cv-pixel-grid",
+              "title": "The Pixel Grid",
+              "description": "We begin by establishing the fundamental building block of all digital images: the pixel. You'll learn how the physical world is sampled onto a discrete grid and how this process defines an image's detail and sharpness.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch03-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-real-world-to-grid", "title": "Lesson 1: From the Real World to a Grid of Pixels", "file": "l1.1-lesson-1-image-representation.html" },
+                { "id": "cv-pod1-pixels-minecraft", "title": "Podcast: Pixels, Minecraft, and Security Cameras", "file": "pod4.4-lesson-4-image-representation.html" },
+                { "id": "cv-exp1-resolution-lab", "title": "Experiment: Hands-On: The Resolution & Pixelation Lab", "file": "exp6.6-lesson-6-image-representation.html" }
+              ]
+            },
+            {
+              "id": "cv-color-quantization",
+              "title": "Color, Quantization, and Data Structure",
+              "description": "Discover how continuous light is converted into discrete numbers. We'll explore the concept of bit depth, contrast the additive (screen) and subtractive (print) color models, and reveal the underlying numerical data structure of a color image.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch03-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l2-pixels-color-quantization", "title": "Lesson 2: Giving Pixels Color - The Basics of Quantization", "file": "l1.1-lesson-1-image-representation.html" },
+                { "id": "cv-pod2-painting-vs-pixels", "title": "Podcast: Painting vs. Pixels", "file": "pod4.4-lesson-4-image-representation.html" },
+                { "id": "cv-math1-bit-depth", "title": "Math Explainer: The Power of Two: Understanding Bit Depth", "file": "vid5.5-lesson-5-image-representation.html" },
+                { "id": "cv-cod1-first-image-python", "title": "Coding: Your First Look at an Image in Python", "file": "cod3.3-lesson-3-image-representation.html" }
+              ]
+            },
+            {
+              "id": "cv-universal-color",
+              "title": "Universal and Practical Color",
+              "description": "We tackle the problem of inconsistent color across devices by learning the universal language of color science. We'll explore the CIE standard, define the practical limits (gamuts) of our devices, and investigate how we can measure color differences in a way that aligns with human perception.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch03-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l3-universal-color-cie", "title": "Lesson 3: A Universal Language for Color - The CIE Spaces", "file": "l1.1-lesson-1-image-representation.html" },
+                { "id": "cv-pod3-coca-cola-red", "title": "Podcast: Why Coca-Cola Red is Always Coca-Cola Red", "file": "pod4.4-lesson-4-image-representation.html" },
+                { "id": "cv-math2-normalizing-color", "title": "Math Explainer: Normalizing Color: From 3D Space to a 2D Map", "file": "vid5.5-lesson-5-image-representation.html" },
+                { "id": "cv-ex1-chromaticity-calc", "title": "Exercise: Chromaticity Calculations", "file": "ex2.2-lesson-2-image-representation.html" },
+                { "id": "cv-l4-color-practice-gamuts", "title": "Lesson 4: Color in Practice - Gamuts and Perceptual Spaces", "file": "l1.1-lesson-1-image-representation.html" },
+                { "id": "cv-pod4-instagram-colors", "title": "Podcast: Why Does My Photo Look Different on Instagram?", "file": "pod4.4-lesson-4-image-representation.html" },
+                { "id": "cv-example1-cinema-colors", "title": "Real-World Example: The Colors of Cinema: Grading for the Big Screen and Your TV", "file": "ex2.2-lesson-2-image-representation.html" }
+              ]
+            },
+            {
+              "id": "cv-perception-analysis",
+              "title": "Perception, Analysis, and Advanced Representation",
+              "description": "This capstone module connects the technical representation of an image to the way we actually perceive it. We'll explore the brain's \"auto-correct\" features, learn to analyze an image's properties with histograms, and break the limits of standard images with High Dynamic Range (HDR).",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch03-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l5-seeing-human-perception", "title": "Lesson 5: Seeing Like a Human - Perception and Analysis", "file": "l1.1-lesson-1-image-representation.html" },
+                { "id": "cv-pod5-brain-photoshop", "title": "Podcast: The Brain as a Photoshop Filter", "file": "pod4.4-lesson-4-image-representation.html" },
+                { "id": "cv-cod2-first-histogram", "title": "Coding: Plotting Your First Histogram", "file": "cod3.3-lesson-3-image-representation.html" },
+                { "id": "cv-l6-breaking-limits-hdr", "title": "Lesson 6: Breaking the Limits - High Dynamic Range (HDR)", "file": "l1.1-lesson-1-image-representation.html" },
+                { "id": "cv-pod6-hdr-look", "title": "Podcast: The \"HDR Look\": From Your Phone to Hollywood", "file": "pod4.4-lesson-4-image-representation.html" },
+                { "id": "cv-example2-hdr-gaming", "title": "Real-World Example: HDR in Gaming: Seeing into the Shadows", "file": "ex2.2-lesson-2-image-representation.html" },
+                { "id": "cv-l7-chapter-wrap-up", "title": "Lesson 7: Chapter 3 Wrap-Up: The Image as Data", "file": "l1.1-lesson-1-image-representation.html" },
+                { "id": "cv-pod7-chapter-recap", "title": "Podcast: Chapter 3 Recap: It's All Just Numbers", "file": "pod4.4-lesson-4-image-representation.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "image-formation-transformations",
+          "title": "Image Formation: Transformations and Projections",
+          "description": "This chapter builds a virtual camera from the ground up. We'll explore the mathematical language of 2D and 3D transformations, combine them to model a real camera, and see how this model powers everything from video games to robotic vision.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch04-image-formation-transformations-and-projections",
+          "modules": [
+            {
+              "id": "cv-language-geometry",
+              "title": "The Language of Geometry",
+              "description": "Discover the elegant mathematical \"hack\" that unifies all geometric operations. We'll introduce homogeneous coordinates, the secret language that allows us to describe complex transformations with simple matrix math.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch04-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-magic-homogeneous", "title": "Lesson 1: The Magic of Homogeneous Coordinates", "file": "l1.1-lesson-1-image-formation-tra.html" },
+                { "id": "cv-math1-what-are-homogeneous", "title": "Math Explainer: What ARE Homogeneous Coordinates?", "file": "vid5.5-lesson-5-image-formation-tra.html" }
+              ]
+            },
+            {
+              "id": "cv-rigid-world",
+              "title": "The Rigid World",
+              "description": "Learn to describe how objects move in the world without changing their shape. We'll build the matrices for translation, rotation, and uniform scaling, and experiment with them in an interactive playground.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch04-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l2-rigid-world-transforms", "title": "Lesson 2: The Rigid World: Translation, Rotation, & Scaling", "file": "l1.1-lesson-1-image-formation-tra.html" },
+                { "id": "cv-exp1-transformation-playground", "title": "Experiment: The Transformation Playground", "file": "exp6.6-lesson-6-image-formation-tra.html" }
+              ]
+            },
+            {
+              "id": "cv-bending-reality",
+              "title": "Bending Reality",
+              "description": "Move beyond rigid shapes and learn the transformations that bend and warp reality to create perspective. We'll explore the power of Affine and Projective transforms and see them at work in real-world applications like photo stitching and augmented reality.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch04-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l3-bending-reality-affine", "title": "Lesson 3: Bending Reality: Affine and Projective Transforms", "file": "l1.1-lesson-1-image-formation-tra.html" },
+                { "id": "cv-exp2-art-warping", "title": "Experiment: The Art of Warping", "file": "exp6.6-lesson-6-image-formation-tra.html" },
+                { "id": "cv-example1-transforms-wild", "title": "Example: Transformations in the Wild", "file": "ex2.2-lesson-2-image-formation-tra.html" },
+                { "id": "cv-pod1-talkin-transformations", "title": "Podcast: Talkin' 'Bout Transformations", "file": "pod4.4-lesson-4-image-formation-tra.html" }
+              ]
+            },
+            {
+              "id": "cv-camera-anatomy",
+              "title": "The Camera's Anatomy",
+              "description": "Dissect a virtual camera into its two key components. We'll define the camera's internal \"factory settings\" (Intrinsics) and its position and orientation in the world (Extrinsics).",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch04-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l4-camera-intrinsics-extrinsics", "title": "Lesson 4: The Camera's Anatomy: Intrinsics & Extrinsics", "file": "l1.1-lesson-1-image-formation-tra.html" },
+                { "id": "cv-ex1-transforming-3d-points", "title": "Exercise: Transforming 3D Points", "file": "ex2.2-lesson-2-image-formation-tra.html" }
+              ]
+            },
+            {
+              "id": "cv-grand-unification",
+              "title": "The Grand Unification",
+              "description": "Assemble the final, all-powerful Projection Matrix P. In this capstone module, we'll combine intrinsics and extrinsics into a single matrix and use it to project 3D world points into 2D pixel coordinates, both on paper and in code.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch04-m3-module-3-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l5-projection-matrix-p", "title": "Lesson 5: The Full Picture: The Projection Matrix P", "file": "l1.1-lesson-1-image-formation-tra.html" },
+                { "id": "cv-math2-assembling-projection", "title": "Math Explainer: Assembling the Projection Matrix", "file": "vid5.5-lesson-5-image-formation-tra.html" },
+                { "id": "cv-cod1-python-projection", "title": "Coding: Python Projection", "file": "cod3.3-lesson-3-image-formation-tra.html" }
+              ]
+            },
+            {
+              "id": "cv-graphics-vs-vision",
+              "title": "Graphics vs. Vision",
+              "description": "Put our complete camera model to work. We'll explore how forward projection (3D to 2D) powers computer graphics and how the reverse problem (2D to 3D) defines the core challenge of 3D computer vision.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch04-m4-module-4-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l6-putting-it-to-work", "title": "Lesson 6: Putting It All to Work", "file": "l1.1-lesson-1-image-formation-tra.html" },
+                { "id": "cv-exp3-camera-operator", "title": "Experiment: The Camera Operator", "file": "exp6.6-lesson-6-image-formation-tra.html" },
+                { "id": "cv-pod2-pixels-to-pose", "title": "Podcast: From Pixels to Pose", "file": "pod4.4-lesson-4-image-formation-tra.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "general-fourier-transform",
+          "title": "General Fourier Transform",
+          "description": "This chapter demystifies one of the most powerful tools in engineering and computer science: the Fourier Transform. We will start with the beautiful intuition that complex signals are just recipes of simple sine waves, build the necessary mathematical tools, and finally apply this knowledge to filter and understand digital images.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch05-general-fourier-transform",
+          "modules": [
+            {
+              "id": "cv-core-idea-intuition",
+              "title": "The Core Idea & Intuition",
+              "description": "Discover the fundamental principle behind all signal processing. We'll see how any complex, repeating signal can be constructed from simple sine waves and develop a non-mathematical intuition for how to find this \"frequency recipe.\"",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch05-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-big-idea-deconstructing", "title": "Lesson 1: The Big Idea - Deconstructing Signals", "file": "l1.1-lesson-1-general-fourier-tran.html" },
+                { "id": "cv-pod1-symphony-signals", "title": "Podcast: The Symphony of Signals", "file": "pod4.4-lesson-4-general-fourier-tran.html" },
+                { "id": "cv-vid1-building-square-wave", "title": "Visualizing Superposition: Building a Square Wave", "file": "vid5.5-lesson-5-general-fourier-tran.html" },
+                { "id": "cv-l2-correlation-intuition", "title": "Lesson 2: How It Works - The Correlation Intuition", "file": "l1.1-lesson-1-general-fourier-tran.html" },
+                { "id": "cv-pod2-detective-tuning-fork", "title": "Podcast: The Detective and the Tuning Fork", "file": "pod4.4-lesson-4-general-fourier-tran.html" },
+                { "id": "cv-vid2-geometry-correlation", "title": "The Geometry of Correlation", "file": "vid5.5-lesson-5-general-fourier-tran.html" }
+              ]
+            },
+            {
+              "id": "cv-mathematics-calculation",
+              "title": "The Mathematics & Calculation",
+              "description": "Level up your mathematical toolkit by exploring the elegance of complex numbers and Euler's formula. We'll see how these tools allow us to formalize our intuition into the concrete equations of the Fourier Series and then get our hands dirty by calculating a signal's recipe step-by-step.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch05-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l3-math-toolkit-complex", "title": "Lesson 3: The Math Toolkit - Complex Oscillations", "file": "l1.1-lesson-1-general-fourier-tran.html" },
+                { "id": "cv-pod3-eulers-jewel", "title": "Podcast: Euler's Jewel", "file": "pod4.4-lesson-4-general-fourier-tran.html" },
+                { "id": "cv-vid3-eulers-formula", "title": "Euler's Formula and the Rotating Vector", "file": "vid5.5-lesson-5-general-fourier-tran.html" },
+                { "id": "cv-l4-fourier-series-action", "title": "Lesson 4: The Real Deal - Fourier Series in Action", "file": "l1.1-lesson-1-general-fourier-tran.html" },
+                { "id": "cv-pod4-getting-hands-dirty", "title": "Podcast: Getting Your Hands Dirty", "file": "pod4.4-lesson-4-general-fourier-tran.html" },
+                { "id": "cv-vid4-fourier-series-integral", "title": "Deconstructing the Fourier Series Integral", "file": "vid5.5-lesson-5-general-fourier-tran.html" },
+                { "id": "cv-ex1-calculate-coefficients", "title": "Exercise: Calculate the Coefficients", "file": "ex2.2-lesson-2-general-fourier-tran.html" }
+              ]
+            },
+            {
+              "id": "cv-application-computer-vision",
+              "title": "Application in Computer Vision",
+              "description": "This capstone module connects the 1D theory to the 2D world of pixels. We'll learn to see images in terms of their \"spatial frequencies\" and explore how manipulating these frequencies allows for powerful, practical applications like image filtering, sharpening, and compression.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch05-m3-module-3-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l5-theory-to-pixels", "title": "Lesson 5: From Theory to Pixels - The Fourier Transform in CV", "file": "l1.1-lesson-1-general-fourier-tran.html" },
+                { "id": "cv-pod5-seeing-with-frequency", "title": "Podcast: Seeing with Frequency", "file": "pod4.4-lesson-4-general-fourier-tran.html" },
+                { "id": "cv-vid5-2d-fourier-transform", "title": "The 2D Fourier Transform: From Pixels to Gratings", "file": "vid5.5-lesson-5-general-fourier-tran.html" },
+                { "id": "cv-case1-how-jpeg-works", "title": "Case Study: How JPEG Actually Works", "file": "ex2.2-lesson-2-general-fourier-tran.html" },
+                { "id": "cv-exp1-frequency-domain", "title": "Experiment: The Frequency Domain Playground", "file": "exp6.6-lesson-6-general-fourier-tran.html" },
+                { "id": "cv-cod1-first-fft", "title": "Coding: Your First FFT - Image Filtering in Python", "file": "cod3.3-lesson-3-general-fourier-tran.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fourier-transform-images",
+          "title": "Fourier Transform and Images",
+          "description": "This chapter takes the concept of signal analysis from one dimension to two. We will discover how to view an image as a collection of \"spatial frequencies,\" learn the mathematics behind the Discrete Cosine Transform (DCT), and deconstruct the JPEG compression algorithm, one of the most important technologies on the internet.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch06-fourier-transform-and-images",
+          "modules": [
+            {
+              "id": "cv-images-as-signals",
+              "title": "Images as Signals",
+              "description": "This module introduces the fundamental concept of the chapter: an image is not just a grid of pixels, but a 2D spatial signal. We'll build the intuition for \"spatial frequency\" and see how smooth areas and sharp details correspond to different frequencies.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch06-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-lines-to-pictures", "title": "Lesson 1: From Lines to Pictures - Images as 2D Signals", "file": "l1.1-lesson-1-fourier-transform-an.html" },
+                { "id": "cv-pod1-pixels-signals-frequencies", "title": "Podcast 6.1: Pixels, Signals, and Frequencies", "file": "pod4.4-lesson-4-fourier-transform-an.html" }
+              ]
+            },
+            {
+              "id": "cv-deconstructing-dct",
+              "title": "Deconstructing with the DCT",
+              "description": "Discover the Discrete Cosine Transform (DCT), the mathematical workhorse behind JPEG. We'll explore its \"basis functions\"—the building blocks of images—and understand \"energy compaction,\" the key property that makes efficient compression possible.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch06-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l2-dct-frequency-tool", "title": "Lesson 2: The DCT - Our Frequency-Finding Tool", "file": "l1.1-lesson-1-fourier-transform-an.html" },
+                { "id": "cv-vid1-what-is-dct", "title": "Manim 6.1: What IS the Discrete Cosine Transform?", "file": "vid5.5-lesson-5-fourier-transform-an.html" },
+                { "id": "cv-pod2-deconstructing-dct", "title": "Podcast 6.2: Deconstructing Images with the DCT", "file": "pod4.4-lesson-4-fourier-transform-an.html" }
+              ]
+            },
+            {
+              "id": "cv-frequency-filtering",
+              "title": "Frequency Filtering",
+              "description": "Now that we can separate frequencies, we can manipulate them. In this module, we'll become \"frequency hackers,\" learning how to create low-pass (blur) and high-pass (edge detection) filters by directly modifying an image's DCT coefficients.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch06-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l3-hacking-frequencies", "title": "Lesson 3: Hacking Frequencies - Filtering in the DCT Domain", "file": "l1.1-lesson-1-fourier-transform-an.html" },
+                { "id": "cv-exp1-frequency-filter-lab", "title": "Experiment 6.1: The Frequency Filter Lab", "file": "exp6.6-lesson-6-fourier-transform-an.html" },
+                { "id": "cv-pod3-frequency-dj", "title": "Podcast 6.3: The Frequency DJ", "file": "pod4.4-lesson-4-fourier-transform-an.html" }
+              ]
+            },
+            {
+              "id": "cv-lossy-compression",
+              "title": "The Art of Lossy Compression",
+              "description": "This module begins our deep dive into the JPEG pipeline. We'll differentiate between lossy and lossless compression and see how JPEG cleverly exploits the quirks of human vision by separating brightness from color information.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch06-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l4-introducing-jpeg", "title": "Lesson 4: Introducing JPEG - The Art of Losing Information", "file": "l1.1-lesson-1-fourier-transform-an.html" },
+                { "id": "cv-example1-story-lena", "title": "Example 6.1: The Story of Lena", "file": "ex2.2-lesson-2-fourier-transform-an.html" },
+                { "id": "cv-pod4-genius-lazy", "title": "Podcast 6.4: The Genius of Being Lazy", "file": "pod4.4-lesson-4-fourier-transform-an.html" }
+              ]
+            },
+            {
+              "id": "cv-heart-pipeline",
+              "title": "The Heart of the Pipeline",
+              "description": "We've arrived at the core of JPEG. We'll explore Quantization—the irreversible, lossy step where data is strategically discarded—and the clever Zigzag Scan, an efficiency hack that makes the final compression possible.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch06-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l5-heart-jpeg-quantization", "title": "Lesson 5: The Heart of JPEG - Quantization & The Zigzag", "file": "l1.1-lesson-1-fourier-transform-an.html" },
+                { "id": "cv-vid2-math-quantization", "title": "Manim 6.2: The Math of Quantization", "file": "vid5.5-lesson-5-fourier-transform-an.html" },
+                { "id": "cv-ex1-quantization-challenge", "title": "Exercise 6.1: The Quantization Challenge", "file": "ex2.2-lesson-2-fourier-transform-an.html" },
+                { "id": "cv-cod1-jpeg-steps-python", "title": "Coding 6.1: JPEG Steps in Python", "file": "cod3.3-lesson-3-fourier-transform-an.html" },
+                { "id": "cv-pod5-point-no-return", "title": "Podcast 6.5: The Point of No Return", "file": "pod4.4-lesson-4-fourier-transform-an.html" }
+              ]
+            },
+            {
+              "id": "cv-final-picture",
+              "title": "The Final Picture",
+              "description": "This capstone module examines the consequences of our compression journey by identifying common JPEG \"artifacts.\" We'll then zoom out to review the entire \"World to File\" process, framing the fundamental challenge for the rest of our course.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch06-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l6-aftermath-artifacts", "title": "Lesson 6: The Aftermath - Artifacts and The Big Picture", "file": "l1.1-lesson-1-fourier-transform-an.html" },
+                { "id": "cv-pod6-price-speed", "title": "Podcast 6.6: The Price of Speed", "file": "pod4.4-lesson-4-fourier-transform-an.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "image-characteristics",
+          "title": "Image Characteristics",
+          "description": "This chapter transitions from creating images to analyzing them. We'll learn how to distill a complex image into a few simple numbers—its 'character'—and discover why this is the essential first step for preparing images for advanced AI models.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch07-image-characteristics",
+          "modules": [
+            {
+              "id": "cv-intro-image-character",
+              "title": "Introduction to Image Character",
+              "description": "Discover why we need to describe images numerically before we can analyze them. We'll explore the core motivations and introduce the concept of standard test images used throughout the field.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch07-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-character-image", "title": "Lesson 1: What's the \"Character\" of an Image?", "file": "l1.1-lesson-1-image-characteristic.html" },
+                { "id": "cv-pod1-pixels-personality", "title": "Podcast: \"Pixels with Personality\"", "file": "pod4.4-lesson-4-image-characteristic.html" }
+              ]
+            },
+            {
+              "id": "cv-fundamentals-mean-variance",
+              "title": "The Fundamentals - Mean and Variance",
+              "description": "Get hands-on with the two most fundamental image statistics. We'll learn to calculate the mean to measure brightness and the variance to measure contrast, and see these concepts brought to life with animated explainers.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch07-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l2-brightness-contrast", "title": "Lesson 2: Brightness & Contrast - The Mean and Variance", "file": "l1.1-lesson-1-image-characteristic.html" },
+                { "id": "cv-vid1-visualizing-mean-variance", "title": "Math Explainer: \"Visualizing Mean and Variance\"", "file": "vid5.5-lesson-5-image-characteristic.html" },
+                { "id": "cv-ex1-stats-workout", "title": "Exercise: \"The Stats Workout\"", "file": "ex2.2-lesson-2-image-characteristic.html" }
+              ]
+            },
+            {
+              "id": "cv-full-picture-histograms",
+              "title": "The Full Picture - Histograms and Entropy",
+              "description": "Go beyond simple averages to understand the full 'fingerprint' of an image. We'll build and interpret histograms, then quantify the image's randomness with the concept of entropy.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch07-m3-module-3-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l3-images-fingerprint", "title": "Lesson 3: The Image's Fingerprint - Histograms", "file": "l1.1-lesson-1-image-characteristic.html" },
+                { "id": "cv-cod1-plot-first-histogram", "title": "Coding: \"Plot Your First Histogram\"", "file": "cod3.3-lesson-3-image-characteristic.html" },
+                { "id": "cv-l4-random-image-entropy", "title": "Lesson 4: How Random is Your Image? - Entropy", "file": "l1.1-lesson-1-image-characteristic.html" },
+                { "id": "cv-vid2-unpacking-entropy", "title": "Math Explainer: \"Unpacking Entropy\"", "file": "vid5.5-lesson-5-image-characteristic.html" },
+                { "id": "cv-pod2-information-overload", "title": "Podcast: \"Information Overload\"", "file": "pod4.4-lesson-4-image-characteristic.html" }
+              ]
+            },
+            {
+              "id": "cv-application-summary",
+              "title": "Application and Summary",
+              "description": "Connect theory to practice in this capstone module. We'll see how the concepts we've learned are used to standardize data for real-world AI models and experiment with the dramatic effect this has on performance.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch07-m4-module-4-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l5-prep-school-ai", "title": "Lesson 5: Prep School for AI - Normalization & Summary", "file": "l1.1-lesson-1-image-characteristic.html" },
+                { "id": "cv-exp1-preprocessing-playground", "title": "Experiment: \"The Preprocessing Playground\"", "file": "exp6.6-lesson-6-image-characteristic.html" },
+                { "id": "cv-example1-standardization-wild", "title": "Real-World Example: \"Standardization in the Wild: ImageNet\"", "file": "ex2.2-lesson-2-image-characteristic.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "image-modifications",
+          "title": "Image Modifications",
+          "description": "This chapter moves from analyzing images to actively changing them. We'll build a toolkit of fundamental techniques to manipulate pixel values, learning how to enhance images for human eyes, prepare them for algorithms, and normalize them for powerful machine learning models.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch08-image-modifications",
+          "modules": [
+            {
+              "id": "cv-foundations-modification",
+              "title": "The Foundations of Modification",
+              "description": "We begin by answering the fundamental question: \"Why modify an image?\". This module lays the groundwork by establishing the purpose behind transformations and introducing the core mathematical and computational concepts that all other lessons will build upon.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch08-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-why-bother-intro", "title": "Lesson 1: Why Bother? An Intro to Image Modifications", "file": "l1.1-lesson-1-image-modifications.html" },
+                { "id": "cv-pod1-pixels-purpose-precomputation", "title": "Podcast 1: Pixels, Purpose, and Pre-computation", "file": "pod4.4-lesson-4-image-modifications.html" }
+              ]
+            },
+            {
+              "id": "cv-linear-control",
+              "title": "Linear Control: Brightness and Contrast",
+              "description": "Discover the power of straight-line math. We'll deconstruct the classic 'brightness' and 'contrast' sliders, learning how two simple parameters give us direct control over an image's look and feel, and we'll tackle the problem of what to do when our math goes out of bounds.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch08-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l2-slide-scale-linear", "title": "Lesson 2: Slide and Scale - Mastering Linear Transformations", "file": "l1.1-lesson-1-image-modifications.html" },
+                { "id": "cv-vid1-geometry-linear-transforms", "title": "Manim Explainer 1: The Geometry of Linear Transformations", "file": "vid5.5-lesson-5-image-modifications.html" },
+                { "id": "cv-ex1-linear-transformation-drills", "title": "Exercise 1: Linear Transformation Drills", "file": "ex2.2-lesson-2-image-modifications.html" },
+                { "id": "cv-pod2-linear-levers", "title": "Podcast 2: The Linear Levers: Brightness vs. Contrast", "file": "pod4.4-lesson-4-image-modifications.html" }
+              ]
+            },
+            {
+              "id": "cv-non-linear-nuance",
+              "title": "Non-Linear Nuance: Seeing Like a Human",
+              "description": "Our eyes don't see in straight lines, and neither should our best image modifications. This module introduces Gamma Correction, a sophisticated, non-linear technique that mimics human perception to produce more natural and detailed enhancements.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch08-m3-module-3-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l3-seeing-human-gamma", "title": "Lesson 3: Seeing Like a Human - Non-Linear Gamma Correction", "file": "l1.1-lesson-1-image-modifications.html" },
+                { "id": "cv-vid2-bending-curve-gamma", "title": "Manim Explainer 2: Bending the Curve with Gamma", "file": "vid5.5-lesson-5-image-modifications.html" },
+                { "id": "cv-example1-photos-different-screens", "title": "Example 1: Why Your Photos Look Different on Different Screens", "file": "ex2.2-lesson-2-image-modifications.html" },
+                { "id": "cv-ex2-gamma-calculation-challenge", "title": "Exercise 2: Gamma Calculation Challenge", "file": "ex2.2-lesson-2-image-modifications.html" },
+                { "id": "cv-pod3-gamma-gambit", "title": "Podcast 3: The Gamma Gambit: Why Curves are Better than Lines", "file": "pod4.4-lesson-4-image-modifications.html" }
+              ]
+            },
+            {
+              "id": "cv-data-driven-enhancements",
+              "title": "Data-Driven Enhancements: Histograms",
+              "description": "Learn to let the image improve itself. We'll explore how an image's own data distribution—its histogram—can be used to automatically and dramatically boost global contrast through the powerful Histogram Equalization algorithm.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch08-m4-module-4-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l4-data-decide-histograms", "title": "Lesson 4: Let the Data Decide - Histogram-Based Enhancements", "file": "l1.1-lesson-1-image-modifications.html" },
+                { "id": "cv-vid3-histogram-equalization", "title": "Manim Explainer 3: The Unfolding of Histogram Equalization", "file": "vid5.5-lesson-5-image-modifications.html" },
+                { "id": "cv-example2-murky-scans-clear", "title": "Example 2: From Murky Scans to Clear Views: HE in the Real World", "file": "ex2.2-lesson-2-image-modifications.html" },
+                { "id": "cv-pod4-data-drive-histograms", "title": "Podcast 4: Letting the Data Drive: The Magic of Histograms", "file": "pod4.4-lesson-4-image-modifications.html" }
+              ]
+            },
+            {
+              "id": "cv-modification-sandbox",
+              "title": "Capstone: The Modification Sandbox",
+              "description": "It's time to apply your new skills. This capstone module brings all the concepts together in a hands-on sandbox and a guided coding session, allowing you to experiment, build, and solidify your understanding of pixel-wise transformations.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch08-m5-module-5-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-exp1-transformation-sandbox", "title": "Experiment 1: The Image Transformation Sandbox", "file": "exp6.6-lesson-6-image-modifications.html" },
+                { "id": "cv-cod1-modifications-python", "title": "Coding 1: Image Modifications in Python", "file": "cod3.3-lesson-3-image-modifications.html" },
+                { "id": "cv-ex3-histogram-equalization", "title": "Exercise 3: The Histogram Equalization Walkthrough", "file": "ex2.2-lesson-2-image-modifications.html" },
+                { "id": "cv-l5-chapter-nutshell", "title": "Lesson 5: Chapter 8 in a Nutshell", "file": "l1.1-lesson-1-image-modifications.html" },
+                { "id": "cv-pod5-pixels-pictures-retrospective", "title": "Podcast 5: From Pixels to Pictures: A Chapter 8 Retrospective", "file": "pod4.4-lesson-4-image-modifications.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "simple-filters-kernels",
+          "title": "Simple Filters (Kernels)",
+          "description": "This chapter moves beyond single-pixel analysis to explore the foundational technique of neighborhood operations: convolution. You'll learn how small matrices called kernels can be used to blur, sharpen, and find edges in an image, and discover how this classical technique forms the conceptual bedrock of modern AI vision systems.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch09-simple-filters-kernels",
+          "modules": [
+            {
+              "id": "cv-core-concept-neighborhoods",
+              "title": "The Core Concept",
+              "description": "Discover why looking at a pixel's neighbors is the key to unlocking an image's hidden structure. We'll establish the fundamental difference between pixel-wise and neighborhood operations, setting the stage for all future feature detection.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch09-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-pixels-people-neighborhoods", "title": "Lesson 1: From Pixels to People: Why Neighborhoods Matter", "file": "l1.1-lesson-1-simple-filters-kern.html" },
+                { "id": "cv-pod1-beyond-pixel", "title": "Lesson 2: Podcast - \"Beyond the Pixel\"", "file": "pod4.4-lesson-4-simple-filters-kern.html" }
+              ]
+            },
+            {
+              "id": "cv-mechanics-convolution",
+              "title": "The Mechanics of Convolution",
+              "description": "Get hands-on with the 'magic window' of computer vision. We'll break down the convolution operation step-by-step, tackle the practical challenges of image borders and normalization, and solidify the math with animated explainers and exercises.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch09-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l3-convolution-magic-window", "title": "Lesson 3: The Convolution Operation: Our Magic Window", "file": "l1.1-lesson-1-simple-filters-kern.html" },
+                { "id": "cv-vid1-convolution-formula", "title": "Lesson 4: Manim Explainer - The Convolution Formula", "file": "vid5.5-lesson-5-simple-filters-kern.html" },
+                { "id": "cv-l5-living-edge-borders", "title": "Lesson 5: Living on the Edge: Borders and Normalization", "file": "l1.1-lesson-1-simple-filters-kern.html" },
+                { "id": "cv-ex1-convolution-by-hand", "title": "Lesson 6: Exercise - Convolution by Hand", "file": "ex2.2-lesson-2-simple-filters-kern.html" }
+              ]
+            },
+            {
+              "id": "cv-filter-toolkit",
+              "title": "The Filter Toolkit",
+              "description": "Assemble your digital artist's and detective's toolkit. We'll introduce the specific kernel 'recipes' for classic effects like blurring and sharpening, and then learn to use the powerful Sobel operator to extract an image's most important feature: its edges.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch09-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l7-artist-toolkit-blur", "title": "Lesson 7: The Artist's Toolkit: Blur and Sharpen Filters", "file": "l1.1-lesson-1-simple-filters-kern.html" },
+                { "id": "cv-l8-detective-toolkit-edges", "title": "Lesson 8: The Detective's Toolkit: Finding Edges", "file": "l1.1-lesson-1-simple-filters-kern.html" },
+                { "id": "cv-vid2-sobel-gradients", "title": "Lesson 9: Manim Explainer - Sobel Gradients", "file": "vid5.5-lesson-5-simple-filters-kern.html" },
+                { "id": "cv-exp1-filter-playground", "title": "Lesson 10: Experiment - The Filter Playground", "file": "exp6.6-lesson-6-simple-filters-kern.html" }
+              ]
+            },
+            {
+              "id": "cv-bridge-modern-ai",
+              "title": "The Bridge to Modern AI",
+              "description": "This capstone module connects our hand-crafted filters to the world of Artificial Intelligence. You'll understand how the principles you've learned are the foundation for how Convolutional Neural Networks (CNNs) learn to 'see' automatically, and you'll implement the convolution algorithm from scratch.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch09-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l11-big-picture-ai-filters", "title": "Lesson 11: The Big Picture: From Hand-Crafted to AI-Learned Filters", "file": "l1.1-lesson-1-simple-filters-kern.html" },
+                { "id": "cv-pod2-ghost-convolution", "title": "Lesson 12: Podcast - \"The Ghost in the Convolution\"", "file": "pod4.4-lesson-4-simple-filters-kern.html" },
+                { "id": "cv-cod1-implementing-convolution", "title": "Lesson 13: Coding - Implementing Convolution from Scratch", "file": "cod3.3-lesson-3-simple-filters-kern.html" },
+                { "id": "cv-example1-unsharp-mask", "title": "Lesson 14: Real-World Example - The Unsharp Mask", "file": "ex2.2-lesson-2-simple-filters-kern.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "advanced-kernels-morphology-gabor",
+          "title": "Advanced Kernels: Morphology and Gabor Filters",
+          "description": "This chapter moves beyond simple linear filters to explore two powerful, non-linear techniques. First, we'll learn how to manipulate object shapes with Morphological Filters to clean up noise and analyze geometry. Then, we'll dive into Gabor Filters to understand how we can describe and detect texture, building a crucial bridge between classical computer vision and the inner workings of modern AI.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch10-advanced-kernels-morphology-and-gabor-filters",
+          "modules": [
+            {
+              "id": "cv-morphological-filtering",
+              "title": "Morphological Filtering - The Art of Shape",
+              "description": "Discover how to sculpt digital images. We'll introduce the fundamental operations of Dilation and Erosion to grow and shrink objects, and then combine them into sophisticated tools for removing noise and perfecting shapes.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch10-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-building-blocks-shape", "title": "Lesson 1: The Building Blocks of Shape - Dilation & Erosion", "file": "l1.1-lesson-1-advanced-kernels-mo.html" },
+                { "id": "cv-vid1-rank-order-operations", "title": "Math Explainer: The Rank-Order Operations", "file": "vid5.5-lesson-5-advanced-kernels-mo.html" },
+                { "id": "cv-pod1-shape-shifters-roundtable", "title": "Podcast: The Shape Shifters' Roundtable", "file": "pod4.4-lesson-4-advanced-kernels-mo.html" }
+              ]
+            },
+            {
+              "id": "cv-advanced-image-cleaning",
+              "title": "Advanced Image Cleaning",
+              "description": "Learn how to combine basic morphological tools for advanced image cleaning. We'll master Opening and Closing to precisely remove \"salt\" and \"pepper\" noise, and see how the Median Filter offers a robust alternative.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch10-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l2-advanced-cleaning", "title": "Lesson 2: Advanced Cleaning - Opening, Closing, & Median Filter", "file": "l1.1-lesson-1-advanced-kernels-mo.html" },
+                { "id": "cv-exp1-image-cleaning-playground", "title": "Experiment: Image Cleaning Playground", "file": "exp6.6-lesson-6-advanced-kernels-mo.html" },
+                { "id": "cv-example1-blood-cells-barcodes", "title": "Real-World Example: From Blood Cells to Barcodes: Where Morphology Matters", "file": "ex2.2-lesson-2-advanced-kernels-mo.html" }
+              ]
+            },
+            {
+              "id": "cv-gabor-filters-texture",
+              "title": "Gabor Filters - The Language of Texture",
+              "description": "Shift focus from shape to texture. We'll deconstruct the Gabor filter to understand how it mimics the human visual system by combining a wave and a window to detect patterns at specific orientations and scales.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch10-m3-module-3-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l3-analyzing-texture-gabor", "title": "Lesson 3: Analyzing Texture - Introducing Gabor Filters", "file": "l1.1-lesson-1-advanced-kernels-mo.html" },
+                { "id": "cv-vid2-gabor-filter-formula", "title": "Math Explainer: The Gabor Filter Formula", "file": "vid5.5-lesson-5-advanced-kernels-mo.html" },
+                { "id": "cv-exp2-gabor-texture-inspector", "title": "Experiment: Gabor Filter Texture Inspector", "file": "exp6.6-lesson-6-advanced-kernels-mo.html" }
+              ]
+            },
+            {
+              "id": "cv-filter-banks-ai",
+              "title": "From Filter Banks to Artificial Intelligence",
+              "description": "Assemble a \"team\" of Gabor filters into a Filter Bank to perform comprehensive texture analysis. This capstone module reveals the profound connection between this classical technique and the automatically learned features in modern Convolutional Neural Networks.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch10-m4-module-4-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l4-gabor-action-filter-banks", "title": "Lesson 4: Gabor Filters in Action - Filter Banks & The Link to AI", "file": "l1.1-lesson-1-advanced-kernels-mo.html" },
+                { "id": "cv-cod1-gabor-filter-bank", "title": "Coding: Coding a Gabor Filter Bank", "file": "cod3.3-lesson-3-advanced-kernels-mo.html" },
+                { "id": "cv-pod2-texture-analysts-debrief", "title": "Podcast: The Texture Analysts' Debrief", "file": "pod4.4-lesson-4-advanced-kernels-mo.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "convolutional-neural-networks",
+          "title": "Convolutional Neural Networks",
+          "description": "This chapter moves from manual filters to the revolutionary architecture that allows machines to learn to see. We will deconstruct the Convolutional Neural Network (CNN), explore its mathematical engine, and discover how this powerful tool learns to recognize objects, building a bridge between raw pixels and intelligent perception.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch11-convolutional-neural-networks",
+          "modules": [
+            {
+              "id": "cv-problem-principles",
+              "title": "The Problem & The Principles",
+              "description": "Discover why traditional neural networks fail spectacularly when faced with images. We will then unveil the three elegant, biologically-inspired principles that form the foundation of every modern computer vision model.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch11-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-problem-pictures", "title": "Lesson 1: The Problem with Pictures: Why Regular Neural Networks Fail", "file": "l1.1-lesson-1-convolutional-neural.html" },
+                { "id": "cv-ex1-parameter-problem", "title": "Exercise: The Parameter Problem", "file": "ex2.2-lesson-2-convolutional-neural.html" },
+                { "id": "cv-l2-cnn-solution", "title": "Lesson 2: The CNN Solution: Local Vision & Shared Knowledge", "file": "l1.1-lesson-1-convolutional-neural.html" },
+                { "id": "cv-pod1-brain-is-cnn", "title": "Podcast: Why Your Brain is a CNN", "file": "pod4.4-lesson-4-convolutional-neural.html" }
+              ]
+            },
+            {
+              "id": "cv-mechanics-cnn",
+              "title": "The Mechanics of a CNN",
+              "description": "Go under the hood to understand the computational engine of a CNN. Through animated explainers and hands-on experiments, we'll master the core operations of convolution and pooling that turn images into feature maps.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch11-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l3-under-hood-math", "title": "Lesson 3: Under the Hood: The Math of Convolutions & Pooling", "file": "l1.1-lesson-1-convolutional-neural.html" },
+                { "id": "cv-vid1-convolution-operation", "title": "Manim Video: The Convolution Operation", "file": "vid5.5-lesson-5-convolutional-neural.html" },
+                { "id": "cv-exp1-convolution-playground", "title": "Experiment: The Convolution Playground", "file": "exp6.6-lesson-6-convolutional-neural.html" },
+                { "id": "cv-cod1-building-conv-layer", "title": "Coding: Building a Convolutional Layer from Scratch", "file": "cod3.3-lesson-3-convolutional-neural.html" }
+              ]
+            },
+            {
+              "id": "cv-big-picture-application",
+              "title": "The Big Picture & Real-World Application",
+              "description": "This capstone module reveals what a CNN truly learns by visualizing its internal filters. We'll celebrate its power by revisiting the story of AlexNet, the network that ignited the deep learning revolution, and end with a critical look at how these models can fail by learning the wrong lessons.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch11-m3-module-3-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l4-payoff-cnn-learns", "title": "Lesson 4: The Payoff: Seeing What a CNN Learns (And When It Fails)", "file": "l1.1-lesson-1-convolutional-neural.html" },
+                { "id": "cv-example1-alexnet-revolution", "title": "Example: AlexNet: The Network That Started a Revolution", "file": "ex2.2-lesson-2-convolutional-neural.html" },
+                { "id": "cv-pod2-dog-airplane", "title": "Podcast: My CNN Thinks My Dog is an Airplane", "file": "pod4.4-lesson-4-convolutional-neural.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "classification-deep-learning-alexnet",
+          "title": "Classification with Deep Learning: The AlexNet Revolution",
+          "description": "This chapter marks a pivotal moment in AI history. We'll travel back to 2012 to dissect the AlexNet model, a deep neural network that shattered all previous records in image recognition and single-handedly launched the modern deep learning era. Through a mix of theory, hands-on experiments, and coding exercises, you will understand not just how this model worked, but why it changed the world.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch12-the-alexnet-revolution",
+          "modules": [
+            {
+              "id": "cv-paradigm-shift",
+              "title": "The Paradigm Shift",
+              "description": "We set the stage by exploring the state of computer vision before 2012, characterized by slow, incremental progress. We will then witness the \"earthquake\" moment when AlexNet arrived, quantifying its staggering leap in performance and understanding its immediate impact on the field.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch12-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-example1-dawn-new-era", "title": "Real-World Example: The Dawn of a New Era: Why AlexNet Matters", "file": "ex2.2-lesson-2-the-alexnet-revoluti.html" },
+                { "id": "cv-l1-revolution-begins", "title": "Lesson 1: The Revolution Begins", "file": "l1.1-lesson-1-the-alexnet-revoluti.html" },
+                { "id": "cv-pod1-day-vision-changed", "title": "Podcast: The Day Vision Changed", "file": "pod4.4-lesson-4-the-alexnet-revoluti.html" }
+              ]
+            },
+            {
+              "id": "cv-fuel-revolution",
+              "title": "The Fuel for the Revolution",
+              "description": "A model is nothing without its fuel. Here, we dive into the massive ImageNet dataset that powered AlexNet. You will learn the crucial preprocessing steps and the clever data augmentation techniques used to prevent the model from simply memorizing data, a concept you will then apply yourself in a hands-on lab and your first PyTorch coding exercise.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch12-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l2-fuel-imagenet-augmentation", "title": "Lesson 2: The Fuel - ImageNet & Data Augmentation", "file": "l1.1-lesson-1-the-alexnet-revoluti.html" },
+                { "id": "cv-exp1-data-augmentation-lab", "title": "Hands-On: The Data Augmentation Lab", "file": "exp6.6-lesson-6-the-alexnet-revoluti.html" },
+                { "id": "cv-cod1-first-pytorch-transforms", "title": "Coding: Your First Image Transformations in PyTorch", "file": "cod3.3-lesson-3-the-alexnet-revoluti.html" },
+                { "id": "cv-pod2-more-data", "title": "Podcast: More Data Than You Have", "file": "pod4.4-lesson-4-the-alexnet-revoluti.html" }
+              ]
+            },
+            {
+              "id": "cv-architectural-blueprint",
+              "title": "The Architectural Blueprint",
+              "description": "Let's look under the hood. In this module, we dissect the 8-layer architecture of AlexNet, piece by piece. We will explore its key innovations, like the game-changing ReLU activation function, and understand the engineering feats required to make it work on the hardware of the time. You will then get to build these components in code.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch12-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l3-blueprint-architecture", "title": "Lesson 3: The Blueprint - AlexNet's Architecture", "file": "l1.1-lesson-1-the-alexnet-revoluti.html" },
+                { "id": "cv-vid1-power-relu", "title": "Math Explainer: The Power of ReLU", "file": "vid5.5-lesson-5-the-alexnet-revoluti.html" },
+                { "id": "cv-ex1-feature-map-calculator", "title": "Exercise: The Feature Map Calculator", "file": "ex2.2-lesson-2-the-alexnet-revoluti.html" },
+                { "id": "cv-cod2-first-cnn-layers-pytorch", "title": "Coding: Building Blocks: Your First CNN Layers in PyTorch", "file": "cod3.3-lesson-3-the-alexnet-revoluti.html" },
+                { "id": "cv-pod3-blueprints-beast", "title": "Podcast: Blueprints for a Beast", "file": "pod4.4-lesson-4-the-alexnet-revoluti.html" }
+              ]
+            },
+            {
+              "id": "cv-taming-beast",
+              "title": "Taming the Beast",
+              "description": "With 60 million parameters, AlexNet was a powerful but wild beast, prone to overfitting. This module covers the art of training and regularization. You will learn about the crucial Dropout technique and then apply it yourself in an interactive playground and a coding exercise to see its dramatic effect on taming an overconfident model.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch12-m4-module-4-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l4-taming-training-regularization", "title": "Lesson 4: Taming the Beast - Training & Regularization", "file": "l1.1-lesson-1-the-alexnet-revoluti.html" },
+                { "id": "cv-exp2-dropout-playground", "title": "Hands-On: The Dropout Playground", "file": "exp6.6-lesson-6-the-alexnet-revoluti.html" },
+                { "id": "cv-cod3-taming-overfitting-dropout", "title": "Coding: Taming Overfitting: Adding Dropout to a Model", "file": "cod3.3-lesson-3-the-alexnet-revoluti.html" },
+                { "id": "cv-pod4-dont-memorize-generalize", "title": "Podcast: Don't Memorize, Generalize!", "file": "pod4.4-lesson-4-the-alexnet-revoluti.html" }
+              ]
+            },
+            {
+              "id": "cv-lasting-legacy",
+              "title": "The Lasting Legacy",
+              "description": "This capstone module explores what AlexNet actually learned and why it remains so important today. We will see how its learned features mirror our own visual system and demystify \"Transfer Learning,\" one of the most powerful techniques in modern AI. You will conclude the chapter by applying this concept in a final capstone project: fine-tuning a pre-trained network to solve a new problem.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch12-m5-module-5-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l5-legacy-transfer-learning", "title": "Lesson 5: The Legacy - Results & Transfer Learning", "file": "l1.1-lesson-1-the-alexnet-revoluti.html" },
+                { "id": "cv-example2-classifying-flowers", "title": "Real-World Example: Classifying Flowers with Transfer Learning", "file": "ex2.2-lesson-2-the-alexnet-revoluti.html" },
+                { "id": "cv-cod4-capstone-fine-tuning", "title": "Coding: Capstone Project: Fine-Tuning a Pre-trained Network", "file": "cod3.3-lesson-3-the-alexnet-revoluti.html" },
+                { "id": "cv-pod5-shoulders-giants", "title": "Podcast: Standing on the Shoulders of Giants", "file": "pod4.4-lesson-4-the-alexnet-revoluti.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "evolution-cnn-architectures-classification",
+          "title": "The Evolution of CNN Architectures for Classification",
+          "description": "This chapter traces the historical \"race to go deeper\" in neural network design. From the foundational models to the hyper-efficient architectures of today, we will uncover the recurring pattern of innovation where each breakthrough solves a problem created by the last, ultimately leading to the powerful models that define modern AI.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch13-the-evolution-of-cnn-architectures-for-classificat",
+          "modules": [
+            {
+              "id": "cv-foundations-preprocessing",
+              "title": "Foundations and Preprocessing",
+              "description": "Before we build, we must prepare. This module covers the essential, non-negotiable data preparation steps that are the foundation of any successful deep learning model. We'll learn why data needs to be the right size, scale, and variety.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch13-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-preparing-deep-dive-preprocessing", "title": "Lesson 1: Preparing for the Deep Dive: Data Preprocessing", "file": "l1.1-lesson-1-the-evolution-of-cn.html" },
+                { "id": "cv-vid1-math-standardization", "title": "Lesson 1.1: The Math of Standardization", "file": "vid5.5-lesson-5-the-evolution-of-cn.html" },
+                { "id": "cv-cod1-preprocessing-pipeline", "title": "Lesson 1.2: The Preprocessing Pipeline", "file": "cod3.3-lesson-3-the-evolution-of-cn.html" },
+                { "id": "cv-pod1-preprocessing-wild", "title": "Lesson 1.3: Preprocessing in the Wild", "file": "pod4.4-lesson-4-the-evolution-of-cn.html" }
+              ]
+            },
+            {
+              "id": "cv-first-breakthroughs",
+              "title": "The First Breakthroughs",
+              "description": "Travel back in time to witness the two pivotal moments that started it all. We'll meet the \"grandparent\" architecture that laid the blueprint and the \"Big Bang\" model that ignited the deep learning revolution.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch13-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l2-foundation-breakthrough-lenet-alexnet", "title": "Lesson 2: The Foundation and the Breakthrough: LeNet & AlexNet", "file": "l1.1-lesson-1-the-evolution-of-cn.html" },
+                { "id": "cv-example1-unsung-hero-imagenet", "title": "Lesson 2.1: The Unsung Hero: The Story of ImageNet", "file": "ex2.2-lesson-2-the-evolution-of-cn.html" }
+              ]
+            },
+            {
+              "id": "cv-race-depth-efficiency",
+              "title": "The Race for Depth and Efficiency",
+              "description": "With the revolution underway, two competing philosophies emerged. We'll explore VGGNet's elegant but brute-force approach to depth and GoogLeNet's clever, wider design that prioritized computational efficiency.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch13-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l3-vggnet-simple-deep-design", "title": "Lesson 3: VGGNet: The Power of Simple, Deep Design", "file": "l1.1-lesson-1-the-evolution-of-cn.html" },
+                { "id": "cv-ex1-receptive-field-arithmetic", "title": "Lesson 3.1: Receptive Field Arithmetic", "file": "ex2.2-lesson-2-the-evolution-of-cn.html" },
+                { "id": "cv-l4-googlenet-inception-wider", "title": "Lesson 4: GoogLeNet & Inception: Thinking Wider, Not Just Deeper", "file": "l1.1-lesson-1-the-evolution-of-cn.html" },
+                { "id": "cv-vid2-bottleneck-calculation", "title": "Lesson 4.1: The Bottleneck Calculation", "file": "vid5.5-lesson-5-the-evolution-of-cn.html" },
+                { "id": "cv-pod2-vgg-vs-inception", "title": "Lesson 4.2: VGG vs. Inception", "file": "pod4.4-lesson-4-the-evolution-of-cn.html" }
+              ]
+            },
+            {
+              "id": "cv-modern-era-deep-learning",
+              "title": "The Modern Era of Deep Learning",
+              "description": "As networks grew incredibly deep, new challenges arose. This module covers the brilliant \"shortcut\" that solved the degradation problem and the subsequent shift towards smarter design principles like attention and optimal scaling.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch13-m4-module-4-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l5-resnet-degradation-shortcut", "title": "Lesson 5: ResNet: Solving the Degradation Problem with a 'Shortcut'", "file": "l1.1-lesson-1-the-evolution-of-cn.html" },
+                { "id": "cv-cod2-residual-connection-code", "title": "Lesson 5.1: The Residual Connection in Code", "file": "cod3.3-lesson-3-the-evolution-of-cn.html" },
+                { "id": "cv-l6-modern-era-efficiency-attention", "title": "Lesson 6: The Modern Era: Efficiency and Attention", "file": "l1.1-lesson-1-the-evolution-of-cn.html" },
+                { "id": "cv-exp1-architecture-playground", "title": "Lesson 6.1: The Architecture Playground", "file": "exp6.6-lesson-6-the-evolution-of-cn.html" },
+                { "id": "cv-pod3-attention-all-you-need", "title": "Lesson 6.2: Attention is All You (Really) Need?", "file": "pod4.4-lesson-4-the-evolution-of-cn.html" }
+              ]
+            },
+            {
+              "id": "cv-synthesis-conclusion",
+              "title": "Synthesis and Conclusion",
+              "description": "This capstone module brings our entire historical journey together. We will visualize the full timeline of innovation and, most importantly, understand how these powerful classification models serve as the \"backbone\" for nearly all modern computer vision tasks.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch13-m5-module-5-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l7-summary-journey-timeline", "title": "Lesson 7: Summary: The Journey and The Timeline", "file": "l1.1-lesson-1-the-evolution-of-cn.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "attention-application-images",
+          "title": "Attention and its Application to Images",
+          "description": "This chapter introduces the revolutionary attention mechanism, a concept that fundamentally changed deep learning. We'll explore why traditional models struggle with 'long-term memory' and then build the attention mechanism from the ground up, moving from an intuitive analogy to its powerful mathematical engine. Finally, we'll see how this new paradigm challenges the reign of convolutions in computer vision.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch14-attention-and-its-application-to-images",
+          "modules": [
+            {
+              "id": "cv-understanding-problem",
+              "title": "Understanding the Problem",
+              "description": "Discover the hidden limitations of our most powerful vision and language models. We'll explore why CNNs have 'tunnel vision' and why RNNs are 'forgetful', setting the stage for a new kind of solution.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch14-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-memory-problem-neural-networks", "title": "Lesson 1: The \"Memory Problem\" in Neural Networks", "file": "l1.1-lesson-1-attention-and-its-a.html" },
+                { "id": "cv-exp1-rnn-bottleneck-playground", "title": "Hands-On: The RNN Bottleneck Playground", "file": "exp6.6-lesson-6-attention-and-its-a.html" },
+                { "id": "cv-example1-long-term-memory-translation", "title": "Real-World Example: When Long-Term Memory Matters in Machine Translation", "file": "ex2.2-lesson-2-attention-and-its-a.html" },
+                { "id": "cv-pod1-forgetful-robot", "title": "Podcast: The Forgetful Robot", "file": "pod4.4-lesson-4-attention-and-its-a.html" }
+              ]
+            },
+            {
+              "id": "cv-core-idea-attention",
+              "title": "The Core Idea of Attention",
+              "description": "Learn the beautiful and intuitive analogy at the heart of the attention mechanism. Through a 'database retrieval' model, we'll demystify how a system can dynamically decide what information is most relevant.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch14-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l2-attention-101-database-analogy", "title": "Lesson 2: Attention 101: The Database Analogy", "file": "l1.1-lesson-1-attention-and-its-a.html" },
+                { "id": "cv-exp2-qkv-game", "title": "Hands-On: The Q, K, V Game", "file": "exp6.6-lesson-6-attention-and-its-a.html" },
+                { "id": "cv-pod2-library-mind", "title": "Podcast: The Library of a Mind", "file": "pod4.4-lesson-4-attention-and-its-a.html" }
+              ]
+            },
+            {
+              "id": "cv-mathematics-attention",
+              "title": "The Mathematics of Attention",
+              "description": "Go 'under the hood' to translate the Query, Key, and Value analogy into concrete mathematics. We'll build the attention formula step-by-step and implement it ourselves to solidify our understanding.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch14-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l3-under-hood-math-self-attention", "title": "Lesson 3: Under the Hood: The Math of Self-Attention", "file": "l1.1-lesson-1-attention-and-its-a.html" },
+                { "id": "cv-vid1-visualizing-attention-formula", "title": "Math Explainer: Visualizing the Attention Formula", "file": "vid5.5-lesson-5-attention-and-its-a.html" },
+                { "id": "cv-ex1-calculate-attention-hand", "title": "Exercise: Calculate Attention by Hand", "file": "ex2.2-lesson-2-attention-and-its-a.html" },
+                { "id": "cv-cod1-bare-bones-attention-numpy", "title": "Coding Lab: A Bare-Bones Attention Mechanism in NumPy", "file": "cod3.3-lesson-3-attention-and-its-a.html" },
+                { "id": "cv-pod3-elegant-engine", "title": "Podcast: The Elegant Engine", "file": "pod4.4-lesson-4-attention-and-its-a.html" }
+              ]
+            },
+            {
+              "id": "cv-assembling-transformer",
+              "title": "Assembling the Transformer",
+              "description": "Move from a single mechanism to a complete, stackable deep learning unit. We'll add crucial components like Positional Encoding and Multi-Head Attention to construct a full Transformer Block.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch14-m4-module-4-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l4-building-transformer-pieces", "title": "Lesson 4: Building a Transformer: Putting the Pieces Together", "file": "l1.1-lesson-1-attention-and-its-a.html" },
+                { "id": "cv-vid2-multi-head-positional-encoding", "title": "Math Explainer: Multi-Head Attention & Positional Encoding", "file": "vid5.5-lesson-5-attention-and-its-a.html" },
+                { "id": "cv-cod2-transformer-block-pytorch", "title": "Coding Lab: Building a Transformer Block in PyTorch", "file": "cod3.3-lesson-3-attention-and-its-a.html" },
+                { "id": "cv-pod4-more-heads-better", "title": "Podcast: More Heads are Better Than One", "file": "pod4.4-lesson-4-attention-and-its-a.html" }
+              ]
+            },
+            {
+              "id": "cv-bigger-picture",
+              "title": "The Bigger Picture",
+              "description": "Witness the grand showdown between Attention and Convolution. We'll compare their fundamental philosophies and explore the critical trade-offs that define the modern landscape of computer vision.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch14-m5-module-5-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l5-grand-showdown-attention-convolution", "title": "Lesson 5: The Grand Showdown: Attention vs. Convolution", "file": "l1.1-lesson-1-attention-and-its-a.html" },
+                { "id": "cv-exp3-inductive-bias-playground", "title": "Hands-On: The Inductive Bias Playground", "file": "exp6.6-lesson-6-attention-and-its-a.html" },
+                { "id": "cv-example2-vision-transformer-vit", "title": "Real-World Example: The Vision Transformer (ViT) and the Data-Hungry Beast", "file": "ex2.2-lesson-2-attention-and-its-a.html" },
+                { "id": "cv-pod5-battle-vision", "title": "Podcast: The Battle for Vision", "file": "pod4.4-lesson-4-attention-and-its-a.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "vision-transformer",
+          "title": "Vision Transformer",
+          "description": "This chapter dives into the revolutionary Transformer architecture. We'll start with its origins in natural language processing and then explore how it was brilliantly adapted for computer vision, first with the groundbreaking Vision Transformer (ViT) and then refined with the efficient and powerful Swin Transformer.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch15-vision-transformer",
+          "modules": [
+            {
+              "id": "cv-original-transformer-architecture",
+              "title": "The Original Transformer Architecture",
+              "description": "We begin by dissecting the model that changed NLP forever. You'll learn the roles of the Encoder and Decoder, and understand the core mechanism of Self-Attention that allows a model to weigh the importance of different words in a sentence.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch15-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-original-transformer-language-masterpiece", "title": "Lesson 1: The Original Transformer - A Language Masterpiece", "file": "l1.1-lesson-1-vision-transformer.html" },
+                { "id": "cv-vid1-mechanics-self-attention", "title": "Manim Video: The Mechanics of Self-Attention", "file": "vid5.5-lesson-5-vision-transformer.html" },
+                { "id": "cv-cod1-attention-from-scratch", "title": "Coding: Attention from Scratch", "file": "cod3.3-lesson-3-vision-transformer.html" },
+                { "id": "cv-pod1-attention-all-you-need", "title": "Podcast: \"Attention Is All You Need\"", "file": "pod4.4-lesson-4-vision-transformer.html" }
+              ]
+            },
+            {
+              "id": "cv-vision-challenge",
+              "title": "The Vision Challenge",
+              "description": "Discover the fundamental barrier to applying Transformers to images. We'll do the math to understand the O(D⁴) computational explosion and explore the incredible prize that motivated researchers to solve it: the global receptive field.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch15-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l2-challenge-prize-attention-pixel-world", "title": "Lesson 2: The Challenge & The Prize: Attention in the Pixel World", "file": "l1.1-lesson-1-vision-transformer.html" },
+                { "id": "cv-vid2-pixels-break-transformers-explosion", "title": "Manim Video: Why Pixels Break Transformers: The O(D⁴) Explosion", "file": "vid5.5-lesson-5-vision-transformer.html" },
+                { "id": "cv-ex1-cost-attention", "title": "Exercise: The Cost of Attention", "file": "ex2.2-lesson-2-vision-transformer.html" },
+                { "id": "cv-pod2-billion-dollar-problem", "title": "Podcast: The Billion-Dollar Problem", "file": "pod4.4-lesson-4-vision-transformer.html" }
+              ]
+            },
+            {
+              "id": "cv-vision-transformer-vit",
+              "title": "The Vision Transformer (ViT)",
+              "description": "Meet the first pure-Transformer architecture to achieve state-of-the-art results on image classification. We'll break down its clever strategy of turning images into sequences of patches and analyze its \"data-hungry\" nature.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch15-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l3-vision-transformer-vit-new-hope", "title": "Lesson 3: The Vision Transformer (ViT) - A New Hope", "file": "l1.1-lesson-1-vision-transformer.html" },
+                { "id": "cv-example1-vit-wild-photo-search", "title": "Example: ViT in the Wild: Powering Your Photo Search", "file": "ex2.2-lesson-2-vision-transformer.html" },
+                { "id": "cv-exp1-vision-transformer-playground", "title": "Experiment: The Vision Transformer Playground", "file": "exp6.6-lesson-6-vision-transformer.html" },
+                { "id": "cv-cod2-using-pretrained-vit", "title": "Coding: Using a Pre-trained ViT", "file": "cod3.3-lesson-3-vision-transformer.html" },
+                { "id": "cv-pod3-big-bet-data", "title": "Podcast: The \"Big Bet\" on Data", "file": "pod4.4-lesson-4-vision-transformer.html" }
+              ]
+            },
+            {
+              "id": "cv-swin-transformer",
+              "title": "The Swin Transformer",
+              "description": "Explore the evolution of ViT. The Swin Transformer re-introduces the wisdom of CNNs—locality and hierarchy—to create a model that is both more efficient and more versatile, thanks to its brilliant shifted-window attention mechanism.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch15-m4-module-4-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l4-swin-transformer-bringing-hierarchy", "title": "Lesson 4: Swin Transformer - Bringing Back Hierarchy", "file": "l1.1-lesson-1-vision-transformer.html" },
+                { "id": "cv-vid3-swin-shifted-window-trick", "title": "Manim Video: The Swin Transformer's Shifted Window Trick", "file": "vid5.5-lesson-5-vision-transformer.html" },
+                { "id": "cv-ex2-swin-onomics", "title": "Exercise: Swin-onomics", "file": "ex2.2-lesson-2-vision-transformer.html" },
+                { "id": "cv-pod4-wisdom-ancients", "title": "Podcast: The Wisdom of the Ancients", "file": "pod4.4-lesson-4-vision-transformer.html" }
+              ]
+            },
+            {
+              "id": "cv-modern-vision-toolkit",
+              "title": "The Modern Vision Toolkit",
+              "description": "This capstone module synthesizes the chapter's content into a practical framework. We'll compare the pros and cons of CNNs, ViT, and Swin, helping you understand how to choose the right architectural tool for any given vision task.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch15-m5-module-5-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l5-conclusion-modern-vision-toolkit", "title": "Lesson 5: Conclusion - The Modern Vision Toolkit", "file": "l1.1-lesson-1-vision-transformer.html" },
+                { "id": "cv-example2-fusing-worlds-transformers-cnns", "title": "Example: Fusing Worlds: Transformers and CNNs in Autonomous Driving", "file": "ex2.2-lesson-2-vision-transformer.html" },
+                { "id": "cv-pod5-architects-dilemma", "title": "Podcast: The Architect's Dilemma", "file": "pod4.4-lesson-4-vision-transformer.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "object-detection-fundamentals",
+          "title": "Object Detection Fundamentals",
+          "description": "This chapter moves from simple image classification to the more complex and practical task of object detection. We'll define the core problem, master the metrics used to evaluate performance, and trace the evolution of the pioneering R-CNN family of detectors, laying the groundwork for all modern object detection systems.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch16-object-detection-fundamentals",
+          "modules": [
+            {
+              "id": "cv-core-challenge-detection",
+              "title": "The Core Challenge of Detection",
+              "description": "Learn why finding objects is much harder than just naming an image. We'll define the dual challenges of localization and handling a variable number of outputs, establishing why object detection is a combined classification and regression task.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch16-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-what-where-challenge-object-detection", "title": "Lesson 1: From \"What?\" to \"Where?\": The Challenge of Object Detection", "file": "l1.1-lesson-1-object-detection-fu.html" },
+                { "id": "cv-pod1-daily-detection", "title": "Podcast 1.1: The Daily Detection", "file": "pod4.4-lesson-4-object-detection-fu.html" },
+                { "id": "cv-example1-barcode-scanner-localization", "title": "Real-World Example 1.2: The Barcode Scanner and the Birth of Localization", "file": "ex2.2-lesson-2-object-detection-fu.html" }
+              ]
+            },
+            {
+              "id": "cv-evaluating-localization",
+              "title": "Evaluating Localization",
+              "description": "Discover how we mathematically score a model's ability to draw a good box. We'll master the fundamental metric of Intersection over Union (IoU) and learn how to use it to decide if a prediction is a \"hit\" or a \"miss\".",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch16-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l2-are-we-close-evaluating-iou", "title": "Lesson 2: Are We Close? Evaluating Localization with IoU", "file": "l1.1-lesson-1-object-detection-fu.html" },
+                { "id": "cv-vid1-visualizing-intersection-union", "title": "Math Explainer 2.1: Visualizing Intersection over Union", "file": "vid5.5-lesson-5-object-detection-fu.html" },
+                { "id": "cv-ex1-iou-calculation-practice", "title": "Exercise 2.2: IoU Calculation Practice", "file": "ex2.2-lesson-2-object-detection-fu.html" },
+                { "id": "cv-pod2-how-close-close-enough", "title": "Podcast 2.3: How Close is Close Enough?", "file": "pod4.4-lesson-4-object-detection-fu.html" }
+              ]
+            },
+            {
+              "id": "cv-ultimate-scorecard",
+              "title": "The Ultimate Scorecard",
+              "description": "Go beyond single predictions to evaluate the entire model. We'll explore the trade-off between Precision and Recall, build the P-R curve, and master the industry-standard metrics of Average Precision (AP) and mean Average Precision (mAP).",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch16-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l3-ultimate-scorecard-ap-map", "title": "Lesson 3: The Ultimate Scorecard: Average Precision (AP) and mAP", "file": "l1.1-lesson-1-object-detection-fu.html" },
+                { "id": "cv-vid2-story-precision-recall-curve", "title": "Math Explainer 3.1: The Story of the Precision-Recall Curve", "file": "vid5.5-lesson-5-object-detection-fu.html" },
+                { "id": "cv-exp1-precision-recall-playground", "title": "Hands-On 3.2: The Precision-Recall Playground", "file": "exp6.6-lesson-6-object-detection-fu.html" },
+                { "id": "cv-pod3-one-metric-rule-them-all", "title": "Podcast 3.3: The One Metric to Rule Them All", "file": "pod4.4-lesson-4-object-detection-fu.html" }
+              ]
+            },
+            {
+              "id": "cv-rcnn-pioneer",
+              "title": "The R-CNN Pioneer",
+              "description": "Travel back to 2014 to meet R-CNN, the complex but revolutionary model that started it all. We will dissect its multi-stage \"propose-then-classify\" pipeline and understand its critical performance bottlenecks.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch16-m4-module-4-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l4-pioneer-rcnn-pipeline", "title": "Lesson 4: The Pioneer: R-CNN and its Pipeline", "file": "l1.1-lesson-1-object-detection-fu.html" },
+                { "id": "cv-cod1-implementing-nms", "title": "Coding 4.1: Implementing Non-Maximum Suppression (NMS)", "file": "cod3.3-lesson-3-object-detection-fu.html" },
+                { "id": "cv-example2-alexnet-revolution", "title": "Real-World Example 4.2: The AlexNet Revolution", "file": "ex2.2-lesson-2-object-detection-fu.html" },
+                { "id": "cv-pod4-frankenstein-monster-vision", "title": "Podcast 4.3: The Frankenstein's Monster of Vision", "file": "pod4.4-lesson-4-object-detection-fu.html" }
+              ]
+            },
+            {
+              "id": "cv-fast-rcnn-revolution",
+              "title": "The Fast R-CNN Revolution",
+              "description": "Witness how two elegant innovations—shared computation and multi-task learning—transformed the clunky R-CNN into the dramatically faster and more elegant Fast R-CNN, setting the stage for all modern detectors.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch16-m5-module-5-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l5-faster-smarter-better-fast-rcnn", "title": "Lesson 5: Faster, Smarter, Better: The Fast R-CNN Revolution", "file": "l1.1-lesson-1-object-detection-fu.html" },
+                { "id": "cv-vid3-elegance-roi-pooling", "title": "Math Explainer 5.1: The Elegance of RoI Pooling", "file": "vid5.5-lesson-5-object-detection-fu.html" },
+                { "id": "cv-exp2-multi-task-loss-balancer", "title": "Hands-On 5.2: The Multi-Task Loss Balancer", "file": "exp6.6-lesson-6-object-detection-fu.html" },
+                { "id": "cv-pod5-final-bottleneck", "title": "Podcast 5.3: The Final Bottleneck", "file": "pod4.4-lesson-4-object-detection-fu.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "object-detection-single-shot-transformer",
+          "title": "Object Detection II: Single-Shot and Transformer-Based Approaches",
+          "description": "This chapter moves beyond foundational detectors to explore the revolutionary architectures that enabled real-time performance and true end-to-end learning. We will dissect the innovations of Faster R-CNN, the paradigm-shifting speed of YOLO, and the architectural elegance of the vision Transformer (DETR).",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch17-object-detection-ii-single-shot-and-transformer-ba",
+          "modules": [
+            {
+              "id": "cv-end-to-end-revolution",
+              "title": "The End-to-End Revolution",
+              "description": "Discover the crucial innovation that integrated region proposals directly into the neural network. We'll explore the Region Proposal Network (RPN) and the concept of anchor boxes, which turned two-stage detectors into unified, end-to-end trainable systems.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch17-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-manual-learned-faster-rcnn-revolution", "title": "Lesson 1: From Manual to Learned: The Faster R-CNN Revolution", "file": "l1.1-lesson-1-object-detection-ii.html" },
+                { "id": "cv-exp1-anchor-box-playground", "title": "Experiment: The Anchor Box Playground", "file": "exp6.6-lesson-6-object-detection-ii.html" },
+                { "id": "cv-pod1-detective-assistant", "title": "Podcast: The Detective and the Assistant", "file": "pod4.4-lesson-4-object-detection-ii.html" }
+              ]
+            },
+            {
+              "id": "cv-you-only-look-once",
+              "title": "You Only Look Once",
+              "description": "Witness a fundamental paradigm shift with the YOLO architecture. We'll learn how reframing detection as a single regression problem unlocked real-time speed and how the grid system and confidence score work together to make it possible.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch17-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l2-yolo-new-paradigm", "title": "Lesson 2: YOLO - A New Paradigm", "file": "l1.1-lesson-1-object-detection-ii.html" },
+                { "id": "cv-vid1-visualizing-yolo-confidence-score", "title": "Manim Video Explainer: Visualizing the YOLO Confidence Score", "file": "vid5.5-lesson-5-object-detection-ii.html" },
+                { "id": "cv-ex1-decoding-yolo-tensor", "title": "Exercise: Decoding the YOLO Tensor", "file": "ex2.2-lesson-2-object-detection-ii.html" },
+                { "id": "cv-cod1-yolo-output-final-detections", "title": "Code-Along: From YOLO Output to Final Detections", "file": "cod3.3-lesson-3-object-detection-ii.html" },
+                { "id": "cv-pod2-one-look-all-you-need", "title": "Podcast: One Look is All You Need", "file": "pod4.4-lesson-4-object-detection-ii.html" }
+              ]
+            },
+            {
+              "id": "cv-conquering-scale",
+              "title": "Conquering Scale",
+              "description": "Address the fundamental challenge of detecting objects at vastly different scales. We will dissect the Feature Pyramid Network (FPN), a powerful and standard architectural pattern that gives models robust multi-scale vision by combining deep semantics with shallow details.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch17-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l3-seeing-big-small-feature-pyramid-networks", "title": "Lesson 3: Seeing Big and Small: Feature Pyramid Networks", "file": "l1.1-lesson-1-object-detection-ii.html" },
+                { "id": "cv-example1-fpns-help-doctors-find-tumors", "title": "Real-World Impact: How FPNs Help Doctors Find Tumors", "file": "ex2.2-lesson-2-object-detection-ii.html" },
+                { "id": "cv-exp2-fpn-visualizer", "title": "Experiment: The FPN Visualizer", "file": "exp6.6-lesson-6-object-detection-ii.html" },
+                { "id": "cv-pod3-view-from-pyramid", "title": "Podcast: The View from the Pyramid", "file": "pod4.4-lesson-4-object-detection-ii.html" }
+              ]
+            },
+            {
+              "id": "cv-transformer-arrives",
+              "title": "The Transformer Arrives",
+              "description": "Explore the latest frontier in object detection with DETR. Learn how borrowing the Transformer architecture from NLP allows us to create an elegant detector that discards hand-crafted components like anchor boxes and NMS by treating detection as a direct set prediction problem.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch17-m4-module-4-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l4-final-frontier-detr-transformer", "title": "Lesson 4: The Final Frontier? DETR and the Transformer", "file": "l1.1-lesson-1-object-detection-ii.html" },
+                { "id": "cv-vid2-assignment-problem-detr-pairs", "title": "Manim Video Explainer: The Assignment Problem: How DETR Finds Its Pairs", "file": "vid5.5-lesson-5-object-detection-ii.html" },
+                { "id": "cv-pod4-great-unification", "title": "Podcast: The Great Unification", "file": "pod4.4-lesson-4-object-detection-ii.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "semantic-segmentation-pixel-level-understanding",
+          "title": "Semantic Segmentation: A Pixel-Level Understanding",
+          "description": "This chapter moves beyond simple classification to the most detailed form of scene understanding. We'll learn how machines can be taught to label every single pixel in an image, a critical skill for robotics, medical imaging, and autonomous systems.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch18-semantic-segmentation-a-pixel-level-understanding",
+          "modules": [
+            {
+              "id": "cv-foundations-semantic-segmentation",
+              "title": "Foundations of Semantic Segmentation",
+              "description": "Learn what semantic segmentation is and why it's so powerful. We'll differentiate it from other vision tasks, understand its real-world impact, and then learn how to properly measure a model's performance with the industry-standard IoU metric.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch18-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-pixel-perfect-vision-semantic-segmentation", "title": "Lesson 1: Pixel-Perfect Vision: What is Semantic Segmentation?", "file": "l1.1-lesson-1-semantic-segmentati.html" },
+                { "id": "cv-pod1-segmentation-conversation", "title": "Lesson 1.1: The Segmentation Conversation", "file": "pod4.4-lesson-4-semantic-segmentati.html" },
+                { "id": "cv-l2-measuring-matters-intersection-union", "title": "Lesson 2: Measuring What Matters: Intersection over Union (IoU)", "file": "l1.1-lesson-1-semantic-segmentati.html" },
+                { "id": "cv-vid1-iou-metric-visualized", "title": "Lesson 2.1: The IoU Metric, Visualized", "file": "vid5.5-lesson-5-semantic-segmentati.html" },
+                { "id": "cv-ex1-segmentation-scorecard", "title": "Lesson 2.2: The Segmentation Scorecard", "file": "ex2.2-lesson-2-semantic-segmentati.html" },
+                { "id": "cv-pod2-why-metrics-matter", "title": "Lesson 2.3: Why Metrics Matter", "file": "pod4.4-lesson-4-semantic-segmentati.html" }
+              ]
+            },
+            {
+              "id": "cv-foundational-architectures",
+              "title": "Foundational Architectures",
+              "description": "Discover the elegant blueprint that powers nearly all modern segmentation models. We'll explore the encoder-decoder paradigm, the pioneering Fully Convolutional Network (FCN), and the \"upsampling engine\" that makes reconstruction possible.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch18-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l3-blueprint-encoder-decoders-fcn", "title": "Lesson 3: The Blueprint: Encoder-Decoders & The FCN", "file": "l1.1-lesson-1-semantic-segmentati.html" },
+                { "id": "cv-pod3-aha-moment-fcn", "title": "Lesson 3.1: The 'Aha!' Moment of FCN", "file": "pod4.4-lesson-4-semantic-segmentati.html" },
+                { "id": "cv-exp1-skip-connection-playground", "title": "Lesson 3.2: The Skip Connection Playground", "file": "exp6.6-lesson-6-semantic-segmentati.html" },
+                { "id": "cv-l4-upsampling-engine-transposed-convolutions", "title": "Lesson 4: The Upsampling Engine: Transposed Convolutions", "file": "l1.1-lesson-1-semantic-segmentati.html" },
+                { "id": "cv-vid2-truth-about-deconvolution", "title": "Lesson 4.1: The Truth About 'Deconvolution'", "file": "vid5.5-lesson-5-semantic-segmentati.html" },
+                { "id": "cv-pod4-learnable-vs-fixed", "title": "Lesson 4.2: Learnable vs. Fixed", "file": "pod4.4-lesson-4-semantic-segmentati.html" }
+              ]
+            },
+            {
+              "id": "cv-modern-architectures-advanced-methods",
+              "title": "Modern Architectures and Advanced Methods",
+              "description": "Go from the blueprint to the masterpiece. We'll dissect the famous U-Net architecture and then implement a mini-version ourselves. Finally, we'll explore advanced techniques that solve the lingering challenges of context and boundary refinement.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch18-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l5-masterpiece-unet-symmetrical-power", "title": "Lesson 5: The Masterpiece: U-Net's Symmetrical Power", "file": "l1.1-lesson-1-semantic-segmentati.html" },
+                { "id": "cv-pod5-elegance-u", "title": "Lesson 5.1: The Elegance of the 'U'", "file": "pod4.4-lesson-4-semantic-segmentati.html" },
+                { "id": "cv-cod1-building-mini-unet-pytorch", "title": "Lesson 5.2: Coding Lab: Building a Mini U-Net in PyTorch", "file": "cod3.3-lesson-3-semantic-segmentati.html" },
+                { "id": "cv-l6-pushing-limits-advanced-segmentation", "title": "Lesson 6: Pushing the Limits: Advanced Segmentation Techniques", "file": "l1.1-lesson-1-semantic-segmentati.html" },
+                { "id": "cv-pod6-pro-gamer-moves", "title": "Lesson 6.1: The Pro-Gamer Moves", "file": "pod4.4-lesson-4-semantic-segmentati.html" },
+                { "id": "cv-exp2-advanced-techniques-sandbox", "title": "Lesson 6.2: Advanced Techniques Sandbox", "file": "exp6.6-lesson-6-semantic-segmentati.html" },
+                { "id": "cv-example1-case-study-self-driving-car", "title": "Lesson 6.3: Case Study: The Eyes of a Self-Driving Car", "file": "ex2.2-lesson-2-semantic-segmentati.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "advanced-segmentation-instances-foundation-models",
+          "title": "Advanced Image Segmentation: Instances and Foundation Models",
+          "description": "This chapter moves beyond basic segmentation to explore the cutting-edge techniques that allow machines to distinguish between individual objects and understand scenes with near-human nuance. We'll journey from refining contextual awareness in CNNs to interacting with massive, promptable foundation models that are redefining what's possible in computer vision.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch19-advanced-segmentation-instances-and-foundation-mod",
+          "modules": [
+            {
+              "id": "cv-mastering-multi-scale-context",
+              "title": "Mastering Multi-Scale Context",
+              "description": "Learn how the DeepLab family of models solved the critical challenge of seeing both the \"forest\" and the \"trees.\" We'll explore the elegant trick of atrous convolution and see how the ASPP module enables a model to analyze an image at multiple scales simultaneously.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch19-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-mastering-context-deeplab", "title": "Lesson 1: Mastering Context with DeepLab", "file": "l1.1-lesson-1-advanced-segmentati.html" },
+                { "id": "cv-pod1-bigger-isnt-always-better", "title": "Podcast: Why Bigger Isn't Always Better", "file": "pod4.4-lesson-4-advanced-segmentati.html" },
+                { "id": "cv-vid1-visualizing-atrous-convolution", "title": "Math Explainer: Visualizing Atrous Convolution", "file": "vid5.5-lesson-5-advanced-segmentati.html" },
+                { "id": "cv-ex1-receptive-field-challenge", "title": "Exercise: The Receptive Field Challenge", "file": "ex2.2-lesson-2-advanced-segmentati.html" },
+                { "id": "cv-cod1-putting-deeplab-test", "title": "Coding: Putting DeepLab to the Test", "file": "cod3.3-lesson-3-advanced-segmentati.html" }
+              ]
+            },
+            {
+              "id": "cv-spectrum-understanding",
+              "title": "A Spectrum of Understanding",
+              "description": "Discover that \"segmentation\" is not a single task but a spectrum of understanding. We will clearly define and differentiate between semantic, instance, and panoptic segmentation, establishing the \"what,\" the \"which,\" and the \"everything\" of scene parsing.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch19-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l2-beyond-pixels-instance-panoptic", "title": "Lesson 2: Beyond Pixels: Instance & Panoptic Segmentation", "file": "l1.1-lesson-1-advanced-segmentati.html" },
+                { "id": "cv-pod2-things-stuff-robot-vacuums", "title": "Podcast: Things, Stuff, and Robot Vacuums", "file": "pod4.4-lesson-4-advanced-segmentati.html" },
+                { "id": "cv-example1-ar-apps-understand-room", "title": "Real-World Example: How Augmented Reality Apps Understand Your Room", "file": "ex2.2-lesson-2-advanced-segmentati.html" },
+                { "id": "cv-exp1-segmentation-sorter", "title": "Hands-On: The Segmentation Sorter", "file": "exp6.6-lesson-6-advanced-segmentati.html" }
+              ]
+            },
+            {
+              "id": "cv-architecture-precision",
+              "title": "The Architecture of Precision",
+              "description": "Dissect the influential Mask R-CNN architecture to understand how it performs instance segmentation. We will uncover the \"secret sauce\" of RoIAlign and see how maintaining perfect spatial alignment is the key to generating pixel-perfect masks.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch19-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l3-how-mask-rcnn-roialign", "title": "Lesson 3: The \"How\": Mask R-CNN and RoIAlign", "file": "l1.1-lesson-1-advanced-segmentati.html" },
+                { "id": "cv-pod3-case-blurry-masks", "title": "Podcast: The Case of the Blurry Masks", "file": "pod4.4-lesson-4-advanced-segmentati.html" },
+                { "id": "cv-vid2-precision-roialign", "title": "Math Explainer: The Precision of RoIAlign", "file": "vid5.5-lesson-5-advanced-segmentati.html" },
+                { "id": "cv-cod2-mask-rcnn-detective", "title": "Coding: Becoming a Mask R-CNN Detective", "file": "cod3.3-lesson-3-advanced-segmentati.html" }
+              ]
+            },
+            {
+              "id": "cv-modern-era-generalists",
+              "title": "The Modern Era and the Rise of Generalists",
+              "description": "This capstone module launches us to the current frontier of AI. We'll meet hybrid Transformer models, automated frameworks that build models for us, and the game-changing Segment Anything Model (SAM), a foundation model you can interact with directly.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch19-m4-module-4-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l4-modern-era-foundation-models", "title": "Lesson 4: The Modern Era: Foundation Models & Automation", "file": "l1.1-lesson-1-advanced-segmentati.html" },
+                { "id": "cv-pod4-one-model-rule-them-all", "title": "Podcast: One Model to Rule Them All?", "file": "pod4.4-lesson-4-advanced-segmentati.html" },
+                { "id": "cv-example2-epic-story-sa1b", "title": "Real-World Example: The Epic Story of SA-1B", "file": "ex2.2-lesson-2-advanced-segmentati.html" },
+                { "id": "cv-cod3-prompting-future-sam", "title": "Coding: Prompting the Future: Your First Interaction with SAM", "file": "cod3.3-lesson-3-advanced-segmentati.html" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "human-pose-estimation-heatmap-paf",
+          "title": "Human Pose Estimation: From Heatmap Regression to Part Affinity Fields",
+          "description": "This chapter unpacks the fascinating world of Human Pose Estimation (HPE). We'll journey from the fundamental challenges of the task to the brilliant architectural solutions that power modern systems, exploring how computers learn to see and understand the articulated structure of the human body.",
+          "icon": "course_content/assets/icons/neural-networks-icon.svg",
+          "folder": "03-computer-vision/cv-ch20-human-pose-estimation-from-heatmap-regression-to-p",
+          "modules": [
+            {
+              "id": "cv-core-problem-grand-strategies",
+              "title": "The Core Problem & Grand Strategies",
+              "description": "Learn the what, why, and how of Human Pose Estimation. We'll define the core task, explore its real-world challenges, and contrast the two major strategies—Top-Down and Bottom-Up—that form the foundation of all modern approaches.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch20-m1-module-1-foundations-and-theory",
+              "lessons": [
+                { "id": "cv-l1-what-world-human-pose-estimation", "title": "Lesson 1: What in the World is Human Pose Estimation?", "file": "l1.1-lesson-1-human-pose-estimati.html" },
+                { "id": "cv-example1-hawkeye-sports", "title": "Case Study: Hawk-Eye in Sports", "file": "ex2.2-lesson-2-human-pose-estimati.html" },
+                { "id": "cv-exp1-strategists-choice", "title": "Playground: The Strategist's Choice", "file": "exp6.6-lesson-6-human-pose-estimati.html" },
+                { "id": "cv-pod1-lay-of-land", "title": "Podcast 1: The Lay of the Land", "file": "pod4.4-lesson-4-human-pose-estimati.html" }
+              ]
+            },
+            {
+              "id": "cv-heatmap-paradigm",
+              "title": "The Heatmap Paradigm",
+              "description": "Discover the conceptual breakthrough that revolutionized pose estimation. We'll move beyond simple coordinate prediction to the robust paradigm of heatmap regression and explore the elegant mathematics of 2D Gaussians that make it all work.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch20-m2-module-2-core-concepts-and-applications",
+              "lessons": [
+                { "id": "cv-l2-heatmap-paradigm-painting-probabilities", "title": "Lesson 2: The Heatmap Paradigm: Painting with Probabilities", "file": "l1.1-lesson-1-human-pose-estimati.html" },
+                { "id": "cv-vid1-2d-gaussian-function", "title": "Math Explainer: The 2D Gaussian Function", "file": "vid5.5-lesson-5-human-pose-estimati.html" },
+                { "id": "cv-ex1-heatmap-calculations", "title": "Exercise: Heatmap Calculations", "file": "ex2.2-lesson-2-human-pose-estimati.html" },
+                { "id": "cv-cod1-generating-heatmap", "title": "Coding Lab 1: Generating a Heatmap", "file": "cod3.3-lesson-3-human-pose-estimati.html" },
+                { "id": "cv-pod2-aha-moment", "title": "Podcast 2: The 'Aha!' Moment", "file": "pod4.4-lesson-4-human-pose-estimati.html" }
+              ]
+            },
+            {
+              "id": "cv-top-down-architectures-detail",
+              "title": "Top-Down Architectures in Detail",
+              "description": "Take a deep dive into the architectures of two legendary Top-Down models. We'll dissect the multi-stage refinement of CPM and the symmetrical, multi-scale fusion of Stacked Hourglass to understand how to build networks that see both the forest and the trees.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch20-m3-module-3-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l3-masters-context-top-down", "title": "Lesson 3: Masters of Context: Top-Down Architectures", "file": "l1.1-lesson-1-human-pose-estimati.html" },
+                { "id": "cv-example2-unet-connection", "title": "Case Study: The U-Net Connection", "file": "ex2.2-lesson-2-human-pose-estimati.html" },
+                { "id": "cv-exp2-architects-toolbox", "title": "Playground: The Architect's Toolbox", "file": "exp6.6-lesson-6-human-pose-estimati.html" },
+                { "id": "cv-pod3-architectural-tradeoffs", "title": "Podcast 3: Architectural Trade-offs", "file": "pod4.4-lesson-4-human-pose-estimati.html" }
+              ]
+            },
+            {
+              "id": "cv-bottom-up-revolution",
+              "title": "The Bottom-Up Revolution",
+              "description": "Explore the elegant solution to tracking poses in crowded scenes with OpenPose. We'll tackle the difficult 'association problem' and learn how the ingenious invention of Part Affinity Fields (PAFs) allows a network to connect all the right dots.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch20-m4-module-4-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l4-openpose-art-association", "title": "Lesson 4: OpenPose and the Art of Association", "file": "l1.1-lesson-1-human-pose-estimati.html" },
+                { "id": "cv-vid2-line-integral-pafs", "title": "Math Explainer: The Line Integral for PAFs", "file": "vid5.5-lesson-5-human-pose-estimati.html" },
+                { "id": "cv-ex2-paf-connection-scoring", "title": "Exercise: PAF Connection Scoring", "file": "ex2.2-lesson-2-human-pose-estimati.html" },
+                { "id": "cv-cod2-association-scorer", "title": "Coding Lab 2: The Association Scorer", "file": "cod3.3-lesson-3-human-pose-estimati.html" },
+                { "id": "cv-pod4-genius-vector-field", "title": "Podcast 4: The Genius of the Vector Field", "file": "pod4.4-lesson-4-human-pose-estimati.html" }
+              ]
+            },
+            {
+              "id": "cv-skeletons-solutions",
+              "title": "From Skeletons to Solutions",
+              "description": "This capstone module connects theory to practice. We'll see how HPE serves as a powerful building block for higher-level AI tasks, recap our entire journey, and implement a mini-project to analyze motion from a video.",
+              "icon": "course_content/assets/icons/neural-networks-icon.svg",
+              "folder": "cv-ch20-m5-module-5-advanced-applications-and-future-directio",
+              "lessons": [
+                { "id": "cv-l5-skeletons-solutions-applications-recap", "title": "Lesson 5: From Skeletons to Solutions: Applications & Recap", "file": "l1.1-lesson-1-human-pose-estimati.html" },
+                { "id": "cv-example3-pose-based-action-recognition", "title": "Case Study: Pose-Based Action Recognition", "file": "ex2.2-lesson-2-human-pose-estimati.html" },
+                { "id": "cv-cod3-putting-all-together", "title": "Coding Lab 3: Putting It All Together", "file": "cod3.3-lesson-3-human-pose-estimati.html" },
+                { "id": "cv-pod5-future-articulated", "title": "Podcast 5: The Future is Articulated", "file": "pod4.4-lesson-4-human-pose-estimati.html" }
+              ]
+            }
           ]
         }
       ]

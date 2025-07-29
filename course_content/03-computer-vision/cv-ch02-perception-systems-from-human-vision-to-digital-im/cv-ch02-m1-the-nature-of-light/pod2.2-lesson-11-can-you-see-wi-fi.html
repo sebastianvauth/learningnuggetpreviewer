@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 1.1: Can You See Wi-Fi?</title>
+    <style>
+        /* CSS Custom Properties - maintaining original colors */
+        :root {
+            --primary-blue: #007bff;
+            --vocab-blue: #1e90ff;
+            --vocab-bg: #f0f8ff;
+            --why-matters-pink: #d81b60;
+            --why-matters-bg: #ffe6f0;
+            --stop-think-purple: #4b0082;
+            --stop-think-bg: #e6e6ff;
+            --test-green: #28a745;
+            --test-bg: #e6ffe6;
+            --faq-yellow: #ffcc00;
+            --faq-bg: #fffbea;
+            --text-primary: #333;
+            --text-secondary: #444;
+            --light-gray: #f8f9fa;
+            --border-gray: #dee2e6;
+            --hover-gray: #e9ecef;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            font-size: 150%;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 123, 255, 0.1);
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary-blue);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Navigation Indicator */
+        .nav-indicator {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 12px;
+            border-radius: 5px;
+            box-shadow: var(--shadow-md);
+            font-size: 0.6em;
+            color: var(--text-primary);
+            z-index: 999;
+            font-weight: 500;
+        }
+
+        /* Better HTML Structure with Container */
+        .lesson-container {
+            padding-top: 20px;
+        }
+
+        section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #ffffff;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in, transform 0.5s ease-in;
+            transform: translateY(10px);
+        }
+
+        section.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Typography - keeping original styling */
+        h1, h2, h3, h4 {
+            color: var(--text-primary);
+            margin-top: 20px;
+        }
+
+        h1 {
+            font-size: 2em;
+        }
+        
+        p, li {
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        ul, ol {
+            padding-left: 20px;
+        }
+
+        /* Podcast Player Styling */
+        .podcast-player {
+            background: linear-gradient(135deg, var(--vocab-bg), #e7f3ff);
+            border: 1px solid var(--vocab-blue);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+        }
+
+        .podcast-player:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 123, 255, 0.2);
+        }
+
+        .podcast-player h2 {
+            color: var(--vocab-blue);
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 15px;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        audio:focus {
+            box-shadow: 0 0 0 2px var(--primary-blue);
+        }
+
+        /* Transcript Styling */
+        .transcript-section {
+            background-color: var(--light-gray);
+            border: 1px solid var(--border-gray);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .transcript-section:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .transcript-section h3 {
+            margin-top: 0;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-gray);
+            padding-bottom: 10px;
+        }
+
+        .speaker {
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+        
+        .transcript-text p {
+            margin: 15px 0;
+            padding-left: 15px;
+            border-left: 3px solid var(--border-gray);
+            transition: var(--transition);
+        }
+
+        .transcript-text p:hover {
+            border-left-color: var(--primary-blue);
+            background-color: rgba(0, 123, 255, 0.05);
+            padding-left: 18px;
+        }
+
+        /* Key Takeaways Styling */
+        .key-takeaways {
+            background-color: var(--test-bg);
+            border: 1px solid var(--test-green);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            transition: var(--transition);
+        }
+
+        .key-takeaways:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .key-takeaways h3 {
+            margin-top: 0;
+            color: var(--test-green);
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .key-takeaways ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .key-takeaways li {
+            margin-bottom: 15px;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .key-takeaways li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--test-green);
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        /* Enhanced Buttons */
+        .continue-button, .nav-button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 15px;
+            color: #ffffff;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 1em;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            background-color: var(--primary-blue);
+        }
+        
+        .continue-button:hover, .nav-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-button.prev {
+            background-color: #6c757d;
+        }
+
+        .nav-button.prev:hover {
+            background-color: #5a6268;
+        }
+
+        /* Navigation Buttons Container */
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            gap: 15px;
+        }
+        
+        /* Mark as Complete Button */
+        .mark-complete-button {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .mark-complete-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+        
+        .mark-complete-button.completed {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            cursor: default;
+        }
+
+        .mark-complete-button.completed:hover {
+            transform: none;
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                font-size: 120%;
+            }
+
+            section {
+                padding: 15px;
+                margin-bottom: 15px;
+        }
+        
+            .podcast-player, .transcript-section, .key-takeaways {
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .nav-indicator {
+                top: 10px;
+                right: 10px;
+                padding: 6px 10px;
+                font-size: 0.5em;
+            }
+
+            .navigation-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .nav-button {
+                width: 100%;
+            text-align: center;
+                padding: 12px 18px;
+            }
+
+            .transcript-text p {
+                padding-left: 10px;
+                font-size: 0.9em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                font-size: 110%;
+                padding: 5px;
+            }
+
+            section {
+                padding: 12px;
+            }
+
+            .podcast-player, .transcript-section, .key-takeaways {
+                padding: 12px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            h2 {
+                font-size: 1.3em;
+            }
+        }
+
+        /* Confetti Animation */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            font-size: 20px;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti:nth-child(odd) {
+            animation-duration: 2.5s;
+            animation-delay: 0.2s;
+        }
+
+        .confetti:nth-child(even) {
+            animation-duration: 3.5s;
+            animation-delay: 0.5s;
+        }
+
+        .confetti:nth-child(3n) {
+            animation-duration: 2.8s;
+            animation-delay: 0.8s;
+        }
+
+        .confetti:nth-child(4n) {
+            animation-duration: 3.2s;
+            animation-delay: 0.3s;
+        }
+
+        .confetti:nth-child(5n) {
+            animation-duration: 2.7s;
+            animation-delay: 0.7s;
+        }
+
+        /* Success Message Animation */
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+            z-index: 10000;
+            opacity: 0;
+            animation: success-popup 2.5s ease-out;
+            pointer-events: none;
+        }
+        
+        @keyframes success-popup {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            40% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+        }
+        }
+
+        /* Accessibility improvements */
+        .nav-button:focus, .continue-button:focus, .mark-complete-button:focus {
+            outline: 2px solid #ffffff;
+            outline-offset: 2px;
+        }
+
+        /* Smooth Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Hide sections initially, show lesson header */
+        .lesson-header {
+            background: linear-gradient(135deg, var(--primary-blue), #0056b3);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .lesson-header h1 {
+            margin: 0;
+            color: white;
+            font-size: 2em;
+        }
+
+        .lesson-header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <!-- Navigation Indicator -->
+    <div class="nav-indicator">
+        <span id="sectionIndicator">Section 1 of 4</span>
+    </div>
+    
+    <div class="lesson-container">
+        <!-- Lesson Header - Always Visible -->
+        <header class="lesson-header">
+            <h1>Lesson 1.1: Can You See Wi-Fi?</h1>
+            <p>A "Pixel Perfect" Podcast Episode</p>
+        </header>
+
+        <section id="section1" class="visible">
+            <div class="podcast-player">
+                <h2>Listen to the Episode</h2>
+                <p>Join hosts Alex and Ben as they discuss the strange and wonderful nature of light, color, and all the things we can't see.</p>
+                <audio controls>
+                    <source src="audio/CV_C02_L1.1_Podcast.wav" type="audio/wav">
+                    <source src="audio/CV_C02_L1.1_Podcast.mp3" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+                <p><em>Tip: You can listen while reading the transcript below, or come back to it afterward!</em></p>
+            </div>
+            <div class="continue-button" onclick="showNextSection(2)">Continue to Transcript</div>
+        </section>
+
+        <section id="section2">
+            <div class="transcript-section">
+                <h3>Episode Transcript</h3>
+                <div class="transcript-text">
+                    <p><span class="speaker">Intro Music:</span> (Upbeat, curious, and slightly techy. Fades out after 5 seconds.)</p>
+                    <p><span class="speaker">Ben:</span> Welcome to "Pixel Perfect," the show where we break down the magic behind how computers see the world. I'm Ben, and I'm here to ask the questions you're probably thinking.</p>
+                    <p><span class="speaker">Alex:</span> And I'm Alex. I've spent years working with this stuff, and I'm here to try and make sense of it all.</p>
+                    <p><span class="speaker">Ben:</span> Okay, Alex, I just finished the first lesson on light, and I have a question that's been bugging me. You told me that the light we see is an electromagnetic wave, right?</p>
+                    <p><span class="speaker">Alex:</span> That's right. Just like a wave in the ocean, but on a much, much smaller scale.</p>
+                    <p><span class="speaker">Ben:</span> And the Wi-Fi signal that's letting me download this podcast right now… that's also an electromagnetic wave.</p>
+                    <p><span class="speaker">Alex:</span> Yep, exactly the same fundamental principle.</p>
+                    <p><span class="speaker">Ben:</span> So… why can't I see Wi-Fi? Is my eye broken? If it's all just waves, shouldn't I be able to see the internet floating around my room?</p>
+                    <p><span class="speaker">Sound Effect:</span> (A gentle, thoughtful sound effect, like a soft chime.)</p>
+                </div>
+            </div>
+            <div class="continue-button" onclick="showNextSection(3)">Continue Reading</div>
+        </section>
+
+        <section id="section3">
+            <div class="transcript-section">
+                <h3>Episode Transcript (Continued)</h3>
+                <div class="transcript-text">
+                    <p><span class="speaker">Alex:</span> (Chuckles) That is an absolutely brilliant question, and it gets to the very heart of what "seeing" is. Your eye isn't broken, it's just… specialized. Think of the entire electromagnetic spectrum like a giant piano keyboard. It stretches for miles in both directions.</p>
+                    <p><span class="speaker">Ben:</span> Okay, a massive piano. I'm with you.</p>
+                    <p><span class="speaker">Alex:</span> On one end, you have the really high-pitched, high-energy notes. Those are things like gamma rays and X-rays. They have very short wavelengths. On the other end, you have the super deep, low-energy bass notes. Those are microwaves, radio waves, and yes, the waves that carry your Wi-Fi signal. They have very long wavelengths.</p>
+                    <p><span class="speaker">Ben:</span> So where does the light we see fit in?</p>
+                    <p><span class="speaker">Alex:</span> The light we can see—all the colors of the rainbow, from violet to red—is like one single octave of keys right in the middle of that giant piano. Our eyes are perfectly tuned to hear the notes in that one specific octave, but we are completely deaf to all the other keys on the keyboard.</p>
+                    <p><span class="speaker">Ben:</span> So Wi-Fi is just a "note" that's too low for our eyes to "hear"?</p>
+                    <p><span class="speaker">Alex:</span> Exactly! We can't see it for the same reason we can't hear a dog whistle. It's real, it's there, but our biological sensors aren't built to detect that specific frequency.</p>
+                    <p><span class="speaker">Music:</span> (A short musical transition.)</p>
+                    <p><span class="speaker">Ben:</span> You also mentioned energy. So, the high-pitched notes on this piano, the X-rays, have more energy?</p>
+                    <p><span class="speaker">Alex:</span> Precisely. Wavelength and energy have an inverse relationship. Shorter wavelength means higher frequency and higher energy. It's why we wear sunscreen. We're not protecting ourselves from visible sunlight; we're protecting ourselves from the invisible, high-energy Ultraviolet or UV light, which has a shorter wavelength than violet. It's the key right next to the visible octave on the high-energy side.</p>
+                    <p><span class="speaker">Ben:</span> And the low-energy side, like radio waves, they're harmless?</p>
+                    <p><span class="speaker">Alex:</span> For the most part, yes. They have such long wavelengths and low energy that they pass right through us without interacting much at all.</p>
+                    <p><span class="speaker">Music:</span> (Another short musical transition.)</p>
+                    <p><span class="speaker">Ben:</span> Okay, last thing that blew my mind. The lesson said that my red t-shirt isn't actually "making" red color.</p>
+                    <p><span class="speaker">Alex:</span> (Laughs) It's a bit of a brain-bender, isn't it? Your t-shirt isn't a tiny red lightbulb. It's more like a bouncer at a very specific nightclub.</p>
+                    <p><span class="speaker">Ben:</span> A bouncer?</p>
+                    <p><span class="speaker">Alex:</span> Yep. The white light from the sun or a lamp is like a crowd of people trying to get into the club. This crowd has people wearing red shirts, green shirts, and blue shirts—all the colors. The material of your t-shirt is the bouncer, and its policy is "No Green, No Blue." So it absorbs the green and blue light, essentially letting them into the club.</p>
+                    <p><span class="speaker">Ben:</span> And the red light?</p>
+                    <p><span class="speaker">Alex:</span> The bouncer 'rejects' the red light. It bounces it away. And when that rejected, reflected red light flies into your eye, your brain goes, "Aha! That's a red t-shirt." The color of an object isn't what it keeps, it's what it throws away.</p>
+                    <p><span class="speaker">Ben:</span> Wow. So a white object is just a really indecisive bouncer that rejects everybody.</p>
+                    <p><span class="speaker">Alex:</span> (Laughs) Exactly! It reflects all the colors back. And a black object is a very welcoming bouncer that lets everyone in and reflects almost nothing.</p>
+                    <p><span class="speaker">Ben:</span> That actually makes so much sense. So, to recap: the world is buzzing with invisible waves like Wi-Fi that are just the wrong "note" for our eyes. And the colors we see are just the leftover light that objects didn't feel like absorbing.</p>
+                    <p><span class="speaker">Alex:</span> You've got it perfectly. And understanding that light is this physical thing with properties like wavelength and energy is the absolute first step. Because in the next lesson, we're going to look at the incredible biological machine designed to catch that leftover light—the human eye.</p>
+                    <p><span class="speaker">Ben:</span> I can't wait. This is already changing how I look at… well, everything.</p>
+                    <p><span class="speaker">Outro Music:</span> (Fades in, sounding thoughtful and optimistic.)</p>
+                    <p><span class="speaker">Alex:</span> Join us next time on "Pixel Perfect," where we'll find out why your eye is built backwards and how you can use that to see the stars.</p>
+                    <p><span class="speaker">Ben:</span> See you then!</p>
+                    <p><span class="speaker">Music:</span> (Music swells and then fades out.)</p>
+                </div>
+            </div>
+            <div class="continue-button" onclick="showNextSection(4)">Continue to Key Takeaways</div>
+        </section>
+
+        <section id="section4">
+            <div class="key-takeaways">
+                <h3>Key Takeaways from this Episode</h3>
+                <ul>
+                    <li><strong>The Electromagnetic Spectrum is Vast:</strong> The visible light our eyes can see is just a tiny fraction of the full spectrum, which includes radio waves, microwaves, X-rays, and more.</li>
+                    <li><strong>Specialized Sensors:</strong> Our eyes are biological sensors tuned to a specific range of wavelengths (the "visible spectrum"), just as a radio is tuned to another. We can't see Wi-Fi because its wavelength is outside our eyes' detection range.</li>
+                    <li><strong>Wavelength vs. Energy:</strong> There is an inverse relationship between a wave's wavelength and its energy. Shorter wavelengths (like UV light) carry more energy than longer wavelengths (like radio waves).</li>
+                    <li><strong>Color is Reflected Light:</strong> An object's color is determined by the wavelengths of light it reflects, not what it absorbs. A red object absorbs blue and green light and reflects red light.</li>
+                </ul>
+        </div>
+        
+            <!-- Mark as Complete Button -->
+            <button id="markCompleteBtn" class="mark-complete-button" onclick="toggleCompleted()">
+                Mark as Completed
+            </button>
+
+            <div class="navigation-buttons">
+                <a href="l1.1-lesson-1-the-secret-ingredien.html" class="nav-button prev">« Previous Lesson: What is Light?</a>
+                <a href="path/to/lesson-2.html" class="nav-button">Next Lesson: The Human Sensor »</a>
+        </div>
+        </section>
+    </div>
+
+    <script>
+        let currentSection = 1;
+        const totalSections = 4;
+
+        // Initialize
+        updateProgress();
+        updateSectionIndicator();
+        initializeCompletion();
+
+        function showNextSection(nextSectionId) {
+            const currentSectionElement = document.getElementById(`section${currentSection}`);
+            const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+            const currentButton = event.target;
+            
+            if (!nextSectionElement) return;
+            
+            // Hide the continue button
+            currentButton.style.display = 'none';
+            
+            // Show next section with smooth animation
+            nextSectionElement.classList.add('visible', 'animate-in');
+            
+            // Update current section
+            currentSection = nextSectionId;
+            updateProgress();
+            updateSectionIndicator();
+            
+            // Smooth scroll to new section
+            setTimeout(() => {
+                nextSectionElement.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start'
+                });
+            }, 300);
+        }
+
+        function updateProgress() {
+            const progressBar = document.getElementById('progressBar');
+            const progress = (currentSection / totalSections) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function updateSectionIndicator() {
+            const indicator = document.getElementById('sectionIndicator');
+            indicator.textContent = `Section ${currentSection} of ${totalSections}`;
+        }
+
+        // Completion functionality
+        function initializeCompletion() {
+            const button = document.getElementById('markCompleteBtn');
+            const lessonId = getCurrentLessonId();
+            
+            if (isLessonCompleted(lessonId)) {
+                button.textContent = 'Completed ✓';
+                button.classList.add('completed');
+            }
+        }
+
+        function getCurrentLessonId() {
+            // Get lesson ID from URL or filename
+            const path = window.location.pathname;
+            const filename = path.split('/').pop();
+            return filename.replace('.html', '');
+        }
+
+        function isLessonCompleted(lessonId) {
+            // Check if this lesson is marked as completed
+            try {
+                if (parent && parent.ProgressTracker) {
+                    const urlParams = new URLSearchParams(parent.window.location.search);
+                    const courseId = urlParams.get('courseId') || 'computer-vision';
+                    const pathId = urlParams.get('pathId') || 'perception-systems';
+                    const moduleId = urlParams.get('moduleId') || 'cv-nature-of-light';
+                    
+                    return parent.ProgressTracker.isLessonCompleted(courseId, pathId, moduleId, lessonId);
+                }
+            } catch (error) {
+                console.log('Using localStorage fallback for completion status');
+            }
+            
+            // Fallback to localStorage
+            const completed = localStorage.getItem(`lesson-completed-${lessonId}`);
+            return completed === 'true';
+        }
+
+        function toggleCompleted() {
+            const button = document.getElementById('markCompleteBtn');
+            const lessonId = getCurrentLessonId();
+            let wasCompleted = false;
+            
+            try {
+                if (parent && parent.ProgressTracker) {
+                    const urlParams = new URLSearchParams(parent.window.location.search);
+                    const courseId = urlParams.get('courseId') || 'computer-vision';
+                    const pathId = urlParams.get('pathId') || 'perception-systems';
+                    const moduleId = urlParams.get('moduleId') || 'cv-nature-of-light';
+                    
+                    wasCompleted = parent.ProgressTracker.isLessonCompleted(courseId, pathId, moduleId, lessonId);
+                    
+                    if (wasCompleted) {
+                        parent.ProgressTracker.markLessonIncomplete(courseId, pathId, moduleId, lessonId);
+                        button.textContent = 'Mark as Completed';
+                        button.classList.remove('completed');
+                    } else {
+                        parent.ProgressTracker.markLessonComplete(courseId, pathId, moduleId, lessonId);
+                        button.textContent = 'Completed ✓';
+                        button.classList.add('completed');
+                        triggerCelebration();
+                    }
+                    return;
+                }
+            } catch (error) {
+                console.log('Using localStorage fallback for completion toggle');
+            }
+            
+            // Fallback to localStorage
+            wasCompleted = localStorage.getItem(`lesson-completed-${lessonId}`) === 'true';
+            
+            if (wasCompleted) {
+                localStorage.removeItem(`lesson-completed-${lessonId}`);
+                button.textContent = 'Mark as Completed';
+                button.classList.remove('completed');
+            } else {
+                localStorage.setItem(`lesson-completed-${lessonId}`, 'true');
+                button.textContent = 'Completed ✓';
+                button.classList.add('completed');
+                triggerCelebration();
+            }
+        }
+
+        function triggerCelebration() {
+            // Create confetti
+            createConfetti();
+            
+            // Show success message
+            showSuccessMessage();
+        }
+
+        function createConfetti() {
+            const confettiContainer = document.createElement('div');
+            confettiContainer.className = 'confetti-container';
+            document.body.appendChild(confettiContainer);
+
+            const confettiEmojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '🎯', '💫'];
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8', '#f7dc6f'];
+
+            // Create 50 confetti pieces
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    
+                    // Random emoji or colored shape
+                    if (Math.random() > 0.6) {
+                        confetti.textContent = confettiEmojis[Math.floor(Math.random() * confettiEmojis.length)];
+                    } else {
+                        confetti.innerHTML = '●';
+                        confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    }
+                    
+                    // Random horizontal position
+                    confetti.style.left = Math.random() * 100 + '%';
+                    
+                    // Random animation delay
+                    confetti.style.animationDelay = Math.random() * 2 + 's';
+                    
+                    confettiContainer.appendChild(confetti);
+                }, i * 50); // Stagger the creation
+            }
+
+            // Remove confetti after animation
+            setTimeout(() => {
+                if (confettiContainer.parentNode) {
+                    confettiContainer.parentNode.removeChild(confettiContainer);
+                }
+            }, 5000);
+        }
+
+        function showSuccessMessage() {
+            const successMessage = document.createElement('div');
+            successMessage.className = 'success-message';
+            successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+            document.body.appendChild(successMessage);
+
+            // Remove success message after animation
+            setTimeout(() => {
+                if (successMessage.parentNode) {
+                    successMessage.parentNode.removeChild(successMessage);
+                }
+            }, 2500);
+        }
+
+        // Keyboard Support
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                const continueButton = document.querySelector(`#section${currentSection} .continue-button`);
+                if (continueButton && continueButton.style.display !== 'none') {
+                    event.preventDefault();
+                    continueButton.click();
+                }
+            }
+        });
+
+        // Smooth scrolling
+        document.documentElement.style.scrollBehavior = 'smooth';
+    </script>
+</body>
+</html>
