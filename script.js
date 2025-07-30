@@ -71,7 +71,8 @@ class AuthManager {
                     this.clearAllProgressData();
                     await this.loadUserProgressFromSupabase(); // Load progress from Supabase
                     
-                    this.showSuccessMessage('Welcome back! 🎉');
+                    const displayName = this.profile?.username || this.user.email.split('@')[0];
+                    this.showSuccessMessage(`Welcome back, ${displayName}! 🎉`);
                     
                     // Only sync if there's legitimate new local progress (should be empty after clear)
                     await this.syncLocalProgress();
@@ -1498,7 +1499,15 @@ function renderHomeDashboard(courses) {
 
     const welcomeTitle = document.createElement('h1');
     welcomeTitle.className = 'hero-title';
-    welcomeTitle.textContent = 'Welcome back';
+    
+    // Personalize welcome message with username
+    if (authManager.isAuthenticated() && authManager.profile) {
+        const displayName = authManager.profile.username || authManager.user.email.split('@')[0];
+        welcomeTitle.textContent = `Welcome back, ${displayName}`;
+    } else {
+        welcomeTitle.textContent = 'Welcome back';
+    }
+    
     heroSection.appendChild(welcomeTitle);
 
     const heroSubtitle = document.createElement('p');
