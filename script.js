@@ -79,6 +79,11 @@ class AuthManager {
                     
                     // Update UI after all progress is loaded
                     this.updateUI();
+                    
+                    // Redirect to home page after successful sign in
+                    setTimeout(() => {
+                        navigateToIntendedDestination();
+                    }, 500);
                 } else if (event === 'SIGNED_OUT') {
                     this.user = null;
                     this.profile = null;
@@ -90,7 +95,8 @@ class AuthManager {
                     
                     // Redirect to welcome page after sign out
                     setTimeout(() => {
-                        navigateToHome();
+                        window.location.hash = '#/welcome';
+                        renderCurrentView();
                     }, 500);
                 }
                 this.updateUI();
@@ -100,6 +106,9 @@ class AuthManager {
         } finally {
             this.isInitialized = true;
             this.updateUI();
+            
+            // Ensure navigation is properly set after initialization
+            this.updateNavigationVisibility();
         }
     }
 
@@ -2437,6 +2446,16 @@ function renderCurrentView() {
     if (!currentRoute.courseId && !checkContentAccess()) {
         renderWelcomePage();
         return;
+    }
+    
+    // If authenticated user tries to access welcome page, redirect to home
+    if (!currentRoute.courseId && checkContentAccess()) {
+        // User is authenticated and on the landing page, redirect to home dashboard
+        const currentHash = window.location.hash;
+        if (!currentHash || currentHash === '#/' || currentHash === '#' || currentHash.includes('welcome')) {
+            console.log('Authenticated user accessing landing page, redirecting to home dashboard');
+            // Don't call navigateToHome() to avoid infinite loop, just render the dashboard
+        }
     }
 
     mainElement.innerHTML = '<!-- Content will be dynamically injected here -->'; 
