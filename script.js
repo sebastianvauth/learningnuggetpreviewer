@@ -48,10 +48,10 @@ class AuthManager {
             if (session) {
                 this.user = session.user;
                 
-                // Clear any existing progress data before loading user's data
-                this.clearAllProgressData();
-                
                 await this.loadUserProfile();
+                
+                // Clear and load user progress in proper sequence  
+                this.clearAllProgressData();
                 await this.loadUserProgressFromSupabase(); // Load progress from Supabase first
                 
                 // Only sync if there's legitimate new local progress (should be empty after clear)
@@ -65,15 +65,19 @@ class AuthManager {
                 if (event === 'SIGNED_IN') {
                     this.user = session.user;
                     
-                    // Clear any existing progress data before loading user's data
-                    this.clearAllProgressData();
-                    
                     await this.loadUserProfile();
+                    
+                    // Clear and load user progress in proper sequence
+                    this.clearAllProgressData();
                     await this.loadUserProgressFromSupabase(); // Load progress from Supabase
+                    
                     this.showSuccessMessage('Welcome back! 🎉');
                     
                     // Only sync if there's legitimate new local progress (should be empty after clear)
                     await this.syncLocalProgress();
+                    
+                    // Update UI after all progress is loaded
+                    this.updateUI();
                 } else if (event === 'SIGNED_OUT') {
                     this.user = null;
                     this.profile = null;
@@ -306,11 +310,54 @@ class AuthManager {
                 // Save the updated progress
                 ProgressTracker.saveProgress();
                 console.log('User progress loaded from Supabase and synced to local storage');
+                
+                // Refresh any lesson completion buttons that might be loaded
+                this.refreshLessonCompletionStates();
             } else {
                 console.log('No completed lessons found in Supabase');
             }
         } catch (error) {
             console.error('Failed to load progress from Supabase:', error);
+        }
+    }
+
+    refreshLessonCompletionStates() {
+        try {
+            // Look for iframe lessons and refresh their completion states
+            const lessonIframes = document.querySelectorAll('iframe[src*=".html"]');
+            lessonIframes.forEach(iframe => {
+                if (iframe.contentWindow && iframe.contentWindow.initializeCompletion) {
+                    try {
+                        iframe.contentWindow.initializeCompletion();
+                        console.log('Refreshed completion state for lesson iframe');
+                    } catch (e) {
+                        console.log('Could not refresh iframe completion state:', e.message);
+                    }
+                }
+            });
+
+            // Also trigger a custom event that lessons can listen for
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('progressUpdated', {
+                    detail: { source: 'supabase' }
+                }));
+            }
+
+            // Delay the iframe refresh to ensure they are fully loaded
+            setTimeout(() => {
+                lessonIframes.forEach(iframe => {
+                    if (iframe.contentWindow && iframe.contentWindow.initializeCompletion) {
+                        try {
+                            iframe.contentWindow.initializeCompletion();
+                            console.log('Delayed refresh of completion state for lesson iframe');
+                        } catch (e) {
+                            console.log('Could not refresh iframe completion state (delayed):', e.message);
+                        }
+                    }
+                });
+            }, 1000);
+        } catch (error) {
+            console.log('Error refreshing lesson completion states:', error);
         }
     }
 
@@ -1000,6 +1047,8 @@ const ProgressTracker = {
         const key = this.getLessonKey(courseId, pathId, moduleId, lessonId);
         const now = Date.now();
         
+        console.log(`Marking lesson as completed: ${key}`);
+        
         if (!this.progressData[key]) {
             this.progressData[key] = {
                 state: this.STATES.COMPLETED,
@@ -1016,7 +1065,7 @@ const ProgressTracker = {
         
         this.saveProgress();
         this.addDailyActivity(); // Track daily activity
-        console.log(`Lesson marked as completed: ${key}`);
+        console.log(`Lesson marked as completed locally: ${key}`);
         
         // Sync to Supabase if user is authenticated
         if (typeof authManager !== 'undefined' && authManager.isAuthenticated()) {
@@ -1026,7 +1075,19 @@ const ProgressTracker = {
             } catch (error) {
                 console.warn('Failed to sync lesson completion to Supabase:', error);
             }
+        } else {
+            console.log('User not authenticated, lesson completion stored locally only');
         }
+        
+        // Also update localStorage for backwards compatibility
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(`lesson-completed-${key}`, 'true');
+        }
+    },
+
+    // Compatibility method for lessons that might use different naming
+    async markLessonComplete(courseId, pathId, moduleId, lessonId) {
+        return await this.markLessonCompleted(courseId, pathId, moduleId, lessonId);
     },
 
     // Get lesson progress state
