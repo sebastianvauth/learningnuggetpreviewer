@@ -3465,74 +3465,7 @@ mark {
     transform: none;
 }
 
-/* Auth Divider */
-.auth-divider {
-    position: relative;
-    text-align: center;
-    margin: var(--space-6) 0;
-}
 
-.auth-divider::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--color-gray-200);
-}
-
-.auth-divider span {
-    background: white;
-    padding: 0 var(--space-4);
-    color: var(--color-gray-500);
-    font-size: 0.875rem;
-}
-
-/* Social Auth Buttons */
-.social-auth {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    margin-bottom: var(--space-6);
-}
-
-.social-btn {
-    width: 100%;
-    padding: var(--space-3) var(--space-4);
-    border: 2px solid var(--color-gray-200);
-    border-radius: var(--radius-md);
-    background: white;
-    color: var(--color-gray-700);
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-3);
-}
-
-.social-btn:hover {
-    border-color: var(--color-gray-300);
-    background: var(--color-gray-50);
-    transform: translateY(-1px);
-}
-
-.google-btn:hover {
-    border-color: #ea4335;
-    color: #ea4335;
-}
-
-.github-btn:hover {
-    border-color: #24292e;
-    color: #24292e;
-}
-
-.social-icon {
-    font-size: 1.125rem;
-}
 
 /* Auth Switch */
 .auth-switch {

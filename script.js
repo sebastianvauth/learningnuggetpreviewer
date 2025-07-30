@@ -45,7 +45,8 @@ class AuthManager {
             if (session) {
                 this.user = session.user;
                 await this.loadUserProfile();
-                await this.syncLocalProgress();
+                await this.loadUserProgressFromSupabase(); // Load progress from Supabase first
+                await this.syncLocalProgress(); // Then sync any new local progress
             }
 
             // Listen for auth changes
@@ -55,13 +56,9 @@ class AuthManager {
                 if (event === 'SIGNED_IN') {
                     this.user = session.user;
                     await this.loadUserProfile();
+                    await this.loadUserProgressFromSupabase(); // Load progress from Supabase
                     this.showSuccessMessage('Welcome back! 🎉');
                     await this.syncLocalProgress();
-                    
-                    // Navigate to intended destination after OAuth login
-                    setTimeout(() => {
-                        navigateToIntendedDestination();
-                    }, 1000);
                 } else if (event === 'SIGNED_OUT') {
                     this.user = null;
                     this.profile = null;
@@ -123,23 +120,7 @@ class AuthManager {
         }
     }
 
-    async signInWithProvider(provider) {
-        try {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider,
-                options: {
-                    redirectTo: window.location.origin
-                }
-            });
 
-            if (error) throw error;
-            return { success: true, data };
-        } catch (error) {
-            console.error(`${provider} sign in error:`, error);
-            this.showErrorMessage(`Failed to sign in with ${provider}`);
-            return { success: false, error };
-        }
-    }
 
     async signOut() {
         try {
@@ -192,6 +173,57 @@ class AuthManager {
             }
         } catch (error) {
             console.error('Profile loading error:', error);
+        }
+    }
+
+    async loadUserProgressFromSupabase() {
+        if (!this.user) return;
+
+        try {
+            console.log('Loading user progress from Supabase...');
+            const { data: progressData, error } = await supabase
+                .from('course_progress')
+                .select('course_id, path_id, module_id, lesson_id, completed_at')
+                .eq('user_id', this.user.id);
+
+            if (error) throw error;
+
+            if (progressData && progressData.length > 0) {
+                console.log(`Found ${progressData.length} completed lessons in Supabase`);
+                
+                // Update local ProgressTracker with Supabase data
+                progressData.forEach(lesson => {
+                    const { course_id, path_id, module_id, lesson_id, completed_at } = lesson;
+                    const key = ProgressTracker.getLessonKey(course_id, path_id, module_id, lesson_id);
+                    
+                    // Update ProgressTracker's internal data
+                    if (!ProgressTracker.progressData[key]) {
+                        ProgressTracker.progressData[key] = {
+                            state: ProgressTracker.STATES.COMPLETED,
+                            firstViewed: new Date(completed_at).getTime(),
+                            lastViewed: new Date(completed_at).getTime(),
+                            completedAt: new Date(completed_at).getTime(),
+                            viewCount: 1
+                        };
+                    } else {
+                        ProgressTracker.progressData[key].state = ProgressTracker.STATES.COMPLETED;
+                        ProgressTracker.progressData[key].completedAt = new Date(completed_at).getTime();
+                    }
+                    
+                    // Also set localStorage flag for backwards compatibility
+                    if (typeof localStorage !== 'undefined') {
+                        localStorage.setItem(`lesson-completed-${key}`, 'true');
+                    }
+                });
+                
+                // Save the updated progress
+                ProgressTracker.saveProgress();
+                console.log('User progress loaded from Supabase and synced to local storage');
+            } else {
+                console.log('No completed lessons found in Supabase');
+            }
+        } catch (error) {
+            console.error('Failed to load progress from Supabase:', error);
         }
     }
 
