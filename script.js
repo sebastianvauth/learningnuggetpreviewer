@@ -38,6 +38,9 @@ class AuthManager {
 
     async initializeAuth() {
         try {
+            // Handle auth tokens from URL hash (for email confirmations)
+            await this.handleAuthCallback();
+            
             // Check existing session
             const { data: { session }, error } = await supabase.auth.getSession();
             if (error) throw error;
@@ -79,13 +82,46 @@ class AuthManager {
         }
     }
 
+    async handleAuthCallback() {
+        try {
+            // Check if there are auth tokens in the URL hash
+            const hash = window.location.hash;
+            if (hash && (hash.includes('access_token=') || hash.includes('type=signup') || hash.includes('type=recovery'))) {
+                console.log('Auth callback detected in URL');
+                this.showSuccessMessage('Processing email confirmation...');
+                
+                // Let Supabase handle the auth callback
+                const { data, error } = await supabase.auth.getSession();
+                if (error) {
+                    console.error('Auth callback error:', error);
+                    this.showErrorMessage('Email confirmation failed. Please try again.');
+                } else if (data.session) {
+                    console.log('Email confirmation successful');
+                    this.showSuccessMessage('Email confirmed! Welcome to the platform! 🎉');
+                    
+                    // Clean up the URL hash
+                    window.history.replaceState(null, null, window.location.pathname);
+                    
+                    // Force a page reload to properly initialize the authenticated state
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                }
+            }
+        } catch (error) {
+            console.error('Auth callback handling error:', error);
+            this.showErrorMessage('Authentication error. Please try signing in again.');
+        }
+    }
+
     async signUp(email, password, username) {
         try {
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
-                    data: { username: username || email.split('@')[0] }
+                    data: { username: username || email.split('@')[0] },
+                    emailRedirectTo: 'https://sebastianvauth.github.io/learningnuggetpreviewer/'
                 }
             });
 
