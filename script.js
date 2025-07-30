@@ -558,7 +558,23 @@ class AuthManager {
         if (!this.isInitialized) return;
         
         this.renderAuthUI();
+        this.updateNavigationVisibility();
         this.updateProgressDisplay();
+    }
+
+    updateNavigationVisibility() {
+        const searchContainer = document.querySelector('.header-search');
+        const navButtons = document.querySelectorAll('.nav-btn');
+        
+        if (this.isAuthenticated()) {
+            // Show all navigation elements for authenticated users
+            if (searchContainer) searchContainer.style.display = 'block';
+            navButtons.forEach(btn => btn.style.display = 'flex');
+        } else {
+            // Hide navigation elements for unauthenticated users
+            if (searchContainer) searchContainer.style.display = 'none';
+            navButtons.forEach(btn => btn.style.display = 'none');
+        }
     }
 
     renderAuthUI() {
