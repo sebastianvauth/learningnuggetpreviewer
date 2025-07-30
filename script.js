@@ -57,10 +57,20 @@ class AuthManager {
                     await this.loadUserProfile();
                     this.showSuccessMessage('Welcome back! 🎉');
                     await this.syncLocalProgress();
+                    
+                    // Navigate to intended destination after OAuth login
+                    setTimeout(() => {
+                        navigateToIntendedDestination();
+                    }, 1000);
                 } else if (event === 'SIGNED_OUT') {
                     this.user = null;
                     this.profile = null;
                     this.showSuccessMessage('Signed out successfully');
+                    
+                    // Redirect to welcome page after sign out
+                    setTimeout(() => {
+                        navigateToHome();
+                    }, 500);
                 }
                 this.updateUI();
             });
@@ -500,6 +510,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (result.success) {
                 hideAuthModal();
+                // Navigate to intended destination after successful login
+                setTimeout(() => {
+                    navigateToIntendedDestination();
+                }, 100);
             }
             
             submitBtn.textContent = originalText;
@@ -1172,12 +1186,20 @@ function renderCoursesView(courses) {
         card.dataset.courseId = course.id;
 
                 card.addEventListener('click', () => {
-            navigateToCourse(course.id);
+                    if (checkContentAccess()) {
+                        navigateToCourse(course.id);
+                    } else {
+                        showGatedContentModal(course.title);
+                    }
                 });
                 card.addEventListener('keydown', (event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                         event.preventDefault();
-                navigateToCourse(course.id);
+                        if (checkContentAccess()) {
+                            navigateToCourse(course.id);
+                        } else {
+                            showGatedContentModal(course.title);
+                        }
                     }
                 });
 
@@ -1238,6 +1260,16 @@ function renderCoursesView(courses) {
         statsContainer.appendChild(pathCountElement);
         
         card.appendChild(statsContainer);
+
+        // Add lock indicator for anonymous users
+        if (!checkContentAccess()) {
+            const lockIndicator = document.createElement('div');
+            lockIndicator.className = 'course-card-lock';
+            lockIndicator.innerHTML = '🔒';
+            lockIndicator.setAttribute('aria-label', 'Course requires sign-in');
+            card.appendChild(lockIndicator);
+            card.classList.add('course-card-locked');
+        }
 
         courseGrid.appendChild(card);
     });
@@ -2186,6 +2218,26 @@ function renderCurrentView() {
         return;
     }
 
+    // ===========================
+    // CONTENT GATING CHECK
+    // ===========================
+    
+    // Check if accessing protected content
+    const isAccessingContent = currentRoute.courseId && currentRoute.courseId !== 'courses';
+    
+    if (isAccessingContent && !checkContentAccess()) {
+        // Store intended destination and show welcome page
+        redirectToIntendedContent();
+        renderWelcomePage();
+        return;
+    }
+    
+    // If accessing home page and not authenticated, show welcome page
+    if (!currentRoute.courseId && !checkContentAccess()) {
+        renderWelcomePage();
+        return;
+    }
+
     mainElement.innerHTML = '<!-- Content will be dynamically injected here -->'; 
 
     if (currentRoute.courseId && currentRoute.pathId && currentRoute.moduleId) { // We have a course, path, and module
@@ -2872,6 +2924,157 @@ function displayError(message) {
 loadContent(); // This will also trigger the initial parseHash and renderCurrentView via its success path.
 
 // ===========================
+// CONTENT GATING SYSTEM
+// ===========================
+
+function renderWelcomePage() {
+    const mainElement = document.querySelector('main');
+    if (!mainElement) return;
+
+    mainElement.innerHTML = `
+        <div class="welcome-page">
+            <div class="welcome-hero">
+                <h1 class="welcome-title">Master AI & Machine Learning</h1>
+                <p class="welcome-subtitle">
+                    Interactive courses designed to take you from beginner to expert in AI, Computer Vision, 
+                    and Deep Learning with hands-on projects and real-world applications.
+                </p>
+                
+                <div class="welcome-cta">
+                    <button class="cta-primary" onclick="showAuthModal('signup')">
+                        🚀 Start Learning Free
+                    </button>
+                    <button class="cta-secondary" onclick="showAuthModal('signin')">
+                        📚 Sign In
+                    </button>
+                </div>
+            </div>
+
+            <div class="features-preview">
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">🧠</span>
+                        <h3 class="feature-title">Interactive Learning</h3>
+                        <p class="feature-description">
+                            Engage with dynamic visualizations, coding exercises, and real-time feedback 
+                            that adapts to your learning style.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <span class="feature-icon">📊</span>
+                        <h3 class="feature-title">Track Your Progress</h3>
+                        <p class="feature-description">
+                            Monitor your learning journey with detailed analytics, achievement badges, 
+                            and personalized recommendations.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <span class="feature-icon">🎯</span>
+                        <h3 class="feature-title">Expert-Crafted Content</h3>
+                        <p class="feature-description">
+                            Learn from industry experts with curriculum designed for practical, 
+                            real-world application of AI and ML concepts.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="courses-teaser">
+                <h2 class="teaser-title">Explore Our Courses</h2>
+                <div class="courses-preview-grid" id="courses-preview-grid">
+                    <!-- Courses will be populated here -->
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Populate course previews
+    if (courseData && courseData.courses) {
+        const previewGrid = document.getElementById('courses-preview-grid');
+        courseData.courses.slice(0, 6).forEach(course => {
+            const courseCard = document.createElement('div');
+            courseCard.className = 'course-preview-card';
+            courseCard.onclick = () => showGatedContentModal(course.title);
+            
+            courseCard.innerHTML = `
+                <div class="course-preview-icon">
+                    ${course.icon || '📚'}
+                </div>
+                <h3 class="course-preview-title">${course.title}</h3>
+                <p class="course-preview-description">
+                    ${course.description || 'Comprehensive course covering essential concepts and practical applications.'}
+                </p>
+            `;
+            
+            previewGrid.appendChild(courseCard);
+        });
+    }
+}
+
+function showGatedContentModal(courseName) {
+    const overlay = document.createElement('div');
+    overlay.className = 'gated-content-overlay';
+    overlay.onclick = hideGatedContentModal;
+    
+    overlay.innerHTML = `
+        <div class="gated-content-modal" onclick="event.stopPropagation()">
+            <span class="gated-modal-icon">🔐</span>
+            <h2 class="gated-modal-title">Unlock ${courseName}</h2>
+            <p class="gated-modal-description">
+                Create a free account to access this course and track your progress across all lessons. 
+                Join thousands of learners mastering AI and Machine Learning!
+            </p>
+            <div class="gated-modal-buttons">
+                <button class="gated-btn-primary" onclick="hideGatedContentModal(); showAuthModal('signup');">
+                    Create Free Account
+                </button>
+                <button class="gated-btn-secondary" onclick="hideGatedContentModal(); showAuthModal('signin');">
+                    I Have an Account
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
+
+function hideGatedContentModal() {
+    const overlay = document.querySelector('.gated-content-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+function checkContentAccess() {
+    // Check if user is authenticated
+    if (!authManager || !authManager.isAuthenticated()) {
+        return false;
+    }
+    return true;
+}
+
+function redirectToIntendedContent() {
+    // Store intended destination for after login
+    const hash = window.location.hash;
+    if (hash && hash !== '#/' && hash !== '#') {
+        sessionStorage.setItem('intended_destination', hash);
+    }
+}
+
+function navigateToIntendedDestination() {
+    // Navigate to stored destination after login
+    const intended = sessionStorage.getItem('intended_destination');
+    if (intended) {
+        sessionStorage.removeItem('intended_destination');
+        window.location.hash = intended;
+    } else {
+        navigateToHome();
+    }
+}
+
+// ===========================
 // INITIALIZATION
 // ===========================
 
@@ -2887,6 +3090,11 @@ if (typeof window !== 'undefined') {
     window.toggleAuthMode = toggleAuthMode;
     window.showProfileModal = showProfileModal;
     window.hideProfileModal = hideProfileModal;
+    
+    // Make content gating functions globally accessible
+    window.showGatedContentModal = showGatedContentModal;
+    window.hideGatedContentModal = hideGatedContentModal;
+    window.navigateToIntendedDestination = navigateToIntendedDestination;
 }
 
 // Expose ProgressTracker globally for debugging
