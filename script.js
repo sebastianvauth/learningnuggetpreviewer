@@ -3170,15 +3170,55 @@ function renderWelcomePage() {
     mainElement.innerHTML = `
         <div class="welcome-page">
             <div class="welcome-hero">
-                <h1 class="welcome-title">Master AI & Machine Learning</h1>
-                <p class="welcome-subtitle">
-                    Interactive courses designed to take you from beginner to expert in AI, Computer Vision, 
-                    and Deep Learning with hands-on projects and real-world applications.
-                </p>
+                <div class="mascot-placeholder">
+                    <span class="mascot-icon">🤖</span>
+                    <p class="mascot-text">placeholder animated mascot</p>
+                </div>
+                
+                <h1 class="welcome-title">We're building the learning platform universities and students actually want.</h1>
+                
+                <div class="story-section">
+                    <p class="story-text">
+                        Think back to when you first learned to ride a bike—wobbly at first, then that moment you balanced on two wheels and felt the breeze.<br>
+                        Or the first time you tied your shoes by yourself, eyes wide with "Hey, I did it!" excitement.
+                    </p>
+                    
+                    <p class="neuron-explosion">
+                        <strong>That's how learning should feel—a total NEURON EXPLOSION.</strong>
+                    </p>
+                    
+                    <p class="problem-statement">
+                        But right now most LMS's feel like torture:<br>
+                        slow, clunky, grayscale—zero spark.<br>
+                        Students moan it's boring. Professors sigh it's a slog to build content.
+                    </p>
+                    
+                    <div class="meme-placeholder">
+                        <span class="meme-icon">😴</span>
+                        <p class="meme-text">placeholder meme image</p>
+                    </div>
+                    
+                    <p class="mission-statement">
+                        So our mission is simple: <strong>MAKE LEARNING AND TEACHING FUN, DAMMIT.</strong>
+                    </p>
+                    
+                    <p class="solution-text">
+                        We're turning every lesson into an interactive, beautifully‑designed mini‑exploration—on the web or in your pocket.
+                    </p>
+                    
+                    <p class="explanation-intro">Let me explain:</p>
+                    
+                    <div class="video-placeholder">
+                        <span class="video-icon">🎬</span>
+                        <p class="video-text">placeholder video</p>
+                    </div>
+                    
+                    <p class="sexy-idea">Sexy idea, right?</p>
+                </div>
                 
                 <div class="welcome-cta">
                     <button class="cta-primary" onclick="showAuthModal('signup')">
-                        🚀 Start Learning Free
+                        🚀 Feel the Neuron Rush
                     </button>
                     <button class="cta-secondary" onclick="showAuthModal('signin')">
                         📚 Sign In
@@ -3187,66 +3227,119 @@ function renderWelcomePage() {
             </div>
 
             <div class="features-preview">
+                <div class="audience-sections">
+                    <div class="audience-section">
+                        <h2 class="audience-title">For Students</h2>
                 <div class="features-grid">
                     <div class="feature-card">
-                        <span class="feature-icon">🧠</span>
-                        <h3 class="feature-title">Interactive Learning</h3>
+                                <span class="feature-icon">🏠</span>
+                                <h3 class="feature-title">Home Dashboard</h3>
                         <p class="feature-description">
-                            Engage with dynamic visualizations, coding exercises, and real-time feedback 
-                            that adapts to your learning style.
+                                    See your streak, level up, and jump straight into your next lesson or any course in one tap.
                         </p>
                     </div>
                     
                     <div class="feature-card">
-                        <span class="feature-icon">📊</span>
-                        <h3 class="feature-title">Track Your Progress</h3>
+                                <span class="feature-icon">📚</span>
+                                <h3 class="feature-title">Course Hub</h3>
                         <p class="feature-description">
-                            Monitor your learning journey with detailed analytics, achievement badges, 
-                            and personalized recommendations.
+                                    Interactive chapters, clear learning paths—and instant progress tracking.
                         </p>
                     </div>
                     
+                    <div class="feature-card">
+                                <span class="feature-icon">🗺️</span>
+                                <h3 class="feature-title">Learning Path View</h3>
+                        <p class="feature-description">
+                                    Visual roadmap of your journey, with built‑in progress indicators.
+                        </p>
+                    </div>
+                            
+                            <div class="feature-card">
+                                <span class="feature-icon">🎮</span>
+                                <h3 class="feature-title">Lesson Player</h3>
+                                <p class="feature-description">
+                                    Immersive, bite‑sized learning nuggets packed with interactive challenges, animations, and real‑time hints.
+                                </p>
+                            </div>
+                            
+                            <div class="feature-card">
+                                <span class="feature-icon">🤖</span>
+                                <h3 class="feature-title">AI Study Buddy</h3>
+                                <p class="feature-description">
+                                    Stuck on a concept? Interactive chat mode, get hints, or dive deeper—all powered by AI.
+                                </p>
+                            </div>
+                </div>
+            </div>
+
+                    <div class="audience-section">
+                        <h2 class="audience-title">For Professors</h2>
+                        <div class="features-grid">
                     <div class="feature-card">
                         <span class="feature-icon">🎯</span>
-                        <h3 class="feature-title">Expert-Crafted Content</h3>
+                                <h3 class="feature-title">Instructor Dashboard</h3>
                         <p class="feature-description">
-                            Learn from industry experts with curriculum designed for practical, 
-                            real-world application of AI and ML concepts.
+                                    Spin up AI‑generated lesson plans in different styles and generate bite sized lessons from your own slides or scripts—or let Deep Research craft a plan from scratch.
                         </p>
+                </div>
+                            
+                            <div class="feature-card">
+                                <span class="feature-icon">✏️</span>
+                                <h3 class="feature-title">Course & Lesson Editor</h3>
+                                <p class="feature-description">
+                                    Create different lesson types like core concept lessons, math explainer videos, podcast lessons, examples, coding lessons, exercises, and more. One click to edit any lesson.
+                                </p>
+            </div>
+                            
+                            <div class="feature-card">
+                                <span class="feature-icon">👥</span>
+                                <h3 class="feature-title">Learning Group Management</h3>
+                                <p class="feature-description">
+                                    Create cohorts in seconds, send registration links, and track each learner's journey.
+                                </p>
+        </div>
+
+                            <div class="feature-card">
+                                <span class="feature-icon">🧩</span>
+                                <h3 class="feature-title">Modular Activity Library</h3>
+                                <p class="feature-description">
+                                    Drag‑and‑drop exercises, quizzes, and simulations—customizable or auto‑regenerated by AI.
+                                </p>
+                            </div>
+                            
+                            <div class="feature-card">
+                                <span class="feature-icon">🎓</span>
+                                <h3 class="feature-title">AI Teaching Assistant</h3>
+                                <p class="feature-description">
+                                    Brainstorm new activities, refine explanations, get instant feedback on your lesson design or create assessments from your lecture content.
+                                </p>
+                </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="courses-teaser">
-                <h2 class="teaser-title">Explore Our Courses</h2>
-                <div class="courses-preview-grid" id="courses-preview-grid">
-                    <!-- Courses will be populated here -->
+            <div class="closing-section">
+                <h2 class="closing-title">We're not just another LMS—we're a turnkey AI driven learning platform designed to delight students and supercharge instructors.</h2>
+                
+                <p class="closing-text">
+                    After conquering the classroom, no university will ever settle for "slow and gray" again.
+                </p>
+                
+                <p class="final-cta-text">
+                    Ready to feel that neuron rush? Let's make your courses an exploration worth taking.
+                </p>
+                
+                <div class="final-cta">
+                    <button class="cta-primary" onclick="showAuthModal('signup')">
+                        🧠 Start the Revolution
+                    </button>
                 </div>
             </div>
         </div>
     `;
 
-    // Populate course previews
-    if (courseData && courseData.courses) {
-        const previewGrid = document.getElementById('courses-preview-grid');
-        courseData.courses.slice(0, 6).forEach(course => {
-            const courseCard = document.createElement('div');
-            courseCard.className = 'course-preview-card';
-            courseCard.onclick = () => showGatedContentModal(course.title);
-            
-            courseCard.innerHTML = `
-                <div class="course-preview-icon">
-                    ${course.icon || '📚'}
-                </div>
-                <h3 class="course-preview-title">${course.title}</h3>
-                <p class="course-preview-description">
-                    ${course.description || 'Comprehensive course covering essential concepts and practical applications.'}
-                </p>
-            `;
-            
-            previewGrid.appendChild(courseCard);
-        });
-    }
 }
 
 function showGatedContentModal(courseName) {
