@@ -1,0 +1,101 @@
+{
+    "lesson": {
+      "title": "From Lines to Pictures - Images as 2D Signals",
+      "sections": [
+        {
+          "title": "Introduction: Beyond 1D",
+          "content": "# From Lines to Pictures: Images as 2D Signals",
+          "image": "Description: A dynamic image showing a 1D sound wave morphing smoothly into a 2D grayscale image of a landscape. This visually connects the concept of a 1D signal over time to a 2D signal over space.",
+          "text": "Welcome to Chapter 6! In our last adventure, we saw how to break down 1D signals, like sound waves, into their fundamental frequencies. Now, we're going to take that powerful idea and apply it to something you look at every day: images. It's hard to believe, but a simple photograph is actually a complex tapestry of 'spatial frequencies'. In this first lesson, we'll discover how to see an image not just as a grid of pixels, but as a 2D signal, just waiting to be analyzed."
+        },
+        {
+          "title": "An Image is a Signal",
+          "content": "Have you ever wondered what an image *really* is to a computer? It's not just a collection of colors. At its core, it’s data that changes. A sound wave is a signal because its pressure level changes over *time*.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "An image is a signal because its brightness and color values change over *space*—across two dimensions, horizontally and vertically. It’s a 2D spatial signal!",
+              "continueButton": true
+            },
+            {
+              "text": "Let's make this crystal clear. Take a look at this simple image patch. It's just a set of wavy vertical lines.",
+              "visualAid": {
+                "description": "Based on Figure 6.1. A side-by-side view. On the left, an image patch showing black and white vertical wavy stripes. An arrow points from a single horizontal row on this image to the panel on the right. The right panel displays a 1D plot of the pixel intensity values taken from that row, showing a clear cosine wave. A caption reads: 'A single row of pixels can be treated just like a 1D signal!'"
+              },
+              "continueButton": true
+            },
+            {
+              "text": "If we plot the brightness of the pixels along just one horizontal line, what do we get? A wave! Just like a sound signal. This is the key insight: we can use the same ideas of 'frequency' on images as we do on sounds.",
+              "continueButton": true
+            },
+            {
+              "text": "In images, we call this **spatial frequency**.",
+              "meme": {
+                "description": "A 'Galaxy Brain' meme format image. Panel 1 (Small Brain): 'Seeing a picture.' Panel 2 (Expanding Brain): 'Seeing a grid of pixels.' Panel 3 (Galaxy Brain): 'Seeing a 2D spatial signal composed of frequencies.'"
+              },
+              "continueButton": true
+            },
+            {
+              "text": "A smooth, slowly changing area, like a clear blue sky or a plain wall, has **low spatial frequencies**. An area with lots of sharp details, like the text on a page or the texture of a carpet, has **high spatial frequencies**.",
+              "buildYourVocab": {
+                "term": "Spatial Signal",
+                "definition": "An image treated as a signal where the value (e.g., pixel intensity) varies over spatial dimensions (x and y)."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Identifying Frequencies",
+          "content": "Let's put this new vocabulary to the test.",
+          "stopAndThink": {
+            "question": "Look at the room around you. Can you identify an object or surface that is made up of mostly 'low frequency' visual information and another that is 'high frequency'?",
+            "revealText": "Hint: Think about texture and edges. A smooth, single-color wall has very low frequencies. A knitted sweater, a bookshelf full of books, or a patterned rug is full of high frequencies because the brightness changes very quickly and often."
+          },
+          "additionalContent": [
+            {
+              "text": "This very simple idea—that images are made of frequencies—is the foundation for some of the most important technologies in computer vision.",
+              "whyItMatters": {
+                "text": "Why does this matter? Because thinking of images as signals is the conceptual key that unlocks frequency analysis. It allows us to borrow powerful tools from engineering and apply them to computer vision, enabling us to manipulate images in ways that would be impossible just by looking at pixels alone. This is the secret behind how JPEG compression can shrink a photo to a fraction of its size without you barely noticing!"
+              },
+              "continueButton": true
+            },
+            {
+              "text": "Great! You now understand the fundamental concept that an image is a 2D signal. But how do we actually measure these frequencies? That's what we'll dive into in our next lesson, where we meet our special frequency-finding tool: the DCT.",
+              "testYourKnowledge": {
+                "question": "Which of the following parts of an image would contain the highest spatial frequencies?",
+                "options": [
+                  {
+                    "option": "A clear blue sky.",
+                    "explanation": "A clear sky is very smooth and uniform, so it would have very low spatial frequencies.",
+                    "correct": false
+                  },
+                  {
+                    "option": "A person's plain white t-shirt.",
+                    "explanation": "A plain t-shirt, like a clear sky, is a smooth area with very little change in brightness. This means it has low frequencies.",
+                    "correct": false
+                  },
+                  {
+                    "option": "The sharp edge between a dark doorway and a light wall.",
+                    "explanation": "Exactly! An edge is where brightness changes very abruptly over a very small distance. This is the definition of a high-frequency component.",
+                    "correct": true
+                  },
+                  {
+                    "option": "A blurry, out-of-focus background.",
+                    "explanation": "Blurring, by its very nature, removes sharp details. A blurred background is a classic example of a low-frequency area.",
+                    "correct": false
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "Let's take a moment to reflect on what we've learned.",
+          "image": "Description: An icon-style image summarizing the lesson. On the left, a 1D sine wave icon labeled '1D Signal (Time)'. An arrow points to the right, to a 2D icon of a mountain landscape labeled '2D Signal (Space)'. This reinforces the core analogy.",
+          "text": "In this lesson, we made the crucial conceptual leap from 1D signals to 2D images. We've learned that:\n- An image can be viewed as a **2D spatial signal**, where pixel values change over space rather than time.\n- The rate of this change is called **spatial frequency**. Smooth areas have low frequencies, while detailed areas with sharp edges have high frequencies.\n\nThis simple shift in perspective is incredibly powerful. Now that we know we can think of images as signals, we're ready to learn how to analyze their frequencies. In the next lesson, we will meet the mathematical tool that makes it all possible: the Discrete Cosine Transform (DCT)."
+        }
+      ]
+    }
+  }

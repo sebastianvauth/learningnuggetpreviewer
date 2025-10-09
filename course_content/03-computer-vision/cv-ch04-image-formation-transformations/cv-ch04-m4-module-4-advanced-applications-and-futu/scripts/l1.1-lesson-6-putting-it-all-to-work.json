@@ -1,0 +1,95 @@
+{
+    "lesson": {
+      "title": "Lesson 6: Putting It All to Work",
+      "sections": [
+        {
+          "title": "Intro Section",
+          "content": "# Putting It All to Work: Applications and Challenges",
+          "image": "Description: A split-panel image. On the left, a video game developer at a computer uses a 3D model to generate a 2D game screen (labeled 'Graphics: 3D -> 2D'). On the right, a robot with camera eyes looks at a real-world object and creates a 3D model of it on a screen (labeled 'Vision: 2D -> 3D').",
+          "text": "We've built our camera model. We have our all-powerful Projection Matrix `P`. It's time to use it! In this final lesson, we'll see how Hollywood and game developers use our model to create breathtaking virtual worlds. Then, we'll flip the problem on its head and tackle a much harder challenge: how to work backwards and understand the 3D world from 2D images, just like our own brains do."
+        },
+        {
+          "title": "Forward Projection: Creating Virtual Worlds",
+          "content": "The first major application is what we call **forward projection**: going from a known 3D world to a 2D image. This is the heart of computer graphics.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "Imagine you're developing a simulator for a self-driving car. You have a highly detailed 3D model of a city—every building, tree, and road is defined by 3D coordinates. To train your AI, you need to show it what a camera on the car would see.",
+              "continueButton": true
+            },
+            {
+              "title": "The Simulation Pipeline",
+              "content": "The process is exactly what we've learned:\n1.  **Define a Virtual Camera:** You specify the camera's intrinsics (`K`)—its focal length, etc.—and its extrinsics (`[R|t]`)—its position and orientation on the virtual car.\n2.  **Form the Projection Matrix:** You compute `P = K[R|t]`.\n3.  **Project Every Point:** You take every visible 3D point in your city model and multiply it by `P` to find its corresponding 2D pixel location.\n4.  **Render the Image:** You 'color in' the pixels to create a perfectly realistic, synthetic camera image.",
+              "visualAid": {
+                "title": "Visual Aid: Synthetic Image Generation",
+                "description": "A clear version of Figure 4.12. On the left, a wireframe 3D model of a street scene is shown. A large arrow labeled with the matrix `P` points from the 3D model to a fully rendered, photorealistic 2D image of that same street scene on the right. This visually connects the mathematical model to a real-world application."
+              },
+              "continueButton": true
+            },
+            {
+              "title": "The Hard Problem: Mapping Between Views",
+              "content": "Okay, going from 3D to 2D is straightforward. But what about the true goal of computer *vision*? Going from 2D images back to a 3D understanding. This is much, much harder.",
+              "continueButton": true
+            },
+            {
+              "title": "The Stereo Correspondence Problem",
+              "content": "Let's say you have two cameras, like your two eyes, looking at the same scene. A point in the world appears at pixel `x₀` in the left camera. The big question is: where will it appear as `x₁` in the right camera? This is the **stereo correspondence problem**.",
+              "image": "Description: A diagram similar to Figure 4.13. It shows a 3D point `p` being viewed by two different cameras, resulting in two different 2D image points, `x₀` and `x₁`. An arrow with a question mark connects `x₀` and `x₁`.",
+              "continueButton": true
+            },
+            {
+              "title": "The Missing Ingredient: Depth",
+              "content": "If we knew the 3D position of the point, we could just use our projection matrix `P₁` to find `x₁`. But we only have the 2D image from the first camera! The projection `P₀` that gave us `x₀` has lost a critical piece of information: the **depth** of the point (λ₀).",
+              "interactive": {
+                "title": "Interactive Element: The Depth Slider",
+                "description": "Two image panels are shown side-by-side, representing left and right camera views of a simple 3D scene (e.g., a few floating cubes at different distances). A user can click on a point on one of the cubes in the left image. In the right image, a horizontal line (the 'epipolar line') appears. Below the images is a single slider labeled 'Depth'. As the user moves the slider, a dot moves back and forth along the line in the right image. A text box updates, showing 'If depth is X, the point appears at coordinate Y'. This powerfully demonstrates that the point's location in the second view is entirely dependent on its unknown depth."
+              },
+              "textAfterInteractive": "As you can see, without knowing the depth, the corresponding point could be anywhere along that line! Finding the right match is the key to calculating depth from images.",
+              "continueButton": true
+            },
+            {
+              "whyItMatters": {
+                "title": "Why does this matter?",
+                "text": "These two applications are two sides of the same coin. **Forward projection (3D->2D)** lets us create virtual worlds for games, movies, and simulation (Graphics). **Working backwards (2D->3D)**, a process often called triangulation or reconstruction, lets us understand the structure of the real world (Vision). This is the key to 3D scanning, robot navigation, and measuring distances from photographs."
+              },
+              "stopAndThink": {
+                "question": "Our brains solve the stereo correspondence problem constantly to perceive depth. Why is this so much harder for a computer? What cues do our brains use that a simple algorithm looking at two images might not have?",
+                "revealText": "Our brains are masters of context! We use many cues: texture (we know how patterns should look), lighting and shadows, occlusion (one object blocking another tells us which is closer), and most importantly, our vast prior knowledge of what objects are supposed to look like and how big they are. A computer just sees two grids of pixel values; it lacks all this rich, real-world context."
+              },
+              "testYourKnowledge": {
+                "question": "To find the exact location of a point in a second camera's view, given its location in the first view, what critical piece of information is generally required?",
+                "options": [
+                  {
+                    "option": "The color of the point",
+                    "explanation": "Color can help find a *match*, but it doesn't solve the geometric ambiguity.",
+                    "correct": false
+                  },
+                  {
+                    "option": "The focal length of the second camera",
+                    "explanation": "This is part of the projection matrix P₁, but it's not enough on its own.",
+                    "correct": false
+                  },
+                  {
+                    "option": "The depth of the point relative to the first camera",
+                    "explanation": "Correct! The depth (λ₀) is the missing variable. If we know the depth, we can uniquely determine the point's 3D location and then project it into the second camera's view.",
+                    "correct": true
+                  },
+                  {
+                    "option": "The time of day",
+                    "explanation": "Time of day might affect lighting, but it doesn't resolve the geometric problem.",
+                    "correct": false
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "And that's a wrap on geometric image formation! We've journeyed from simple 2D points all the way to a complete 3D camera model and its real-world applications.",
+          "image": "Description: A final summary graphic with two main flows. Top flow: '3D World Model' -> 'P' -> '2D Synthetic Image' with a 'Graphics' label. Bottom flow: 'Two 2D Images' -> '?' -> '3D Structure' with a 'Vision' label.",
+          "text": "In this lesson, you saw how our camera model is used for:\n- **Forward Projection:** Creating realistic 2D images from 3D models, the foundation of computer graphics.\n- **The Stereo Problem:** The challenge of working backwards from 2D images to understand 3D structure, which hinges on solving for the unknown **depth**.\n\nCongratulations on completing this chapter! You now possess a deep understanding of the geometry behind every photo you've ever taken. This knowledge is the bedrock for the more advanced topics we'll explore next, where we'll start analyzing the content of images themselves."
+        }
+      ]
+    }
+  }

@@ -1,0 +1,86 @@
+{
+    "lesson": {
+      "title": "The Human Vision Filter",
+      "sections": [
+        {
+          "title": "Introduction: Your Eyes Are Not a Camera",
+          "content": "# Lesson 1: The Human Vision Filter",
+          "image": {
+            "description": "A high-resolution, vibrant image of a single red apple with a green leaf, identical to Figure 1.1 in the provided document. The apple is centered and well-lit, showcasing its texture and reflection."
+          },
+          "text": "Welcome! Let's start with a simple question. Look at this picture. What do you see? You instantly thought 'apple,' right? But *how*? Your brain performed an incredible feat of pattern recognition in a fraction of a second. In this lesson, we'll explore the magic behind that instant recognition and discover a fundamental truth: your eyes are not a camera—they're a highly advanced, selective filter."
+        },
+        {
+          "title": "The Power of Recognition",
+          "content": "You didn't see a collection of red and green pixels; you saw patterns—the round shape, the stem, the shiny reflection. Your brain matched these patterns to a 'mental symbol' of an apple you've built up over your lifetime. It's like a mental search engine, instantly pulling up the concept 'apple' from a massive database of experiences.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "Now, think about what's around you that you *can't* see. Your room is flooded with information. Wi-Fi signals carrying this very lesson, radio waves from a local station, cosmic rays from distant stars, and billions of tiny dust particles. You don't see any of it.",
+              "image": {
+                "description": "A meme of the 'This is fine' dog sitting in a room. Instead of fire, the room is filled with swirling text labels like 'Wi-Fi,' '5G Signals,' 'Cosmic Rays,' and 'Radio Waves.' The dog, representing a human, says, 'This is fine,' completely oblivious to the invisible phenomena."
+              },
+              "continueButton": true
+            },
+            {
+              "text": "This is because our perception is highly **selective**. Our eyes have evolved to ignore over 99.9% of the information out there. It wasn't useful for our ancestors to see Wi-Fi, but spotting a saber-toothed tiger in the jungle or identifying an edible apple? That was a matter of survival.",
+              "interactive": {
+                "description": "A diagram labeled 'The World of Information' is shown, filled with small, colorful icons representing various phenomena: light waves (wavy lines), sound waves (concentric circles), radio signals (tower icon), bacteria (microbe icon), a tiger, and an apple. A semi-transparent overlay shaped like a human eye, labeled 'Human Visual System,' can be dragged by the student. When the student drags the eye overlay across the diagram, only the icons for 'light waves,' 'tiger,' and 'apple' remain bright and visible. All other icons (radio, sound, bacteria) fade into the background, becoming dim and blurry. This interactively demonstrates the concept of the visual system as a filter."
+              },
+              "continueButton": true
+            },
+            {
+              "buildYourVocab": {
+                "term": "Recognition",
+                "definition": "The mental process of matching incoming sensory information to a stored pattern or concept in memory. It's how you identify familiar objects, faces, or scenes."
+              },
+              "textAfterVocab": "This ability to recognize important patterns while filtering out the rest is the foundation of sight.",
+              "stopAndThink": {
+                "question": "Besides sight, what's another selective sense humans have, and what information does it filter out in a busy environment?",
+                "revealText": "Think about being in a crowded, noisy party. Your ears are flooded with sounds, but you can focus on a single conversation. This is your auditory system filtering out other voices and background noise, a phenomenon often called the 'cocktail party effect'."
+              },
+              "continueButton": true
+            },
+            {
+              "whyItMatters": {
+                "text": "Understanding that human vision is a selective filter is the first step in our journey. The ultimate goal of computer vision is to build artificial systems that can learn to do the same thing: filter out the irrelevant noise and recognize the important patterns in an image or video."
+              },
+              "testYourKnowledge": {
+                "question": "According to the lesson, why can't we see the Wi-Fi signal from our router?",
+                "options": [
+                  {
+                    "option": "It moves too fast for our eyes.",
+                    "explanation": "While Wi-Fi travels at the speed of light, speed isn't the issue. The problem is the type of wave.",
+                    "correct": false
+                  },
+                  {
+                    "option": "It is not made of matter.",
+                    "explanation": "True, it's an electromagnetic wave, but so is visible light! That's not the distinguishing factor.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Our visual system did not evolve to detect that part of the electromagnetic spectrum.",
+                    "explanation": "Exactly! Our eyes are tuned to a very narrow band of the electromagnetic spectrum called 'visible light.' Wi-Fi operates on a different frequency that we simply did not evolve to perceive.",
+                    "correct": true
+                  },
+                  {
+                    "option": "It is blocked by the walls.",
+                    "explanation": "Wi-Fi can certainly be blocked by walls, but even if you were standing right next to the router, you wouldn't see the signal.",
+                    "correct": false
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "",
+          "image": {
+            "description": "An illustration showing a human eye with a funnel in front of it. A wide stream of various icons (radio waves, sound waves, light, etc.) goes into the funnel, but only a narrow stream of light icons comes out the other side and enters the eye. This visually summarizes the concept of selective filtering."
+          },
+          "text": "In this lesson, we uncovered the first major principle of perception: our vision is a powerful but selective filter. We learned that:\n- **Recognition** is a high-level brain function that matches patterns to learned mental symbols.\n- Our senses are **selective**, focusing on evolutionarily relevant information (like food and threats) while ignoring most of the data in our environment.\n- This filtering is not a bug, but a feature that allows us to navigate a complex world efficiently.\n\nIn the next lesson, we'll build on this by creating a simple model to understand the entire journey from light entering our eye to the creation of meaning in our brain."
+        }
+      ]
+    }
+  }

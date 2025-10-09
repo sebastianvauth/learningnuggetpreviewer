@@ -1,0 +1,131 @@
+{
+    "lesson": {
+      "title": "Inside the Digital Camera - The Sensor",
+      "sections": [
+        {
+          "title": "Intro Section",
+          "content": "# Inside the Digital Camera: The Sensor",
+          "image": "Description: A close-up, macro shot of a digital camera's image sensor, showing the iridescent, grid-like pattern on its surface. The image looks high-tech and precise.",
+          "text": "We've formed a sharp image with a lens. But in a digital camera, there's no film. So how do we *record* that image and turn it into a file on a memory card? It's time to meet the digital equivalent of the retina: the image sensor. This tiny silicon chip is where light finally becomes data."
+        },
+        {
+          "title": "From Light to Electricity",
+          "content": "At the heart of every image sensor is a grid of millions of microscopic light detectors called **photodiodes**. Think of each photodiode as a single pixel on the final image.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "A photodiode has a very simple and amazing job: when a photon of light strikes it, it generates a tiny electrical charge. The more photons that hit it (i.e., the brighter the light), the stronger the electrical charge it produces. It's a direct conversion of light energy into electrical energy.",
+              "image": "Description: A clear animation of a single photodiode. It shows little glowing particles labeled 'Photons' raining down on a silicon block. Each time a photon hits, a little spark animation occurs, and an electron particle is released, adding to a 'charge' meter on the side. The meter goes up faster when more photons are hitting it.",
+              "continueButton": true
+            },
+            {
+              "text": "So now we have a grid of millions of tiny electrical charges, each one corresponding to the brightness of a specific point in our scene. But there's a problem... these photodiodes are colorblind. They only measure intensity, not color.",
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "The Bayer Filter: Giving the Sensor Color Vision",
+          "content": "How do we get a color image from a colorblind sensor? We use a clever trick, inspired by the human eye! We place a microscopic mosaic of color filters over the grid of photodiodes. This mosaic is called a **Bayer Filter**.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "The filter consists of a repeating 2x2 pattern of Red, Green, Green, and Blue filters (RGGB). Each tiny filter only allows light of its own color to pass through to the photodiode beneath it.",
+              "interactive": "Description for 'The Bayer Filter Challenge': The screen shows a 4x4 grid of empty pixel squares, representing a section of the sensor. Below are draggable tiles with 'R', 'G', and 'B' on them. The instruction is: 'The sensor is colorblind. Drag the filters onto the grid to create the Bayer Pattern and give it color vision!' The grid only accepts the correct RGGB pattern. When the student completes a 2x2 block correctly, it snaps into place. Once the full 4x4 grid is filled, a message appears: 'Success! Notice there are twice as many green filters? That's because our eyes are most sensitive to green, and this pattern mimics that!'",
+              "checkYourKnowledge": {
+                "question": "After light has passed through the Bayer filter, how many color values have been directly measured at a single pixel's location?",
+                "options": [
+                  {
+                    "option": "Three (R, G, and B)",
+                    "explanation": "Not quite. This is the goal for the final image, but at this stage, each individual photodiode has only seen light of one color.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Only one (either R, or G, or B)",
+                    "explanation": "Exactly! A pixel under a red filter only knows the intensity of red light. A pixel under a green filter only knows the intensity of green light, and so on.",
+                    "correct": true
+                  },
+                  {
+                    "option": "None, the color is measured later.",
+                    "explanation": "The color information *is* being measured here, but it's incomplete. Each pixel gets one piece of the color puzzle.",
+                    "correct": false
+                  }
+                ]
+              },
+              "stopAndThink": {
+                "question": "If each pixel only measures one color (R, G, or B), how can the final image we see have full RGB color for every single pixel? What must the camera's software do to fill in the blanks?",
+                "revealText": "It has to make an educated guess! For a pixel that measured red, the camera's processor looks at its immediate neighbors. It 'borrows' the green value from its green neighbors and the blue value from its blue neighbors. This process of intelligently interpolating the missing colors is called 'Demosaicing', and we'll cover it in the final lesson of this chapter!"
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "The Two Titans: CCD vs. CMOS",
+          "content": "Finally, how does the camera read the electrical charge from these millions of photodiodes? There are two main technologies that have dominated the industry, like two rival titans: CCD and CMOS.",
+          "image": "Description: A meme comparing CCD and CMOS sensors. On the left, a picture of a wise, old, master artisan carefully crafting something beautiful, labeled 'CCD: Flawless Quality, Takes Its Time'. On the right, a picture of a hyper-efficient, multi-tasking modern factory robot, labeled 'CMOS: Fast, Cheap, and In Everything You Own'.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "**CCD (Charge-Coupled Device):** The old master. In a CCD, the charge from each pixel is passed down the line, pixel by pixel, like a bucket brigade, to a single, high-quality converter at the end. This process is slow but results in very high-quality, low-noise images. They are found in high-end scientific and astronomical cameras.",
+              "image": "Description: An animation of a CCD sensor readout (based on Figure 2.15). It shows a grid of pixels, each with a colored water droplet inside. An animation shows the droplets being shifted row by row onto a conveyor belt, which then carries them one by one to a 'measuring station' at the end.",
+              "continueButton": true
+            },
+            {
+              "text": "**CMOS (Complementary Metal-Oxide-Semiconductor):** The modern workhorse. In a CMOS sensor, each pixel has its own amplifier to convert charge to voltage right at the pixel site. This allows the camera to read out all the pixels much faster, often row by row. They are cheaper to make, use less power, and are fast enough for high-frame-rate video. This is the technology inside your smartphone, webcam, and most consumer cameras today.",
+              "image": "Description: An animation of a CMOS sensor readout (based on Figure 2.16). It shows a grid of pixels, and instead of a conveyor belt, each row lights up sequentially as data is read from it in parallel. The process is visibly much faster than the CCD animation.",
+              "whyItMatters": {
+                "text": "Understanding the difference between CCD and CMOS explains why different cameras have different strengths. The choice of sensor technology directly impacts a camera's cost, speed, low-light performance, and suitability for tasks like high-speed video versus long-exposure astrophotography."
+              },
+              "buildYourVocab": {
+                "term": "Photodiode",
+                "definition": "A semiconductor device that converts light (photons) into a proportional electrical signal. The building block of an image sensor."
+              },
+              "buildYourVocab2": {
+                "term": "Bayer Filter",
+                "definition": "A mosaic of Red, Green, and Blue filters (RGGB) placed over a sensor to allow it to capture color information."
+              },
+              "buildYourVocab3": {
+                "term": "CMOS Sensor",
+                "definition": "The dominant sensor technology today. It is fast, power-efficient, and reads data in parallel, making it ideal for video and consumer devices."
+              },
+              "continueButton": true
+            },
+            {
+              "text": "",
+              "frequentlyAsked": {
+                "question": "If CMOS is so much better, why would anyone still use a CCD?",
+                "answer": "For a long time, CCDs had a significant advantage in image quality, especially in low-noise and light sensitivity. While modern CMOS sensors have largely closed that gap, for certain very high-precision scientific applications where absolute image fidelity is more important than speed or cost, a specialized CCD can still be the superior choice."
+              },
+              "testYourKnowledge": {
+                "question": "You're designing a cheap, high-speed webcam that needs to capture smooth video. Which sensor technology would be the obvious choice?",
+                "options": [
+                  {
+                    "option": "CCD, because of its superior image quality.",
+                    "explanation": "While the quality is great, CCDs are generally too slow and expensive for a product like a webcam, especially one that needs high-speed video.",
+                    "correct": false
+                  },
+                  {
+                    "option": "CMOS, because it's fast, power-efficient, and inexpensive.",
+                    "explanation": "Absolutely. CMOS technology's speed (from parallel readout) and low manufacturing cost make it the perfect fit for webcams, smartphones, and most video applications.",
+                    "correct": true
+                  },
+                  {
+                    "option": "A Bayer Filter, because it's needed for color.",
+                    "explanation": "A Bayer filter is a component you'd put on top of the sensor, not the sensor technology itself. Both a CCD and a CMOS sensor would need one to see color.",
+                    "correct": false
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "",
+          "image": "Description: A summary visual. It shows a photon hitting a photodiode, which has a Bayer filter on top. An arrow points from this to two branching paths, one labeled 'CCD (Bucket Brigade)' and the other 'CMOS (Parallel Readout)', each with its representative icon.",
+          "text": "We've gone deep inside the digital camera! This is where light officially becomes an electronic signal. Let's review the key components:\n\n- **Photodiodes:** Millions of microscopic detectors that convert light intensity into an electrical charge.\n- **Bayer Filter:** A clever RGGB filter pattern that sits on top of the colorblind sensor, allowing it to capture color data by measuring only one color at each pixel.\n- **CCD vs. CMOS:** Two rival sensor technologies. CCDs are slow and high-quality, while CMOS sensors are fast, cheap, and dominate the modern market.\n\nBut the speed of a CMOS sensor comes with a strange side effect that can warp reality. In the next lesson, we'll explore the weird world of the rolling shutter."
+        }
+      ]
+    }
+  }

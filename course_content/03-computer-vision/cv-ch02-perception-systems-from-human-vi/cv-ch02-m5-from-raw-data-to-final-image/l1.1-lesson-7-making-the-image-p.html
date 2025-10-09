@@ -1,0 +1,1650 @@
+﻿?<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Making the Image - Pixels and Values</title>
+    <style>
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+        }
+
+
+
+        /* Main Container */
+        .lesson-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Section Cards */
+        section {
+            background: transparent;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            display: none;
+            opacity: 0;
+            transition: all 0.6s ease;
+            transform: translateY(20px);
+        }
+
+        section.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+        }
+
+        ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        li {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        strong {
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        em {
+            color: #667eea;
+            font-style: normal;
+            font-weight: 500;
+        }
+
+        /* Image Placeholders */
+        .image-placeholder {
+            margin: 2rem 0;
+        }
+
+        /* Confetti Animation */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            font-size: 20px;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti:nth-child(odd) {
+            animation-duration: 2.5s;
+            animation-delay: 0.2s;
+        }
+
+        .confetti:nth-child(even) {
+            animation-duration: 3.5s;
+            animation-delay: 0.5s;
+        }
+
+        .confetti:nth-child(3n) {
+            animation-duration: 2.8s;
+            animation-delay: 0.8s;
+        }
+
+        .confetti:nth-child(4n) {
+            animation-duration: 3.2s;
+            animation-delay: 0.3s;
+        }
+
+        .confetti:nth-child(5n) {
+            animation-duration: 2.7s;
+            animation-delay: 0.7s;
+        }
+
+        /* Success Message Animation */
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+            z-index: 10000;
+            opacity: 0;
+            animation: success-popup 2.5s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes success-popup {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            40% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+        }
+
+        .image-placeholder img {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        /* Specific sizing for individual images by section */
+        #section1 .image-placeholder img {
+            width: 70% !important;              /* Image 1: 70% (dramatic light beam) */
+            max-width: 500px !important;
+        }
+
+        #section6 .image-placeholder img {
+            width: 55% !important;              /* Image 2: 50-60% (meme image) */
+            max-width: 400px !important;
+        }
+        
+        #section9 .image-placeholder img {
+            width: 85% !important;              /* Image 3: 80-90% (prism diagram) */
+            max-width: 600px !important;
+        }
+        
+        #section13 .image-placeholder img {
+            width: 85% !important;              /* Image 4: 80-90% (red object) */
+            max-width: 600px !important;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #section1 .image-placeholder img {
+                width: 80% !important;
+                max-width: 400px !important;
+            }
+
+            #section6 .image-placeholder img {
+                width: 65% !important;
+                max-width: 350px !important;
+            }
+            
+            #section9 .image-placeholder img,
+            #section13 .image-placeholder img {
+                width: 90% !important;
+                max-width: 450px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #section1 .image-placeholder img {
+                width: 85% !important;
+                max-width: 300px !important;
+            }
+
+            #section6 .image-placeholder img {
+                width: 75% !important;
+                max-width: 280px !important;
+            }
+            
+            #section9 .image-placeholder img,
+            #section13 .image-placeholder img {
+                width: 95% !important;
+                max-width: 320px !important;
+            }
+        }
+
+        /* Content Boxes */
+        .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, 
+        .stop-and-think, .check-your-knowledge {
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 8px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vocab-section::before, .why-it-matters::before, .test-your-knowledge::before,
+        .faq-section::before, .stop-and-think::before, .check-your-knowledge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.05;
+            z-index: 0;
+        }
+
+        .vocab-section {
+            background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+            border-left-color: #4facfe;
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+        }
+
+        .vocab-section::before {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+        }
+
+        .why-it-matters {
+            background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+            border-left-color: #f093fb;
+            box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+        }
+
+        .why-it-matters::before {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+        }
+
+        .test-your-knowledge, .check-your-knowledge {
+            background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+            border-left-color: #68d391;
+            box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+        }
+
+        .test-your-knowledge::before, .check-your-knowledge::before {
+            background: linear-gradient(45deg, #68d391, #4fd1c7);
+        }
+
+        .faq-section {
+            background: linear-gradient(135deg, #fffbeb 0%, #fefcf3 100%);
+            border-left-color: #fbbf24;
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.1);
+        }
+
+        .faq-section::before {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+        }
+
+        .stop-and-think {
+            background: linear-gradient(135deg, #f3e8ff 0%, #f8f4ff 100%);
+            border-left-color: #a78bfa;
+            box-shadow: 0 10px 30px rgba(167, 139, 250, 0.1);
+        }
+
+        .stop-and-think::before {
+            background: linear-gradient(45deg, #a78bfa, #8b5cf6);
+        }
+
+        .vocab-section:hover, .why-it-matters:hover, .test-your-knowledge:hover,
+        .faq-section:hover, .stop-and-think:hover, .check-your-knowledge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .vocab-section h3 {
+            color: #0ea5e9;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .why-it-matters h3 {
+            color: #ec4899;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .test-your-knowledge h3, .check-your-knowledge h3 {
+            color: #10b981;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .faq-section h3 {
+            color: #d97706;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stop-and-think h3 {
+            color: #8b5cf6;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vocab-section h4, .test-your-knowledge h4, .check-your-knowledge h4, .faq-section h4 {
+            color: #2d3748;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vocab-term {
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .continue-button, .reveal-button, .check-button {
+            display: inline-block;
+            padding: 16px 32px;
+            margin-top: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .continue-button::before, .reveal-button::before, .check-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .continue-button:hover, .reveal-button:hover, .check-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .continue-button:hover::before, .reveal-button:hover::before, .check-button:hover::before {
+            left: 100%;
+        }
+
+        .continue-button:active, .reveal-button:active, .check-button:active {
+            transform: translateY(-1px);
+        }
+
+        /* Hidden state for conditional buttons */
+        .continue-button[style*="display: none"] {
+            display: none !important;
+        }
+
+        /* Ensure all conditional continue buttons match normal button styling exactly when shown */
+        #continue-after-interactive:not([style*="display: none"]),
+        #continue-after-check-knowledge:not([style*="display: none"]),
+        #continue-after-test-knowledge:not([style*="display: none"]) {
+            display: inline-block !important;
+            width: auto !important;
+            max-width: none !important;
+            min-width: auto !important;
+            padding: 16px 32px !important;
+            margin: 30px auto !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Center ALL continue buttons by making all sections center them */
+        section {
+            text-align: center;
+        }
+
+        /* Reset text alignment for all content except continue buttons */
+        section > *:not(.continue-button) {
+            text-align: left;
+        }
+
+        /* Ensure content boxes also have left alignment */
+        .check-your-knowledge,
+        .test-your-knowledge,
+        .vocab-section,
+        .why-it-matters,
+        .faq-section,
+        .stop-and-think {
+            text-align: left;
+        }
+
+        /* Smooth appearance for conditional continue buttons */
+        .continue-button.show-with-animation {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Multiple Choice */
+        .multiple-choice {
+            margin: 1.5rem 0;
+        }
+
+        .choice-option {
+            display: block;
+            margin: 1rem 0;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .choice-option:hover {
+            transform: translateX(5px);
+            border-color: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+        }
+
+        .choice-option:hover::before {
+            opacity: 0.05;
+        }
+
+        .choice-option.selected, .choice-option.correct {
+            background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+            border-color: #68d391;
+            color: #2d3748;
+        }
+
+        .choice-option.incorrect {
+            background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%);
+            border-color: #f87171;
+            color: #2d3748;
+        }
+
+        .choice-explanation {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f1f5f9;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            animation: fadeIn 0.5s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Spectrum Explorer - keeping the interactive styles but updating colors */
+        .spectrum-explorer {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin: 2rem 0;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 40px;
+        }
+
+        .stage {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .stage-text h3 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 16px 0;
+        }
+
+        .instruction {
+            font-size: 1.1rem;
+            color: #6b7280;
+            margin: 0;
+            padding: 16px 24px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+        }
+
+        .continue-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .revelation-text h3 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 16px 0;
+        }
+
+        .spectrum-point {
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        .spectrum-point:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .spectrum-point.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .info-panel {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+        }
+
+        .region-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hook {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .lesson-container {
+                padding: 20px 15px;
+            }
+
+            section {
+                padding: 15px 0;
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.75rem;
+            }
+
+            p, li {
+                font-size: 1rem;
+            }
+
+
+
+            .continue-button, .reveal-button, .check-button {
+                width: 100%;
+            text-align: center;
+                margin-top: 1.5rem;
+            }
+
+            .spectrum-explorer {
+                padding: 20px;
+            }
+
+            .choice-option {
+                padding: 1rem;
+            }
+
+            .mark-completed-button {
+                padding: 14px 28px;
+                font-size: 0.9rem;
+                margin: 30px auto 15px auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lesson-container {
+                padding: 15px 10px;
+            }
+
+            section {
+                padding: 10px 0;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .vocab-section, .why-it-matters, .test-your-knowledge, 
+            .faq-section, .stop-and-think, .check-your-knowledge {
+                padding: 1.5rem;
+            }
+
+            .mark-completed-button {
+                padding: 12px 24px;
+                font-size: 0.85rem;
+                margin: 25px auto 10px auto;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Accessibility */
+        .choice-option:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .continue-button:focus, .reveal-button:focus, .check-button:focus {
+            outline: 2px solid white;
+            outline-offset: 2px;
+        }
+
+        /* Content positioning */
+        .vocab-section *, .why-it-matters *, .test-your-knowledge *, 
+        .faq-section *, .stop-and-think *, .check-your-knowledge * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Mark as Completed Button */
+        .mark-completed-button {
+            display: none;
+            width: 100%;
+            max-width: 400px;
+            margin: 40px auto 20px auto;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .mark-completed-button.show {
+            display: block;
+        }
+
+        .mark-completed-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(72, 187, 120, 0.4);
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+        }
+
+        .mark-completed-button:active {
+            transform: translateY(0);
+        }
+
+        .mark-completed-button.completed {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            box-shadow: 0 4px 20px rgba(148, 163, 184, 0.3);
+            cursor: default;
+        }
+
+        .mark-completed-button.completed:hover {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            box-shadow: 0 4px 20px rgba(148, 163, 184, 0.3);
+            transform: none;
+        }
+
+        /* Success Message */
+        .lesson-success-message {
+            text-align: center;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 20px auto;
+            max-width: 300px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .lesson-success-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+
+        /* Spectrum Explorer specific modern styles */
+        .spectrum-explorer {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .prism-svg {
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 24px;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1));
+            border-radius: 12px;
+        }
+
+        .visible-indicator {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 2px solid #667eea;
+            color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .scale-label.visible {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .exploration-progress {
+            text-align: center;
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+
+
+        /* Keep all other spectrum explorer functionality styles */
+        .spectrum-bar {
+            position: relative;
+            width: 100%;
+            height: 60px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        #spectrum-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        .spectrum-points {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0 0 24px 0;
+            gap: 8px;
+        }
+
+        .spectrum-point {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 8px;
+            cursor: pointer;
+            min-width: 80px;
+            outline: none;
+        }
+
+        .point-icon {
+            font-size: 1.5rem;
+        }
+        
+        .point-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .energy-scale {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .energy-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .energy-bar {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .panel-header .region-icon {
+            color: initial !important;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+            background-clip: initial !important;
+        }
+        
+        /* Fix emoji colors in revelation text and all spectrum content */
+        .revelation-text h3,
+        .revelation-text,
+        .spectrum-point .point-icon,
+        h3 {
+            color: inherit;
+        }
+        
+        /* Target emojis specifically to prevent color inheritance */
+        .revelation-text h3::after,
+        .revelation-text h3 *,
+        .spectrum-point .point-icon,
+        .point-icon {
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: initial !important;
+            background-clip: initial !important;
+            color: initial !important;
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
+        }
+        
+        /* Specific fix for Mind = Blown emoji */
+        .revelation-text h3 {
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: initial !important;
+            background-clip: initial !important;
+        }
+        
+        /* Universal emoji fix */
+        span[style*="color: initial"],
+        .emoji-fix {
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif !important;
+            font-style: normal !important;
+            font-variant: normal !important;
+            text-rendering: auto !important;
+            -webkit-font-smoothing: auto !important;
+        }
+        
+        /* Additional emoji protection */
+        .revelation-text span,
+        .spectrum-point .point-icon {
+            display: inline !important;
+            text-decoration: none !important;
+            font-weight: normal !important;
+        }
+
+        .region-icon {
+            font-size: 2rem;
+            color: initial;
+            text-shadow: none;
+            filter: none;
+            display: inline-block;
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+        }
+
+        .story-content {
+            margin-bottom: 24px;
+        }
+
+        .description {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin: 0;
+            color: #6b7280;
+        }
+
+        .tech-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .spec-item {
+            text-align: center;
+            padding: 12px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .spec-label {
+            display: block;
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 4px;
+            letter-spacing: 0.05em;
+        }
+
+        .spec-value {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .color-display {
+            margin-top: 16px;
+        }
+
+        .color-swatch {
+            height: 40px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .color-note {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0;
+            font-style: italic;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Responsive design for spectrum explorer */
+        @media (min-width: 768px) {
+            .exploration-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 32px;
+                align-items: start;
+            }
+            
+            .spectrum-points {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .spectrum-point {
+                min-width: 100px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .spectrum-explorer {
+                padding: 20px;
+            }
+            
+            .spectrum-points {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+            
+            .spectrum-point {
+                min-width: auto;
+            }
+            
+            .point-label {
+                font-size: 0.7rem;
+            }
+            
+            .tech-specs {
+                grid-template-columns: 1fr;
+            }
+        }
+</style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="lesson-container">
+        <section id="section1" class="visible">
+            <div class="image-placeholder">
+                <img src="images/l26_1.png" alt="...">
+        </div>
+            <h1>Making the Image: Pixels and Values</h1>
+            <p>We're on the final step of our journey! The sensor has captured the light, and the electronics have read the raw data. But this data is still incomplete and messy. How does the camera's internal computer turn that raw data into the beautiful, full-color JPEG you see on your screen? It's time to talk about pixels, processing, and the numbers that define an image.</p>
+            <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+        </section>
+
+        <section id="section2">
+            <h2>Filling in the Gaps: Demosaicing</h2>
+            <p>Remember our Bayer filter? It's a brilliant trick, but it leaves us with a puzzle. At each pixel location, we've only measured <em>one</em> color value: either Red, Green, or Blue. But a full-color image needs all three values for every single pixel. The first crucial step is to solve this puzzle.</p>
+            <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+        </section>
+
+        <section id="section3">
+            <p>This process is called <strong>Demosaicing</strong> (or debayering). The camera's processor intelligently interpolates, or makes an educated guess, to fill in the two missing color values for each pixel. It does this by looking at the values of the neighboring pixels.</p>
+            <div class="image-placeholder">
+                [Image Placeholder: A clear animation of Demosaicing. It shows a 3x3 block of the Bayer grid, with a central 'R' pixel that has a number for Red but '?' for Green and Blue. The animation then highlights the adjacent 'G' and 'B' pixels, 'borrows' their values, averages them, and fills in the '?' marks for the central pixel, which now has R, G, and B values.]
+            </div>
+            <div class="check-your-knowledge">
+                <h3>Check Your Knowledge</h3>
+                <h4>What is the primary goal of the Demosaicing process?</h4>
+                <div class="multiple-choice">
+                    <div class="choice-option" onclick="selectChoice(this, false, 'To make the image brighter.', 'Not quite. Brightness adjustments are part of image processing, but Demosaicing is specifically about color reconstruction.')">
+                        To make the image brighter.
+                    </div>
+                    <div class="choice-option" onclick="selectChoice(this, true, 'To reconstruct a full-color RGB image from the incomplete Bayer pattern data.', 'Perfect! Demosaicing\'s only job is to fill in the missing two color values for every pixel to create a full-color image.')">
+                        To reconstruct a full-color RGB image from the incomplete Bayer pattern data.
+                    </div>
+                </div>
+            </div>
+            <div class="continue-button" id="continue-after-check-knowledge" onclick="showNextSection(4)" style="display: none;">Continue</div>
+        </section>
+
+        <section id="section4">
+            <h2>Final Touches: Image Preprocessing</h2>
+            <p>After demosaicing, we have a full-color image, but it might still look a bit 'raw'. Cameras automatically perform a series of adjustments to make the image look more pleasing to the human eye. This is the 'secret sauce' that defines a camera brand's look.</p>
+            <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+        </section>
+
+        <section id="section5">
+            <p>These steps can include:</p>
+            <ul>
+                <li><strong>White Balance:</strong> Adjusting colors so that objects that should be white (like a piece of paper) actually appear white, correcting for the color of the ambient light (e.g., yellowish indoor light).</li>
+                <li><strong>Sharpening:</strong> Enhancing the edges in an image to make it look crisper.</li>
+                <li><strong>Noise Reduction:</strong> Smoothing out random, grainy 'noise', especially in photos taken in low light.</li>
+            </ul>
+            <div class="image-placeholder">
+                [Image Placeholder: A 'before and after' slider interactive. The 'before' image is a photo taken indoors that looks very yellow and slightly soft. The 'after' image has correct, neutral colors and looks sharper. Labels point to the changes: 'White Balance Corrected' and 'Sharpening Applied'.]
+            </div>
+            <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+        </section>
+
+        <section id="section6">
+            <h2>The Final Product: A Grid of Numbers</h2>
+            <p>After all this incredible processing, what are we left with? What is a digital image to a computer? It's surprisingly simple: <strong>a giant 3D grid of numbers.</strong></p>
+            <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+        </section>
+
+        <section id="section7">
+            <p>The three dimensions of this grid are:</p>
+            <ul>
+                <li><strong>Width:</strong> The number of pixels horizontally.</li>
+                <li><strong>Height:</strong> The number of pixels vertically.</li>
+                <li><strong>Channels:</strong> The number of color values per pixel. For a standard color image, this is 3 (one for Red, one for Green, one for Blue).</li>
+            </ul>
+            <div class="image-placeholder">
+                [Image Placeholder: A diagram showing a photo of a cityscape being transformed into a 3D cube of numbers (based on Figure 2.20). The cube is clearly labeled with 'Width', 'Height', and '3 Channels (R, G, B)'.]
+            </div>
+            <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+        </section>
+
+        <section id="section8">
+            <p>Each number in this grid represents the intensity of a specific color channel at a specific pixel location. This process of converting a continuous signal (light intensity) into a fixed set of numbers is called <strong>Quantization</strong>. For most images, these numbers range from <strong>0 (no intensity) to 255 (maximum intensity)</strong>.</p>
+            <div class="why-it-matters">
+                <h3>Why It Matters</h3>
+                <p>This is it. This 3D array of numbers is the <strong>data</strong> in computer vision. Every single algorithm, from simple filters to the most complex deep learning networks, operates on this grid of numbers. Understanding what a pixel value like <code>(R: 210, G: 45, B: 30)</code> actually means is the absolute starting point for everything we will do in this course.</p>
+            </div>
+            <div class="interactive-placeholder">
+                [Interactive Placeholder: Pixel Inspector - Description for 'Pixel Inspector': The student sees a high-resolution, colorful photo (like the apple in Figure 2.22). As they move their mouse, a small magnifying glass follows the cursor, showing the underlying pixel grid. A separate display box updates in real-time, showing: 1. A large color swatch of the single pixel under the cursor. 2. The numerical RGB values for that pixel, e.g., 'R: 49, G: 54, B: 6'. This directly connects the visual color to its numerical representation.]
+            </div>
+            <div class="vocab-section">
+                <h3>Build Your Vocab</h3>
+                <h4 class="vocab-term">Demosaicing</h4>
+                <p>The process of reconstructing a full RGB value for every pixel from the incomplete, single-color-per-pixel data captured by a Bayer-filtered sensor.</p>
+                <h4 class="vocab-term">Quantization</h4>
+                <p>The process of converting a continuous range of values (like light intensity) into a finite set of discrete values (like integers from 0 to 255).</p>
+                <h4 class="vocab-term">RGB Color Model</h4>
+                <p>A system where colors are represented as a combination of Red, Green, and Blue light intensities. The fundamental model for digital displays and images.</p>
+            </div>
+            <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+        </section>
+
+        <section id="section9">
+            <div class="faq-section">
+                <h3>Frequently Asked Questions</h3>
+                <h4>Why the specific range 0 to 255?</h4>
+                <p>That number comes from computer memory! 256 unique values (from 0 to 255) can be perfectly stored in 8 bits of information, which is known as one byte. A byte is a very common and efficient unit of computer data storage. So, a standard 24-bit color image uses 8 bits for Red, 8 bits for Green, and 8 bits for Blue.</p>
+            </div>
+            <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+        </section>
+
+        <section id="section10">
+            <div class="test-your-knowledge">
+                <h3>Test Your Knowledge</h3>
+                <h4>In a standard RGB image, the color pure, bright yellow would be represented by which approximate pixel values?</h4>
+                <div class="multiple-choice">
+                    <div class="choice-option" onclick="selectChoice(this, false, '(R: 255, G: 0, B: 0)', 'This would be pure, bright red.')">
+                        (R: 255, G: 0, B: 0)
+                    </div>
+                    <div class="choice-option" onclick="selectChoice(this, false, '(R: 0, G: 255, B: 0)', 'This would be pure, bright green.')">
+                        (R: 0, G: 255, B: 0)
+                    </div>
+                    <div class="choice-option" onclick="selectChoice(this, true, '(R: 255, G: 255, B: 0)', 'Correct! In an additive color system like a computer screen, mixing maximum red and maximum green light produces bright yellow.')">
+                        (R: 255, G: 255, B: 0)
+                    </div>
+                    <div class="choice-option" onclick="selectChoice(this, false, '(R: 255, G: 255, B: 255)', 'Mixing all three primary colors of light at maximum intensity gives you white.')">
+                        (R: 255, G: 255, B: 255)
+                    </div>
+                </div>
+            </div>
+            <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(11)" style="display: none;">Continue</div>
+        </section>
+
+        <section id="section11">
+            <h2>Review and Reflect</h2>
+
+            <p>And that's a wrap! We've followed the entire process from a photon leaving a light source to its final representation as a number in a computer. Here's the final leg of that journey:</p>
+            <ul>
+                <li><strong>Demosaicing:</strong> The crucial first step where the camera's software intelligently fills in the missing color data from the Bayer pattern.</li>
+                <li><strong>Preprocessing:</strong> Automatic adjustments like <strong>White Balance</strong> and <strong>Sharpening</strong> are applied to make the image look good.</li>
+                <li><strong>Final Representation:</strong> The image we work with in computer vision is a <strong>3D array of numbers</strong> (Width x Height x 3 Channels).</li>
+                <li><strong>Pixel Values:</strong> Each number, typically from <strong>0 to 255</strong>, is a <strong>quantized</strong> value representing the intensity of Red, Green, or Blue at that specific point.</li>
+            </ul>
+            <p>You now understand where our data comes from. With this foundational knowledge, you are ready to start learning how to manipulate and interpret these numbers to teach a computer how to see.</p>
+         
+        </section>
+
+        <!-- Mark as Completed Button -->
+        <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()"> &#10003; Mark as Completed
+        </button>
+
+    </div>
+
+    <script>
+        let currentSection = 1;
+        const totalSections = 11;
+
+        // Initialize
+        updateProgress();
+
+        // Show the mark as completed button if already on the final section
+        if (currentSection === totalSections) {
+            const completedButton = document.getElementById('markCompletedBtn');
+            if (completedButton) {
+                completedButton.classList.add('show');
+            }
+        }
+
+        function showNextSection(nextSectionId) {
+            const currentSectionElement = document.getElementById(`section${currentSection}`);
+            const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+            const currentButton = event.target;
+
+            if (!nextSectionElement) return;
+
+            // Hide the continue button
+            currentButton.style.display = 'none';
+
+            // Show next section with smooth animation
+            nextSectionElement.classList.add('visible', 'animate-in');
+
+            // Update current section
+            currentSection = nextSectionId;
+            updateProgress();
+
+            // Show the mark as completed button when reaching the final section
+            if (currentSection === totalSections) {
+                const completedButton = document.getElementById('markCompletedBtn');
+                if (completedButton) {
+                    completedButton.classList.add('show');
+                }
+            }
+
+            // Smooth scroll to new section
+            setTimeout(() => {
+                nextSectionElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 300);
+        }
+
+        function updateProgress() {
+            const progressBar = document.getElementById('progressBar');
+            const progress = (currentSection / totalSections) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function selectChoice(element, isCorrect, optionText, explanation) {
+            // Remove previous selections
+            const choices = element.parentNode.querySelectorAll('.choice-option');
+            choices.forEach(choice => {
+                choice.classList.remove('selected', 'correct', 'incorrect');
+                const existingExplanation = choice.querySelector('.choice-explanation');
+                if (existingExplanation) {
+                    existingExplanation.remove();
+                }
+            });
+
+            // Mark the selected choice
+            element.classList.add('selected');
+            element.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+            // Add explanation with animation
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'choice-explanation animate-in';
+            explanationDiv.style.display = 'block';
+            explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+            element.appendChild(explanationDiv);
+
+            // Show correct answer if wrong choice was selected
+            if (!isCorrect) {
+                choices.forEach(choice => {
+                    if (choice !== element) {
+                        const choiceText = choice.textContent.trim();
+                        if (choiceText.includes('reconstruct') || choiceText.includes('(R: 255, G: 255, B: 0)')) {
+                            choice.classList.add('correct');
+                            const correctExplanation = document.createElement('div');
+                            correctExplanation.className = 'choice-explanation animate-in';
+                            correctExplanation.style.display = 'block';
+                            if (choiceText.includes('reconstruct')) {
+                                correctExplanation.innerHTML = '<strong>This is the correct answer:</strong> Perfect! Demosaicing\'s only job is to fill in the missing two color values for every pixel to create a full-color image.';
+                            } else if (choiceText.includes('(R: 255, G: 255, B: 0)')) {
+                                correctExplanation.innerHTML = '<strong>This is the correct answer:</strong> Correct! In an additive color system like a computer screen, mixing maximum red and maximum green light produces bright yellow.';
+                            }
+                            choice.appendChild(correctExplanation);
+                        }
+                    }
+                });
+            }
+
+            // Show continue button after answering
+            const parentSection = element.closest('section');
+            if (parentSection) {
+                const sectionId = parentSection.id;
+                let continueButtonId = null;
+
+                if (sectionId === 'section3') {
+                    continueButtonId = 'continue-after-check-knowledge';
+                } else if (sectionId === 'section10') {
+                    continueButtonId = 'continue-after-test-knowledge';
+                }
+
+                if (continueButtonId) {
+                    const continueButton = document.getElementById(continueButtonId);
+                    if (continueButton && continueButton.style.display === 'none') {
+                        setTimeout(() => {
+                            continueButton.style.display = 'block';
+                            continueButton.classList.add('show-with-animation');
+                        }, 1000);
+                    }
+                }
+            }
+        }
+
+        // Keyboard Support
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                const continueButton = document.querySelector(`#section${currentSection} .continue-button`);
+                if (continueButton && continueButton.style.display !== 'none') {
+                    event.preventDefault();
+                    continueButton.click();
+                }
+            }
+        });
+
+        // Smooth scrolling
+        document.documentElement.style.scrollBehavior = 'smooth';
+
+        // Mark as Completed functionality
+        function toggleCompleted() {
+            const button = document.getElementById('markCompletedBtn');
+            if (!button) return;
+
+            const isCompleted = button.classList.contains('completed');
+
+            if (!isCompleted) {
+                // Try to use platform's ProgressTracker system
+                try {
+                    if (window.parent && window.parent.ProgressTracker) {
+                        let courseId = 'computer-vision';
+                        let pathId = 'perception-systems';
+                        let moduleId = 'cv-raw-to-final-image';
+                        let lessonId = 'cv-l7-making-the-image';
+
+                        if (window.parent.currentRoute) {
+                            const route = window.parent.currentRoute;
+                            if (route.courseId) courseId = route.courseId;
+                            if (route.pathId) pathId = route.pathId;
+                            if (route.moduleId) moduleId = route.moduleId;
+                            if (route.lessonId) lessonId = route.lessonId;
+                        }
+
+                        const urlParams = new URLSearchParams(window.location.search);
+                        if (urlParams.get('course')) courseId = urlParams.get('course');
+                        if (urlParams.get('path')) pathId = urlParams.get('path');
+                        if (urlParams.get('module')) moduleId = urlParams.get('module');
+                        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+
+                        window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+                    }
+                } catch (error) {
+                    console.error('Error with ProgressTracker:', error);
+                }
+
+                // Update button appearance
+                button.classList.add('completed');
+                button.innerHTML = '&#9989; Completed!';
+
+                // Trigger celebration
+                triggerCelebration();
+
+                // Fallback localStorage for direct access
+                localStorage.setItem('lesson_cv-ch02-l7_completed', 'true');
+            }
+        }
+
+        function triggerCelebration() {
+            // Create confetti
+            createConfetti();
+
+            // Show success message
+            showSuccessMessage();
+        }
+
+        function createConfetti() {
+            const confettiContainer = document.createElement('div');
+            confettiContainer.className = 'confetti-container';
+            document.body.appendChild(confettiContainer);
+
+            const confettiEmojis = ['??', '??', '?', '??', '??', '??', '??', '??', '??', '??'];
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8', '#f7dc6f'];
+
+            // Create 50 confetti pieces
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+
+                    // Random emoji or colored shape
+                    if (Math.random() > 0.6) {
+                        confetti.textContent = confettiEmojis[Math.floor(Math.random() * confettiEmojis.length)];
+                    } else {
+                        confetti.innerHTML = '?';
+                        confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    }
+
+                    // Random horizontal position
+                    confetti.style.left = Math.random() * 100 + '%';
+
+                    // Random animation delay
+                    confetti.style.animationDelay = Math.random() * 2 + 's';
+
+                    confettiContainer.appendChild(confetti);
+                }, i * 50);
+            }
+
+            // Remove confetti after animation
+            setTimeout(() => {
+                if (confettiContainer.parentNode) {
+                    confettiContainer.parentNode.removeChild(confettiContainer);
+                }
+            }, 5000);
+        }
+
+        function showSuccessMessage() {
+            const successMessage = document.createElement('div');
+            successMessage.className = 'success-message';
+            successMessage.innerHTML = '?? Lesson Completed! Great Job! ??';
+            document.body.appendChild(successMessage);
+
+            // Remove success message after animation
+            setTimeout(() => {
+                if (successMessage.parentNode) {
+                    successMessage.parentNode.removeChild(successMessage);
+                }
+            }, 2500);
+        }
+
+        // Load completion status on page load
+        window.addEventListener('load', function() {
+            const button = document.getElementById('markCompletedBtn');
+            if (!button) return;
+
+            // Check platform ProgressTracker first
+            if (window.parent && window.parent.ProgressTracker) {
+                let courseId = 'computer-vision';
+                let pathId = 'perception-systems';
+                let moduleId = 'cv-raw-to-final-image';
+                let lessonId = 'cv-l7-making-the-image';
+
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+
+                const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+
+                if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+                    button.classList.add('completed');
+                    button.innerHTML = '&#9989; Completed!';
+                    return;
+                }
+            }
+
+            // Fallback to localStorage
+            const isCompleted = localStorage.getItem('lesson_cv-ch02-l7_completed') === 'true';
+            if (isCompleted) {
+                button.classList.add('completed');
+                button.innerHTML = '&#9989; Completed!';
+            }
+        });
+    </script>
+</body>
+</html>
+

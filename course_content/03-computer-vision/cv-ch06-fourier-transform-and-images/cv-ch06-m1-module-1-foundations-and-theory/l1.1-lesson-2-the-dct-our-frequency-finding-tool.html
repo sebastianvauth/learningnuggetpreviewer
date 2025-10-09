@@ -1,0 +1,1958 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The DCT - Our Frequency-Finding Tool</title>
+    <style>
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+        }
+
+
+
+        /* Main Container */
+        .lesson-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Section Cards */
+        section {
+            background: transparent;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            display: none;
+            opacity: 0;
+            transition: all 0.6s ease;
+            transform: translateY(20px);
+        }
+
+        section.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+        }
+
+        ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        li {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        strong {
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        em {
+            color: #667eea;
+            font-style: normal;
+            font-weight: 500;
+        }
+
+        /* Image Placeholders */
+        .image-placeholder {
+            margin: 2rem 0;
+        }
+
+        /* Confetti Animation */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            font-size: 20px;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti:nth-child(odd) {
+            animation-duration: 2.5s;
+            animation-delay: 0.2s;
+        }
+
+        .confetti:nth-child(even) {
+            animation-duration: 3.5s;
+            animation-delay: 0.5s;
+        }
+
+        .confetti:nth-child(3n) {
+            animation-duration: 2.8s;
+            animation-delay: 0.8s;
+        }
+
+        .confetti:nth-child(4n) {
+            animation-duration: 3.2s;
+            animation-delay: 0.3s;
+        }
+
+        .confetti:nth-child(5n) {
+            animation-duration: 2.7s;
+            animation-delay: 0.7s;
+        }
+
+        /* Success Message Animation */
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+            z-index: 10000;
+            opacity: 0;
+            animation: success-popup 2.5s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes success-popup {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            40% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+        }
+
+        .image-placeholder img {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        /* Specific sizing for individual images by section */
+        #section1 .image-placeholder img {
+            width: 70% !important;              /* Image 1: 70% (dramatic light beam) */
+            max-width: 500px !important;
+        }
+
+        #section6 .image-placeholder img {
+            width: 55% !important;              /* Image 2: 50-60% (meme image) */
+            max-width: 400px !important;
+        }
+        
+        #section9 .image-placeholder img {
+            width: 85% !important;              /* Image 3: 80-90% (prism diagram) */
+            max-width: 600px !important;
+        }
+        
+        #section13 .image-placeholder img {
+            width: 85% !important;              /* Image 4: 80-90% (red object) */
+            max-width: 600px !important;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #section1 .image-placeholder img {
+                width: 80% !important;
+                max-width: 400px !important;
+            }
+
+            #section6 .image-placeholder img {
+                width: 65% !important;
+                max-width: 350px !important;
+            }
+            
+            #section9 .image-placeholder img,
+            #section13 .image-placeholder img {
+                width: 90% !important;
+                max-width: 450px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #section1 .image-placeholder img {
+                width: 85% !important;
+                max-width: 300px !important;
+            }
+
+            #section6 .image-placeholder img {
+                width: 75% !important;
+                max-width: 280px !important;
+            }
+            
+            #section9 .image-placeholder img,
+            #section13 .image-placeholder img {
+                width: 95% !important;
+                max-width: 320px !important;
+            }
+        }
+
+        /* Content Boxes */
+        .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, 
+        .stop-and-think, .check-your-knowledge {
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 8px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vocab-section::before, .why-it-matters::before, .test-your-knowledge::before,
+        .faq-section::before, .stop-and-think::before, .check-your-knowledge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.05;
+            z-index: 0;
+        }
+
+        .vocab-section {
+            background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+            border-left-color: #4facfe;
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+        }
+
+        .vocab-section::before {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+        }
+
+        .why-it-matters {
+            background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+            border-left-color: #f093fb;
+            box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+        }
+
+        .why-it-matters::before {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+        }
+
+        .test-your-knowledge, .check-your-knowledge {
+            background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+            border-left-color: #68d391;
+            box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+        }
+
+        .test-your-knowledge::before, .check-your-knowledge::before {
+            background: linear-gradient(45deg, #68d391, #4fd1c7);
+        }
+
+        .faq-section {
+            background: linear-gradient(135deg, #fffbeb 0%, #fefcf3 100%);
+            border-left-color: #fbbf24;
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.1);
+        }
+
+        .faq-section::before {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+        }
+
+        .stop-and-think {
+            background: linear-gradient(135deg, #f3e8ff 0%, #f8f4ff 100%);
+            border-left-color: #a78bfa;
+            box-shadow: 0 10px 30px rgba(167, 139, 250, 0.1);
+        }
+
+        .stop-and-think::before {
+            background: linear-gradient(45deg, #a78bfa, #8b5cf6);
+        }
+
+        .vocab-section:hover, .why-it-matters:hover, .test-your-knowledge:hover,
+        .faq-section:hover, .stop-and-think:hover, .check-your-knowledge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .vocab-section h3 {
+            color: #0ea5e9;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .why-it-matters h3 {
+            color: #ec4899;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .test-your-knowledge h3, .check-your-knowledge h3 {
+            color: #10b981;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .faq-section h3 {
+            color: #d97706;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stop-and-think h3 {
+            color: #8b5cf6;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vocab-section h4, .test-your-knowledge h4, .check-your-knowledge h4, .faq-section h4 {
+            color: #2d3748;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vocab-term {
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .continue-button, .reveal-button, .check-button {
+            display: inline-block;
+            padding: 16px 32px;
+            margin-top: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .continue-button::before, .reveal-button::before, .check-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .continue-button:hover, .reveal-button:hover, .check-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .continue-button:hover::before, .reveal-button:hover::before, .check-button:hover::before {
+            left: 100%;
+        }
+
+        .continue-button:active, .reveal-button:active, .check-button:active {
+            transform: translateY(-1px);
+        }
+
+        /* Hidden state for conditional buttons */
+        .continue-button[style*="display: none"] {
+            display: none !important;
+        }
+
+        /* Ensure all conditional continue buttons match normal button styling exactly when shown */
+        #continue-after-interactive:not([style*="display: none"]),
+        #continue-after-check-knowledge:not([style*="display: none"]),
+        #continue-after-test-knowledge:not([style*="display: none"]) {
+            display: inline-block !important;
+            width: auto !important;
+            max-width: none !important;
+            min-width: auto !important;
+            padding: 16px 32px !important;
+            margin: 30px auto !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Center ALL continue buttons by making all sections center them */
+        section {
+            text-align: center;
+        }
+
+        /* Reset text alignment for all content except continue buttons */
+        section > *:not(.continue-button) {
+            text-align: left;
+        }
+
+        /* Ensure content boxes also have left alignment */
+        .check-your-knowledge,
+        .test-your-knowledge,
+        .vocab-section,
+        .why-it-matters,
+        .faq-section,
+        .stop-and-think {
+            text-align: left;
+        }
+
+        /* Smooth appearance for conditional continue buttons */
+        .continue-button.show-with-animation {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Multiple Choice */
+        .multiple-choice {
+            margin: 1.5rem 0;
+        }
+
+        .choice-option {
+            display: block;
+            margin: 1rem 0;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .choice-option:hover {
+            transform: translateX(5px);
+            border-color: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+        }
+
+        .choice-option:hover::before {
+            opacity: 0.05;
+        }
+
+        .choice-option.selected, .choice-option.correct {
+            background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+            border-color: #68d391;
+            color: #2d3748;
+        }
+
+        .choice-option.incorrect {
+            background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%);
+            border-color: #f87171;
+            color: #2d3748;
+        }
+
+        .choice-explanation {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f1f5f9;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            animation: fadeIn 0.5s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Spectrum Explorer - keeping the interactive styles but updating colors */
+        .spectrum-explorer {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin: 2rem 0;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 40px;
+        }
+
+        .stage {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .stage-text h3 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 16px 0;
+        }
+
+        .instruction {
+            font-size: 1.1rem;
+            color: #6b7280;
+            margin: 0;
+            padding: 16px 24px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+        }
+
+        .continue-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .revelation-text h3 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 16px 0;
+        }
+
+        .spectrum-point {
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        .spectrum-point:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .spectrum-point.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .info-panel {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+        }
+
+        .region-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hook {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .lesson-container {
+                padding: 20px 15px;
+            }
+
+            section {
+                padding: 15px 0;
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.75rem;
+            }
+
+            p, li {
+                font-size: 1rem;
+            }
+
+
+
+            .continue-button, .reveal-button, .check-button {
+                width: 100%;
+            text-align: center;
+                margin-top: 1.5rem;
+            }
+
+            .spectrum-explorer {
+                padding: 20px;
+            }
+
+            .choice-option {
+                padding: 1rem;
+            }
+
+            .mark-completed-button {
+                padding: 14px 28px;
+                font-size: 0.9rem;
+                margin: 30px auto 15px auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lesson-container {
+                padding: 15px 10px;
+            }
+
+            section {
+                padding: 10px 0;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .vocab-section, .why-it-matters, .test-your-knowledge, 
+            .faq-section, .stop-and-think, .check-your-knowledge {
+                padding: 1.5rem;
+            }
+
+            .mark-completed-button {
+                padding: 12px 24px;
+                font-size: 0.85rem;
+                margin: 25px auto 10px auto;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Accessibility */
+        .choice-option:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .continue-button:focus, .reveal-button:focus, .check-button:focus {
+            outline: 2px solid white;
+            outline-offset: 2px;
+        }
+
+        /* Content positioning */
+        .vocab-section *, .why-it-matters *, .test-your-knowledge *, 
+        .faq-section *, .stop-and-think *, .check-your-knowledge * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Mark as Completed Button */
+        .mark-completed-button {
+            display: none;
+            width: 100%;
+            max-width: 400px;
+            margin: 40px auto 20px auto;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .mark-completed-button.show {
+            display: block;
+        }
+
+        .mark-completed-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(72, 187, 120, 0.4);
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+        }
+
+        .mark-completed-button:active {
+            transform: translateY(0);
+        }
+
+        .mark-completed-button.completed {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            box-shadow: 0 4px 20px rgba(148, 163, 184, 0.3);
+            cursor: default;
+        }
+
+        .mark-completed-button.completed:hover {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            box-shadow: 0 4px 20px rgba(148, 163, 184, 0.3);
+            transform: none;
+        }
+
+        /* Success Message */
+        .lesson-success-message {
+            text-align: center;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 20px auto;
+            max-width: 300px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .lesson-success-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+
+        /* Spectrum Explorer specific modern styles */
+        .spectrum-explorer {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .prism-svg {
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 24px;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1));
+            border-radius: 12px;
+        }
+
+        .visible-indicator {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 2px solid #667eea;
+            color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .scale-label.visible {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .exploration-progress {
+            text-align: center;
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+
+
+        /* Keep all other spectrum explorer functionality styles */
+        .spectrum-bar {
+            position: relative;
+            width: 100%;
+            height: 60px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        #spectrum-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        .spectrum-points {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0 0 24px 0;
+            gap: 8px;
+        }
+
+        .spectrum-point {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 8px;
+            cursor: pointer;
+            min-width: 80px;
+            outline: none;
+        }
+
+        .point-icon {
+            font-size: 1.5rem;
+        }
+        
+        .point-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .energy-scale {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .energy-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .energy-bar {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .panel-header .region-icon {
+            color: initial !important;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+            background-clip: initial !important;
+        }
+        
+        /* Fix emoji colors in revelation text and all spectrum content */
+        .revelation-text h3,
+        .revelation-text,
+        .spectrum-point .point-icon,
+        h3 {
+            color: inherit;
+        }
+        
+        /* Target emojis specifically to prevent color inheritance */
+        .revelation-text h3::after,
+        .revelation-text h3 *,
+        .spectrum-point .point-icon,
+        .point-icon {
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: initial !important;
+            background-clip: initial !important;
+            color: initial !important;
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
+        }
+        
+        /* Specific fix for Mind = Blown emoji */
+        .revelation-text h3 {
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: initial !important;
+            background-clip: initial !important;
+        }
+        
+        /* Universal emoji fix */
+        span[style*="color: initial"],
+        .emoji-fix {
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif !important;
+            font-style: normal !important;
+            font-variant: normal !important;
+            text-rendering: auto !important;
+            -webkit-font-smoothing: auto !important;
+        }
+        
+        /* Additional emoji protection */
+        .revelation-text span,
+        .spectrum-point .point-icon {
+            display: inline !important;
+            text-decoration: none !important;
+            font-weight: normal !important;
+        }
+
+        .region-icon {
+            font-size: 2rem;
+            color: initial;
+            text-shadow: none;
+            filter: none;
+            display: inline-block;
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+        }
+
+        .story-content {
+            margin-bottom: 24px;
+        }
+
+        .description {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin: 0;
+            color: #6b7280;
+        }
+
+        .tech-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .spec-item {
+            text-align: center;
+            padding: 12px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .spec-label {
+            display: block;
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 4px;
+            letter-spacing: 0.05em;
+        }
+
+        .spec-value {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .color-display {
+            margin-top: 16px;
+        }
+
+        .color-swatch {
+            height: 40px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .color-note {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0;
+            font-style: italic;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Responsive design for spectrum explorer */
+        @media (min-width: 768px) {
+            .exploration-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 32px;
+                align-items: start;
+            }
+            
+            .spectrum-points {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .spectrum-point {
+                min-width: 100px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .spectrum-explorer {
+                padding: 20px;
+            }
+            
+            .spectrum-points {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+            
+            .spectrum-point {
+                min-width: auto;
+            }
+            
+            .point-label {
+                font-size: 0.7rem;
+            }
+            
+            .tech-specs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* DCT Explorer */
+        .dct-explorer {
+            margin: 1.5rem 0;
+            padding: 16px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .dct-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .dct-controls label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .axes-wrap {
+            position: relative;
+            display: inline-block;
+        }
+
+        .axes-wrap.show-axes {
+            padding-left: 24px;
+            padding-top: 24px;
+        }
+
+        .basis-grid {
+            --tile-size: 56px;
+            display: grid;
+            grid-template-columns: repeat(8, var(--tile-size));
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .basis-cell {
+            width: var(--tile-size);
+            height: var(--tile-size);
+            background: #000;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .basis-cell:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .basis-cell canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        /* Selection highlight */
+        .basis-cell.selected {
+            border-color: rgba(102, 126, 234, 0.8);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.15);
+        }
+
+        .u-labels, .v-labels {
+            color: #6b7280;
+            font-size: 0.75rem;
+            font-weight: 600;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .u-labels {
+            position: absolute;
+            top: 0;
+            left: 24px;
+            display: none;
+            grid-template-columns: repeat(8, var(--tile-size));
+            gap: 8px;
+            height: 20px;
+        }
+
+        .v-labels {
+            position: absolute;
+            top: 24px;
+            left: 0;
+            display: none;
+            grid-template-rows: repeat(8, var(--tile-size));
+            gap: 8px;
+            width: 20px;
+        }
+
+        .axes-wrap.show-axes .u-labels { display: grid; }
+        .axes-wrap.show-axes .v-labels { display: grid; }
+
+        /* Side panel layout */
+        .dct-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .dct-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .dct-panel canvas {
+            width: 100%;
+            height: auto;
+            image-rendering: pixelated;
+            display: block;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            background: #000;
+        }
+
+        @media (max-width: 768px) {
+            .dct-layout { grid-template-columns: 1fr; }
+        }
+
+        /* Three-up layout for the visual aid */
+        .dct-aid-layout {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(200px, 1fr));
+            gap: 12px;
+            align-items: start;
+        }
+        @media (max-width: 820px) {
+            .dct-aid-layout { grid-template-columns: 1fr; }
+        }
+</style>
+</head>
+<body>
+    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+
+    <div class="lesson-container">
+
+        <section id="section1" class="visible">
+            <h1>The DCT - Our Frequency-Finding Tool</h1>
+            <h2>Introduction: Meet the DCT</h2>
+            <p># The DCT: Our Frequency-Finding Tool</p>
+            <div class="image-placeholder">
+                <div class="placeholder-box">[Image Placeholder: A stylized image of a prism, but instead of light passing through and splitting into a rainbow, a small 8x8 image block passes through and splits into the 64 DCT basis functions. This visually represents the DCT's function of decomposition.]</div>
+            </div>
+            <p>Welcome back! In our last lesson, we discovered that images are secretly 2D signals made up of different spatial frequencies. That's a great start, but how do we actually measure these frequencies? We need a special mathematical tool for the job. Meet the star of today's lesson: the <strong>Discrete Cosine Transform</strong>, or <strong>DCT</strong>.</p>
+            <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+        </section>
+
+        <section id="section2">
+            <h2>Why the DCT?</h2>
+            <p>You might be thinking, 'Didn't we already learn about the Fourier Transform?' And you'd be right! The DCT is a close cousin of the Discrete Fourier Transform (DFT), but for image processing, especially compression, the DCT is the preferred tool. There are a couple of key reasons why.</p>
+            <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+        </section>
+
+        <section id="section3">
+            <p>First, the DCT uses only real numbers (cosines), while the DFT uses complex numbers. This makes the DCT computationally faster and simpler. Second, and most importantly, the DCT is exceptionally good at something called <strong>energy compaction</strong>.</p>
+            <div class="vocab-section">
+                <h3>Build Your Vocab</h3>
+                <h4>Energy Compaction</h4>
+                <p>The property of a transform (like the DCT) to concentrate most of a signal's important information (its 'energy') into just a few coefficients. It's like packing all your most important belongings into one small, easy-to-carry box.</p>
+            </div>
+            <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+        </section>
+
+        <section id="section4">
+            <p>For a typical photograph, the DCT can cram almost all of the visually important information into a tiny handful of low-frequency coefficients. This is the secret sauce that makes JPEG compression so effective! We can throw away most of the other coefficients and still get a great-looking image.</p>
+            <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+        </section>
+
+        <section id="section5">
+            <h2>The Building Blocks of Images</h2>
+            <p>So, how does the DCT work its magic? It works by breaking down a small chunk of an image—typically an 8x8 pixel block—and describing it as a mix of 64 fundamental patterns. Think of it like a recipe: 'a little bit of this pattern, a lot of that one...' These patterns are called <strong>basis functions</strong>.</p>
+            <div id="dct-explorer" class="dct-explorer" aria-label="DCT Basis Explorer">
+                <div class="dct-layout">
+                    <div id="dct-axes-wrap" class="axes-wrap show-axes">
+                        <div id="dct-u-labels" class="u-labels"></div>
+                        <div id="dct-v-labels" class="v-labels"></div>
+                        <div id="dct-grid" class="basis-grid" role="grid" aria-label="8 by 8 DCT basis grid"></div>
+                    </div>
+                    <div id="dct-panel" class="dct-panel" aria-live="polite">
+                        <h3 style="margin-top:0;">Selected Basis</h3>
+                        <canvas id="dct-panel-canvas" width="256" height="256" aria-label="Selected DCT basis"></canvas>
+                        <p id="dct-panel-desc" class="description" style="margin-top: 12px;">Click any tile to see its enlarged pattern and explanation.</p>
+                    </div>
+                </div>
+            </div>
+            <p>Take some time to explore these patterns. You'll notice a few key things:</p>
+            <ul>
+                <li>The top-left pattern (0,0) is solid gray. This is the **DC component**, representing the average brightness.</li>
+                <li>As you move to the right, the patterns get more 'wavy' horizontally (increasing horizontal frequency).</li>
+                <li>As you move down, they get 'wavy' vertically (increasing vertical frequency).</li>
+                <li>The patterns in the bottom-right are complex checkerboards, representing high frequencies in both directions.</li>
+            </ul>
+            <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+        </section>
+
+        <section id="section6">
+            <h2>The DCT in Action</h2>
+            <p>When we apply the DCT to an image, we are essentially asking for each 8x8 block: 'How much of each of these 64 basis patterns do I need to perfectly recreate this block?' The answers are the <strong>DCT coefficients</strong>.</p>
+            <div id="dct-aid" class="dct-explorer" aria-label="DCT Visual Aid">
+                <div class="dct-aid-layout">
+                    <div class="dct-panel" style="text-align:center">
+                        <h3 style="margin-top:0;">Original (synthetic) image</h3>
+                        <canvas id="aid-original" width="256" height="256" aria-label="Original synthetic image" role="img"></canvas>
+                    </div>
+                    <div class="dct-panel" style="position:relative; text-align:center">
+                        <h3 style="margin-top:0;">DCT magnitude (log scaled)</h3>
+                        <div style="position:relative; display:inline-block;">
+                            <canvas id="aid-heatmap" width="256" height="256" aria-label="DCT magnitude heatmap" role="img"></canvas>
+                            <canvas id="aid-overlay" width="256" height="256" style="position:absolute; left:0; top:0; pointer-events:none;"></canvas>
+                        </div>
+                        <div style="margin-top:10px; display:flex; align-items:center; gap:10px; justify-content:center;">
+                            <label for="aid-detail" class="energy-label">Detail level</label>
+                            <input type="range" id="aid-detail" min="0" max="100" value="0" aria-label="Detail level slider">
+                        </div>
+                        <div class="u-labels" style="display:block; margin-top:8px;">u = 0 … 63 →</div>
+                        <div class="v-labels" style="display:block;">↑ v = 0 … 63</div>
+                    </div>
+                    <div id="aid-info" class="dct-panel" aria-live="polite">
+                        <h3 style="margin-top:0;">Processed image (IDCT with low‑pass mask)</h3>
+                        <canvas id="aid-processed" width="256" height="256" aria-label="Processed image"></canvas>
+                        <p id="aid-desc" class="description" style="margin-top:12px;">Move the slider to choose how many low‑frequency coefficients to keep. Lower levels keep only coarse structure (DC first); higher levels add fine details.</p>
+                    </div>
+                </div>
+            </div>
+            <p>Look at what happens! The result of the DCT (the right image) shows where the 'energy' of the image is in the frequency domain. For this natural image, almost everything is concentrated in that top-left corner. This is energy compaction visualized!</p>
+            <div class="vocab-section">
+                <h3>Build Your Vocab</h3>
+                <h4>Discrete Cosine Transform (DCT)</h4>
+                <p>A mathematical transform that decomposes a signal or image block into a sum of cosine functions of different spatial frequencies.</p>
+            </div>
+            <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+        </section>
+
+        <section id="section7">
+            <h2>Frequently Asked Questions</h2>
+            <div class="faq-section">
+                <h4>Why an 8x8 block? Why not 4x4 or 16x16?</h4>
+                <p>That's a fantastic question! The 8x8 block size was found to be a great engineering compromise. Smaller blocks (like 4x4) don't offer enough different frequency patterns to be good at compression. Larger blocks (like 16x16) are much more computationally expensive and are less able to adapt to small, local details in an image. 8x8 hit the sweet spot for the technology when JPEG was designed, and it has stuck around ever since!</p>
+            </div>
+            <div class="test-your-knowledge">
+                <h3>Test Your Knowledge</h3>
+                <h4>What is the main advantage of the DCT's 'energy compaction' property for image compression?</h4>
+                <div class="multiple-choice">
+                    <div class="choice-option" data-correct="false" data-explanation="While DCT is faster than DFT, that's due to using real numbers, not because of energy compaction itself. Energy compaction is about efficiency of representation.">It makes the math faster to compute.</div>
+                    <div class="choice-option" data-correct="true" data-explanation="Exactly! By packing the important info into a few coefficients, we know which ones to keep and which ones we can safely discard to save space.">It isolates the most important visual information into a small, predictable set of coefficients.</div>
+                    <div class="choice-option" data-correct="false" data-explanation="The DCT operates on brightness values, but it doesn't inherently convert an image to grayscale. That's a separate step that might happen before compression.">It converts the image to grayscale automatically.</div>
+                    <div class="choice-option" data-correct="false" data-explanation="This is a true property of DCT and a benefit, but it's not the primary advantage of energy compaction. Energy compaction is what allows for high compression ratios.">It uses only real numbers, which are easier to store.</div>
+                </div>
+            </div>
+            <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(8)" style="display: none;">Continue</div>
+        </section>
+
+        <section id="section8">
+            <h2>Review and Reflect</h2>
+            <p>Let's review our journey into the DCT.</p>
+
+            <p>In this lesson, we met our key frequency-analysis tool, the DCT. We've learned that:
+- The **Discrete Cosine Transform (DCT)** is preferred for image compression because it's efficient and has excellent **energy compaction**.
+- It works by representing an 8x8 image block as a weighted sum of 64 standard patterns called **basis functions**.
+- For most natural images, the DCT concentrates almost all the visual information into a few low-frequency coefficients, particularly the **DC component**.
+
+Now that we know how to separate an image into its frequency components, what can we do with them? In the next lesson, we'll become frequency hackers and learn how to manipulate these components to filter our images in powerful ways.</p>
+        </section>
+
+        <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+    </div>
+
+<script>
+        let currentSection = 1;
+        const totalSections = 8;
+
+        // Initialize
+        updateProgress();
+
+        function showNextSection(nextId) {
+            const nextSection = document.getElementById(`section${nextId}`);
+            const btn = event && event.target;
+            if (!nextSection) return;
+            if (btn) btn.style.display = 'none';
+            nextSection.classList.add('visible');
+            currentSection = nextId;
+            updateProgress();
+            if (currentSection === totalSections) {
+                const mc = document.getElementById('markCompletedBtn');
+                if (mc) mc.classList.add('show');
+            }
+            setTimeout(() => nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+        }
+
+        function updateProgress() {
+            const bar = document.getElementById('progressBar');
+            const pct = (currentSection / totalSections) * 100;
+            bar.style.width = pct + '%';
+        }
+
+        // Multiple choice behavior
+        document.addEventListener('click', function(e) {
+            const option = e.target.closest('.choice-option');
+            if (!option) return;
+            const container = option.parentNode;
+            const options = container.querySelectorAll('.choice-option');
+            options.forEach(c => {
+                c.classList.remove('correct', 'incorrect');
+                const exp = c.querySelector('.choice-explanation');
+                if (exp) exp.remove();
+            });
+            const isCorrect = option.dataset.correct === 'true';
+            option.classList.add(isCorrect ? 'correct' : 'incorrect');
+            const expDiv = document.createElement('div');
+            expDiv.className = 'choice-explanation';
+            expDiv.style.display = 'block';
+            expDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${option.dataset.explanation}`;
+            option.appendChild(expDiv);
+            if (!isCorrect) {
+                const correctEl = Array.from(options).find(c => c.dataset.correct === 'true');
+                if (correctEl) {
+                    correctEl.classList.add('correct');
+                }
+            }
+            const continueBtn = document.getElementById('continue-after-test-knowledge');
+            if (continueBtn && continueBtn.style.display === 'none') {
+                setTimeout(() => { continueBtn.style.display = 'inline-block'; }, 800);
+            }
+        });
+
+        // Keyboard: continue on ArrowRight or Space
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                const continueButton = document.querySelector(`#section${currentSection} .continue-button`);
+                if (continueButton && continueButton.style.display !== 'none') {
+                    event.preventDefault();
+                    continueButton.click();
+                }
+            }
+        });
+
+        // =========================
+        // DCT Explorer - JavaScript
+        // =========================
+        function initDctExplorer() {
+            const grid = document.getElementById('dct-grid');
+            if (!grid) return; // not on this page/section
+
+            const panel = document.getElementById('dct-panel');
+            const panelCanvas = document.getElementById('dct-panel-canvas');
+            const panelCtx = panelCanvas.getContext('2d');
+            const panelDesc = document.getElementById('dct-panel-desc');
+            const axesWrap = document.getElementById('dct-axes-wrap');
+            const uLabels = document.getElementById('dct-u-labels');
+            const vLabels = document.getElementById('dct-v-labels');
+
+            const TILE_RES = 64; // internal render res for tiles
+            const MODAL_RES = 256; // for enlarged view
+
+            const cellByKey = new Map();
+            const cache64 = new Map(); // key: "u-v" -> ImageData for TILE_RES
+
+            // helpers
+            const alpha = (k) => (k === 0 ? 1 / Math.sqrt(8) : Math.sqrt(2 / 8));
+            function dctValue(u, v, x, y) {
+                // x,y are fractional indices in [0, 8)
+                const cu = Math.cos(Math.PI * (2 * x + 1) * u / 16);
+                const cv = Math.cos(Math.PI * (2 * y + 1) * v / 16);
+                return alpha(u) * alpha(v) * cu * cv;
+            }
+
+            function generateImageData(u, v, size) {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                const img = ctx.createImageData(size, size);
+                const data = img.data;
+                for (let j = 0; j < size; j++) {
+                    for (let i = 0; i < size; i++) {
+                        const x = (i + 0.5) * 8 / size - 0.5; // map to [ -0.5, 7.5 ]
+                        const y = (j + 0.5) * 8 / size - 0.5;
+                        const val = dctValue(u, v, x, y); // ~[-1,1] scaled by alphas
+                        const g = Math.max(0, Math.min(255, Math.round((val + 1) * 127.5)));
+                        const idx = (j * size + i) * 4;
+                        data[idx] = g;
+                        data[idx + 1] = g;
+                        data[idx + 2] = g;
+                        data[idx + 3] = 255;
+                    }
+                }
+                return img;
+            }
+
+            function getKey(u, v) { return `${u}-${v}`; }
+
+            function ensureTileImage(u, v) {
+                const key = getKey(u, v);
+                if (!cache64.has(key)) {
+                    cache64.set(key, generateImageData(u, v, TILE_RES));
+                }
+                return cache64.get(key);
+            }
+
+            function describe(u, v) {
+                if (u === 0 && v === 0) return 'DC component: average brightness (no variation).';
+                if (v === 0) return `Horizontal stripes: frequency u=${u}.`;
+                if (u === 0) return `Vertical stripes: frequency v=${v}.`;
+                return `Combined horizontal (u=${u}) and vertical (v=${v}) frequencies: checker/texture.`;
+            }
+
+            function setTileSize(px) {
+                grid.style.setProperty('--tile-size', px + 'px');
+                // also update label grids sizing via CSS var on parent
+                axesWrap.style.setProperty('--tile-size', px + 'px');
+            }
+
+            function renderCellCanvas(canvas, u, v, useTileRes) {
+                const ctx = canvas.getContext('2d');
+                const size = useTileRes ? TILE_RES : MODAL_RES;
+                const img = useTileRes ? ensureTileImage(u, v) : generateImageData(u, v, MODAL_RES);
+                canvas.width = size;
+                canvas.height = size;
+                ctx.putImageData(img, 0, 0);
+                ctx.imageSmoothingEnabled = false;
+            }
+
+            function createCell(u, v) {
+                const cell = document.createElement('div');
+                cell.className = 'basis-cell';
+                cell.setAttribute('role', 'button');
+                cell.setAttribute('tabindex', '0');
+                cell.dataset.u = String(u);
+                cell.dataset.v = String(v);
+                cell.setAttribute('aria-label', `DCT basis u ${u}, v ${v}`);
+                const c = document.createElement('canvas');
+                renderCellCanvas(c, u, v, true);
+                cell.appendChild(c);
+
+            // no tooltips; click updates side panel
+
+                function selectCell() {
+                    document.querySelectorAll('.basis-cell.selected').forEach(el => el.classList.remove('selected'));
+                    cell.classList.add('selected');
+                    renderCellCanvas(panelCanvas, u, v, false);
+                    panelDesc.textContent = `u=${u}, v=${v}. ${describe(u, v)} In JPEG, lower (u,v) tend to carry most energy.`;
+                }
+
+                cell.addEventListener('click', selectCell);
+                cell.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter' || ev.key === ' ') {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        selectCell();
+                    }
+                    // Arrow navigation inside grid
+                    const u0 = Number(cell.dataset.u);
+                    const v0 = Number(cell.dataset.v);
+                    let target = null;
+                    if (ev.key === 'ArrowRight') { target = cellByKey.get(getKey(Math.min(7, u0 + 1), v0)); }
+                    else if (ev.key === 'ArrowLeft') { target = cellByKey.get(getKey(Math.max(0, u0 - 1), v0)); }
+                    else if (ev.key === 'ArrowDown') { target = cellByKey.get(getKey(u0, Math.min(7, v0 + 1))); }
+                    else if (ev.key === 'ArrowUp') { target = cellByKey.get(getKey(u0, Math.max(0, v0 - 1))); }
+                    if (target) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        target.focus();
+                    }
+                });
+
+                cellByKey.set(getKey(u, v), cell);
+                return cell;
+            }
+
+            function rowMajorPairs() {
+                const pairs = [];
+                for (let v = 0; v < 8; v++) {
+                    for (let u = 0; u < 8; u++) pairs.push([u, v]);
+                }
+                return pairs;
+            }
+
+            function renderGrid() {
+                const order = rowMajorPairs();
+                grid.innerHTML = '';
+                order.forEach(([u, v]) => {
+                    let cell = cellByKey.get(getKey(u, v));
+                    if (!cell) cell = createCell(u, v);
+                    grid.appendChild(cell);
+                });
+            }
+
+            // Build once
+            renderGrid();
+            setTileSize(56);
+
+            // Axes labels
+            function buildAxesLabels() {
+                uLabels.innerHTML = '';
+                vLabels.innerHTML = '';
+                for (let i = 0; i < 8; i++) {
+                    const uDiv = document.createElement('div');
+                    uDiv.style.textAlign = 'center';
+                    uDiv.textContent = `u=${i}`;
+                    uLabels.appendChild(uDiv);
+                    const vDiv = document.createElement('div');
+                    vDiv.style.display = 'flex';
+                    vDiv.style.alignItems = 'center';
+                    vDiv.style.justifyContent = 'center';
+                    vDiv.textContent = `v=${i}`;
+                    vLabels.appendChild(vDiv);
+                }
+            }
+            buildAxesLabels();
+
+            // Axes always shown via HTML class
+
+            // Prevent global continue hotkeys when navigating grid
+            grid.addEventListener('keydown', (e) => {
+                if (['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' '].includes(e.key)) {
+                    e.stopPropagation();
+                }
+            });
+
+            // Select DC by default
+            const dc = document.querySelector('.basis-cell[data-u="0"][data-v="0"]');
+            if (dc) dc.click();
+        }
+
+        // =========================
+        // DCT Visual Aid - JavaScript
+        // =========================
+        function initDctAid() {
+            const canvasImg = document.getElementById('aid-original');
+            const canvasHeat = document.getElementById('aid-heatmap');
+            const canvasOverlay = document.getElementById('aid-overlay');
+            const canvasProc = document.getElementById('aid-processed');
+            const slider = document.getElementById('aid-detail');
+            if (!canvasImg || !canvasHeat || !canvasOverlay || !canvasProc || !slider) return;
+
+            const ctxImg = canvasImg.getContext('2d');
+            const ctxHeat = canvasHeat.getContext('2d');
+            const ctxOverlay = canvasOverlay.getContext('2d');
+            const ctxProc = canvasProc.getContext('2d');
+            const desc = document.getElementById('aid-desc');
+
+            const N = 64; // compute at 64x64 and upscale
+
+            // Build synthetic test chart (256x256)
+            function buildTestChart256() {
+                const S = 256;
+                const c = document.createElement('canvas');
+                c.width = S; c.height = S;
+                const g = c.getContext('2d');
+                // Background
+                g.fillStyle = '#777';
+                g.fillRect(0, 0, S, S);
+                // Grid
+                g.strokeStyle = 'rgba(255,255,255,0.6)';
+                g.lineWidth = 1;
+                for (let x = 0; x <= S; x += 16) { g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, S); g.stroke(); }
+                for (let y = 0; y <= S; y += 16) { g.beginPath(); g.moveTo(0, y + 0.5); g.lineTo(S, y + 0.5); g.stroke(); }
+                // Circle
+                g.strokeStyle = 'rgba(255,255,255,0.8)';
+                g.lineWidth = 2;
+                g.beginPath(); g.arc(S/2, S/2, 110, 0, Math.PI * 2); g.stroke();
+                // Block patch 3x3
+                const bx = 70, by = 48, bw = 48;
+                const vals = [40,120,200, 200,120,40, 80,160,220];
+                for (let j = 0; j < 3; j++) {
+                    for (let i = 0; i < 3; i++) {
+                        const v = vals[j*3+i];
+                        g.fillStyle = `rgb(${v},${v},${v})`;
+                        g.fillRect(bx + i*bw, by + j*bw, bw, bw);
+                    }
+                }
+                // Barcode lines
+                const barY = 150, barH = 12; let x = 76;
+                while (x < 180) { const w = 2 + Math.floor((x-76)/16)%4; g.fillStyle = '#111'; g.fillRect(x, barY, w, barH); x += w * 1.5; }
+                // Diagonal wedge
+                g.fillStyle = '#444'; g.beginPath(); g.moveTo(84,200); g.lineTo(190,212); g.lineTo(84,220); g.closePath(); g.fill();
+                // Right gradient
+                const grad = g.createLinearGradient(180,60,240,60);
+                grad.addColorStop(0,'#222'); grad.addColorStop(1,'#ddd');
+                g.fillStyle = grad; g.fillRect(184,60,56,110);
+                return c;
+            }
+
+            // Precompute DCT matrix A (NxN)
+            const A = new Array(N);
+            const alpha = (k) => (k === 0 ? 1 / Math.sqrt(N) : Math.sqrt(2 / N));
+            for (let u = 0; u < N; u++) {
+                A[u] = new Float64Array(N);
+                for (let x = 0; x < N; x++) {
+                    A[u][x] = alpha(u) * Math.cos(Math.PI * (2 * x + 1) * u / (2 * N));
+                }
+            }
+
+            function dct2(X) {
+                const tmp = new Float64Array(N * N);
+                const out = new Float64Array(N * N);
+                for (let u = 0; u < N; u++) {
+                    for (let y = 0; y < N; y++) {
+                        let sum = 0; for (let x = 0; x < N; x++) sum += A[u][x] * X[y*N + x];
+                        tmp[u*N + y] = sum;
+                    }
+                }
+                for (let v = 0; v < N; v++) {
+                    for (let u = 0; u < N; u++) {
+                        let sum = 0; for (let y = 0; y < N; y++) sum += tmp[u*N + y] * A[v][y];
+                        out[v*N + u] = sum;
+                    }
+                }
+                return out; // [v*N + u]
+            }
+
+            // Build test chart and compute DCT
+            const chart256 = buildTestChart256();
+            const tmp64 = document.createElement('canvas'); tmp64.width = N; tmp64.height = N;
+            const tmpCtx = tmp64.getContext('2d');
+            tmpCtx.imageSmoothingEnabled = true; tmpCtx.drawImage(chart256, 0, 0, N, N);
+            const src = tmpCtx.getImageData(0, 0, N, N).data;
+            const X = new Float64Array(N*N);
+            for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) X[y*N + x] = src[(y*N + x)*4];
+            const C = dct2(X);
+
+            // Draw original
+            ctxImg.imageSmoothingEnabled = false; ctxImg.clearRect(0,0,256,256); ctxImg.drawImage(chart256, 0, 0, 256, 256);
+
+            // Heatmap of log magnitude
+            function renderHeatmap() {
+                const mag = new Float64Array(N*N);
+                let maxv = 1e-6;
+                for (let i = 0; i < mag.length; i++) { const v = Math.log(1 + Math.abs(C[i])); mag[i] = v; if (v > maxv) maxv = v; }
+                const heat = new ImageData(N, N);
+                for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+                    const m = mag[y*N + x] / maxv; const g = Math.round(255 * m); const idx = (y*N + x)*4; heat.data[idx]=g; heat.data[idx+1]=g; heat.data[idx+2]=g; heat.data[idx+3]=255;
+                }
+                const buf = document.createElement('canvas'); buf.width = N; buf.height = N; buf.getContext('2d').putImageData(heat, 0, 0);
+                ctxHeat.imageSmoothingEnabled = false; ctxHeat.clearRect(0,0,256,256); ctxHeat.drawImage(buf, 0, 0, 256, 256);
+            }
+
+            function drawOverlay(radius) {
+                ctxOverlay.clearRect(0, 0, 256, 256);
+                // Diagonal arrow low->high
+                ctxOverlay.strokeStyle = '#2563eb'; ctxOverlay.lineWidth = 3;
+                ctxOverlay.beginPath(); ctxOverlay.moveTo(10,10); ctxOverlay.lineTo(246,246); ctxOverlay.stroke();
+                const angle = Math.atan2(246-10, 246-10); const size = 10;
+                ctxOverlay.beginPath();
+                ctxOverlay.moveTo(246,246);
+                ctxOverlay.lineTo(246 - size*Math.cos(angle - Math.PI/6), 246 - size*Math.sin(angle - Math.PI/6));
+                ctxOverlay.lineTo(246 - size*Math.cos(angle + Math.PI/6), 246 - size*Math.sin(angle + Math.PI/6));
+                ctxOverlay.closePath(); ctxOverlay.fillStyle = '#2563eb'; ctxOverlay.fill();
+                ctxOverlay.fillStyle = '#2563eb'; ctxOverlay.font = 'bold 12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+                ctxOverlay.fillText('low frequencies', 14, 26);
+                ctxOverlay.fillText('high frequencies', 148, 238);
+                // Circular mask indicator
+                const R = radius * (255 / (Math.SQRT2 * (N-1)));
+                ctxOverlay.beginPath(); ctxOverlay.arc(0, 0, R, 0, Math.PI*2);
+                ctxOverlay.strokeStyle = 'rgba(16,185,129,0.9)'; ctxOverlay.lineWidth = 2; ctxOverlay.stroke();
+            }
+
+            function idctLowPass(radius) {
+                const out = new Float64Array(N*N);
+                const tmp = new Float64Array(N*N);
+                const pass = (u, v) => (Math.hypot(u, v) <= radius ? 1 : 0);
+                // tmp = A^T * (M*C)
+                for (let x = 0; x < N; x++) {
+                    for (let v = 0; v < N; v++) {
+                        let sum = 0; for (let u = 0; u < N; u++) sum += A[u][x] * (pass(u,v) * C[v*N + u]);
+                        tmp[x*N + v] = sum;
+                    }
+                }
+                for (let y = 0; y < N; y++) {
+                    for (let x = 0; x < N; x++) {
+                        let sum = 0; for (let v = 0; v < N; v++) sum += tmp[x*N + v] * A[v][y];
+                        out[y*N + x] = sum;
+                    }
+                }
+                return out;
+            }
+
+            function renderProcessed(radius) {
+                const Y = idctLowPass(radius);
+                let minV = Infinity, maxV = -Infinity; for (let i = 0; i < Y.length; i++) { if (Y[i] < minV) minV = Y[i]; if (Y[i] > maxV) maxV = Y[i]; }
+                const img = new ImageData(N, N);
+                for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+                    const v = (Y[y*N + x] - minV) / (maxV - minV + 1e-9); const g = Math.round(255 * v); const idx = (y*N + x)*4; img.data[idx]=g; img.data[idx+1]=g; img.data[idx+2]=g; img.data[idx+3]=255;
+                }
+                const buf = document.createElement('canvas'); buf.width = N; buf.height = N; buf.getContext('2d').putImageData(img, 0, 0);
+                ctxProc.imageSmoothingEnabled = false; ctxProc.clearRect(0,0,256,256); ctxProc.drawImage(buf, 0, 0, 256, 256);
+            }
+
+            function percentToRadius(p) {
+                // map 0..100% to 0..sqrt(2)*(N-1)
+                return (p/100) * Math.SQRT2 * (N - 1);
+            }
+
+            function updateFromSlider() {
+                const p = Number(slider.value);
+                const r = percentToRadius(p);
+                drawOverlay(r);
+                renderProcessed(r);
+                const keptApprox = Math.round((Math.PI * (r*r)) / (N*N) * 100); // rough % of coefficients in circle
+                desc.textContent = `Detail level ${p}% — keeping approximately ${Math.max(1, keptApprox)}% of lowest-frequency coefficients.`;
+            }
+
+            // Initial render
+            renderHeatmap();
+            drawOverlay(0);
+            renderProcessed(0);
+            desc.textContent = 'Detail level 0% — DC only.';
+
+            // Events
+            let raf = 0;
+            slider.addEventListener('input', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(updateFromSlider); });
+        }
+        // Completion
+        function toggleCompleted() {
+            const btn = document.getElementById('markCompletedBtn');
+            if (!btn || btn.classList.contains('completed')) return;
+            btn.classList.add('completed');
+            btn.innerHTML = '✅ Completed!';
+            try { localStorage.setItem('lesson_cv-ch06-l2_completed', 'true'); } catch (e) {}
+        }
+
+        // Load completion state
+        window.addEventListener('load', function() {
+            const btn = document.getElementById('markCompletedBtn');
+            try {
+                if (localStorage.getItem('lesson_cv-ch06-l2_completed') === 'true') {
+                    btn.classList.add('show', 'completed');
+                    btn.innerHTML = '✅ Completed!';
+                }
+            } catch (e) {}
+        });
+
+        // Initialize DCT Explorer after page load
+        window.addEventListener('load', initDctExplorer);
+        // Initialize DCT Visual Aid after page load
+        window.addEventListener('load', initDctAid);
+</script>
+</body>
+</html>

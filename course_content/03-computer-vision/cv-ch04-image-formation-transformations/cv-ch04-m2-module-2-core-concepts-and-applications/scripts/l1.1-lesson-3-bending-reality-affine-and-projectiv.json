@@ -1,0 +1,114 @@
+{
+    "lesson": {
+      "title": "Lesson 3: Bending Reality: Affine and Projective Transforms",
+      "sections": [
+        {
+          "title": "Intro Section",
+          "content": "# Bending Reality: Affine and Projective Transforms",
+          "image": "Description: An illustration of a person looking at a tall, rectangular skyscraper from the ground level. The person's view (in a thought bubble) shows the skyscraper's parallel sides appearing to converge towards the top, demonstrating perspective distortion.",
+          "text": "In our last lesson, our shapes stayed perfectly rigid. A square was always a square, no matter how we moved or resized it. But look around you. The rectangular poster on your wall might look like a trapezoid if you're not standing directly in front of it. The parallel rails of a train track seem to meet in the distance. Today, we're going to learn the transformations that 'bend' reality to create these powerful perspective effects. Welcome to the world of Affine and Projective transformations!"
+        },
+        {
+          "title": "Beyond Rigid: The Affine Transformation",
+          "content": "Let's take one step beyond similarity. What if we wanted to stretch an object non-uniformly? Taller but not wider? Or what if we wanted to 'shear' it, like pushing the top of a deck of cards to the side? This is where the **Affine transformation** comes in.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "An Affine transformation is a bit more flexible than a Similarity transform. It can do everything a Similarity transform can do, plus non-uniform scaling and shearing.",
+              "continueButton": true
+            },
+            {
+              "title": "The Affine Matrix",
+              "content": "The matrix for an Affine transformation looks like this:",
+              "math": "\\mathbf{M}_{aff} = \\begin{pmatrix} a_{00} & a_{01} & t_x \\\\ a_{10} & a_{11} & t_y \\\\ 0 & 0 & 1 \\end{pmatrix}",
+              "text": "The magic is in the top-left 2x2 part. Instead of being a nice, structured rotation-and-scale matrix, it's now an arbitrary matrix $\\mathbf{A}$. The elements $a_{01}$ and $a_{10}$ control the shearing. The crucial thing to notice is that the bottom row is still `[0 0 1]`. This has an important consequence...",
+              "continueButton": true
+            },
+            {
+              "title": "What Affine Preserves",
+              "content": "Because that bottom row is `[0 0 1]`, parallel lines will *always* remain parallel after an Affine transformation. A square might become a parallelogram, but its opposite sides will never converge. However, it does *not* preserve angles or lengths.",
+              "image": "Description: A simple diagram showing a square on the left. An arrow labeled 'Affine Transform' points to a parallelogram on the right, illustrating how parallel lines stay parallel but angles change.",
+              "continueButton": true
+            },
+            {
+              "title": "The Ultimate Transformation: Projective (Homography)",
+              "content": "We've finally arrived at the most powerful 2D transformation. What happens if we let that last row change? What if it's no longer `[0 0 1]`? Then we get a **Projective transformation**, also known as a **Homography**.",
+              "continueButton": true
+            },
+            {
+              "title": "The Homography Matrix",
+              "content": "A homography is represented by a general, non-singular 3x3 matrix $\\mathbf{H}$:",
+              "math": "\\mathbf{H} = \\begin{pmatrix} h_{00} & h_{01} & h_{02} \\\\ h_{10} & h_{11} & h_{12} \\\\ h_{20} & h_{21} & h_{22} \\end{pmatrix}",
+              "text": "The elements in the last row, $(h_{20}, h_{21}, h_{22})$, are the game-changers. They are responsible for creating perspective distortion.",
+              "continueButton": true
+            },
+            {
+              "title": "The Secret of Perspective",
+              "content": "Remember how we get back to Cartesian coordinates? We divide by the third component, `w`. When we apply a homography, the new `w'` is calculated as: \n $w' = h_{20}x + h_{21}y + h_{22}$ \nThis is huge! The amount we divide by now depends on the original position $(x, y)$ of the point. Points that are 'further away' are divided by a larger number, making them appear smaller. This is exactly how perspective works in the real world!",
+              "interactive": {
+                "title": "Interactive Element: Homography Visualizer",
+                "description": "An image of a rectangular painting is shown. The painting is inside a bounding box with four draggable corners. As the user drags the corners of the box to form an arbitrary quadrilateral, the painting inside is warped in real-time to fit perfectly within the new boundaries. To the side, the 3x3 Homography matrix `H` that produces this warp is updated dynamically. This vividly demonstrates that a homography can map any rectangle to any quadrilateral."
+              },
+              "buildYourVocab": [
+                {
+                  "term": "Affine Transformation",
+                  "definition": "A transformation that preserves parallel lines. It allows for shearing and non-uniform scaling."
+                },
+                {
+                  "term": "Projective Transformation (Homography)",
+                  "definition": "The most general 3x3 linear transformation. It preserves straight lines but not parallelism, allowing it to model perspective."
+                },
+                {
+                  "term": "Vanishing Point",
+                  "definition": "A point in an image where parallel lines in the 3D world appear to converge. A classic effect of projective transforms."
+                }
+              ],
+              "textAfterVocab": "You now understand the full hierarchy of 2D transformations!",
+              "continueButton": true
+            },
+            {
+              "whyItMatters": {
+                "title": "Why does this matter?",
+                "text": "Homographies are everywhere! When your phone creates a panoramic photo, it finds the homographies between overlapping images to stitch them together seamlessly. When you use an app to 'scan' a document by taking a picture of it, the app calculates the homography to warp the angled photo back into a perfect, flat rectangle. Augmented reality uses homographies to make virtual objects stick realistically onto surfaces in the camera feed."
+              },
+              "stopAndThink": {
+                "question": "A homography maps a square to any arbitrary quadrilateral. To define a unique homography, how many pairs of corresponding points do you think you need? (e.g., if I tell you `point A` in the original image maps to `point A'` in the transformed image, how many such pairs do you need?)",
+                "revealText": "A 3x3 matrix has 9 elements, but the transformation is only defined up to a scale, leaving 8 degrees of freedom. Each point-to-point correspondence `(x,y) -> (x',y')` gives you two equations. To solve for 8 unknowns, you need at least 8 equations, which means you need **four** pairs of corresponding points (4 points x 2 equations/point = 8 equations)."
+              },
+              "testYourKnowledge": {
+                "question": "You take a picture of a rectangular poster on a wall, but you are standing off to the side so it looks like a trapezoid in your photo. The transformation from the real poster to the image is a...",
+                "options": [
+                  {
+                    "option": "Euclidean Transform",
+                    "explanation": "A Euclidean transform would keep the poster a perfect rectangle, it would only change its position and rotation.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Similarity Transform",
+                    "explanation": "A similarity transform would also keep the poster a perfect rectangle, it would just change its size.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Affine Transform",
+                    "explanation": "An Affine transform would turn the rectangle into a parallelogram, but a trapezoid's parallel sides don't stay parallel. We need something more powerful.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Projective Transform (Homography)",
+                    "explanation": "Correct! A projective transform is the only one that can make parallel lines converge, turning a rectangle into a trapezoid. This perfectly models how a camera sees a plane from an angle.",
+                    "correct": true
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "We've really stretched our understanding of transformations today, moving from the rigid world into one that can bend and warp.",
+          "image": "Description: A summary diagram showing the hierarchy. A box for 'Euclidean' is inside a larger box for 'Similarity', which is inside 'Affine', which is inside the largest box 'Projective'. Each box has a small icon representing the shape it preserves (e.g., a rigid square, a resized square, a parallelogram, a trapezoid).",
+          "text": "In this lesson, you learned about:\n- **Affine transformations**, which preserve parallel lines but allow for shearing and non-uniform scaling.\n- The all-powerful **Projective transformation (Homography)**, which can model true perspective by allowing parallel lines to converge.\n- How the last row of the transformation matrix is the secret ingredient that creates perspective distortion.\n\nWe've now completed our 2D transformation toolkit. The next step is to apply these tools to our main goal: building a complete model of a 3D camera. Let's go!"
+        }
+      ]
+    }
+  }

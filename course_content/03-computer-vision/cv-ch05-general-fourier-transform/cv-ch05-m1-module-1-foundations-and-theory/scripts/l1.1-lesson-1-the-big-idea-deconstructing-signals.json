@@ -1,0 +1,115 @@
+{
+    "lesson": {
+      "title": "The Big Idea - Deconstructing Signals",
+      "sections": [
+        {
+          "title": "Introduction: The Secret of Signals",
+          "content": "# Lesson 1: The Big Idea - Deconstructing Signals",
+          "image": "Description: An abstract, stylized image showing a complex, jagged waveform being broken down into several smooth, colored sine waves. This visually represents the core concept of Fourier decomposition.",
+          "text": "Have you ever wondered how an app like Shazam can identify a song in a noisy bar? Or how a JPEG file can be so much smaller than a raw photo without looking *too* different? The secret lies in breaking down complex information into its simplest parts. Today, we're going to learn the beautiful idea behind this: the Fourier Transform."
+        },
+        {
+          "title": "The Principle of Superposition",
+          "content": "The core idea is something called **superposition**, which is a fancy way of saying we can build complex things by simply adding simple things together. In our case, we're going to build complex signals, like sound waves or even the patterns in an image, by adding together very simple sine waves.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "Think of it like being a chef. You can create a complex dish with a unique flavor profile by combining a specific recipe of simple ingredients like salt, sugar, and spice. In the world of signals, our ingredients are simple sine waves of different frequencies and strengths.",
+              "image": "Description: A fun comic strip. Panel 1: A chef looking at a recipe book titled 'Signal Recipes'. Panel 2: The chef is adding 'ingredients' labeled 'High Frequency' and 'Low Frequency' from spice jars into a mixing bowl. Panel 3: The bowl now contains a perfect square wave, and the chef looks proud.",
+              "continueButton": true
+            },
+            {
+              "text": "Let's see this in action with a classic example: building a square wave. A square wave is like the ultimate test—it has sharp, sudden corners, which seems impossible to make from smooth, curvy sine waves. But watch what happens...",
+              "visualAid": {
+                "description": "A static, three-panel plot based on Figure 5.1. Panel 1 (Sines) is labeled 'The Building Blocks,' showing individual sine waves of increasing frequency. Panel 2 (Sum of sines) is labeled 'The Construction,' showing the sum of waves getting progressively closer to a square wave. Panel 3 (Frequency Spectrum) is labeled 'The Recipe,' showing bars for the amplitude of each sine wave needed."
+              },
+              "continueButton": true
+            },
+            {
+              "text": "As you can see, the first sine wave gives a very rough approximation. But as we add more sine waves—each with a higher frequency and a specific amplitude—our creation starts to look more and more like the target square wave. These additional waves are called **harmonics**.",
+              "continueButton": true
+            },
+            {
+              "text": "Now it's your turn to be the signal chef! Try building a square wave yourself.",
+              "interactive": {
+                "title": "The Wave Builder",
+                "description": "An interactive version of the Figure 5.1 plot. A main plot shows a target square wave as a faint grey line. Below it are sliders for the first 5 odd harmonics (labeled 'f₀', '3f₀', '5f₀', '7f₀', '9f₀'). As the student adjusts the sliders, a new wave representing the sum of the selected harmonics is overlaid on the target wave. Simultaneously, a bar chart to the right (the frequency spectrum) updates in real-time to show the 'recipe'. A button 'Auto-build' animates the process of adding the harmonics one by one in the correct proportions, showing the approximation improve with each step."
+              },
+              "continueButton": true
+            },
+            {
+              "checkYourUnderstanding": {
+                "question": "In the Wave Builder, notice how adding the higher frequency waves helps define the sharp corners of the square wave. What do you think would happen to the approximation if you *only* used the high-frequency harmonics and skipped the first, fundamental one (f₀)?",
+                "explanation": "If you only use the high-frequency harmonics, you would create a signal with fine details and wiggles, but it would lack the overall basic shape and period of the square wave. The fundamental frequency provides the main structure!"
+              },
+              "continueButton": true
+            },
+            {
+              "buildYourVocab": {
+                "term": "Superposition",
+                "definition": "The principle of adding multiple signals together to form a new, composite signal."
+              },
+              "textAfterVocab": "",
+              "continueButton": true
+            },
+            {
+              "buildYourVocab": {
+                "term": "Harmonics",
+                "definition": "Frequencies that are integer multiples of a signal's fundamental frequency (f₀)."
+              },
+              "textAfterVocab": "The 'recipe' of harmonics tells us everything we need to know about a signal's character.",
+              "continueButton": true
+            },
+            {
+              "text": "This idea of representing a signal not by its value at every moment in time, but by its frequency 'recipe,' is the core of the Fourier Transform. We're shifting our perspective from the **Time Domain** to the **Frequency Domain**.",
+              "image": "Description: A meme showing the 'Drakeposting' format. Drake looking displeased at a graph labeled 'Time Domain (so messy!)'. Drake looking approvingly at a clean bar chart labeled 'Frequency Domain (so simple!)'.",
+              "continueButton": true
+            },
+            {
+              "whyItMatters": {
+                "text": "This idea of a 'frequency recipe' is the key to **JPEG compression**. The JPEG algorithm looks at the frequency recipe of a small patch of an image and says, 'The human eye isn't very sensitive to these super-high-frequency details, so let's just throw them away or represent them less accurately.' By simplifying the recipe, it drastically reduces the file size. We're moving from describing *what* the signal is at every single point in time to describing its more fundamental *ingredients*."
+              },
+              "continueButton": true
+            },
+            {
+              "testYourKnowledge": {
+                "question": "According to the principle of Fourier decomposition, what happens as you add more and more correct harmonics to approximate a square wave?",
+                "options": [
+                  {
+                    "option": "The wave becomes smoother and less like a square wave.",
+                    "explanation": "Actually, the opposite happens! The added harmonics introduce the 'sharpness' needed to form the corners.",
+                    "correct": false
+                  },
+                  {
+                    "option": "The approximation gets closer to the target square wave, especially at the sharp corners.",
+                    "explanation": "Exactly! Each harmonic refines the shape and brings it closer to the ideal square wave.",
+                    "correct": true
+                  },
+                  {
+                    "option": "The frequency of the fundamental wave changes.",
+                    "explanation": "The fundamental frequency (f₀) stays the same; it's the foundation of the signal. We are just adding multiples of it.",
+                    "correct": false
+                  },
+                  {
+                    "option": "The wave's average value increases.",
+                    "explanation": "Not necessarily. For a symmetric square wave, the average value remains zero, as we add sine waves that are also symmetric around zero.",
+                    "correct": false
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "Let's take a moment to recap what we've learned.",
+          "image": "Description: A summary graphic showing a complex wave on the left, an arrow pointing to the right labeled 'Fourier's Idea', and a set of simple, clean sine waves on the right, neatly arranged.",
+          "text": "In this lesson, we introduced the powerful, fundamental idea behind the Fourier Transform: that any complex periodic signal can be constructed by summing up simple sine waves. \n- We learned this is called the principle of **superposition**.\n- We saw how adding **harmonics** (multiples of a fundamental frequency) can build a complex shape like a square wave.\n- We discovered the concept of a signal's 'recipe' in the **Frequency Domain**, which describes the amplitude of each frequency component.\n\nIn the next lesson, we'll explore the intuition behind how we can actually *find* this recipe for any given signal. We're going to become frequency detectives!",
+          "frequentlyAsked": {
+            "question": "Does this only work for square waves?",
+            "answer": "Not at all! This principle applies to almost any periodic signal you can think of, from the sound of a violin to the electrical signals in your brain. The 'recipe' of sine waves just changes for each different signal, which is what gives them their unique character."
+          }
+        }
+      ]
+    }
+  }

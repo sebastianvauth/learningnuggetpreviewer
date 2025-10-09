@@ -1,0 +1,109 @@
+{
+    "lesson": {
+      "title": "The Dark Side of Speed - Rolling Shutter",
+      "sections": [
+        {
+          "title": "Intro Section",
+          "content": "# The Dark Side of Speed: Rolling Shutter",
+          "image": "Description: A dramatic photo of a helicopter in mid-air, but its rotor blades are bent and curved as if made of rubber. This is a classic, striking example of the rolling shutter effect.",
+          "text": "In the last lesson, we learned that CMOS sensors are fast because they read data from the sensor row by row. But this speed comes at a price. This row-by-row readout doesn't capture a single, perfect instant in time. Instead, it captures a 'rolling' snapshot of reality, which can lead to some very strange and very weird visual artifacts."
+        },
+        {
+          "title": "One Moment, Two Ways",
+          "content": "To understand the issue, we need to compare the two 'shutter' mechanisms that result from CCD and CMOS sensor designs. The shutter is what determines the exact moment the picture is taken.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "**Global Shutter:** This is how a CCD sensor works. Every single pixel on the sensor starts and stops collecting light at the exact same time. It captures a true, single frozen moment. It's like a perfect global flash.",
+              "continueButton": true
+            },
+            {
+              "text": "**Rolling Shutter:** This is how most CMOS sensors work. The sensor is read out sequentially, line by line, typically from top to bottom. While the top row is being read, the bottom row is still capturing light from a fraction of a second later. It's not one single moment, but a rapid scan *through* a moment.",
+              "interactive": "Description for 'Shutter Animator': The screen is split into two halves. On the left, a grid of pixels is labeled 'Global Shutter'. When the user clicks a 'Capture' button, all pixels in the grid flash white simultaneously. On the right, a grid is labeled 'Rolling Shutter'. When the user clicks 'Capture', a white 'scan line' rapidly moves down the grid from top to bottom. A running timer shows that the bottom row is 'captured' a few milliseconds after the top row.",
+              "checkYourKnowledge": {
+                "question": "Which shutter mechanism captures a single, true instant in time?",
+                "options": [
+                  {
+                    "option": "Rolling Shutter",
+                    "explanation": "Not quite. Rolling shutter captures a sequence of moments, one for each row, stitched together.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Global Shutter",
+                    "explanation": "Exactly! Global shutter freezes a single moment across the entire sensor simultaneously.",
+                    "correct": true
+                  }
+                ]
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "When Reality Warps",
+          "content": "Most of the time, this tiny delay between capturing the top and bottom of the frame doesn't matter. But when things are moving fast—either the subject or the camera itself—the rolling shutter effect can create bizarre distortions.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "Think about a spinning propeller. By the time the camera's scan line gets to the bottom of the frame, the propeller has rotated slightly from where it was when the top of the frame was captured. The result? The camera records the propeller blades as being bent and curved!",
+              "image": "Description: A gallery of classic rolling shutter artifacts (based on Figure 2.18). It includes the bent helicopter blades, a skewed fence post from a fast camera pan, a distorted guitar string as it's plucked ('jello effect'), and a partially captured image of a flash of lightning.",
+              "continueButton": true
+            },
+            {
+              "text": "This isn't a problem with the lens or a faulty camera; it's a fundamental consequence of the way a rolling shutter sensor reads data. It's the trade-off we make for the speed and efficiency of CMOS technology.",
+              "whyItMatters": {
+                "text": "Recognizing rolling shutter artifacts is crucial when working with video from consumer cameras (like phones or drones). For advanced computer vision tasks like 3D reconstruction from video, object tracking, or motion analysis, these distortions can introduce significant measurement errors. In some cases, these artifacts must be corrected with software before the video can be used for reliable analysis."
+              },
+              "buildYourVocab": {
+                "term": "Global Shutter",
+                "definition": "A shutter mechanism where all sensor pixels capture light simultaneously, freezing a single moment in time. Typical of CCD sensors."
+              },
+              "buildYourVocab2": {
+                "term": "Rolling Shutter",
+                "definition": "A shutter mechanism where sensor pixels are exposed and read out sequentially (e.g., row by row). Can cause distortion with fast motion. Typical of CMOS sensors."
+              },
+              "continueButton": true
+            },
+            {
+              "text": "",
+              "frequentlyAsked": {
+                "question": "If rolling shutter is so problematic, why don't all CMOS cameras just use a global shutter?",
+                "answer": "Cost and complexity! Implementing a global shutter on a CMOS sensor requires adding extra circuitry to each and every pixel to store the charge temporarily. This makes the sensor more complex, more expensive to manufacture, and can sometimes slightly reduce its light-gathering ability. For most consumer uses, the benefits of a cheaper, simpler rolling shutter design outweigh the occasional artifacts."
+              },
+              "testYourKnowledge": {
+                "question": "You take a video from a moving car, and the vertical telephone poles on the side of the road appear to be tilted and leaning. This is a classic artifact of a:",
+                "options": [
+                  {
+                    "option": "Global shutter.",
+                    "explanation": "A global shutter would capture the poles perfectly straight, as it sees the whole scene at once.",
+                    "correct": false
+                  },
+                  {
+                    "option": "A dirty lens.",
+                    "explanation": "A dirty lens might cause smudges or blur, but it wouldn't cause straight lines to appear tilted.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Rolling shutter.",
+                    "explanation": "Correct! The top of the pole is captured at a slightly different time than the bottom of the pole as your car moves forward, causing the pole to appear skewed in the final image.",
+                    "correct": true
+                  },
+                  {
+                    "option": "A shallow depth of field.",
+                    "explanation": "Depth of field relates to what's in focus, not the geometric shape of objects in the scene.",
+                    "correct": false
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "",
+          "image": "Description: A simple 'Pro vs. Con' style graphic. On one side, an icon for 'Global Shutter' with a checkmark for 'Perfect Capture'. On the other, an icon for 'Rolling Shutter' with a checkmark for 'Speed & Cost' and an 'X' for 'Motion Artifacts'.",
+          "text": "We've uncovered the strange side effect of our modern sensors. It's a simple concept with weird consequences. Let's recap:\n\n- **Global Shutter (CCD):** Captures a single, perfect instant in time across the entire frame. No distortion.\n- **Rolling Shutter (CMOS):** Captures the frame row by row in a rapid sequence. It's fast and efficient.\n- **The Artifacts:** This row-by-row capture can cause fast-moving objects or fast camera pans to appear skewed, bent, or wobbly.\n\nNow that we understand the full process of capturing light—from the lens, to the sensor, to the readout—we are ready for the final step. How does this raw electronic data become the final, colorful image file we all know and use? Let's find out."
+        }
+      ]
+    }
+  }

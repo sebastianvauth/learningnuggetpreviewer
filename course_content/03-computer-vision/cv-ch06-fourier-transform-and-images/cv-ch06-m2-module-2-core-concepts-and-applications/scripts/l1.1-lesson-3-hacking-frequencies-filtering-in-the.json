@@ -1,0 +1,101 @@
+{
+    "lesson": {
+      "title": "Hacking Frequencies - Filtering in the DCT Domain",
+      "sections": [
+        {
+          "title": "Introduction: The Frequency Equalizer",
+          "content": "# Hacking Frequencies: Filtering in the DCT Domain",
+          "image": "Description: A cartoonish image of a sound mixing board with sliders, but instead of labels like 'Bass' and 'Treble', the sliders are labeled 'Smoothness', 'Edges', 'Fine Textures', and 'Noise'. This creates a visual metaphor for frequency filtering.",
+          "text": "Welcome to the fun part! Now that we know how to use the DCT to split an image into its frequency components, we can start messing with them. Think of it like being a DJ with a sound equalizer for your pictures. Want more bass? Boost the low frequencies. Want more treble? Boost the highs. We can do the exact same thing with images to achieve some incredible effects."
+        },
+        {
+          "title": "The Three-Step Filtering Process",
+          "content": "Filtering in the frequency domain always follows the same simple, three-step recipe. It's a fundamental workflow you'll see again and again.",
+          "visualAid": {
+            "description": "A clean, animated infographic showing three steps. 1. An image of a cat is shown with the label 'Start (Spatial Domain)'. An arrow points to... 2. The DCT representation of the cat image with the label 'Step 1: Transform to Frequency Domain (DCT)'. An arrow points to... 3. The DCT image now has a big red 'X' over some coefficients, with the label 'Step 2: Modify Coefficients (The 'Filter')'. An arrow points to... 4. The modified image of the cat (e.g., blurred) with the label 'Step 3: Transform Back (Inverse DCT)'."
+          },
+          "textAfterInteractive": "That's it! **Transform -> Modify -> Inverse Transform.** By controlling what we do in that middle step, we can create all sorts of filters.",
+          "continueButton": true
+        },
+        {
+          "title": "Low-Pass Filtering: The Blurring Effect",
+          "content": "Let's start with a classic: a **low-pass filter**. The name says it all—it lets the *low frequencies pass* through while blocking, or attenuating, the high frequencies. What do you think happens when we remove the high frequencies from an image?",
+          "checkYourUnderstanding": {
+            "question": "Remember what high frequencies represent in an image. If we get rid of them, what visual information do we lose?",
+            "answer": "We lose the sharp details! High frequencies correspond to edges, textures, and fine lines. Removing them should make the image smoother or blurrier."
+          },
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "You got it! Removing high-frequency information is the very definition of blurring. In the DCT domain, this is super easy. We just take our DCT coefficients and set all the high-frequency ones—those far away from the top-left corner—to zero.",
+              "visualAid": {
+                "description": "Based on Figure 6.4. A three-panel diagram. Left: 'Original Image'. Middle: 'DCT Domain', showing the DCT coefficients with a conceptual circular mask over the top-left, indicating only these are kept. The caption reads 'Keep Low Frequencies, Zero-out High Frequencies'. Right: 'Result after Inverse DCT', showing a visibly blurred version of the original image."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "High-Pass Filtering: Finding the Edges",
+          "content": "Okay, so if removing high frequencies causes blurring, what happens if we do the opposite? A **high-pass filter** blocks the low frequencies and lets the *high frequencies pass* through.",
+          "textAfterInteractive": "This means we'll set the coefficients in the top-left corner—including the all-important DC component—to zero, and keep everything else. This effectively subtracts the 'smooth' parts of the image.",
+          "visualAid": {
+            "description": "Based on Figure 6.5. Another three-panel diagram. Left: 'Original Image'. Middle: 'DCT Domain', showing the DCT coefficients but with the top-left corner blacked out. The caption reads 'Zero-out Low Frequencies, Keep High Frequencies'. Right: 'Result after Inverse DCT', showing an image that looks like an edge-map—mostly dark, with the bright outlines of objects."
+          },
+          "noteAfterInteractive": "The result is a form of edge detection! We're left with only the sharp details and textures. While there are other, more common ways to detect edges (which we'll see later!), this perfectly demonstrates what kind of information is stored in which frequencies.",
+          "continueButton": true
+        },
+        {
+          "title": "The Interactive Filter Playground",
+          "content": "Now it's your turn to be the frequency DJ. Use the sliders below to see the effects of low-pass and high-pass filtering in real-time.",
+          "interactive": {
+            "description": "Frequency Filter Playground. A three-panel interactive tool. The left panel shows a sample photograph. The middle panel shows its DCT representation. The right panel shows the processed image. \n- Below the panels are two sliders. The first is labeled 'Low-Pass Filter (Keep Frequencies up to...)' with a range from 100% down to 1%. As the student drags this slider down, a circular mask on the DCT image in the middle shrinks towards the top-left corner, and the processed image on the right becomes progressively blurrier.\n- The second slider is labeled 'High-Pass Filter (Keep Frequencies from...)' with a range from 0% up to 99%. As the student drags this slider up, the central circular area of the DCT image is blacked out, and the processed image on the right increasingly shows only the edges and fine details."
+          },
+          "textAfterInteractive": "Play around with the sliders. Notice how a tiny bit of low-pass filtering can subtly soften an image, while extreme filtering removes all detail. See how high-pass filtering can isolate the most detailed parts of the scene.",
+          "whyItMatters": {
+            "text": "Why does this matter? Filtering in the frequency domain gives us a powerful, intuitive way to manipulate the fundamental characteristics of an image. And while we might use other methods for simple blurring, understanding this concept is *crucial* for grasping how JPEG works—because, as we'll soon see, compression is essentially a very clever and aggressive form of frequency filtering!"
+          },
+          "continueButton": true
+        },
+        {
+          "title": "A Note on Denoising",
+          "content": "As a quick bonus, this same principle can be used for a simple form of denoising. Random noise in an image often shows up as small, sprinkled contributions across many of the high-frequency coefficients.",
+          "visualAid": {
+            "description": "Based on Figure 6.6. A three-panel diagram. Left: A photo with visible static-like noise. Middle: Its DCT representation, showing the usual bright low-frequency corner but also a faint 'spray' of dots across the high-frequency areas. Right: The denoised photo, which is cleaner but slightly softer, after thresholding the DCT coefficients."
+          },
+          "textAfterInteractive": "A simple strategy is to transform the noisy image, set all coefficients below a certain magnitude threshold to zero (assuming they're just noise), and transform back. It's a blunt instrument—it can also remove fine details—but it shows the power of separating signal from noise in the frequency domain.",
+          "testYourKnowledge": {
+            "question": "To perform edge detection on an image using the DCT, what would you do to the coefficients before applying the Inverse DCT?",
+            "options": [
+              {
+                "option": "Set all coefficients to zero.",
+                "explanation": "If you set all coefficients to zero, the inverse transform will just be a black image! You need to keep some of them.",
+                "correct": false
+              },
+              {
+                "option": "Set the high-frequency coefficients to zero.",
+                "explanation": "This is the process for a low-pass filter, which results in blurring, not edge detection.",
+                "correct": false
+              },
+              {
+                "option": "Set the low-frequency coefficients (including the DC component) to zero.",
+                "explanation": "Correct! Edge information is stored in the high frequencies. By removing the low frequencies (the smooth parts), you are left with only the edges.",
+                "correct": true
+              },
+              {
+                "option": "Double the value of all coefficients.",
+                "explanation": "Doubling all the coefficients would just make the resulting image twice as bright, but it wouldn't selectively filter for edges.",
+                "correct": false
+              }
+            ]
+          }
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "Let's recap our filtering experiments.",
+          "image": "Description: A simple icon showing a DCT grid. A 'blur' icon (like a water droplet) is placed over the high-frequency coefficients. An 'edge' icon (like a sharp mountain peak) is placed over the low-frequency coefficients, indicating what is removed for each filter type.",
+          "text": "In this lesson, we learned how to manipulate images by filtering in the frequency domain. The key takeaways are:\n- The process is always **Transform -> Modify -> Inverse Transform**.\n- A **Low-Pass Filter** removes high frequencies, resulting in a **blurring** effect.\n- A **High-Pass Filter** removes low frequencies, resulting in an **edge detection** effect.\n\nWe've now seen the theory and a powerful application of the DCT. Next up, we'll see how these exact principles are put to work in the most significant application of all: the JPEG compression standard that powers the web."
+        }
+      ]
+    }
+  }

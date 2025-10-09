@@ -1,0 +1,46 @@
+{
+    "lesson": {
+      "title": "Chapter 3 Wrap-Up: The Image as Data",
+      "sections": [
+        {
+          "title": "Introduction",
+          "content": "# Lesson 7: Chapter 3 Wrap-Up: The Image as Data",
+          "image": {
+            "description": "An animation showing all the key concepts from the chapter—a pixel grid, an RGB color cube, the CIE diagram, a histogram—swirling around and then funneling into a single, clean visual: a 3D block of numbers, representing the final numerical array. The camera then zooms into this block, showing the individual integer values. This visually summarizes that all these concepts boil down to a structured block of data."
+          },
+          "text": "We've been on quite a journey in this chapter! We started with the simple question of 'What is a digital image?' and ended up exploring everything from human perception to the physics of light. We've peeled back every layer of abstraction. Now it's time to put it all together and solidify the single most important takeaway from this entire chapter, the one that will power everything we do from here on out."
+        },
+        {
+          "title": "The Big Picture: A Concept Map",
+          "content": "Let's take a bird's-eye view and connect all the dots from the concepts we've learned.",
+          "visualAid": {
+            "title": "Chapter 3: Image Representation - The Full Picture",
+            "description": "A full-screen, static concept map or mind map. In the center is a large bubble labeled 'Digital Image: A Numerical Array'. Major branches radiate outwards from it:\n\n1.  **Spatial Discretization:** This branch leads to smaller bubbles for 'Pixel Grid', 'Resolution', and 'Pixelation'.\n2.  **Intensity & Color Quantization:** This branch leads to 'Bit Depth (e.g., 8-bit)', 'ADC', and a major sub-branch for 'Color Models'.\n3.  **Color Models:** This sub-branch splits into 'Additive (RGB)', 'Subtractive (CMYK)', 'Perceptual/Standard (CIE XYZ, L*a*b*)', and 'Practical (sRGB Gamut)'.\n4.  **Human Perception:** This branch leads to 'Chromatic Adaptation (White Balance)' and 'Edge Enhancement (Mach Bands)'.\n5.  **Analysis & Representation:** This branch leads to 'Image Histogram' and 'High Dynamic Range (HDR)'.\n\nArrows connect related concepts across branches, for example, from 'Bit Depth' to 'HDR' and from 'CIE XYZ' to 'Gamut'. This provides a complete visual summary of the chapter's content on a single screen."
+          },
+          "textAfterVisualAid": "Look at how it all connects. The physical sensor creates a pixel grid. The ADC quantizes light into numbers based on a bit depth. Those numbers are interpreted using a color model like sRGB, which has a limited gamut compared to the universal CIE standard. And all of this is influenced by quirks of human perception, which we can analyze with tools like the histogram. But what do all these paths lead back to?",
+          "continueButton": true
+        },
+        {
+          "title": "The Core Idea: An Image IS Data",
+          "content": "Everything we've discussed—every concept, every diagram, every illusion—boils down to one, simple, powerful truth:",
+          "highlightBox": {
+            "text": "A digital image is a multi-channel, numerical array. It's just a structured block of numbers."
+          },
+          "text": "That's it. That's the secret. A beautiful landscape photo is a `Height × Width × 3` array of integers. A black and white portrait is a `Height × Width` array. When we say 'computer vision,' what we really mean is 'performing mathematical and logical operations on these numerical arrays to extract meaningful information.'",
+          "continueButton": true
+        },
+        {
+          "title": "The Bridge to What's Next",
+          "content": "This realization is the bridge from understanding *what an image is* to understanding *what we can do with it*.",
+          "whyItMatters": {
+            "text": "Everything we do in the rest of this course will involve writing algorithms that take this numerical array as input. \n- Want to blur an image? We'll average the numbers of neighboring pixels. \n- Want to detect an edge? We'll calculate the difference between the numbers of neighboring pixels. \n- Want to train a neural network to recognize a cat? We'll feed this entire block of millions of numbers into the network and teach it to find the specific numerical patterns that correspond to 'cat'.\n\nThe pixel is our atom. This numerical array is our molecule. Now, we're ready to start doing chemistry."
+          },
+          "stopAndThink": {
+            "question": "Now that you know for certain that an image is just a big grid of numbers, what is the absolute simplest mathematical operation you could perform on *every single pixel* in the image, and what visual effect do you think it would have?",
+            "revealText": "Think about basic arithmetic! What if you added 50 to every single R, G, and B value? (Hint: The image would get brighter). What if you multiplied every value by 0.5? (Hint: The image would get darker). This simple idea—pixel-wise operations—is the foundation of image filtering and modification, which is exactly where we're headed next."
+          },
+          "textAfterStopAndThink": "Congratulations on completing this foundational chapter. You now have the fundamental knowledge to truly understand how computers see the world. Let's get ready to start building!"
+        }
+      ]
+    }
+  }

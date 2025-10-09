@@ -1,0 +1,1588 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 3: Bending Reality: Affine and Projective Transforms</title>
+    <style>
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+        }
+
+
+
+        /* Main Container */
+        .lesson-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Section Cards */
+        section {
+            background: transparent;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            display: none;
+            opacity: 0;
+            transition: all 0.6s ease;
+            transform: translateY(20px);
+        }
+
+        section.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+        }
+
+        ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        li {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        strong {
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        em {
+            color: #667eea;
+            font-style: normal;
+            font-weight: 500;
+        }
+
+        /* Image Placeholders */
+        .image-placeholder {
+            margin: 2rem 0;
+        }
+
+        /* Confetti Animation */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            font-size: 20px;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti:nth-child(odd) {
+            animation-duration: 2.5s;
+            animation-delay: 0.2s;
+        }
+
+        .confetti:nth-child(even) {
+            animation-duration: 3.5s;
+            animation-delay: 0.5s;
+        }
+
+        .confetti:nth-child(3n) {
+            animation-duration: 2.8s;
+            animation-delay: 0.8s;
+        }
+
+        .confetti:nth-child(4n) {
+            animation-duration: 3.2s;
+            animation-delay: 0.3s;
+        }
+
+        .confetti:nth-child(5n) {
+            animation-duration: 2.7s;
+            animation-delay: 0.7s;
+        }
+
+        /* Success Message Animation */
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+            z-index: 10000;
+            opacity: 0;
+            animation: success-popup 2.5s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes success-popup {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            40% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+        }
+
+        .image-placeholder img {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        /* Specific sizing for individual images by section */
+        #section1 .image-placeholder img {
+            width: 70% !important;              /* Image 1: 70% (dramatic light beam) */
+            max-width: 500px !important;
+        }
+
+        #section6 .image-placeholder img {
+            width: 55% !important;              /* Image 2: 50-60% (meme image) */
+            max-width: 400px !important;
+        }
+        
+        #section9 .image-placeholder img {
+            width: 85% !important;              /* Image 3: 80-90% (prism diagram) */
+            max-width: 600px !important;
+        }
+        
+        #section13 .image-placeholder img {
+            width: 85% !important;              /* Image 4: 80-90% (red object) */
+            max-width: 600px !important;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #section1 .image-placeholder img {
+                width: 80% !important;
+                max-width: 400px !important;
+            }
+
+            #section6 .image-placeholder img {
+                width: 65% !important;
+                max-width: 350px !important;
+            }
+            
+            #section9 .image-placeholder img,
+            #section13 .image-placeholder img {
+                width: 90% !important;
+                max-width: 450px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #section1 .image-placeholder img {
+                width: 85% !important;
+                max-width: 300px !important;
+            }
+
+            #section6 .image-placeholder img {
+                width: 75% !important;
+                max-width: 280px !important;
+            }
+            
+            #section9 .image-placeholder img,
+            #section13 .image-placeholder img {
+                width: 95% !important;
+                max-width: 320px !important;
+            }
+        }
+
+        /* Content Boxes */
+        .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, 
+        .stop-and-think, .check-your-knowledge {
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 8px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vocab-section::before, .why-it-matters::before, .test-your-knowledge::before,
+        .faq-section::before, .stop-and-think::before, .check-your-knowledge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.05;
+            z-index: 0;
+        }
+
+        .vocab-section {
+            background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+            border-left-color: #4facfe;
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+        }
+
+        .vocab-section::before {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+        }
+
+        .why-it-matters {
+            background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+            border-left-color: #f093fb;
+            box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+        }
+
+        .why-it-matters::before {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+        }
+
+        .test-your-knowledge, .check-your-knowledge {
+            background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+            border-left-color: #68d391;
+            box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+        }
+
+        .test-your-knowledge::before, .check-your-knowledge::before {
+            background: linear-gradient(45deg, #68d391, #4fd1c7);
+        }
+
+        .faq-section {
+            background: linear-gradient(135deg, #fffbeb 0%, #fefcf3 100%);
+            border-left-color: #fbbf24;
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.1);
+        }
+
+        .faq-section::before {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+        }
+
+        .stop-and-think {
+            background: linear-gradient(135deg, #f3e8ff 0%, #f8f4ff 100%);
+            border-left-color: #a78bfa;
+            box-shadow: 0 10px 30px rgba(167, 139, 250, 0.1);
+        }
+
+        .stop-and-think::before {
+            background: linear-gradient(45deg, #a78bfa, #8b5cf6);
+        }
+
+        .vocab-section:hover, .why-it-matters:hover, .test-your-knowledge:hover,
+        .faq-section:hover, .stop-and-think:hover, .check-your-knowledge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .vocab-section h3 {
+            color: #0ea5e9;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .why-it-matters h3 {
+            color: #ec4899;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .test-your-knowledge h3, .check-your-knowledge h3 {
+            color: #10b981;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .faq-section h3 {
+            color: #d97706;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stop-and-think h3 {
+            color: #8b5cf6;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vocab-section h4, .test-your-knowledge h4, .check-your-knowledge h4, .faq-section h4 {
+            color: #2d3748;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vocab-term {
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .continue-button, .reveal-button, .check-button {
+            display: inline-block;
+            padding: 16px 32px;
+            margin-top: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .continue-button::before, .reveal-button::before, .check-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .continue-button:hover, .reveal-button:hover, .check-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .continue-button:hover::before, .reveal-button:hover::before, .check-button:hover::before {
+            left: 100%;
+        }
+
+        .continue-button:active, .reveal-button:active, .check-button:active {
+            transform: translateY(-1px);
+        }
+
+        /* Hidden state for conditional buttons */
+        .continue-button[style*="display: none"] {
+            display: none !important;
+        }
+
+        /* Ensure all conditional continue buttons match normal button styling exactly when shown */
+        #continue-after-interactive:not([style*="display: none"]),
+        #continue-after-check-knowledge:not([style*="display: none"]),
+        #continue-after-test-knowledge:not([style*="display: none"]) {
+            display: inline-block !important;
+            width: auto !important;
+            max-width: none !important;
+            min-width: auto !important;
+            padding: 16px 32px !important;
+            margin: 30px auto !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Center ALL continue buttons by making all sections center them */
+        section {
+            text-align: center;
+        }
+
+        /* Reset text alignment for all content except continue buttons */
+        section > *:not(.continue-button) {
+            text-align: left;
+        }
+
+        /* Ensure content boxes also have left alignment */
+        .check-your-knowledge,
+        .test-your-knowledge,
+        .vocab-section,
+        .why-it-matters,
+        .faq-section,
+        .stop-and-think {
+            text-align: left;
+        }
+
+        /* Smooth appearance for conditional continue buttons */
+        .continue-button.show-with-animation {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Multiple Choice */
+        .multiple-choice {
+            margin: 1.5rem 0;
+        }
+
+        .choice-option {
+            display: block;
+            margin: 1rem 0;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .choice-option:hover {
+            transform: translateX(5px);
+            border-color: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+        }
+
+        .choice-option:hover::before {
+            opacity: 0.05;
+        }
+
+        .choice-option.selected, .choice-option.correct {
+            background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+            border-color: #68d391;
+            color: #2d3748;
+        }
+
+        .choice-option.incorrect {
+            background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%);
+            border-color: #f87171;
+            color: #2d3748;
+        }
+
+        .choice-explanation {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f1f5f9;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            animation: fadeIn 0.5s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Spectrum Explorer - keeping the interactive styles but updating colors */
+        .spectrum-explorer {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin: 2rem 0;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 40px;
+        }
+
+        .stage {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .stage-text h3 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 16px 0;
+        }
+
+        .instruction {
+            font-size: 1.1rem;
+            color: #6b7280;
+            margin: 0;
+            padding: 16px 24px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+        }
+
+        .continue-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .revelation-text h3 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 16px 0;
+        }
+
+        .spectrum-point {
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        .spectrum-point:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .spectrum-point.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .info-panel {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+        }
+
+        .region-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hook {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .lesson-container {
+                padding: 20px 15px;
+            }
+
+            section {
+                padding: 15px 0;
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.75rem;
+            }
+
+            p, li {
+                font-size: 1rem;
+            }
+
+
+
+            .continue-button, .reveal-button, .check-button {
+                width: 100%;
+            text-align: center;
+                margin-top: 1.5rem;
+            }
+
+            .spectrum-explorer {
+                padding: 20px;
+            }
+
+            .choice-option {
+                padding: 1rem;
+            }
+
+            .mark-completed-button {
+                padding: 14px 28px;
+                font-size: 0.9rem;
+                margin: 30px auto 15px auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lesson-container {
+                padding: 15px 10px;
+            }
+
+            section {
+                padding: 10px 0;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .vocab-section, .why-it-matters, .test-your-knowledge, 
+            .faq-section, .stop-and-think, .check-your-knowledge {
+                padding: 1.5rem;
+            }
+
+            .mark-completed-button {
+                padding: 12px 24px;
+                font-size: 0.85rem;
+                margin: 25px auto 10px auto;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Accessibility */
+        .choice-option:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .continue-button:focus, .reveal-button:focus, .check-button:focus {
+            outline: 2px solid white;
+            outline-offset: 2px;
+        }
+
+        /* Content positioning */
+        .vocab-section *, .why-it-matters *, .test-your-knowledge *, 
+        .faq-section *, .stop-and-think *, .check-your-knowledge * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Mark as Completed Button */
+        .mark-completed-button {
+            display: none;
+            width: 100%;
+            max-width: 400px;
+            margin: 40px auto 20px auto;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .mark-completed-button.show {
+            display: block;
+        }
+
+        .mark-completed-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(72, 187, 120, 0.4);
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+        }
+
+        .mark-completed-button:active {
+            transform: translateY(0);
+        }
+
+        .mark-completed-button.completed {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            box-shadow: 0 4px 20px rgba(148, 163, 184, 0.3);
+            cursor: default;
+        }
+
+        .mark-completed-button.completed:hover {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            box-shadow: 0 4px 20px rgba(148, 163, 184, 0.3);
+            transform: none;
+        }
+
+        /* Success Message */
+        .lesson-success-message {
+            text-align: center;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 20px auto;
+            max-width: 300px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .lesson-success-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+
+        /* Spectrum Explorer specific modern styles */
+        .spectrum-explorer {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .prism-svg {
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 24px;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1));
+            border-radius: 12px;
+        }
+
+        .visible-indicator {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 2px solid #667eea;
+            color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .scale-label.visible {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .exploration-progress {
+            text-align: center;
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+
+
+        /* Keep all other spectrum explorer functionality styles */
+        .spectrum-bar {
+            position: relative;
+            width: 100%;
+            height: 60px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        #spectrum-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        .spectrum-points {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0 0 24px 0;
+            gap: 8px;
+        }
+
+        .spectrum-point {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 8px;
+            cursor: pointer;
+            min-width: 80px;
+            outline: none;
+        }
+
+        .point-icon {
+            font-size: 1.5rem;
+        }
+        
+        .point-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .energy-scale {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .energy-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .energy-bar {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .panel-header .region-icon {
+            color: initial !important;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+            background-clip: initial !important;
+        }
+        
+        /* Fix emoji colors in revelation text and all spectrum content */
+        .revelation-text h3,
+        .revelation-text,
+        .spectrum-point .point-icon,
+        h3 {
+            color: inherit;
+        }
+        
+        /* Target emojis specifically to prevent color inheritance */
+        .revelation-text h3::after,
+        .revelation-text h3 *,
+        .spectrum-point .point-icon,
+        .point-icon {
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: initial !important;
+            background-clip: initial !important;
+            color: initial !important;
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
+        }
+        
+        /* Specific fix for Mind = Blown emoji */
+        .revelation-text h3 {
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: initial !important;
+            background-clip: initial !important;
+        }
+        
+        /* Universal emoji fix */
+        span[style*="color: initial"],
+        .emoji-fix {
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif !important;
+            font-style: normal !important;
+            font-variant: normal !important;
+            text-rendering: auto !important;
+            -webkit-font-smoothing: auto !important;
+        }
+        
+        /* Additional emoji protection */
+        .revelation-text span,
+        .spectrum-point .point-icon {
+            display: inline !important;
+            text-decoration: none !important;
+            font-weight: normal !important;
+        }
+
+        .region-icon {
+            font-size: 2rem;
+            color: initial;
+            text-shadow: none;
+            filter: none;
+            display: inline-block;
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+        }
+
+        .story-content {
+            margin-bottom: 24px;
+        }
+
+        .description {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin: 0;
+            color: #6b7280;
+        }
+
+        .tech-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .spec-item {
+            text-align: center;
+            padding: 12px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .spec-label {
+            display: block;
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 4px;
+            letter-spacing: 0.05em;
+        }
+
+        .spec-value {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .color-display {
+            margin-top: 16px;
+        }
+
+        .color-swatch {
+            height: 40px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .color-note {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0;
+            font-style: italic;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Responsive design for spectrum explorer */
+        @media (min-width: 768px) {
+            .exploration-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 32px;
+                align-items: start;
+            }
+            
+            .spectrum-points {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .spectrum-point {
+                min-width: 100px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .spectrum-explorer {
+                padding: 20px;
+            }
+            
+            .spectrum-points {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+            
+            .spectrum-point {
+                min-width: auto;
+            }
+            
+            .point-label {
+                font-size: 0.7rem;
+            }
+            
+            .tech-specs {
+                grid-template-columns: 1fr;
+            }
+        }
+</style>
+    <link rel="preload" as="font" href="about:blank">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="color-scheme" content="light">
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="lesson-container">
+        <!-- Section 1: Intro -->
+        <section id="section1" class="visible">
+            <h1>Bending Reality: Affine and Projective Transforms</h1>
+            <div class="image-placeholder">
+                <div class="placeholder-box">Image placeholder: An illustration of a person looking at a tall, rectangular skyscraper from the ground level. The person's view (in a thought bubble) shows the skyscraper's parallel sides appearing to converge towards the top, demonstrating perspective distortion.</div>
+            </div>
+            <p>In our last lesson, our shapes stayed perfectly rigid. A square was always a square, no matter how we moved or resized it. But look around you. The rectangular poster on your wall might look like a trapezoid if you're not standing directly in front of it. The parallel rails of a train track seem to meet in the distance. Today, we're going to learn the transformations that 'bend' reality to create these powerful perspective effects. Welcome to the world of Affine and Projective transformations!</p>
+            <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+        </section>
+
+        <!-- Section 2: Beyond Rigid: The Affine Transformation -->
+        <section id="section2">
+            <h2>Beyond Rigid: The Affine Transformation</h2>
+            <p>Let's take one step beyond similarity. What if we wanted to stretch an object non-uniformly? Taller but not wider? Or what if we wanted to 'shear' it, like pushing the top of a deck of cards to the side? This is where the <strong>Affine transformation</strong> comes in.</p>
+            <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+        </section>
+
+        <!-- Section 3: Affine vs Similarity text -->
+        <section id="section3">
+            <p>An Affine transformation is a bit more flexible than a Similarity transform. It can do everything a Similarity transform can do, plus non-uniform scaling and shearing.</p>
+            <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+        </section>
+
+        <!-- Section 4: The Affine Matrix -->
+        <section id="section4">
+            <h2>The Affine Matrix</h2>
+            <p>The matrix for an Affine transformation looks like this:</p>
+            <div class="math-block">\mathbf{M}_{aff} = \begin{pmatrix} a_{00} & a_{01} & t_x \\ a_{10} & a_{11} & t_y \\ 0 & 0 & 1 \end{pmatrix}</div>
+            <p>The magic is in the top-left 2x2 part. Instead of being a nice, structured rotation-and-scale matrix, it's now an arbitrary matrix $\mathbf{A}$. The elements $a_{01}$ and $a_{10}$ control the shearing. The crucial thing to notice is that the bottom row is still <code>[0 0 1]</code>. This has an important consequence...</p>
+            <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+        </section>
+
+        <!-- Section 5: What Affine Preserves -->
+        <section id="section5">
+            <h2>What Affine Preserves</h2>
+            <p>Because that bottom row is <code>[0 0 1]</code>, parallel lines will <em>always</em> remain parallel after an Affine transformation. A square might become a parallelogram, but its opposite sides will never converge. However, it does <em>not</em> preserve angles or lengths.</p>
+            <div class="image-placeholder">
+                <div class="placeholder-box">Image placeholder: A simple diagram showing a square on the left. An arrow labeled 'Affine Transform' points to a parallelogram on the right, illustrating how parallel lines stay parallel but angles change.</div>
+            </div>
+            <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+        </section>
+
+        <!-- Section 6: The Ultimate Transformation -->
+        <section id="section6">
+            <h2>The Ultimate Transformation: Projective (Homography)</h2>
+            <p>We've finally arrived at the most powerful 2D transformation. What happens if we let that last row change? What if it's no longer <code>[0 0 1]</code>? Then we get a <strong>Projective transformation</strong>, also known as a <strong>Homography</strong>.</p>
+            <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+        </section>
+
+        <!-- Section 7: The Homography Matrix -->
+        <section id="section7">
+            <h2>The Homography Matrix</h2>
+            <p>A homography is represented by a general, non-singular 3x3 matrix $\mathbf{H}$:</p>
+            <div class="math-block">\mathbf{H} = \begin{pmatrix} h_{00} & h_{01} & h_{02} \\ h_{10} & h_{11} & h_{12} \\ h_{20} & h_{21} & h_{22} \end{pmatrix}</div>
+            <p>The elements in the last row, $(h_{20}, h_{21}, h_{22})$, are the game-changers. They are responsible for creating perspective distortion.</p>
+            <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+        </section>
+
+        <!-- Section 8: The Secret of Perspective + Vocab -->
+        <section id="section8">
+            <h2>The Secret of Perspective</h2>
+            <p>Remember how we get back to Cartesian coordinates? We divide by the third component, <code>w</code>. When we apply a homography, the new <code>w'</code> is calculated as:</p>
+            <div class="math-block">$w' = h_{20}x + h_{21}y + h_{22}$</div>
+            <p>This is huge! The amount we divide by now depends on the original position $(x, y)$ of the point. Points that are 'further away' are divided by a larger number, making them appear smaller. This is exactly how perspective works in the real world!</p>
+            <div class="image-placeholder">
+                <div class="placeholder-box">Interactive placeholder: An image of a rectangular painting is shown. The painting is inside a bounding box with four draggable corners. As the user drags the corners of the box to form an arbitrary quadrilateral, the painting inside is warped in real-time to fit perfectly within the new boundaries. To the side, the 3x3 Homography matrix <code>H</code> that produces this warp is updated dynamically. This vividly demonstrates that a homography can map any rectangle to any quadrilateral.</div>
+            </div>
+
+            <div class="vocab-section">
+                <h3>Build Your Vocab</h3>
+                <h4 class="vocab-term">Affine Transformation</h4>
+                <p>A transformation that preserves parallel lines. It allows for shearing and non-uniform scaling.</p>
+                <h4 class="vocab-term">Projective Transformation (Homography)</h4>
+                <p>The most general 3x3 linear transformation. It preserves straight lines but not parallelism, allowing it to model perspective.</p>
+                <h4 class="vocab-term">Vanishing Point</h4>
+                <p>A point in an image where parallel lines in the 3D world appear to converge. A classic effect of projective transforms.</p>
+            </div>
+            <p>You now understand the full hierarchy of 2D transformations!</p>
+            <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+        </section>
+
+        <!-- Section 9: Why it matters + Stop and Think + Test -->
+        <section id="section9">
+            <div class="why-it-matters">
+                <h3>Why does this matter?</h3>
+                <p>Homographies are everywhere! When your phone creates a panoramic photo, it finds the homographies between overlapping images to stitch them together seamlessly. When you use an app to 'scan' a document by taking a picture of it, the app calculates the homography to warp the angled photo back into a perfect, flat rectangle. Augmented reality uses homographies to make virtual objects stick realistically onto surfaces in the camera feed.</p>
+            </div>
+
+            <div class="stop-and-think">
+                <h3>Stop and Think</h3>
+                <p>A homography maps a square to any arbitrary quadrilateral. To define a unique homography, how many pairs of corresponding points do you think you need? (e.g., if I tell you <code>point A</code> in the original image maps to <code>point A'</code> in the transformed image, how many such pairs do you need?)</p>
+                <div id="reveal-stop-1" style="display:none" class="animate-in">
+                    <p>A 3x3 matrix has 9 elements, but the transformation is only defined up to a scale, leaving 8 degrees of freedom. Each point-to-point correspondence <code>(x,y) -&gt; (x',y')</code> gives you two equations. To solve for 8 unknowns, you need at least 8 equations, which means you need <strong>four</strong> pairs of corresponding points (4 points x 2 equations/point = 8 equations).</p>
+                </div>
+                <button class="reveal-button" onclick="revealAnswer('reveal-stop-1')">Reveal Answer</button>
+            </div>
+
+            <div class="test-your-knowledge">
+                <h3>Test Your Knowledge</h3>
+                <h4>You take a picture of a rectangular poster on a wall, but you are standing off to the side so it looks like a trapezoid in your photo. The transformation from the real poster to the image is a...</h4>
+                <div class="multiple-choice">
+                    <div class="choice-option" onclick="selectChoice(this, false, 'Euclidean Transform', 'A Euclidean transform would keep the poster a perfect rectangle, it would only change its position and rotation.')">Euclidean Transform</div>
+                    <div class="choice-option" onclick="selectChoice(this, false, 'Similarity Transform', 'A similarity transform would also keep the poster a perfect rectangle, it would just change its size.')">Similarity Transform</div>
+                    <div class="choice-option" onclick="selectChoice(this, false, 'Affine Transform', 'An Affine transform would turn the rectangle into a parallelogram, but a trapezoid\'s parallel sides don\'t stay parallel. We need something more powerful.')">Affine Transform</div>
+                    <div class="choice-option" onclick="selectChoice(this, true, 'Projective Transform (Homography)', 'Correct! A projective transform is the only one that can make parallel lines converge, turning a rectangle into a trapezoid. This perfectly models how a camera sees a plane from an angle.')">Projective Transform (Homography)</div>
+                </div>
+            </div>
+            <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(10)" style="display:none;">Continue</div>
+        </section>
+
+        <!-- Section 10: Review and Reflect -->
+        <section id="section10">
+            <h2>Review and Reflect</h2>
+            <p>We've really stretched our understanding of transformations today, moving from the rigid world into one that can bend and warp.</p>
+            <div class="image-placeholder">
+                <div class="placeholder-box">Image placeholder: A summary diagram showing the hierarchy. A box for 'Euclidean' is inside a larger box for 'Similarity', which is inside 'Affine', which is inside the largest box 'Projective'. Each box has a small icon representing the shape it preserves (e.g., a rigid square, a resized square, a parallelogram, a trapezoid).</div>
+            </div>
+            <p>In this lesson, you learned about:
+            <br>- <strong>Affine transformations</strong>, which preserve parallel lines but allow for shearing and non-uniform scaling.
+            <br>- The all-powerful <strong>Projective transformation (Homography)</strong>, which can model true perspective by allowing parallel lines to converge.
+            <br>- How the last row of the transformation matrix is the secret ingredient that creates perspective distortion.
+            <br><br>We've now completed our 2D transformation toolkit. The next step is to apply these tools to our main goal: building a complete model of a 3D camera. Let's go!</p>
+        </section>
+
+        <!-- Mark as Completed Button -->
+        <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+    </div>
+
+    <script>
+        let currentSection = 1;
+        const totalSections = 10;
+
+        // Initialize progress
+        updateProgress();
+
+        // Show the mark as completed button if already on the final section
+        if (currentSection === totalSections) {
+            const completedButton = document.getElementById('markCompletedBtn');
+            if (completedButton) completedButton.classList.add('show');
+        }
+
+        function showNextSection(nextSectionId) {
+            const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+            const currentButton = event.target;
+            if (!nextSectionElement) return;
+
+            // Hide the continue button
+            if (currentButton && currentButton.style) currentButton.style.display = 'none';
+
+            // Reveal next section
+            nextSectionElement.classList.add('visible', 'animate-in');
+
+            // Update current section and progress
+            currentSection = nextSectionId;
+            updateProgress();
+
+            // Show completion button at final section
+            if (currentSection === totalSections) {
+                const completedButton = document.getElementById('markCompletedBtn');
+                if (completedButton) completedButton.classList.add('show');
+            }
+
+            // Smooth scroll
+            setTimeout(() => {
+                nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+
+        function updateProgress() {
+            const progressBar = document.getElementById('progressBar');
+            const progress = (currentSection / totalSections) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function revealAnswer(id) {
+            const el = document.getElementById(id);
+            const btn = event.target;
+            if (el) {
+                el.style.display = 'block';
+                el.classList.add('animate-in');
+            }
+            if (btn && btn.style) btn.style.display = 'none';
+        }
+
+        function selectChoice(element, isCorrect, optionText, explanation) {
+            // Clear previous
+            const choices = element.parentNode.querySelectorAll('.choice-option');
+            choices.forEach(choice => {
+                choice.classList.remove('selected', 'correct', 'incorrect');
+                const existing = choice.querySelector('.choice-explanation');
+                if (existing) existing.remove();
+            });
+
+            // Mark selection
+            element.classList.add('selected');
+            element.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+            // Explanation
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'choice-explanation animate-in';
+            explanationDiv.style.display = 'block';
+            explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+            element.appendChild(explanationDiv);
+
+            // Show a continue button within this section after answering
+            const parentSection = element.closest('section');
+            if (parentSection) {
+                const contBtn = parentSection.querySelector('.continue-button');
+                if (contBtn && contBtn.style.display === 'none') {
+                    setTimeout(() => {
+                        contBtn.style.display = 'block';
+                        contBtn.classList.add('show-with-animation');
+                    }, 800);
+                }
+            }
+        }
+
+        // Keyboard support for continue
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                const continueButton = document.querySelector(`#section${currentSection} .continue-button`);
+                if (continueButton && continueButton.style.display !== 'none') {
+                    event.preventDefault();
+                    continueButton.click();
+                }
+            }
+        });
+
+        // Completion handling (with optional parent ProgressTracker + localStorage fallback)
+        function toggleCompleted() {
+            const button = document.getElementById('markCompletedBtn');
+            if (!button) return;
+            const isCompleted = button.classList.contains('completed');
+            if (isCompleted) return;
+
+            try {
+                if (window.parent && window.parent.ProgressTracker) {
+                    let courseId = 'computer-vision';
+                    let pathId = 'image-formation-transformations';
+                    let moduleId = 'cv-lesson-3-bending-reality';
+                    let lessonId = 'cv-l3-bending-reality';
+
+                    if (window.parent.currentRoute) {
+                        const route = window.parent.currentRoute;
+                        if (route.courseId) courseId = route.courseId;
+                        if (route.pathId) pathId = route.pathId;
+                        if (route.moduleId) moduleId = route.moduleId;
+                        if (route.lessonId) lessonId = route.lessonId;
+                    }
+
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('course')) courseId = urlParams.get('course');
+                    if (urlParams.get('path')) pathId = urlParams.get('path');
+                    if (urlParams.get('module')) moduleId = urlParams.get('module');
+                    if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+
+                    window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+                }
+            } catch (error) {
+                console.error('Error with ProgressTracker:', error);
+            }
+
+            button.classList.add('completed');
+            button.innerHTML = '✅ Completed!';
+            triggerCelebration();
+            localStorage.setItem('lesson_cv-ch04-l3_completed', 'true');
+        }
+
+        function triggerCelebration() {
+            createConfetti();
+            showSuccessMessage();
+        }
+
+        function createConfetti() {
+            const confettiContainer = document.createElement('div');
+            confettiContainer.className = 'confetti-container';
+            document.body.appendChild(confettiContainer);
+
+            const confettiEmojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd'];
+
+            for (let i = 0; i < 40; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    if (Math.random() > 0.6) {
+                        confetti.textContent = confettiEmojis[Math.floor(Math.random() * confettiEmojis.length)];
+                    } else {
+                        confetti.innerHTML = '●';
+                        confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    }
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.animationDelay = Math.random() * 1.5 + 's';
+                    confettiContainer.appendChild(confetti);
+                }, i * 50);
+            }
+
+            setTimeout(() => {
+                if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer);
+            }, 4500);
+        }
+
+        function showSuccessMessage() {
+            const successMessage = document.createElement('div');
+            successMessage.className = 'success-message';
+            successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+            document.body.appendChild(successMessage);
+            setTimeout(() => {
+                if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage);
+            }, 2500);
+        }
+
+        // Load completion state
+        window.addEventListener('load', function() {
+            const button = document.getElementById('markCompletedBtn');
+            if (!button) return;
+            try {
+                if (window.parent && window.parent.ProgressTracker) {
+                    let courseId = 'computer-vision';
+                    let pathId = 'image-formation-transformations';
+                    let moduleId = 'cv-lesson-3-bending-reality';
+                    let lessonId = 'cv-l3-bending-reality';
+
+                    if (window.parent.currentRoute) {
+                        const route = window.parent.currentRoute;
+                        if (route.courseId) courseId = route.courseId;
+                        if (route.pathId) pathId = route.pathId;
+                        if (route.moduleId) moduleId = route.moduleId;
+                        if (route.lessonId) lessonId = route.lessonId;
+                    }
+
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('course')) courseId = urlParams.get('course');
+                    if (urlParams.get('path')) pathId = urlParams.get('path');
+                    if (urlParams.get('module')) moduleId = urlParams.get('module');
+                    if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+
+                    const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+                    if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+                        button.classList.add('completed');
+                        button.innerHTML = '✅ Completed!';
+                        return;
+                    }
+                }
+            } catch (e) { /* ignore */ }
+
+            const isCompleted = localStorage.getItem('lesson_cv-ch04-l3_completed') === 'true';
+            if (isCompleted) {
+                button.classList.add('completed');
+                button.innerHTML = '✅ Completed!';
+            }
+        });
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Lesson 3: Bending Reality: Affine and Projective Transforms</title>
+</head>
+<body>
+<h1>Lesson 3: Bending Reality: Affine and Projective Transforms</h1>
+<p>Placeholder for cv-l3-bending-reality-affine</p>
+<script>
+// Optional: lessons can expose initializeCompletion if needed by the host page
+window.initializeCompletion = function(){};
+</script>
+</body>
+</html>

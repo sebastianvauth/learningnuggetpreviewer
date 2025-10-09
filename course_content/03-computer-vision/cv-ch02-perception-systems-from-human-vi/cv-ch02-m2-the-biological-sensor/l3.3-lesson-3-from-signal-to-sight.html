@@ -1,0 +1,1924 @@
+﻿?<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>From Signal to Sight - Color and the Brain</title>
+    <style>
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+        }
+
+
+
+        /* Main Container */
+        .lesson-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Section Cards */
+        section {
+            background: transparent;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            display: none;
+            opacity: 0;
+            transition: all 0.6s ease;
+            transform: translateY(20px);
+        }
+
+        section.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+        }
+
+        ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        li {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        strong {
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        em {
+            color: #667eea;
+            font-style: normal;
+            font-weight: 500;
+        }
+
+        /* Image Placeholders */
+        .image-placeholder {
+            margin: 2rem 0;
+        }
+
+        /* Confetti Animation */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            font-size: 20px;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti:nth-child(odd) {
+            animation-duration: 2.5s;
+            animation-delay: 0.2s;
+        }
+
+        .confetti:nth-child(even) {
+            animation-duration: 3.5s;
+            animation-delay: 0.5s;
+        }
+
+        .confetti:nth-child(3n) {
+            animation-duration: 2.8s;
+            animation-delay: 0.8s;
+        }
+
+        .confetti:nth-child(4n) {
+            animation-duration: 3.2s;
+            animation-delay: 0.3s;
+        }
+
+        .confetti:nth-child(5n) {
+            animation-duration: 2.7s;
+            animation-delay: 0.7s;
+        }
+
+        /* Success Message Animation */
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+            z-index: 10000;
+            opacity: 0;
+            animation: success-popup 2.5s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes success-popup {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            40% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+        }
+
+        .image-placeholder img {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        /* Specific sizing for individual images by section */
+        #section1 .image-placeholder img {
+            width: 70% !important;              /* Image 1: 70% (dramatic light beam) */
+            max-width: 500px !important;
+        }
+
+        #section6 .image-placeholder img {
+            width: 55% !important;              /* Image 2: 50-60% (meme image) */
+            max-width: 400px !important;
+        }
+        
+        #section9 .image-placeholder img {
+            width: 85% !important;              /* Image 3: 80-90% (prism diagram) */
+            max-width: 600px !important;
+        }
+        
+        #section13 .image-placeholder img {
+            width: 85% !important;              /* Image 4: 80-90% (red object) */
+            max-width: 600px !important;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #section1 .image-placeholder img {
+                width: 80% !important;
+                max-width: 400px !important;
+            }
+
+            #section6 .image-placeholder img {
+                width: 65% !important;
+                max-width: 350px !important;
+            }
+            
+            #section9 .image-placeholder img,
+            #section13 .image-placeholder img {
+                width: 90% !important;
+                max-width: 450px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #section1 .image-placeholder img {
+                width: 85% !important;
+                max-width: 300px !important;
+            }
+
+            #section6 .image-placeholder img {
+                width: 75% !important;
+                max-width: 280px !important;
+            }
+            
+            #section9 .image-placeholder img,
+            #section13 .image-placeholder img {
+                width: 95% !important;
+                max-width: 320px !important;
+            }
+        }
+
+        /* Content Boxes */
+        .vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, 
+        .stop-and-think, .check-your-knowledge {
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 8px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vocab-section::before, .why-it-matters::before, .test-your-knowledge::before,
+        .faq-section::before, .stop-and-think::before, .check-your-knowledge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.05;
+            z-index: 0;
+        }
+
+        .vocab-section {
+            background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+            border-left-color: #4facfe;
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+        }
+
+        .vocab-section::before {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+        }
+
+        .why-it-matters {
+            background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+            border-left-color: #f093fb;
+            box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+        }
+
+        .why-it-matters::before {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+        }
+
+        .test-your-knowledge, .check-your-knowledge {
+            background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+            border-left-color: #68d391;
+            box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+        }
+
+        .test-your-knowledge::before, .check-your-knowledge::before {
+            background: linear-gradient(45deg, #68d391, #4fd1c7);
+        }
+
+        .faq-section {
+            background: linear-gradient(135deg, #fffbeb 0%, #fefcf3 100%);
+            border-left-color: #fbbf24;
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.1);
+        }
+
+        .faq-section::before {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+        }
+
+        .stop-and-think {
+            background: linear-gradient(135deg, #f3e8ff 0%, #f8f4ff 100%);
+            border-left-color: #a78bfa;
+            box-shadow: 0 10px 30px rgba(167, 139, 250, 0.1);
+        }
+
+        .stop-and-think::before {
+            background: linear-gradient(45deg, #a78bfa, #8b5cf6);
+        }
+
+        .vocab-section:hover, .why-it-matters:hover, .test-your-knowledge:hover,
+        .faq-section:hover, .stop-and-think:hover, .check-your-knowledge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .vocab-section h3 {
+            color: #0ea5e9;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .why-it-matters h3 {
+            color: #ec4899;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .test-your-knowledge h3, .check-your-knowledge h3 {
+            color: #10b981;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .faq-section h3 {
+            color: #d97706;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stop-and-think h3 {
+            color: #8b5cf6;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vocab-section h4, .test-your-knowledge h4, .check-your-knowledge h4, .faq-section h4 {
+            color: #2d3748;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vocab-term {
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .continue-button, .reveal-button, .check-button {
+            display: inline-block;
+            padding: 16px 32px;
+            margin-top: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .continue-button::before, .reveal-button::before, .check-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .continue-button:hover, .reveal-button:hover, .check-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .continue-button:hover::before, .reveal-button:hover::before, .check-button:hover::before {
+            left: 100%;
+        }
+
+        .continue-button:active, .reveal-button:active, .check-button:active {
+            transform: translateY(-1px);
+        }
+
+        /* Hidden state for conditional buttons */
+        .continue-button[style*="display: none"] {
+            display: none !important;
+        }
+
+        /* Ensure all conditional continue buttons match normal button styling exactly when shown */
+        #continue-after-interactive:not([style*="display: none"]),
+        #continue-after-check-knowledge:not([style*="display: none"]),
+        #continue-after-test-knowledge:not([style*="display: none"]) {
+            display: inline-block !important;
+            width: auto !important;
+            max-width: none !important;
+            min-width: auto !important;
+            padding: 16px 32px !important;
+            margin: 30px auto !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Center ALL continue buttons by making all sections center them */
+        section {
+            text-align: center;
+        }
+
+        /* Reset text alignment for all content except continue buttons */
+        section > *:not(.continue-button) {
+            text-align: left;
+        }
+
+        /* Ensure content boxes also have left alignment */
+        .check-your-knowledge,
+        .test-your-knowledge,
+        .vocab-section,
+        .why-it-matters,
+        .faq-section,
+        .stop-and-think {
+            text-align: left;
+        }
+
+        /* Smooth appearance for conditional continue buttons */
+        .continue-button.show-with-animation {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Multiple Choice */
+        .multiple-choice {
+            margin: 1.5rem 0;
+        }
+
+        .choice-option {
+            display: block;
+            margin: 1rem 0;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .choice-option:hover {
+            transform: translateX(5px);
+            border-color: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+        }
+
+        .choice-option:hover::before {
+            opacity: 0.05;
+        }
+
+        .choice-option.selected, .choice-option.correct {
+            background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+            border-color: #68d391;
+            color: #2d3748;
+        }
+
+        .choice-option.incorrect {
+            background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%);
+            border-color: #f87171;
+            color: #2d3748;
+        }
+
+        .choice-explanation {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f1f5f9;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            animation: fadeIn 0.5s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Spectrum Explorer - keeping the interactive styles but updating colors */
+        .spectrum-explorer {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin: 2rem 0;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 40px;
+        }
+
+        .stage {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .stage-text h3 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 16px 0;
+        }
+
+        .instruction {
+            font-size: 1.1rem;
+            color: #6b7280;
+            margin: 0;
+            padding: 16px 24px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+        }
+
+        .continue-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .revelation-text h3 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 16px 0;
+        }
+
+        .spectrum-point {
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        .spectrum-point:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .spectrum-point.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .info-panel {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+        }
+
+        .region-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hook {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .lesson-container {
+                padding: 20px 15px;
+            }
+
+            section {
+                padding: 15px 0;
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.75rem;
+            }
+
+            p, li {
+                font-size: 1rem;
+            }
+
+
+
+            .continue-button, .reveal-button, .check-button {
+                width: 100%;
+            text-align: center;
+                margin-top: 1.5rem;
+            }
+
+            .spectrum-explorer {
+                padding: 20px;
+            }
+
+            .choice-option {
+                padding: 1rem;
+            }
+
+            .mark-completed-button {
+                padding: 14px 28px;
+                font-size: 0.9rem;
+                margin: 30px auto 15px auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lesson-container {
+                padding: 15px 10px;
+            }
+
+            section {
+                padding: 10px 0;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .vocab-section, .why-it-matters, .test-your-knowledge, 
+            .faq-section, .stop-and-think, .check-your-knowledge {
+                padding: 1.5rem;
+            }
+
+            .mark-completed-button {
+                padding: 12px 24px;
+                font-size: 0.85rem;
+                margin: 25px auto 10px auto;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Accessibility */
+        .choice-option:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .continue-button:focus, .reveal-button:focus, .check-button:focus {
+            outline: 2px solid white;
+            outline-offset: 2px;
+        }
+
+        /* Content positioning */
+        .vocab-section *, .why-it-matters *, .test-your-knowledge *, 
+        .faq-section *, .stop-and-think *, .check-your-knowledge * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Mark as Completed Button */
+        .mark-completed-button {
+            display: none;
+            width: 100%;
+            max-width: 400px;
+            margin: 40px auto 20px auto;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .mark-completed-button.show {
+            display: block;
+        }
+
+        .mark-completed-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(72, 187, 120, 0.4);
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+        }
+
+        .mark-completed-button:active {
+            transform: translateY(0);
+        }
+
+        .mark-completed-button.completed {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            box-shadow: 0 4px 20px rgba(148, 163, 184, 0.3);
+            cursor: default;
+        }
+
+        .mark-completed-button.completed:hover {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            box-shadow: 0 4px 20px rgba(148, 163, 184, 0.3);
+            transform: none;
+        }
+
+        /* Success Message */
+        .lesson-success-message {
+            text-align: center;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 20px auto;
+            max-width: 300px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .lesson-success-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+
+        /* Spectrum Explorer specific modern styles */
+        .spectrum-explorer {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .prism-svg {
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 24px;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1));
+            border-radius: 12px;
+        }
+
+        .visible-indicator {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 2px solid #667eea;
+            color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .scale-label.visible {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .exploration-progress {
+            text-align: center;
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+
+
+        /* Keep all other spectrum explorer functionality styles */
+        .spectrum-bar {
+            position: relative;
+            width: 100%;
+            height: 60px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        #spectrum-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        .spectrum-points {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0 0 24px 0;
+            gap: 8px;
+        }
+
+        .spectrum-point {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 8px;
+            cursor: pointer;
+            min-width: 80px;
+            outline: none;
+        }
+
+        .point-icon {
+            font-size: 1.5rem;
+        }
+        
+        .point-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .energy-scale {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .energy-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .energy-bar {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .panel-header .region-icon {
+            color: initial !important;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+            background-clip: initial !important;
+        }
+        
+        /* Fix emoji colors in revelation text and all spectrum content */
+        .revelation-text h3,
+        .revelation-text,
+        .spectrum-point .point-icon,
+        h3 {
+            color: inherit;
+        }
+        
+        /* Target emojis specifically to prevent color inheritance */
+        .revelation-text h3::after,
+        .revelation-text h3 *,
+        .spectrum-point .point-icon,
+        .point-icon {
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: initial !important;
+            background-clip: initial !important;
+            color: initial !important;
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
+        }
+        
+        /* Specific fix for Mind = Blown emoji */
+        .revelation-text h3 {
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: initial !important;
+            background-clip: initial !important;
+        }
+        
+        /* Universal emoji fix */
+        span[style*="color: initial"],
+        .emoji-fix {
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif !important;
+            font-style: normal !important;
+            font-variant: normal !important;
+            text-rendering: auto !important;
+            -webkit-font-smoothing: auto !important;
+        }
+        
+        /* Additional emoji protection */
+        .revelation-text span,
+        .spectrum-point .point-icon {
+            display: inline !important;
+            text-decoration: none !important;
+            font-weight: normal !important;
+        }
+
+        .region-icon {
+            font-size: 2rem;
+            color: initial;
+            text-shadow: none;
+            filter: none;
+            display: inline-block;
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+        }
+
+        .story-content {
+            margin-bottom: 24px;
+        }
+
+        .description {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin: 0;
+            color: #6b7280;
+        }
+
+        .tech-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .spec-item {
+            text-align: center;
+            padding: 12px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .spec-label {
+            display: block;
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 4px;
+            letter-spacing: 0.05em;
+        }
+
+        .spec-value {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .color-display {
+            margin-top: 16px;
+        }
+
+        .color-swatch {
+            height: 40px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .color-note {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0;
+            font-style: italic;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Responsive design for spectrum explorer */
+        @media (min-width: 768px) {
+            .exploration-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 32px;
+                align-items: start;
+            }
+            
+            .spectrum-points {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .spectrum-point {
+                min-width: 100px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .spectrum-explorer {
+                padding: 20px;
+            }
+            
+            .spectrum-points {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+            
+            .spectrum-point {
+                min-width: auto;
+            }
+            
+            .point-label {
+                font-size: 0.7rem;
+            }
+            
+            .tech-specs {
+                grid-template-columns: 1fr;
+            }
+        }
+</style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="lesson-container">
+        <section id="section1" class="visible">
+            <div class="image-placeholder">
+                <img src="images/l222_1.png" alt="...">
+        </div>
+            <h1>From Signal to Sight: Color and the Brain</h1>
+            <p>Capturing light is just step one. An eye full of signals is meaningless without a brain to interpret them. How do we see millions of colors when we only have a few types of color sensors? And how does the raw data from the eye become the rich, 3D world we experience? Let's follow the signal.</p>
+            <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+        </section>
+
+        <section id="section2">
+            <h2>The RGB of the Brain</h2>
+            <p>In the last lesson, we met the Cones, the cells responsible for color vision. But here's the amazing part: there are only <strong>three</strong> types of cones. How can three types of sensors produce the millions of colors we can perceive?</p>
+            <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+        </section>
+
+        <section id="section3">
+            <p>This is explained by the <strong>Trichromatic Color Theory</strong>. Each of the three cone types is most sensitive to a different range of light wavelengths:</p>
+            <ul>
+                <li><strong>S-cones</strong> for Short wavelengths (Blue)</li>
+                <li><strong>M-cones</strong> for Medium wavelengths (Green)</li>
+                <li><strong>L-cones</strong> for Long wavelengths (Red)</li>
+            </ul>
+            <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+        </section>
+
+        <section id="section4">
+            <p>Crucially, their sensitivity ranges overlap. A single color of light, like yellow, will stimulate multiple cone types at once?in this case, both the green and red cones will fire strongly. The brain perceives 'yellow' not from a 'yellow sensor', but by comparing the <em>relative strength</em> of the signals from the green and red cones. It's a brilliant and efficient system!</p>
+            <div class="color-mixer" id="color-mixer">
+                <div class="cm-top">
+                    <div class="cm-graph">
+                        <canvas id="cm-graph" width="900" height="280" aria-label="Cone sensitivity graph"></canvas>
+                    </div>
+                    <div class="cm-bars" aria-label="Signal Strength">
+                        <div class="cm-bar s" aria-labelledby="cm-label-s">
+                            <div class="cm-bar-label" id="cm-label-s">S</div>
+                            <div class="cm-bar-fill" id="cm-bar-s"></div>
+                            <div class="cm-bar-value" id="cm-val-s">0%</div>
+                        </div>
+                        <div class="cm-bar m" aria-labelledby="cm-label-m">
+                            <div class="cm-bar-label" id="cm-label-m">M</div>
+                            <div class="cm-bar-fill" id="cm-bar-m"></div>
+                            <div class="cm-bar-value" id="cm-val-m">0%</div>
+                        </div>
+                        <div class="cm-bar l" aria-labelledby="cm-label-l">
+                            <div class="cm-bar-label" id="cm-label-l">L</div>
+                            <div class="cm-bar-fill" id="cm-bar-l"></div>
+                            <div class="cm-bar-value" id="cm-val-l">0%</div>
+                        </div>
+                        <div class="cm-swatch" id="cm-swatch" title="Perceived color swatch"></div>
+                    </div>
+                </div>
+                <div class="cm-controls">
+                    <input type="range" id="cm-slider" min="380" max="700" step="1" value="560" aria-label="Wavelength in nanometers">
+                    <div class="cm-presets" aria-label="Preset wavelengths">
+                        <button type="button" class="cm-preset" data-nm="400">Violet</button>
+                        <button type="button" class="cm-preset" data-nm="450">Blue</button>
+                        <button type="button" class="cm-preset" data-nm="490">Cyan</button>
+                        <button type="button" class="cm-preset" data-nm="530">Green</button>
+                        <button type="button" class="cm-preset" data-nm="580">Yellow</button>
+                        <button type="button" class="cm-preset" data-nm="630">Red</button>
+                    </div>
+                    <div class="cm-expl" id="cm-expl" role="status" aria-live="polite"></div>
+                </div>
+            </div>
+            <div class="continue-button" id="continue-after-interactive" onclick="showNextSection(5)" style="display: none;">Continue</div>
+            <div class="why-it-matters">
+                <h3>Why It Matters</h3>
+                <p>This is one of the most important parallels between human and computer vision! The Trichromatic Theory is the direct inspiration for how digital screens and cameras work. The <strong>RGB (Red, Green, Blue)</strong> color model, where every pixel is a mix of red, green, and blue light, is a direct technological analog to our S, M, and L cones.</p>
+            </div>
+            <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+        </section>
+
+        <section id="section5">
+            <h2>The Journey to the Cortex</h2>
+            <p>Once the rods and cones fire, the electrical signals begin an incredible journey to the brain's processing center. The axons from the retinal cells bundle together to form the optic nerve.</p>
+            <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+        </section>
+
+        <section id="section6">
+            <p>The optic nerves from both eyes meet at a junction called the <strong>optic chiasm</strong>. Here, something fascinating happens: information is rerouted. Signals from the right half of <em>each</em> eye's view are all sent to the left hemisphere of the brain, and signals from the left half of <em>each</em> eye's view are sent to the right hemisphere.</p>
+            <div class="image-placeholder">
+                [Image Placeholder: A clear, animated diagram of the visual pathway (based on Figure 2.8). It shows two eyes looking forward. Animated light rays from the 'Left Visual Field' are colored blue, and rays from the 'Right Visual Field' are red. The animation shows these rays hitting the retinas and then traveling as colored neural pathways, clearly illustrating the crossover at the optic chiasm, so all red pathways go to the left brain hemisphere and all blue pathways go to the right.]
+            </div>
+            <div class="check-your-knowledge">
+                <h3>Check Your Knowledge</h3>
+                <h4>If you see something in your far-left peripheral vision, which hemisphere of your brain processes that information?</h4>
+                <div class="multiple-choice">
+                    <div class="choice-option" onclick="selectChoice(this, false, 'The left hemisphere.', 'Not quite. Remember the crossover! Information from the left visual field is processed on the opposite side.')">
+                        The left hemisphere.
+                    </div>
+                    <div class="choice-option" onclick="selectChoice(this, true, 'The right hemisphere.', 'Correct! The visual pathway ensures that everything you see to your left is handled by the right side of your brain, and vice-versa.')">
+                        The right hemisphere.
+                    </div>
+                    <div class="choice-option" onclick="selectChoice(this, false, 'Both hemispheres equally.', 'While the brain hemispheres communicate, the initial processing for a specific visual field is segregated to the opposite side.')">
+                        Both hemispheres equally.
+                    </div>
+                </div>
+            </div>
+            <div class="continue-button" id="continue-after-check-knowledge" onclick="showNextSection(7)" style="display: none;">Continue</div>
+        </section>
+
+        <section id="section7">
+            <h2>What vs. Where: The Brain's Two Streams</h2>
+            <p>After a quick stop at a relay station, the visual information finally arrives at the Primary Visual Cortex (V1) at the very back of your brain. But V1 is just the beginning. From here, the information splits and flows along two major processing streams, each answering a different fundamental question.</p>
+            <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+        </section>
+
+        <section id="section8">
+            <p><strong>The Ventral Stream ('What' Pathway):</strong> This pathway travels down towards your temporal lobe. Its job is recognition. It identifies shapes, colors, faces, and objects. When you look at an apple and think 'apple', that's your ventral stream at work.</p>
+            <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+        </section>
+
+        <section id="section9">
+            <p><strong>The Dorsal Stream ('Where/How' Pathway):</strong> This pathway travels up towards your parietal lobe. Its job is to process spatial information?an object's location, its motion, and how to guide your actions in relation to it. When you reach out to grab that apple, your dorsal stream is calculating the exact path for your hand.</p>
+            <div class="image-placeholder">
+                [Image Placeholder: A simple, clean diagram of a human brain seen from the side (based on Figure 2.9). Two large, colored arrows originate from the visual cortex at the back. One arrow (labeled 'What?') curves down to the temporal lobe. The other arrow (labeled 'Where/How?') curves up to the parietal lobe.]
+            </div>
+            <div class="stop-and-think">
+                <h3>Stop and Think</h3>
+                <h4>Imagine a patient has damage to their 'What' stream, but their 'Where' stream is perfectly fine. What might they be able to do and not do when shown a coffee mug?</h4>
+                <button class="reveal-button" onclick="revealAnswer('stream-damage-answer')">Reveal Answer</button>
+                <div id="stream-damage-answer" class="choice-explanation" style="display: none;">
+                    <strong>Here's the answer:</strong> This is a real condition called visual agnosia! The patient could likely not be able to name the object ('mug') or describe its purpose. However, if asked to pick it up, their 'Where/How' stream would still allow them to accurately reach out, shape their hand to the handle, and lift it correctly. They can interact with it but don't know what 'it' is.
+                </div>
+            </div>
+            <div class="vocab-section">
+                <h3>Build Your Vocab</h3>
+                <h4 class="vocab-term">Trichromatic Theory</h4>
+                <p>The theory that our perception of color is based on the combined signals from three types of cone cells (S, M, and L).</p>
+                <h4 class="vocab-term">Ventral Stream</h4>
+                <p>The 'What' pathway in the brain, responsible for object and face recognition.</p>
+                <h4 class="vocab-term">Dorsal Stream</h4>
+                <p>The 'Where/How' pathway in the brain, responsible for processing spatial information and guiding actions.</p>
+            </div>
+            <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+        </section>
+
+        <section id="section10">
+            <div class="faq-section">
+                <h3>Frequently Asked Questions</h3>
+                <h4>What is the 'blind spot' I've heard about?</h4>
+                <p>The blind spot is the point on the retina where the optic nerve exits the eye. There are no photoreceptors there, so you are technically blind in that tiny spot. You don't notice it because your brain is a master of 'filling in the gaps' using information from the surrounding area and the input from your other eye!</p>
+            </div>
+            <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+        </section>
+
+        <section id="section11">
+            <div class="test-your-knowledge">
+                <h3>Test Your Knowledge</h3>
+                <h4>You see a fast-moving ball coming towards you and you lift your hand to catch it. Which visual stream is primarily responsible for guiding the action of your hand?</h4>
+                <div class="multiple-choice">
+                    <div class="choice-option" onclick="selectChoice(this, false, 'The Ventral (\'What\') Stream', 'The Ventral stream would help you identify the object as a \'ball\', but it\'s not the primary stream for guiding your physical actions.')">
+                        The Ventral ('What') Stream
+                    </div>
+                    <div class="choice-option" onclick="selectChoice(this, true, 'The Dorsal (\'Where/How\') Stream', 'Correct! The Dorsal stream processes the ball\'s location, speed, and trajectory, and it guides your motor system to perform the action of catching it.')">
+                        The Dorsal ('Where/How') Stream
+                    </div>
+                    <div class="choice-option" onclick="selectChoice(this, false, 'The Optic Chiasm', 'The optic chiasm is a \'crossroads\' for the signals, not a processing stream itself.')">
+                        The Optic Chiasm
+                    </div>
+                </div>
+            </div>
+            <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(12)" style="display: none;">Continue</div>
+        </section>
+
+        <section id="section12">
+            <h2>Review and Reflect</h2>
+
+            <p>What a journey! We've followed a visual signal from the retina all the way to the brain's advanced processing centers. Here's the rundown:</p>
+            <ul>
+                <li><strong>Trichromatic Theory:</strong> We perceive millions of colors by interpreting the combined signals from just three types of cones (S, M, L), the inspiration for the RGB model.</li>
+                <li><strong>Visual Pathway:</strong> Signals are routed at the <strong>optic chiasm</strong> so that the left visual field is processed by the right brain hemisphere, and vice versa.</li>
+                <li><strong>The Two Streams:</strong> In the cortex, the signal splits. The <strong>Ventral Stream</strong> figures out <em>what</em> you're seeing, while the <strong>Dorsal Stream</strong> figures out <em>where</em> it is and <em>how</em> to interact with it.</li>
+            </ul>
+            <p>Now that we have a solid grasp of the biological gold standard, it's time to turn our attention to how we've tried to replicate this miracle in machines. Next up: the digital camera.</p>
+            <div class="image-placeholder">
+                [Image Placeholder: A summary infographic. On the left, it shows the S, M, L cone sensitivity curves. An arrow points to the center, which shows the 'What' and 'Where' streams branching off in the brain. On the right, icons represent the outputs: an 'apple' icon for the 'What' stream and a 'hand reaching for the apple' icon for the 'Where' stream.]
+            </div>
+        </section>
+
+        <!-- Mark as Completed Button -->
+        <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()"> &#10003; Mark as Completed
+        </button>
+
+    </div>
+
+    <script>
+        let currentSection = 1;
+        const totalSections = 12;
+
+        // Initialize
+        updateProgress();
+
+        // Show the mark as completed button if already on the final section
+        if (currentSection === totalSections) {
+            const completedButton = document.getElementById('markCompletedBtn');
+            if (completedButton) {
+                completedButton.classList.add('show');
+            }
+        }
+
+        function showNextSection(nextSectionId) {
+            const currentSectionElement = document.getElementById(`section${currentSection}`);
+            const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+            const currentButton = event.target;
+
+            if (!nextSectionElement) return;
+
+            // Hide the continue button
+            currentButton.style.display = 'none';
+
+            // Show next section with smooth animation
+            nextSectionElement.classList.add('visible', 'animate-in');
+
+            // Update current section
+            currentSection = nextSectionId;
+            updateProgress();
+
+            // Show the mark as completed button when reaching the final section
+            if (currentSection === totalSections) {
+                const completedButton = document.getElementById('markCompletedBtn');
+                if (completedButton) {
+                    completedButton.classList.add('show');
+                }
+            }
+
+            // Smooth scroll to new section
+            setTimeout(() => {
+                nextSectionElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 300);
+        }
+
+        function updateProgress() {
+            const progressBar = document.getElementById('progressBar');
+            const progress = (currentSection / totalSections) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function revealAnswer(id) {
+            const revealText = document.getElementById(id);
+            const revealButton = event.target;
+
+            if (revealText && revealButton) {
+                revealText.style.display = "block";
+                revealText.classList.add('animate-in');
+                revealButton.style.display = "none";
+            }
+        }
+
+        function selectChoice(element, isCorrect, optionText, explanation) {
+            // Remove previous selections
+            const choices = element.parentNode.querySelectorAll('.choice-option');
+            choices.forEach(choice => {
+                choice.classList.remove('selected', 'correct', 'incorrect');
+                const existingExplanation = choice.querySelector('.choice-explanation');
+                if (existingExplanation) {
+                    existingExplanation.remove();
+                }
+            });
+
+            // Mark the selected choice
+            element.classList.add('selected');
+            element.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+            // Add explanation with animation
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'choice-explanation animate-in';
+            explanationDiv.style.display = 'block';
+            explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+            element.appendChild(explanationDiv);
+
+            // Show correct answer if wrong choice was selected
+            if (!isCorrect) {
+                choices.forEach(choice => {
+                    if (choice !== element) {
+                        const choiceText = choice.textContent.trim();
+                        if (choiceText.includes('right hemisphere') || choiceText.includes('Dorsal')) {
+                            choice.classList.add('correct');
+                            const correctExplanation = document.createElement('div');
+                            correctExplanation.className = 'choice-explanation animate-in';
+                            correctExplanation.style.display = 'block';
+                            if (choiceText.includes('right hemisphere')) {
+                                correctExplanation.innerHTML = '<strong>This is the correct answer:</strong> Correct! The visual pathway ensures that everything you see to your left is handled by the right side of your brain, and vice-versa.';
+                            } else if (choiceText.includes('Dorsal')) {
+                                correctExplanation.innerHTML = '<strong>This is the correct answer:</strong> Correct! The Dorsal stream processes the ball\'s location, speed, and trajectory, and it guides your motor system to perform the action of catching it.';
+                            }
+                            choice.appendChild(correctExplanation);
+                        }
+                    }
+                });
+            }
+
+            // Show continue button after answering
+            const parentSection = element.closest('section');
+            if (parentSection) {
+                const sectionId = parentSection.id;
+                let continueButtonId = null;
+
+                if (sectionId === 'section6') {
+                    continueButtonId = 'continue-after-check-knowledge';
+                } else if (sectionId === 'section11') {
+                    continueButtonId = 'continue-after-test-knowledge';
+                }
+
+                if (continueButtonId) {
+                    const continueButton = document.getElementById(continueButtonId);
+                    if (continueButton && continueButton.style.display === 'none') {
+                        setTimeout(() => {
+                            continueButton.style.display = 'block';
+                            continueButton.classList.add('show-with-animation');
+                        }, 1000);
+                    }
+                }
+            }
+        }
+
+        // Color Mixer interactive
+        const CM = {
+            minNm: 380,
+            maxNm: 700,
+            padding: { left: 42, right: 12, top: 10, bottom: 28 },
+            colors: { s: '#3b82f6', m: '#22c55e', l: '#ec4899', axes: '#cbd5e1' }
+        };
+
+        function gaussianAsym(nm, mu, sigmaLeft, sigmaRight) {
+            const sigma = nm < mu ? sigmaLeft : sigmaRight;
+            const z = (nm - mu) / sigma;
+            return Math.exp(-0.5 * z * z);
+        }
+
+        function computeConeResponses(nm) {
+            const s = gaussianAsym(nm, 420, 40, 25);
+            const m = gaussianAsym(nm, 534, 35, 45);
+            const l = gaussianAsym(nm, 564, 35, 55);
+            return { s, m, l };
+        }
+
+        function wavelengthToRGB(nm) {
+            let r = 0, g = 0, b = 0;
+            if (nm >= 380 && nm < 440) {
+                r = -(nm - 440) / (440 - 380);
+                g = 0;
+                b = 1;
+            } else if (nm >= 440 && nm < 490) {
+                r = 0;
+                g = (nm - 440) / (490 - 440);
+                b = 1;
+            } else if (nm >= 490 && nm < 510) {
+                r = 0;
+                g = 1;
+                b = -(nm - 510) / (510 - 490);
+            } else if (nm >= 510 && nm < 580) {
+                r = (nm - 510) / (580 - 510);
+                g = 1;
+                b = 0;
+            } else if (nm >= 580 && nm < 645) {
+                r = 1;
+                g = -(nm - 645) / (645 - 580);
+                b = 0;
+            } else if (nm >= 645 && nm <= 700) {
+                r = 1; g = 0; b = 0;
+            }
+            // Intensity falloff at the edges
+            let factor = 1;
+            if (nm > 700 || nm < 380) factor = 0;
+            else if (nm > 645) factor = 0.3 + 0.7 * (700 - nm) / (700 - 645);
+            else if (nm < 420) factor = 0.3 + 0.7 * (nm - 380) / (420 - 380);
+            // Gamma correction
+            const gamma = 0.8;
+            r = Math.round(Math.pow(r * factor, gamma) * 255);
+            g = Math.round(Math.pow(g * factor, gamma) * 255);
+            b = Math.round(Math.pow(b * factor, gamma) * 255);
+            return { r, g, b };
+        }
+
+        function nmToX(nm, width) {
+            const pad = CM.padding;
+            const scale = (width - pad.left - pad.right) / (CM.maxNm - CM.minNm);
+            return pad.left + (nm - CM.minNm) * scale;
+        }
+
+        function valToY(val, height) {
+            const pad = CM.padding;
+            const inner = height - pad.top - pad.bottom;
+            return pad.top + (1 - Math.max(0, Math.min(1, val))) * inner;
+        }
+
+        function drawCurves(ctx, width, height) {
+            const pad = CM.padding;
+            ctx.clearRect(0, 0, width, height);
+            // Axes
+            ctx.strokeStyle = CM.colors.axes;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(pad.left, height - pad.bottom);
+            ctx.lineTo(width - pad.right, height - pad.bottom);
+            ctx.moveTo(pad.left, pad.top);
+            ctx.lineTo(pad.left, height - pad.bottom);
+            ctx.stroke();
+
+            const step = 2;
+            // Draw S, M, L
+            const series = [
+                { key: 's', color: CM.colors.s, mu: 420, sl: 40, sr: 25 },
+                { key: 'm', color: CM.colors.m, mu: 534, sl: 35, sr: 45 },
+                { key: 'l', color: CM.colors.l, mu: 564, sl: 35, sr: 55 }
+            ];
+            series.forEach(sv => {
+                ctx.strokeStyle = sv.color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                let first = true;
+                for (let nm = CM.minNm; nm <= CM.maxNm; nm += step) {
+                    const v = gaussianAsym(nm, sv.mu, sv.sl, sv.sr);
+                    const x = nmToX(nm, width);
+                    const y = valToY(v, height);
+                    if (first) { ctx.moveTo(x, y); first = false; } else { ctx.lineTo(x, y); }
+                }
+                ctx.stroke();
+            });
+        }
+
+        function drawOverlay(ctx, width, height, nm, responses) {
+            const x = nmToX(nm, width);
+            // Cursor line
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, CM.padding.top);
+            ctx.lineTo(x, height - CM.padding.bottom);
+            ctx.stroke();
+
+            // Dots
+            const r = 4;
+            const points = [
+                { val: responses.s, color: CM.colors.s },
+                { val: responses.m, color: CM.colors.m },
+                { val: responses.l, color: CM.colors.l }
+            ];
+            points.forEach((p) => {
+                const y = valToY(p.val, height);
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+        }
+
+        function updateBars(res) {
+            const sPct = Math.round(res.s * 100);
+            const mPct = Math.round(res.m * 100);
+            const lPct = Math.round(res.l * 100);
+            const sBar = document.getElementById('cm-bar-s');
+            const mBar = document.getElementById('cm-bar-m');
+            const lBar = document.getElementById('cm-bar-l');
+            const sVal = document.getElementById('cm-val-s');
+            const mVal = document.getElementById('cm-val-m');
+            const lVal = document.getElementById('cm-val-l');
+            if (!sBar || !mBar || !lBar) return;
+            sBar.style.width = sPct + '%';
+            mBar.style.width = mPct + '%';
+            lBar.style.width = lPct + '%';
+            sVal.textContent = sPct + '%';
+            mVal.textContent = mPct + '%';
+            lVal.textContent = lPct + '%';
+        }
+
+        function updateSwatch(rgb) {
+            const sw = document.getElementById('cm-swatch');
+            if (sw) sw.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+        }
+
+        function updateExplainer(nm, res) {
+            const expl = document.getElementById('cm-expl');
+            if (!expl) return;
+            const order = [
+                { k: 'S', v: res.s },
+                { k: 'M', v: res.m },
+                { k: 'L', v: res.l }
+            ].sort((a, b) => b.v - a.v);
+            const top = order[0].k + (order[1].v > 0.65 ? '/' + order[1].k : '');
+            const hueHint = nm < 460 ? 'bluish' : nm < 500 ? 'cyan' : nm < 560 ? 'greenish' : nm < 590 ? 'yellow-green' : nm < 620 ? 'yellow/orange' : 'red';
+            expl.textContent = `At ${nm} nm, S=${Math.round(res.s*100)}%, M=${Math.round(res.m*100)}%, L=${Math.round(res.l*100)}%. Dominant: ${top}. Perceived hue ? ${hueHint}.`;
+        }
+
+        function initColorMixer() {
+            const canvas = document.getElementById('cm-graph');
+            const slider = document.getElementById('cm-slider');
+            const presetBtns = document.querySelectorAll('.cm-preset');
+            if (!canvas || !slider) return;
+            const ctx = canvas.getContext('2d');
+            let interacted = false;
+
+            function render(nm) {
+                const res = computeConeResponses(nm);
+                drawCurves(ctx, canvas.width, canvas.height);
+                drawOverlay(ctx, canvas.width, canvas.height, nm, res);
+                updateBars(res);
+                updateSwatch(wavelengthToRGB(nm));
+                updateExplainer(nm, res);
+            }
+
+            function onFirstInteraction() {
+                if (interacted) return;
+                interacted = true;
+                const btn = document.getElementById('continue-after-interactive');
+                const legacy = document.getElementById('continue-after-interactive-legacy');
+                if (legacy) legacy.style.display = 'none';
+                if (btn && btn.style.display === 'none') {
+                    btn.style.display = 'block';
+                    btn.classList.add('show-with-animation');
+                }
+            }
+
+            slider.addEventListener('input', () => {
+                const nm = Math.round(Number(slider.value));
+                render(nm);
+                onFirstInteraction();
+            });
+
+            presetBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const nm = Number(btn.getAttribute('data-nm'));
+                    slider.value = String(nm);
+                    render(nm);
+                    onFirstInteraction();
+                });
+            });
+
+            // Initial render
+            render(Math.round(Number(slider.value)) || 560);
+        }
+
+        // Keyboard Support
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                const continueButton = document.querySelector(`#section${currentSection} .continue-button`);
+                if (continueButton && continueButton.style.display !== 'none') {
+                    event.preventDefault();
+                    continueButton.click();
+                }
+            }
+        });
+
+        // Smooth scrolling
+        document.documentElement.style.scrollBehavior = 'smooth';
+
+        // Mark as Completed functionality
+        function toggleCompleted() {
+            const button = document.getElementById('markCompletedBtn');
+            if (!button) return;
+
+            const isCompleted = button.classList.contains('completed');
+
+            if (!isCompleted) {
+                // Try to use platform's ProgressTracker system
+                try {
+                    if (window.parent && window.parent.ProgressTracker) {
+                        let courseId = 'computer-vision';
+                        let pathId = 'perception-systems';
+                        let moduleId = 'cv-biological-sensor';
+                        let lessonId = 'cv-l3-signal-to-sight';
+
+                        if (window.parent.currentRoute) {
+                            const route = window.parent.currentRoute;
+                            if (route.courseId) courseId = route.courseId;
+                            if (route.pathId) pathId = route.pathId;
+                            if (route.moduleId) moduleId = route.moduleId;
+                            if (route.lessonId) lessonId = route.lessonId;
+                        }
+
+                        const urlParams = new URLSearchParams(window.location.search);
+                        if (urlParams.get('course')) courseId = urlParams.get('course');
+                        if (urlParams.get('path')) pathId = urlParams.get('path');
+                        if (urlParams.get('module')) moduleId = urlParams.get('module');
+                        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+
+                        window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+                    }
+                } catch (error) {
+                    console.error('Error with ProgressTracker:', error);
+                }
+
+                // Update button appearance
+                button.classList.add('completed');
+                button.innerHTML = '&#9989; Completed!';
+
+                // Trigger celebration
+                triggerCelebration();
+
+                // Fallback localStorage for direct access
+                localStorage.setItem('lesson_cv-ch02-l3_completed', 'true');
+            }
+        }
+
+        function triggerCelebration() {
+            // Create confetti
+            createConfetti();
+
+            // Show success message
+            showSuccessMessage();
+        }
+
+        function createConfetti() {
+            const confettiContainer = document.createElement('div');
+            confettiContainer.className = 'confetti-container';
+            document.body.appendChild(confettiContainer);
+
+            const confettiEmojis = ['??', '??', '?', '??', '??', '??', '??', '??', '??', '??'];
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8', '#f7dc6f'];
+
+            // Create 50 confetti pieces
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+
+                    // Random emoji or colored shape
+                    if (Math.random() > 0.6) {
+                        confetti.textContent = confettiEmojis[Math.floor(Math.random() * confettiEmojis.length)];
+                    } else {
+                        confetti.innerHTML = '?';
+                        confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    }
+
+                    // Random horizontal position
+                    confetti.style.left = Math.random() * 100 + '%';
+
+                    // Random animation delay
+                    confetti.style.animationDelay = Math.random() * 2 + 's';
+
+                    confettiContainer.appendChild(confetti);
+                }, i * 50);
+            }
+
+            // Remove confetti after animation
+            setTimeout(() => {
+                if (confettiContainer.parentNode) {
+                    confettiContainer.parentNode.removeChild(confettiContainer);
+                }
+            }, 5000);
+        }
+
+        function showSuccessMessage() {
+            const successMessage = document.createElement('div');
+            successMessage.className = 'success-message';
+            successMessage.innerHTML = '?? Lesson Completed! Great Job! ??';
+            document.body.appendChild(successMessage);
+
+            // Remove success message after animation
+            setTimeout(() => {
+                if (successMessage.parentNode) {
+                    successMessage.parentNode.removeChild(successMessage);
+                }
+            }, 2500);
+        }
+
+        // Load completion status on page load
+        window.addEventListener('load', function() {
+            // Initialize Color Mixer if present
+            try { initColorMixer(); } catch (e) { /* no-op */ }
+            const button = document.getElementById('markCompletedBtn');
+            if (!button) return;
+
+            // Check platform ProgressTracker first
+            if (window.parent && window.parent.ProgressTracker) {
+                let courseId = 'computer-vision';
+                let pathId = 'perception-systems';
+                let moduleId = 'cv-biological-sensor';
+                let lessonId = 'cv-l3-signal-to-sight';
+
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+
+                const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+
+                if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+                    button.classList.add('completed');
+                    button.innerHTML = '&#9989; Completed!';
+                    return;
+                }
+            }
+
+            // Fallback to localStorage
+            const isCompleted = localStorage.getItem('lesson_cv-ch02-l3_completed') === 'true';
+            if (isCompleted) {
+                button.classList.add('completed');
+                button.innerHTML = '&#9989; Completed!';
+            }
+        });
+    </script>
+</body>
+</html>
+

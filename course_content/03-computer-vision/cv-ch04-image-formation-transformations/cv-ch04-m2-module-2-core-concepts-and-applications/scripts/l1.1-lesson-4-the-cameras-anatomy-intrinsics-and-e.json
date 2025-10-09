@@ -1,0 +1,112 @@
+{
+    "lesson": {
+      "title": "Lesson 4: The Camera's Anatomy: Intrinsics & Extrinsics",
+      "sections": [
+        {
+          "title": "Intro Section",
+          "content": "# The Camera's Anatomy: Intrinsics & Extrinsics",
+          "image": "Description: A diagram of a camera. Two sets of arrows point to it. One set, labeled 'Intrinsics', points inside the camera to the lens and sensor. The other set, labeled 'Extrinsics', points to the camera's tripod and shows arrows for movement and rotation in the surrounding world.",
+          "text": "Okay, theory time is over. Let's build a camera! We've learned all the 2D transformations, but a camera captures a 3D world. How do we bridge that gap? It turns out, our virtual camera has two distinct sets of properties: its internal 'factory settings' that never change, and its position and orientation in the world, which change every time we move. We'll call these the **Intrinsics** and **Extrinsics**, and they are the heart and soul of 3D computer vision."
+        },
+        {
+          "title": "Where in the World is the Camera? Extrinsics",
+          "content": "Imagine you're a movie director. The world—your set, actors, and props—is fixed. To get the perfect shot, you move your camera around. You might place it on a tripod, put it on a dolly to slide it sideways, or hoist it on a crane to look down. All these actions define the camera's position and where it's looking.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "These properties are called the camera's **Extrinsic Parameters**. They describe the camera's **pose** (its position and orientation) relative to a global **World Coordinate System**.",
+              "continueButton": true
+            },
+            {
+              "title": "The Extrinsic Matrix: [R|t]",
+              "content": "The extrinsics are captured by a 3x4 matrix that transforms a 3D point from the world's coordinate system ($p_w$) into the camera's own coordinate system ($p_c$). The camera's coordinate system is one where the camera is at the origin (0,0,0) and looking straight down the Z-axis.",
+              "math": "\\mathbf{p}_c = [\\mathbf{R} | \\mathbf{t}] \\mathbf{p}_w",
+              "text": "This matrix is composed of two parts:\n- $\\mathbf{R}$: A 3x3 **rotation matrix** that describes the camera's orientation (which way it's pointing).\n- $\\mathbf{t}$: A 3x1 **translation vector** that describes the camera's position.",
+              "continueButton": true
+            },
+            {
+              "title": "What's Inside the Camera? Intrinsics",
+              "content": "Now, let's zoom in on the camera itself. Once a ray of light from the world enters the camera's coordinate system, how does it form a pixel on the final image? This is determined by the camera's internal construction—its **Intrinsic Parameters**.",
+              "image": "Description: A cutaway diagram of a camera lens and sensor. Light rays are shown converging through the lens onto the sensor plane. Labels point to the 'Focal Length' (distance from lens center to sensor) and 'Principal Point' (the center of the sensor).",
+              "continueButton": true
+            },
+            {
+              "title": "The Intrinsic Matrix: K",
+              "content": "These internal properties are bundled into a 3x3 matrix called the **Intrinsic Matrix**, $\\mathbf{K}$. It's like the camera's unique fingerprint. It doesn't change when you move the camera, only if you change the lens or the camera's internal settings.",
+              "math": "\\mathbf{K} = \\begin{pmatrix} f_x & s & c_x \\\\ 0 & f_y & c_y \\\\ 0 & 0 & 1 \\end{pmatrix}",
+              "text": "It contains a few key parameters:\n- $(f_x, f_y)$: The **focal length** of the lens, measured in pixel units. This is what controls the 'zoom' of the camera. A larger focal length means a tighter zoom.\n- $(c_x, c_y)$: The **principal point**. This is the exact pixel coordinate in the center of the image sensor where the optical axis hits.\n- $s$: A **skew** factor, which is almost always 0 for modern cameras.",
+              "interactive": {
+                "title": "Interactive Element: Virtual Camera Controls",
+                "description": "A split-screen view. On the left is a 3D scene containing a house, a tree, and a car. A small 3D model of a camera is visible in this scene. On the right is the 2D image that this camera is 'seeing'. There are two panels of sliders below.\n**Extrinsics Panel:** Sliders for 'X Position', 'Y Position', 'Z Position', and rotation dials for 'Pan', 'Tilt', 'Roll'. As the user changes these, the camera model moves and rotates in the 3D scene, and the 2D view on the right changes accordingly.\n**Intrinsics Panel:** Sliders for 'Focal Length' and 'Principal Point (cx, cy)'. Adjusting 'Focal Length' makes the 2D image zoom in and out. Adjusting the principal point shifts the 2D image around, as if the lens itself were moving relative to the sensor."
+              },
+              "buildYourVocab": [
+                {
+                  "term": "Camera Intrinsics (K)",
+                  "definition": "The internal 'factory settings' of a camera, like its focal length and principal point. They don't change when you move the camera."
+                },
+                {
+                  "term": "Camera Extrinsics ([R|t])",
+                  "definition": "The camera's position (t) and orientation (R) in the world. They change every time the camera's pose changes."
+                },
+                {
+                  "term": "Camera Pose",
+                  "definition": "The combination of a camera's position and orientation."
+                },
+                {
+                  "term": "Coordinate Systems",
+                  "definition": "We use three key systems: World (the global scene), Camera (relative to the camera's own viewpoint), and Image (the final 2D pixel grid)."
+                }
+              ],
+              "textAfterVocab": "You now know the two essential components that define a camera's view of the world.",
+              "continueButton": true
+            },
+            {
+              "whyItMatters": {
+                "title": "Why does this matter?",
+                "text": "This is it! This is the fundamental model of a pinhole camera. If you know a camera's intrinsics AND its extrinsics, you can predict exactly where any 3D point in the world will appear in its image. This is the absolute basis for almost all 3D vision tasks, from creating special effects in movies to helping a self-driving car understand its environment."
+              },
+              "checkYourUnderstanding": {
+                "question": "You are filming a scene and you walk closer to your subject. Have you changed the camera's intrinsics or extrinsics?",
+                "answer": "You've changed the extrinsics! You changed the camera's position (t) in the world. The intrinsics (the lens and sensor properties) have remained the same."
+              },
+              "frequentlyAsked": {
+                "question": "Why are there two focal lengths, fx and fy?",
+                "answer": "That's a great question! It's because pixels on a camera sensor aren't guaranteed to be perfectly square. fx and fy relate the focal length in meters to the size of a pixel in the horizontal and vertical directions. For most modern cameras, pixels are square, so fx and fy are very close or identical. But keeping them separate makes the model more general and accurate."
+              },
+              "testYourKnowledge": {
+                "question": "You are a photographer and you swap your standard lens for a powerful zoom lens. Which parameter set have you changed?",
+                "options": [
+                  {
+                    "option": "The intrinsics (K)",
+                    "explanation": "Correct! Changing the lens directly changes the focal length, which is a core component of the intrinsic matrix K.",
+                    "correct": true
+                  },
+                  {
+                    "option": "The extrinsics ([R|t])",
+                    "explanation": "The camera's position and orientation in the world haven't changed, only its internal optics.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Both",
+                    "explanation": "Only the internal properties of the camera system were altered by changing the lens.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Neither",
+                    "explanation": "Changing the lens is a fundamental change to how the camera forms an image, so it must affect the parameters.",
+                    "correct": false
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "We've just dissected the anatomy of a camera, separating its internal properties from its place in the world.",
+          "image": "Description: A visual summary showing the three coordinate systems. A 'World' icon (a globe) points to a 'Camera' icon via an arrow labeled '[R|t] Extrinsics'. The 'Camera' icon then points to an 'Image' icon (a pixel grid) via an arrow labeled 'K Intrinsics'.",
+          "text": "In this lesson, you learned that a camera's view is defined by:\n- **Extrinsics ([R|t])**: Where the camera is and which way it's pointing in the world.\n- **Intrinsics (K)**: How the camera's internal lens and sensor are constructed.\n- The flow from a **World** coordinate, to a **Camera** coordinate, to a final **Image** coordinate.\n\nWe have the two essential pieces of the puzzle. In our final lesson for this chapter, we will put them together to create a single, all-powerful matrix that describes the entire imaging process from start to finish."
+        }
+      ]
+    }
+  }

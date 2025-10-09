@@ -1,0 +1,99 @@
+{
+    "lesson": {
+      "title": "The DCT - Our Frequency-Finding Tool",
+      "sections": [
+        {
+          "title": "Introduction: Meet the DCT",
+          "content": "# The DCT: Our Frequency-Finding Tool",
+          "image": "Description: A stylized image of a prism, but instead of light passing through and splitting into a rainbow, a small 8x8 image block passes through and splits into the 64 DCT basis functions. This visually represents the DCT's function of decomposition.",
+          "text": "Welcome back! In our last lesson, we discovered that images are secretly 2D signals made up of different spatial frequencies. That's a great start, but how do we actually *measure* these frequencies? We need a special mathematical tool for the job. Meet the star of today's lesson: the **Discrete Cosine Transform**, or **DCT**."
+        },
+        {
+          "title": "Why the DCT?",
+          "content": "You might be thinking, 'Didn't we already learn about the Fourier Transform?' And you'd be right! The DCT is a close cousin of the Discrete Fourier Transform (DFT), but for image processing, especially compression, the DCT is the preferred tool. There are a couple of key reasons why.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "First, the DCT uses only real numbers (cosines), while the DFT uses complex numbers. This makes the DCT computationally faster and simpler. Second, and most importantly, the DCT is exceptionally good at something called **energy compaction**.",
+              "buildYourVocab": {
+                "term": "Energy Compaction",
+                "definition": "The property of a transform (like the DCT) to concentrate most of a signal's important information (its 'energy') into just a few coefficients. It's like packing all your most important belongings into one small, easy-to-carry box."
+              },
+              "continueButton": true
+            },
+            {
+              "text": "For a typical photograph, the DCT can cram almost all of the visually important information into a tiny handful of low-frequency coefficients. This is the secret sauce that makes JPEG compression so effective! We can throw away most of the other coefficients and still get a great-looking image.",
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "The Building Blocks of Images",
+          "content": "So, how does the DCT work its magic? It works by breaking down a small chunk of an image—typically an 8x8 pixel block—and describing it as a mix of 64 fundamental patterns. Think of it like a recipe: 'a little bit of this pattern, a lot of that one...' These patterns are called **basis functions**.",
+          "interactive": {
+            "description": "Interactive DCT Basis Explorer (based on Figure 6.2). A large 8x8 grid displays the 64 DCT basis functions. \n- **On Hover:** When a student's cursor moves over any of the 64 patterns, a tooltip appears with its coordinates and a description. For example, hovering over the pattern at (u=3, v=0) would show a tooltip: 'Horizontal Frequency: 3, Vertical Frequency: 0. This pattern represents smooth vertical stripes.'\n- **On Click:** Clicking on a basis function enlarges it in a pop-up window with a more detailed explanation. For the top-left (0,0) block: 'This is the DC Component! It has zero frequency and represents the average brightness of the entire 8x8 pixel block. It's the most important one!'. For a checkerboard pattern near the bottom-right: 'This pattern represents very high frequencies in both horizontal and vertical directions. It captures the finest, sharpest details or noise.'"
+          },
+          "textAfterInteractive": "Take some time to explore these patterns. You'll notice a few key things:",
+          "list": [
+            "The top-left pattern (0,0) is solid gray. This is the **DC component**, representing the average brightness.",
+            "As you move to the right, the patterns get more 'wavy' horizontally (increasing horizontal frequency).",
+            "As you move down, they get 'wavy' vertically (increasing vertical frequency).",
+            "The patterns in the bottom-right are complex checkerboards, representing high frequencies in both directions."
+          ],
+          "continueButton": true
+        },
+        {
+          "title": "The DCT in Action",
+          "content": "When we apply the DCT to an image, we are essentially asking for each 8x8 block: 'How much of each of these 64 basis patterns do I need to perfectly recreate this block?' The answers are the **DCT coefficients**.",
+          "visualAid": {
+            "description": "Based on Figure 6.3. A two-panel image. The left panel shows the original black-and-white test pattern image. An arrow labeled '2D DCT' points to the right panel. The right panel shows the DCT-transformed image. It's mostly dark, with a very bright spot in the top-left corner and a few other dimmer spots nearby. An annotation points to the bright spot, labeled 'DC Component (Average Brightness) - Most energy is here!'. Another annotation points to the dark bottom-right area, labeled 'High-Frequency Coefficients (Fine Details) - Very little energy for most images.'"
+          },
+          "textAfterInteractive": "Look at what happens! The result of the DCT (the right image) shows where the 'energy' of the image is in the frequency domain. For this natural image, almost everything is concentrated in that top-left corner. This is energy compaction visualized!",
+          "buildYourVocab": {
+            "term": "Discrete Cosine Transform (DCT)",
+            "definition": "A mathematical transform that decomposes a signal or image block into a sum of cosine functions of different spatial frequencies."
+          },
+          "continueButton": true
+        },
+        {
+          "title": "Frequently Asked Questions",
+          "content": "",
+          "frequentlyAsked": {
+            "question": "Why an 8x8 block? Why not 4x4 or 16x16?",
+            "answer": "That's a fantastic question! The 8x8 block size was found to be a great engineering compromise. Smaller blocks (like 4x4) don't offer enough different frequency patterns to be good at compression. Larger blocks (like 16x16) are much more computationally expensive and are less able to adapt to small, local details in an image. 8x8 hit the sweet spot for the technology when JPEG was designed, and it has stuck around ever since!"
+          },
+          "testYourKnowledge": {
+            "question": "What is the main advantage of the DCT's 'energy compaction' property for image compression?",
+            "options": [
+              {
+                "option": "It makes the math faster to compute.",
+                "explanation": "While DCT is faster than DFT, that's due to using real numbers, not because of energy compaction itself. Energy compaction is about efficiency of representation.",
+                "correct": false
+              },
+              {
+                "option": "It isolates the most important visual information into a small, predictable set of coefficients.",
+                "explanation": "Exactly! By packing the important info into a few coefficients, we know which ones to keep and which ones we can safely discard to save space.",
+                "correct": true
+              },
+              {
+                "option": "It converts the image to grayscale automatically.",
+                "explanation": "The DCT operates on brightness values, but it doesn't inherently convert an image to grayscale. That's a separate step that might happen before compression.",
+                "correct": false
+              },
+              {
+                "option": "It uses only real numbers, which are easier to store.",
+                "explanation": "This is a true property of DCT and a benefit, but it's not the primary advantage of *energy compaction*. Energy compaction is what allows for high compression ratios.",
+                "correct": false
+              }
+            ]
+          }
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "Let's review our journey into the DCT.",
+          "image": "Description: A simple icon-based flowchart. An '8x8 Image Block' icon goes into a 'DCT' processor icon, which then outputs a '64 Coefficients' icon. The 'Coefficients' icon is highlighted on the top-left corner to show energy concentration.",
+          "text": "In this lesson, we met our key frequency-analysis tool, the DCT. We've learned that:\n- The **Discrete Cosine Transform (DCT)** is preferred for image compression because it's efficient and has excellent **energy compaction**.\n- It works by representing an 8x8 image block as a weighted sum of 64 standard patterns called **basis functions**.\n- For most natural images, the DCT concentrates almost all the visual information into a few low-frequency coefficients, particularly the **DC component**.\n\nNow that we know how to separate an image into its frequency components, what can we do with them? In the next lesson, we'll become frequency hackers and learn how to manipulate these components to filter our images in powerful ways."
+        }
+      ]
+    }
+  }

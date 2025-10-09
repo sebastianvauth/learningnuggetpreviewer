@@ -1,0 +1,128 @@
+{
+    "lesson": {
+      "title": "Breaking the Limits - High Dynamic Range (HDR)",
+      "sections": [
+        {
+          "title": "Introduction",
+          "content": "# Lesson 6: Breaking the Limits - High Dynamic Range (HDR)",
+          "image": {
+            "description": "An animation showing a camera trying to photograph a person standing in a doorway, with a bright, sunny scene outside. First, the camera exposes for the person, and the doorway becomes a solid white, blown-out rectangle. Then, the camera exposes for the outside scene, and the person becomes a solid black silhouette. Finally, the two images merge in an 'HDR' process, revealing a final image where you can see detail on both the person and the outside scene simultaneously."
+          },
+          "text": "Have you ever tried to take a photo of a friend standing in front of a bright window? You face a frustrating choice: either your friend looks perfect and the window is a completely white, blown-out mess, or the beautiful view outside the window is perfect and your friend is a dark, unrecognizable silhouette. Why can't you have both? Your eyes can see both just fine! This problem is a fundamental limitation of standard digital images. In this lesson, we'll learn about the solution: **High Dynamic Range (HDR)** imaging."
+        },
+        {
+          "title": "The Dynamic Range Problem",
+          "content": "The 'dynamic range' of a scene is simply the ratio between its brightest parts and its darkest parts. A sunny day has a very high dynamic range; a cloudy, overcast day has a low one.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "The problem is that the dynamic range of the real world is often *vastly* greater than the dynamic range that a standard 8-bit image can capture. Our 256 levels of brightness just aren't enough to cover the full spectrum from deep shadow to bright sun.",
+              "visualAid": {
+                "title": "SDR Clipping",
+                "description": "A simple graph is shown. The x-axis is 'Real-World Brightness' and the y-axis is 'Captured Image Brightness (0-255)'. A straight diagonal line shows a one-to-one mapping in the middle. However, at the low end, the line flattens out at y=0 (labeled 'Crushed Shadows - All detail lost'). At the high end, the line flattens out at y=255 (labeled 'Blown-out Highlights - All detail lost'). This visually explains how standard dynamic range (SDR) 'clips' information at the extremes."
+              },
+              "textAfterVisualAid": "This is what we call **Standard Dynamic Range (SDR)** imaging. It's forced to make a compromise. It 'clips' the brightest parts of the scene to pure white (255) and the darkest parts to pure black (0), throwing away all the detail in those areas.",
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "The HDR Solution: More Levels",
+          "content": "So, if 256 levels aren't enough, what's the solution? Use more levels! This is the core idea behind **High Dynamic Range (HDR)** imaging. Instead of storing color information with just 8 bits per channel, HDR images use higher bit depths.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "stepByStepMath": {
+                "title": "The Power of More Bits",
+                "steps": [
+                  {
+                    "heading": "Recap: 8-bit SDR",
+                    "explanation": "As we know, standard images use 8 bits per channel.",
+                    "latex": "2^8 = 256 \\text{ levels per channel} \\\\ 256^3 \\approx 16.7 \\text{ million total colors}"
+                  },
+                  {
+                    "heading": "Step Up: 10-bit HDR",
+                    "explanation": "A common starting point for HDR is 10 bits per channel. Let's see the difference.",
+                    "latex": "2^{10} = 1024 \\text{ levels per channel}",
+                    "conclusion": "With 1024 levels for red, green, AND blue, the total number of possible colors explodes!"
+                  },
+                  {
+                    "heading": "The Result",
+                    "explanation": "Let's calculate the total colors for a 10-bit image.",
+                    "latex": "1024^3 \\approx 1.07 \\text{ billion total colors}",
+                    "conclusion": "That's over 64 times more color information than an 8-bit image! These extra levels allow HDR images to capture incredibly fine gradations in both the very dark shadows and the very bright highlights, without clipping the details."
+                  }
+                ]
+              },
+              "textAfterMath": "Some professional systems even use 12-bit, 16-bit, or even 32-bit floating-point numbers to represent a practically infinite dynamic range.",
+              "continueButton": true
+            },
+            {
+              "interactive": {
+                "title": "SDR vs. HDR Exposure Simulator",
+                "description": "A side-by-side interactive based on Figure 3.16, showing an illuminated tent at night with mountains and stars. The left image is labeled 'SDR (8-bit)' and the right is 'HDR (Tone Mapped)'. Both have an 'Exposure' slider below them. As the student drags the SDR slider, if they expose for the tent, the sky turns black; if they expose for the sky, the tent turns pure white. It's impossible to see detail in both. On the HDR side, as they move the slider, a tone mapping algorithm adjusts the image. Details in the bright tent, the dark mountains, and the faint stars remain visible across a much wider range of exposure settings, demonstrating the power of retaining that extra information."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Showing HDR on an SDR Screen",
+          "content": "There's one last problem. We have this amazing HDR image with a massive range of brightness values. But we're trying to look at it on a regular SDR monitor that can't physically produce that range. How do we display it?",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "This is where a crucial process called **Tone Mapping** comes in. Tone mapping is a clever set of algorithms that intelligently compresses the high dynamic range of the HDR image into the limited dynamic range of the SDR display. It tries to preserve the most important details and local contrast to create an image that *looks* like what our eyes would see, even though the screen can't replicate the actual brightness.",
+              "whyItMatters": {
+                "text": "HDR is no longer a niche feature. It's standard in modern smartphones, TVs, and video games. When your iPhone takes an HDR photo, it's rapidly taking multiple exposures and merging them to capture that wider range. When you watch a movie in Dolby Vision or HDR10, your TV is using its higher bit depth and brightness capabilities to show you colors and highlights that are impossible on a standard display. Understanding HDR is key to understanding modern digital media."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "Let's bring our journey into the light to a close.",
+          "image": {
+            "description": "A static infographic comparing two staircases. The 'SDR' staircase has only a few, large steps, making the transition from bottom to top coarse. The 'HDR' staircase has many, many tiny steps, making the transition smooth and gradual. This visually represents the difference in levels between 8-bit and higher-bit-depth images."
+          },
+          "text": "In this lesson, we pushed past the limits of standard digital images.\n- We defined **Dynamic Range** and understood the 'clipping' problem of **Standard Dynamic Range (SDR)**, where detail is lost in highlights and shadows.\n- We learned that **High Dynamic Range (HDR)** solves this by using a higher bit depth (like 10-bit or more) to capture vastly more levels of brightness and color.\n- We saw the incredible difference this makes in preserving detail in high-contrast scenes.\n- Finally, we learned about **Tone Mapping**, the essential process that allows us to view stunning HDR content on our everyday SDR screens.\n\nThis concludes our deep dive into what an image *is*. We're now fully equipped with the knowledge to start manipulating, analyzing, and transforming them.",
+          "testYourKnowledge": {
+            "question": "What is the primary advantage of using a higher bit depth (e.g., 10-bit) for an image?",
+            "options": [
+              {
+                "option": "It makes the file size smaller.",
+                "explanation": "Actually, the opposite is true! More bits means more data, which results in a larger file size.",
+                "correct": false
+              },
+              {
+                "option": "It allows for finer gradations between colors and retains detail in extreme brightness levels.",
+                "explanation": "Exactly! The extra levels provide a smoother transition between colors and, most importantly, capture detail in the brightest highlights and darkest shadows that would be lost in an 8-bit image.",
+                "correct": true
+              },
+              {
+                "option": "It automatically corrects the white balance.",
+                "explanation": "White balance is a separate color correction process; bit depth is about the precision of the color information itself.",
+                "correct": false
+              },
+              {
+                "option": "It increases the image's resolution.",
+                "explanation": "Resolution (the number of pixels) and bit depth (the amount of information per pixel) are two independent properties of an image.",
+                "correct": false
+              }
+            ]
+          },
+          "frequentlyAsked": [
+            {
+              "question": "Is the HDR mode on my phone 'real' HDR?",
+              "answer": "Yes, it is! It's a technique called 'computational HDR.' Your phone is too small to have a large, professional sensor. So, when you press the shutter, it instantly captures several pictures at different exposure levels (an underexposed one for the highlights, a normal one, and an overexposed one for the shadows). It then uses software to merge the best parts of all three images into a single HDR file, which is then tone-mapped to look great on your phone's screen. It's a very clever workaround!"
+            },
+            {
+              "question": "Why do some HDR images I see online look so weird and hyper-realistic?",
+              "answer": "That's usually a result of aggressive or poorly done tone mapping. When tone mapping is pushed too far, it can create halos around objects, oversaturate colors, and make the image look flat and artificial. Good tone mapping aims for a natural look that mimics what the human eye would see, but it's also an artistic tool that can be used to create surreal effects."
+            }
+          ]
+        }
+      ]
+    }
+  }

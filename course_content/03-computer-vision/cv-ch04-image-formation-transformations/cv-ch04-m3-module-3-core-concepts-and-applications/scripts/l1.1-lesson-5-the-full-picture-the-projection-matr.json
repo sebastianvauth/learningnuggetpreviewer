@@ -1,0 +1,108 @@
+{
+    "lesson": {
+      "title": "Lesson 5: The Full Picture: The Projection Matrix P",
+      "sections": [
+        {
+          "title": "Intro Section",
+          "content": "# The Full Picture: The Projection Matrix P",
+          "image": "Description: A cartoon of two puzzle pieces, one labeled 'Intrinsics K' and the other 'Extrinsics [R|t]', clicking together perfectly to form a single, larger piece labeled 'Projection Matrix P'. This new piece is shown projecting a 3D cube into a 2D square.",
+          "text": "We've met the camera's two key components: the intrinsics `K` (its internal fingerprint) and the extrinsics `[R|t]` (its place in the world). They are powerful on their own, but now it's time for the grand synthesis! We're going to combine them into a single, all-powerful 3x4 'super-matrix' called the **Projection Matrix, P**. This one matrix does everything, taking a point from the 3D world and placing it exactly where it belongs on your 2D screen."
+        },
+        {
+          "title": "The Grand Unification",
+          "content": "Let's retrace our steps. A point starts in the world ($p_w$). The extrinsics transform it into the camera's viewpoint ($p_c$). Then, the intrinsics project it onto the image plane ($x_s$).",
+          "math_flow": [
+            "1. World to Camera: $\\mathbf{p}_c = [\\mathbf{R} | \\mathbf{t}] \\mathbf{p}_w$",
+            "2. Camera to Image: $\\lambda \\tilde{\\mathbf{x}}_s = \\mathbf{K} \\mathbf{p}_c$"
+          ],
+          "text": "We can combine these two steps into one magnificent equation by substituting the first into the second.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "title": "The Full Projection Equation",
+              "content": "By combining the two steps, we get the central equation of camera projection:",
+              "math": "\\lambda \\tilde{\\mathbf{x}}_s = \\mathbf{K} [\\mathbf{R} | \\mathbf{t}] \\mathbf{p}_w",
+              "text": "Look at that! We have a direct mapping from a 3D world point $\\mathbf{p}_w$ to a 2D image point $\\tilde{\\mathbf{x}}_s$. We can simplify this even further by defining our new super-matrix, $\\mathbf{P}$.",
+              "continueButton": true
+            },
+            {
+              "title": "The Projection Matrix P",
+              "content": "Let's define the 3x4 Projection Matrix $\\mathbf{P}$ as the product of the intrinsics and extrinsics:",
+              "math": "\\mathbf{P} = \\mathbf{K} [\\mathbf{R} | \\mathbf{t}]",
+              "text": "This means our grand equation becomes beautifully simple. This single matrix multiplication encapsulates the entire geometric imaging process. It's elegant, powerful, and the workhorse of 3D computer vision.",
+              "math_highlight": "\\lambda \\tilde{\\mathbf{x}}_s = \\mathbf{P} \\mathbf{p}_w",
+              "visualAid": {
+                "title": "Visual Aid: Matrix Multiplication",
+                "description": "An animated diagram shows a 3x3 matrix `K` and a 3x4 matrix `[R|t]` side-by-side. The matrices slide together, and the rows of `K` are shown multiplying the columns of `[R|t]` to produce the final elements of the 3x4 `P` matrix. This visually demystifies the matrix multiplication step."
+              },
+              "continueButton": true
+            },
+            {
+              "title": "Let's Try It! A Full Example",
+              "content": "Time to see this in action. Let's assume we have a simple camera and a point in the world.",
+              "math_setup": [
+                "World Point: $\\mathbf{p}_w = (1, 1, 2, 1)^T$",
+                "Intrinsics: $\\mathbf{K} = \\begin{pmatrix} 100 & 0 & 50 \\\\ 0 & 100 & 50 \\\\ 0 & 0 & 1 \\end{pmatrix}$",
+                "Extrinsics (Identity - camera is at world origin): $[\\mathbf{R} | \\mathbf{t}] = \\begin{pmatrix} 1 & 0 & 0 & 0 \\\\ 0 & 1 & 0 & 0 \\\\ 0 & 0 & 1 & 0 \\end{pmatrix}$"
+              ],
+              "text": "First, we find $\\mathbf{P}$:",
+              "math_calc_1": "\\mathbf{P} = \\mathbf{K} [\\mathbf{R} | \\mathbf{t}] = \\begin{pmatrix} 100 & 0 & 50 \\\\ 0 & 100 & 50 \\\\ 0 & 0 & 1 \\end{pmatrix} \\begin{pmatrix} 1 & 0 & 0 & 0 \\\\ 0 & 1 & 0 & 0 \\\\ 0 & 0 & 1 & 0 \\end{pmatrix} = \\begin{pmatrix} 100 & 0 & 50 & 0 \\\\ 0 & 100 & 50 & 0 \\\\ 0 & 0 & 1 & 0 \\end{pmatrix}",
+              "text2": "Now, we project our world point:",
+              "math_calc_2": "\\lambda \\tilde{\\mathbf{x}}_s = \\mathbf{P} \\mathbf{p}_w = \\begin{pmatrix} 100 & 0 & 50 & 0 \\\\ 0 & 100 & 50 & 0 \\\\ 0 & 0 & 1 & 0 \\end{pmatrix} \\begin{pmatrix} 1 \\\\ 1 \\\\ 2 \\\\ 1 \\end{pmatrix} = \\begin{pmatrix} 100(1) + 50(2) \\\\ 100(1) + 50(2) \\\\ 1(2) \\end{pmatrix} = \\begin{pmatrix} 200 \\\\ 200 \\\\ 2 \\end{pmatrix}",
+              "text3": "The result is $(200, 200, 2)^T$. The depth scaling factor $\\lambda$ is the third component, so $\\lambda=2$. To get the final pixel coordinates, we perform back projection:",
+              "math_calc_3": "x_s = \\frac{200}{2} = 100, \\quad y_s = \\frac{200}{2} = 100",
+              "text4": "So, the 3D point $(1, 1, 2)$ in the world appears at pixel $(100, 100)$ in our image. We did it!",
+              "buildYourVocab": [
+                {
+                  "term": "Projection Matrix (P)",
+                  "definition": "The 3x4 matrix that encapsulates the entire camera projection, from 3D world coordinates to 2D image coordinates. P = K[R|t]."
+                }
+              ],
+              "continueButton": true
+            },
+            {
+              "whyItMatters": {
+                "title": "Why does this matter?",
+                "text": "This single matrix is the engine of 3D-to-2D projection. It's used in every 3D video game to render the world onto your screen. It's used in every piece of movie CGI to place virtual objects into real scenes. And it's used in every autonomous driving simulator to create realistic training data from a 3D virtual world."
+              },
+              "frequentlyAsked": {
+                "question": "What is that λ (lambda) symbol and where did it come from?",
+                "answer": "Lambda (λ) represents the depth of the 3D point *from the camera's perspective*. Remember in the full equation, $\\lambda \\tilde{\\mathbf{x}}_s = \\mathbf{K} \\mathbf{p}_c$? The point $\\mathbf{p}_c$ is the 3D point in the camera's own coordinate system, so it has an x, y, and z coordinate. Lambda is simply that z-coordinate, $z_c$. The projection matrix calculation cleverly carries this value through to the third component of the final vector, so we can use it for back projection. It's a reminder that depth information isn't completely destroyed, it's just bundled up as a scaling factor."
+              },
+              "testYourKnowledge": {
+                "question": "A 3D point in homogeneous world coordinates is a 4x1 vector. The full projection matrix P is a 3x4 matrix. What are the dimensions of the resulting projected point vector `P * p_w`?",
+                "options": [
+                  {
+                    "option": "2x1",
+                    "explanation": "Matrix multiplication of a (3x4) by a (4x1) results in a (3x1) vector.",
+                    "correct": false
+                  },
+                  {
+                    "option": "3x1",
+                    "explanation": "Correct! A (3x4) matrix multiplied by a (4x1) vector results in a (3x1) vector, which is our scaled homogeneous image coordinate `(λx, λy, λ)ᵀ`.",
+                    "correct": true
+                  },
+                  {
+                    "option": "4x1",
+                    "explanation": "The number of rows in the output is determined by the number of rows in the first matrix (P), which is 3.",
+                    "correct": false
+                  },
+                  {
+                    "option": "3x3",
+                    "explanation": "The output of multiplying a matrix by a vector is another vector, not a matrix.",
+                    "correct": false
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "We've reached the summit! By combining our knowledge of intrinsics and extrinsics, we've constructed the single most important tool for geometric computer vision.",
+          "image": "Description: A clean, final diagram showing a 3D point `p_w` on the far left. A single large arrow labeled 'P = K[R|t]' points from it to a 2D point `x_s` on the far right, summarizing the entire chapter in one equation.",
+          "text": "In this lesson, you learned:\n- How to combine the intrinsic matrix `K` and the extrinsic matrix `[R|t]` into one **Projection Matrix `P`**.\n- How to use the master equation `λx̃_s = P p_w` to project any 3D world point into 2D image coordinates.\n\nThis is the complete pipeline of how a camera geometrically sees the world. In our final lesson, we'll look at some practical applications of this powerful model and explore the challenges of going in reverse—from 2D back to 3D."
+        }
+      ]
+    }
+  }
