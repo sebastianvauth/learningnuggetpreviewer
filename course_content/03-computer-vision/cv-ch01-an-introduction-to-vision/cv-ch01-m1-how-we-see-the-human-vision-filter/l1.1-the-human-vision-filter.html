@@ -1202,6 +1202,121 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        /* Visual Filter Interactive */
+        .visual-filter {
+            margin: 1.5rem 0;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .visual-filter .vf-legend {
+            font-size: 0.95rem;
+            color: #6b7280;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: rgba(102, 126, 234, 0.08);
+            border: 1px dashed rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+        }
+
+        .world-stage {
+            position: relative;
+            width: 100%;
+            height: 340px;
+            border-radius: 12px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .icon {
+            position: absolute;
+            font-size: 28px;
+            line-height: 1;
+            opacity: 0.3;
+            filter: blur(0.3px) saturate(0.8);
+            transition: opacity 0.12s ease, transform 0.12s ease, filter 0.12s ease;
+            user-select: none;
+        }
+
+        .icon.highlight {
+            opacity: 1;
+            filter: none;
+            transform: scale(1.05);
+        }
+
+        .eye-overlay {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            border-radius: 9999px;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.25);
+            border: 2px solid rgba(102, 126, 234, 0.8);
+            background: radial-gradient(circle at center, rgba(255,255,255,0.0) 55%, rgba(102,126,234,0.08) 56%);
+            cursor: grab;
+            outline: none;
+            touch-action: none;
+        }
+
+        .eye-overlay:active {
+            cursor: grabbing;
+        }
+
+        .eye-overlay:focus {
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.35), 0 10px 25px rgba(102, 126, 234, 0.25);
+        }
+
+        .vf-progress {
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .vf-progress .progress-badges {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .vf-badge {
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #e5e7eb;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            opacity: 0.7;
+        }
+
+        .vf-badge.done {
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #166534;
+            opacity: 1;
+        }
+
+        @media (max-width: 480px) {
+            .world-stage {
+                height: 280px;
+            }
+            .icon {
+                font-size: 24px;
+            }
+            .eye-overlay {
+                width: 120px;
+                height: 120px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .icon, .eye-overlay {
+                transition: none;
+            }
+        }
 </style>
 </head>
 <body>
@@ -1241,11 +1356,39 @@
         <!-- Section 4 -->
         <section id="section4">
             <p>This is because our perception is highly <strong>selective</strong>. Our eyes have evolved to ignore over 99.9% of the information out there. It wasn't useful for our ancestors to see Wi-Fi, but spotting a saber-toothed tiger in the jungle or identifying an edible apple? That was a matter of survival.</p>
-            <div class="interactive-placeholder">
-                <p><strong>Interactive Placeholder</strong></p>
-                <p>A diagram labeled 'The World of Information' is shown, filled with small, colorful icons representing various phenomena: light waves (wavy lines), sound waves (concentric circles), radio signals (tower icon), bacteria (microbe icon), a tiger, and an apple. A semi-transparent overlay shaped like a human eye, labeled 'Human Visual System,' can be dragged by the student. When the student drags the eye overlay across the diagram, only the icons for 'light waves,' 'tiger,' and 'apple' remain bright and visible. All other icons (radio, sound, bacteria) fade into the background, becoming dim and blurry. This interactively demonstrates the concept of the visual system as a filter.</p>
+            <div class="visual-filter" id="visual-filter" aria-label="Interactive: drag the eye to reveal evolutionarily relevant signals">
+                <div class="vf-legend">
+                    <strong>Try it:</strong> Drag the eye to see what stays visible. Find all three: Light, Tiger, Apple.
+                    <span class="sr-only">Tip: You can also use Arrow keys or WASD to move the eye. Press R to reset. Press Enter to snap to the nearest undiscovered target.</span>
+                </div>
+                <div class="world-stage" id="vf-stage">
+                    <!-- Mix of relevant and irrelevant signals -->
+                    <div class="icon emoji-fix" data-type="light" style="left: 12%; top: 18%;">🌈</div>
+                    <div class="icon emoji-fix" data-type="radio" style="left: 28%; top: 12%;">📡</div>
+                    <div class="icon emoji-fix" data-type="sound" style="left: 44%; top: 22%;">🔊</div>
+                    <div class="icon emoji-fix" data-type="bacteria" style="left: 62%; top: 10%;">🦠</div>
+                    <div class="icon emoji-fix" data-type="tiger" style="left: 78%; top: 20%;">🐯</div>
+                    <div class="icon emoji-fix" data-type="apple" style="left: 88%; top: 36%;">🍎</div>
+
+                    <div class="icon emoji-fix" data-type="radio" style="left: 18%; top: 58%;">📡</div>
+                    <div class="icon emoji-fix" data-type="bacteria" style="left: 35%; top: 72%;">🦠</div>
+                    <div class="icon emoji-fix" data-type="sound" style="left: 52%; top: 64%;">🔊</div>
+                    <div class="icon emoji-fix" data-type="light" style="left: 66%; top: 56%;">🌈</div>
+                    <div class="icon emoji-fix" data-type="tiger" style="left: 8%; top: 76%;">🐯</div>
+                    <div class="icon emoji-fix" data-type="apple" style="left: 80%; top: 78%;">🍎</div>
+
+                    <div class="eye-overlay" id="vf-eye" tabindex="0" role="application" aria-label="Eye overlay. Drag or use arrow keys to move."></div>
+                </div>
+                <div class="vf-progress" id="vf-progress">
+                    <div class="progress-badges" aria-hidden="false">
+                        <span class="vf-badge" data-badge="light">Light</span>
+                        <span class="vf-badge" data-badge="tiger">Tiger</span>
+                        <span class="vf-badge" data-badge="apple">Apple</span>
+                    </div>
+                </div>
+                <div class="lesson-success-message" id="vf-success" aria-live="polite" style="display:none;">Great! You found all three.</div>
             </div>
-            <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+            <div class="continue-button" id="continue-after-interactive" onclick="showNextSection(5)" style="display: none;">Continue</div>
         </section>
 
         <!-- Section 5 -->
@@ -1300,7 +1443,7 @@
             <p>In the next lesson, we'll build on this by creating a simple model to understand the entire journey from light entering our eye to the creation of meaning in our brain.</p>
         </section>
 
-        <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">âœ“ Mark as Completed</button>
+        <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
     </div>
 
     <script>
@@ -1384,6 +1527,9 @@
 
         // Keyboard Support for advancing
         document.addEventListener('keydown', function(e) {
+            const activeEl = document.activeElement;
+            const isVFActive = activeEl && (activeEl.id === 'vf-eye' || (activeEl.closest && activeEl.closest('#vf-stage')));
+            if (isVFActive) return;
             if (e.key === 'ArrowRight' || e.key === ' ') {
                 const continueButton = document.querySelector(`#section${currentSection} .continue-button`);
                 if (continueButton && continueButton.style.display !== 'none') {
@@ -1392,6 +1538,211 @@
                 }
             }
         });
+
+        // Section 4: Visual Filter Interactive
+        (function initVisualFilter() {
+            const stage = document.getElementById('vf-stage');
+            const eye = document.getElementById('vf-eye');
+            const continueBtn = document.getElementById('continue-after-interactive');
+            const successEl = document.getElementById('vf-success');
+            const badges = {
+                light: document.querySelector('.vf-badge[data-badge="light"]'),
+                tiger: document.querySelector('.vf-badge[data-badge="tiger"]'),
+                apple: document.querySelector('.vf-badge[data-badge="apple"]')
+            };
+            if (!stage || !eye) return;
+
+            const allowedTypes = new Set(['light', 'tiger', 'apple']);
+            const storageKey = 'l1.1-visual-filter-complete';
+            const discovered = {
+                light: false,
+                tiger: false,
+                apple: false
+            };
+            let isComplete = false;
+            let rafId = null;
+            let dragActive = false;
+            let targetLeft = 0;
+            let targetTop = 0;
+
+            function clamp(value, min, max) {
+                return Math.max(min, Math.min(max, value));
+            }
+
+            function getRects() {
+                return {
+                    stage: stage.getBoundingClientRect(),
+                    eye: eye.getBoundingClientRect()
+                };
+            }
+
+            function moveEyeTo(clientX, clientY) {
+                const rects = getRects();
+                const eyeW = rects.eye.width;
+                const eyeH = rects.eye.height;
+                const radiusX = eyeW / 2;
+                const radiusY = eyeH / 2;
+                const x = clientX - rects.stage.left - radiusX;
+                const y = clientY - rects.stage.top - radiusY;
+                targetLeft = clamp(x, 0, rects.stage.width - eyeW);
+                targetTop = clamp(y, 0, rects.stage.height - eyeH);
+                scheduleUpdate();
+            }
+
+            function scheduleUpdate() {
+                if (rafId) return;
+                rafId = requestAnimationFrame(() => {
+                    rafId = null;
+                    eye.style.left = `${targetLeft}px`;
+                    eye.style.top = `${targetTop}px`;
+                    updateHighlights();
+                });
+            }
+
+            function getEyeCenter() {
+                const eyeRect = eye.getBoundingClientRect();
+                return { x: eyeRect.left + eyeRect.width / 2, y: eyeRect.top + eyeRect.height / 2, r: Math.min(eyeRect.width, eyeRect.height) / 2 };
+            }
+
+            function updateHighlights() {
+                const icons = stage.querySelectorAll('.icon');
+                const center = getEyeCenter();
+                let foundThisFrame = { light: false, tiger: false, apple: false };
+                icons.forEach(icon => {
+                    const type = icon.getAttribute('data-type');
+                    const rect = icon.getBoundingClientRect();
+                    const cx = rect.left + rect.width / 2;
+                    const cy = rect.top + rect.height / 2;
+                    const dx = cx - center.x;
+                    const dy = cy - center.y;
+                    const dist2 = dx * dx + dy * dy;
+                    const inSpot = dist2 <= (center.r * center.r);
+                    if (inSpot && allowedTypes.has(type)) {
+                        icon.classList.add('highlight');
+                        if (type in foundThisFrame) foundThisFrame[type] = true;
+                    } else {
+                        icon.classList.remove('highlight');
+                    }
+                });
+                Object.keys(foundThisFrame).forEach(k => {
+                    if (foundThisFrame[k]) discovered[k] = true;
+                });
+                syncBadges();
+                checkComplete();
+            }
+
+            function syncBadges() {
+                Object.keys(badges).forEach(k => {
+                    if (!badges[k]) return;
+                    if (discovered[k]) badges[k].classList.add('done'); else badges[k].classList.remove('done');
+                });
+            }
+
+            function revealContinue() {
+                if (!continueBtn) return;
+                if (continueBtn.style.display === 'none') {
+                    continueBtn.style.display = 'inline-block';
+                    continueBtn.classList.add('show-with-animation');
+                }
+            }
+
+            function checkComplete() {
+                if (isComplete) return;
+                if (discovered.light && discovered.tiger && discovered.apple) {
+                    isComplete = true;
+                    try {
+                        localStorage.setItem(storageKey, 'true');
+                    } catch (e) {}
+                    if (successEl) {
+                        successEl.style.display = 'block';
+                        successEl.classList.add('show');
+                        setTimeout(() => { successEl.classList.remove('show'); successEl.style.display = 'none'; }, 2200);
+                    }
+                    revealContinue();
+                    try {
+                        if (window.parent && window.parent.ProgressTracker && typeof window.parent.ProgressTracker.markCheckpoint === 'function') {
+                            window.parent.ProgressTracker.markCheckpoint('cv-ch01-l1-visual-filter');
+                        }
+                    } catch (err) { /* no-op */ }
+                }
+            }
+
+            // Drag / pointer handling
+            eye.addEventListener('pointerdown', (e) => {
+                dragActive = true;
+                eye.setPointerCapture(e.pointerId);
+                moveEyeTo(e.clientX, e.clientY);
+            });
+            window.addEventListener('pointermove', (e) => {
+                if (!dragActive) return;
+                moveEyeTo(e.clientX, e.clientY);
+            });
+            window.addEventListener('pointerup', (e) => {
+                if (!dragActive) return;
+                dragActive = false;
+                try { eye.releasePointerCapture(e.pointerId); } catch (_) {}
+            });
+
+            // Keyboard controls
+            eye.addEventListener('keydown', (e) => {
+                const rects = getRects();
+                const step = (e.shiftKey ? 28 : 14);
+                let handled = false;
+                if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') { targetLeft = clamp(targetLeft - step, 0, rects.stage.width - rects.eye.width); handled = true; }
+                if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') { targetLeft = clamp(targetLeft + step, 0, rects.stage.width - rects.eye.width); handled = true; }
+                if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') { targetTop = clamp(targetTop - step, 0, rects.stage.height - rects.eye.height); handled = true; }
+                if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') { targetTop = clamp(targetTop + step, 0, rects.stage.height - rects.eye.height); handled = true; }
+                if (handled) {
+                    e.preventDefault();
+                    scheduleUpdate();
+                    return;
+                }
+                if (e.key === 'Enter') {
+                    // Snap to nearest undiscovered target
+                    const icons = Array.from(stage.querySelectorAll('.icon'))
+                        .filter(i => allowedTypes.has(i.getAttribute('data-type')) && !discovered[i.getAttribute('data-type')]);
+                    if (icons.length) {
+                        const center = getEyeCenter();
+                        let best = null; let bestD2 = Infinity;
+                        icons.forEach(i => {
+                            const r = i.getBoundingClientRect();
+                            const cx = r.left + r.width / 2; const cy = r.top + r.height / 2;
+                            const d2 = (cx - center.x) * (cx - center.x) + (cy - center.y) * (cy - center.y);
+                            if (d2 < bestD2) { bestD2 = d2; best = { cx, cy }; }
+                        });
+                        if (best) {
+                            moveEyeTo(best.cx, best.cy);
+                            e.preventDefault();
+                        }
+                    }
+                } else if (e.key.toLowerCase() === 'r') {
+                    // Reset to center
+                    const rect = stage.getBoundingClientRect();
+                    moveEyeTo(rect.left + rect.width / 2, rect.top + rect.height / 2);
+                    e.preventDefault();
+                }
+            });
+
+            function placeEyeInitially() {
+                const rect = stage.getBoundingClientRect();
+                moveEyeTo(rect.left + rect.width * 0.2, rect.top + rect.height * 0.4);
+            }
+
+            // Restore completion
+            try {
+                if (localStorage.getItem(storageKey) === 'true') {
+                    discovered.light = discovered.tiger = discovered.apple = true;
+                    isComplete = true;
+                    syncBadges();
+                    revealContinue();
+                }
+            } catch (e) {}
+
+            // Initial placement and first highlight pass
+            placeEyeInitially();
+            // Recompute on resize
+            window.addEventListener('resize', () => scheduleUpdate());
+        })();
 
         // Completion tracking with parent ProgressTracker + localStorage fallback
         function toggleCompleted() {
@@ -1428,7 +1779,7 @@
             }
 
             button.classList.add('completed');
-            button.innerHTML = 'âœ… Completed!';
+            button.innerHTML = '✅ Completed!';
             localStorage.setItem('lesson_cv-ch01-l1-human-vision-filter_completed', 'true');
         }
 
@@ -1453,7 +1804,7 @@
                 const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
                 if (progress && progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
                     button.classList.add('completed');
-                    button.innerHTML = 'âœ… Completed!';
+                    button.innerHTML = '✅ Completed!';
                     return;
                 }
             }
@@ -1461,7 +1812,7 @@
             const isCompleted = localStorage.getItem('lesson_cv-ch01-l1-human-vision-filter_completed') === 'true';
             if (isCompleted) {
                 button.classList.add('completed');
-                button.innerHTML = 'âœ… Completed!';
+                button.innerHTML = '✅ Completed!';
             }
         });
     </script>

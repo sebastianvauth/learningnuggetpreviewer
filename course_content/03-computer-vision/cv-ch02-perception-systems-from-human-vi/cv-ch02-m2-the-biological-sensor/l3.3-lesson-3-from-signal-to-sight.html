@@ -1203,6 +1203,7 @@
             }
         }
 </style>
+<script src="scripts/l3.3-visual-pathway-diagram.js" defer></script>
 </head>
 <body>
     <!-- Progress Bar -->
@@ -1292,7 +1293,24 @@
         <section id="section6">
             <p>The optic nerves from both eyes meet at a junction called the <strong>optic chiasm</strong>. Here, something fascinating happens: information is rerouted. Signals from the right half of <em>each</em> eye's view are all sent to the left hemisphere of the brain, and signals from the left half of <em>each</em> eye's view are sent to the right hemisphere.</p>
             <div class="image-placeholder">
-                [Image Placeholder: A clear, animated diagram of the visual pathway (based on Figure 2.8). It shows two eyes looking forward. Animated light rays from the 'Left Visual Field' are colored blue, and rays from the 'Right Visual Field' are red. The animation shows these rays hitting the retinas and then traveling as colored neural pathways, clearly illustrating the crossover at the optic chiasm, so all red pathways go to the left brain hemisphere and all blue pathways go to the right.]
+                <div id="vp-diagram" class="vp-diagram" role="img" aria-label="Animated diagram of the visual pathway showing left visual field to the right hemisphere and right visual field to the left hemisphere."></div>
+                <div class="vp-controls" role="group" aria-label="Visual pathway controls">
+                    <button type="button" id="vp-play" class="vp-btn" onclick="window.VP && window.VP.play()">Play</button>
+                    <button type="button" id="vp-pause" class="vp-btn" onclick="window.VP && window.VP.pause()">Pause</button>
+                    <button type="button" id="vp-step" class="vp-btn" onclick="window.VP && window.VP.step()">Step</button>
+                    <button type="button" id="vp-reset" class="vp-btn" onclick="window.VP && window.VP.reset()">Reset</button>
+                    <button type="button" id="vp-mode-left" class="vp-toggle" aria-pressed="false" onclick="window.VP && window.VP.mode('left')">Left only</button>
+                    <button type="button" id="vp-mode-both" class="vp-toggle" aria-pressed="true" onclick="window.VP && window.VP.mode('both')">Both</button>
+                    <button type="button" id="vp-mode-right" class="vp-toggle" aria-pressed="false" onclick="window.VP && window.VP.mode('right')">Right only</button>
+                    <button type="button" class="vp-speed" data-speed="0.75" onclick="window.VP && window.VP.speed(0.75)">0.75×</button>
+                    <button type="button" class="vp-speed" data-speed="1" onclick="window.VP && window.VP.speed(1)">1×</button>
+                    <button type="button" class="vp-speed" data-speed="1.5" onclick="window.VP && window.VP.speed(1.5)">1.5×</button>
+                    <div id="vp-status" class="sr-only" aria-live="polite"></div>
+                </div>
+                <div class="vp-legend" aria-hidden="true">
+                    <span class="vp-chip"><span class="box vp-blue"></span> Left visual field → Right hemisphere</span>
+                    <span class="vp-chip"><span class="box vp-red"></span> Right visual field → Left hemisphere</span>
+                </div>
             </div>
             <div class="check-your-knowledge">
                 <h3>Check Your Knowledge</h3>

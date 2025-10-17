@@ -1179,7 +1179,12 @@
             flex-direction: column;
             align-items: center;
             gap: 10px;
+            min-width: 0;
         }
+
+        .row-explorer .panel-right { min-width: 0; }
+
+        .row-explorer canvas { max-width: 100%; height: auto; }
 
         #re2d {
             border-radius: 8px;
@@ -1229,7 +1234,17 @@
         @media (max-width: 900px) {
             .row-explorer {
                 grid-template-columns: 1fr;
+                padding: 16px;
             }
+            #re2d { width: 100%; height: auto; }
+            #signalChart { width: 100%; height: 220px; }
+            .row-explorer .controls { gap: 12px; }
+        }
+
+        @media (max-width: 480px) {
+            .row-explorer { padding: 12px; gap: 16px; }
+            #signalChart { height: 200px; }
+            .row-label { font-size: 0.8rem; }
         }
 
         /* Responsive design for spectrum explorer */
@@ -1421,11 +1436,12 @@
 
         <!-- Section 14: Review text -->
         <section id="section13">
-            <p class="md-text">In this lesson, we made the crucial conceptual leap from 1D signals to 2D images. We've learned that:
-- An image can be viewed as a <strong>2D spatial signal</strong>, where pixel values change over space rather than time.
-- The rate of this change is called <strong>spatial frequency</strong>. Smooth areas have low frequencies, while detailed areas with sharp edges have high frequencies.
-
-This simple shift in perspective is incredibly powerful. Now that we know we can think of images as signals, we're ready to learn how to analyze their frequencies. In the next lesson, we will meet the mathematical tool that makes it all possible: the Discrete Cosine Transform (DCT).</p>
+            <p class="md-text">In this lesson, we made the crucial conceptual leap from 1D signals to 2D images. We've learned that:</p>
+            <ul>
+                <li>An image can be viewed as a <strong>2D spatial signal</strong>, where pixel values change over space rather than time.</li>
+                <li>The rate of this change is called <strong>spatial frequency</strong>. Smooth areas have low frequencies, while detailed areas with sharp edges have high frequencies.</li>
+            </ul>
+            <p class="md-text">This simple shift in perspective is incredibly powerful. Now that we know we can think of images as signals, we're ready to learn how to analyze their frequencies. In the next lesson, we will meet the mathematical tool that makes it all possible: the Discrete Cosine Transform (DCT).</p>
         </section>
 
         <!-- Mark as Completed Button -->
@@ -1608,7 +1624,8 @@ This simple shift in perspective is incredibly powerful. Now that we know we can
             const curveInput = document.getElementById('curveInput');
 
             const W = canvas2d.width, H = canvas2d.height;
-            let imageData = ctx2d.createImageData(W, H);
+            const dpr = window.devicePixelRatio || 1;
+            let baseImageData = ctx2d.createImageData(W, H);
             let playing = false;
             let lastInteractionRevealed = false;
             let animReq = null;
@@ -1623,7 +1640,7 @@ This simple shift in perspective is incredibly powerful. Now that we know we can
             function generatePattern(){
                 const f0 = Number(freqInput.value);
                 const curve = Number(curveInput.value) * 0.15;
-                const data = imageData.data;
+                const data = baseImageData.data;
                 let i = 0;
                 for (let y = 0; y < H; y++){
                     for (let x = 0; x < W; x++){
@@ -1635,11 +1652,56 @@ This simple shift in perspective is incredibly powerful. Now that we know we can
                         data[i++] = 255; // A
                     }
                 }
-                ctx2d.putImageData(imageData, 0, 0);
+                ctx2d.putImageData(baseImageData, 0, 0);
+            }
+
+            function drawAxes2D(){
+                // draw simple axes and ticks inside image canvas (0..100 normalized)
+                ctx2d.save();
+                ctx2d.strokeStyle = '#9ca3af';
+                ctx2d.fillStyle = '#6b7280';
+                ctx2d.lineWidth = 1;
+                ctx2d.font = '10px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+
+                // axes
+                ctx2d.beginPath();
+                ctx2d.moveTo(0.5, 0.5);
+                ctx2d.lineTo(0.5, H - 0.5); // y-axis (left)
+                ctx2d.lineTo(W - 0.5, H - 0.5); // x-axis (bottom)
+                ctx2d.stroke();
+
+                // ticks every 20 (normalized 0..100 → 6 ticks)
+                for (let t = 0; t <= 100; t += 20){
+                    const x = ((t / 100) * (W - 1)) + 0.5;
+                    // x ticks
+                    ctx2d.beginPath();
+                    ctx2d.moveTo(x, H - 0.5);
+                    ctx2d.lineTo(x, H - 6.5);
+                    ctx2d.stroke();
+                    // x labels
+                    const text = String(t);
+                    const tw = ctx2d.measureText(text).width;
+                    ctx2d.fillText(text, x - tw / 2, H - 8.5);
+                }
+
+                for (let t = 0; t <= 100; t += 20){
+                    const y = ((t / 100) * (H - 1));
+                    const yy = H - 0.5 - y;
+                    // y ticks
+                    ctx2d.beginPath();
+                    ctx2d.moveTo(0.5, yy);
+                    ctx2d.lineTo(6.5, yy);
+                    ctx2d.stroke();
+                    // y labels
+                    const text = String(t);
+                    ctx2d.fillText(text, 8.5, yy + 3);
+                }
+                ctx2d.restore();
             }
 
             function drawOverlay(y){
-                ctx2d.putImageData(imageData, 0, 0);
+                ctx2d.putImageData(baseImageData, 0, 0);
+                drawAxes2D();
                 ctx2d.save();
                 ctx2d.strokeStyle = '#22c1c3';
                 ctx2d.lineWidth = 2;
@@ -1651,11 +1713,32 @@ This simple shift in perspective is incredibly powerful. Now that we know we can
                 ctx2d.restore();
             }
 
+            function syncPreviewSizing(){
+                // Align preview width with signal plot area (chart client width minus left/right margins)
+                const left = 40, right = 10;
+                const cssWidth = Math.max(0, (chart.clientWidth || chart.width) - (left + right));
+                preview.style.marginLeft = left + 'px';
+                preview.style.width = cssWidth + 'px';
+                preview.style.height = '20px';
+                // HiDPI backing store
+                preview.width = Math.max(1, Math.round(cssWidth * dpr));
+                preview.height = Math.round(20 * dpr);
+                pctx.setTransform(1, 0, 0, 1, 0, 0);
+                pctx.scale(dpr, dpr);
+                pctx.imageSmoothingEnabled = false;
+            }
+
             function drawRowPreview(y){
-                const src = ctx2d.getImageData(0, y, W, 1);
-                const bar = pctx.createImageData(W, 20);
+                // sample from base image data and scale to preview width aligned with plot area
+                const src = baseImageData;
+                // Offscreen strip at native W x 20
+                const strip = document.createElement('canvas');
+                strip.width = W; strip.height = 20;
+                const sctx = strip.getContext('2d');
+                const bar = sctx.createImageData(W, 20);
                 for (let col = 0; col < W; col++){
-                    const r = src.data[col * 4];
+                    const idxSrc = (y * W + col) * 4;
+                    const r = src.data[idxSrc];
                     for (let k = 0; k < 20; k++){
                         const idx = (k * W + col) * 4;
                         bar.data[idx] = r;
@@ -1664,38 +1747,83 @@ This simple shift in perspective is incredibly powerful. Now that we know we can
                         bar.data[idx + 3] = 255;
                     }
                 }
-                pctx.putImageData(bar, 0, 0);
+                sctx.putImageData(bar, 0, 0);
+                pctx.clearRect(0, 0, preview.width, preview.height);
+                // Draw scaled to match chart plot area width
+                const destW = preview.clientWidth;
+                const destH = preview.clientHeight;
+                pctx.drawImage(strip, 0, 0, W, 20, 0, 0, destW, destH);
             }
 
             function drawSignalChart(y){
-                const row = ctx2d.getImageData(0, y, W, 1).data;
+                // sample directly from base image data to preserve original grayscale values
+                const row = baseImageData.data;
+
+                // HiDPI handling and coordinate system in CSS pixels
+                const cDpr = window.devicePixelRatio || 1;
+                const cssW = chart.clientWidth || chart.width;
+                const cssH = chart.clientHeight || chart.height;
+                chart.width = Math.max(1, Math.round(cssW * cDpr));
+                chart.height = Math.max(1, Math.round(cssH * cDpr));
+                cctx.setTransform(1, 0, 0, 1, 0, 0);
                 cctx.clearRect(0, 0, chart.width, chart.height);
+                cctx.scale(cDpr, cDpr);
+                cctx.imageSmoothingEnabled = false;
 
-                // axes
-                cctx.save();
-                cctx.strokeStyle = '#e5e7eb';
-                cctx.lineWidth = 1;
-                cctx.beginPath();
-                cctx.moveTo(40, 10);
-                cctx.lineTo(40, chart.height - 30);
-                cctx.lineTo(chart.width - 10, chart.height - 30);
-                cctx.stroke();
-                cctx.restore();
-
-                const plotLeft = 40, plotRight = chart.width - 10;
-                const plotTop = 10, plotBottom = chart.height - 30;
+                // Plot area in CSS pixels
+                const plotLeft = 40, plotRight = cssW - 10;
+                const plotTop = 10, plotBottom = cssH - 30;
                 const plotW = plotRight - plotLeft;
                 const plotH = plotBottom - plotTop;
 
+                // axes with ticks
+                cctx.save();
+                cctx.strokeStyle = '#e5e7eb';
+                cctx.fillStyle = '#6b7280';
+                cctx.lineWidth = 1;
+                cctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+                cctx.beginPath();
+                cctx.moveTo(plotLeft, plotTop);
+                cctx.lineTo(plotLeft, plotBottom);
+                cctx.lineTo(plotRight, plotBottom);
+                cctx.stroke();
+
+                // X ticks 0..100 every 20
+                for (let t = 0; t <= 100; t += 20){
+                    const x = plotLeft + (t / 100) * plotW;
+                    cctx.beginPath();
+                    cctx.moveTo(x, plotBottom);
+                    cctx.lineTo(x, plotBottom + 6);
+                    cctx.stroke();
+                    const text = String(t);
+                    const tw = cctx.measureText(text).width;
+                    cctx.fillText(text, x - tw / 2, plotBottom + 18);
+                }
+
+                // Y ticks at 0..1
+                const yTicks = [0, 0.25, 0.5, 0.75, 1];
+                yTicks.forEach((tv) => {
+                    const ty = plotTop + (1 - tv) * plotH;
+                    cctx.beginPath();
+                    cctx.moveTo(plotLeft - 6, ty);
+                    cctx.lineTo(plotLeft, ty);
+                    cctx.stroke();
+                    const label = tv.toFixed(2);
+                    const tw = cctx.measureText(label).width;
+                    cctx.fillText(label, plotLeft - 8 - tw, ty + 4);
+                });
+                cctx.restore();
+
+                // waveform
                 cctx.save();
                 cctx.strokeStyle = '#4f46e5';
                 cctx.lineWidth = 2;
                 cctx.beginPath();
                 for (let x = 0; x < W; x++){
-                    const g = row[x * 4];
-                    const v = (g / 255) * 2 - 1; // [-1,1]
+                    const g = row[(y * W + x) * 4];
+                    const v = g / 255; // [0,1]
                     const px = plotLeft + (x / (W - 1)) * plotW;
-                    const py = plotTop + (1 - (v + 1) / 2) * plotH;
+                    const py = plotTop + (1 - v) * plotH;
                     if (x === 0) cctx.moveTo(px, py);
                     else cctx.lineTo(px, py);
                 }
@@ -1739,14 +1867,15 @@ This simple shift in perspective is incredibly powerful. Now that we know we can
 
             // Initialize
             generatePattern();
+            syncPreviewSizing();
             updateRow(Number(slider.value));
 
             // Events
             slider.addEventListener('input', () => { updateRow(Number(slider.value)); revealInteractiveContinue(); });
             canvas2d.addEventListener('mousedown', (e) => { handlePointer(e); revealInteractiveContinue(); });
             canvas2d.addEventListener('mousemove', (e) => { if (e.buttons & 1) { handlePointer(e); } });
-            canvas2d.addEventListener('touchstart', (e) => { if (e.touches[0]) handlePointer(e.touches[0]); revealInteractiveContinue(); }, { passive: true });
-            canvas2d.addEventListener('touchmove', (e) => { if (e.touches[0]) handlePointer(e.touches[0]); }, { passive: true });
+            canvas2d.addEventListener('touchstart', (e) => { if (e.touches && e.touches[0]) handlePointer(e.touches[0]); revealInteractiveContinue(); }, { passive: true });
+            canvas2d.addEventListener('touchmove', (e) => { if (e.touches && e.touches[0]) handlePointer(e.touches[0]); }, { passive: true });
 
             playBtn.addEventListener('click', () => {
                 playing = !playing;
@@ -1766,6 +1895,15 @@ This simple shift in perspective is incredibly powerful. Now that we know we can
             }
             freqInput.addEventListener('input', regenAndRedraw);
             curveInput.addEventListener('input', regenAndRedraw);
+
+            // Keep preview aligned on resize
+            window.addEventListener('resize', () => { syncPreviewSizing(); updateRow(Number(slider.value)); });
+
+            // Remove broken preloads and missing images warnings by ensuring no invalid preloads
+            try {
+                const brokenPreloads = document.querySelectorAll('link[rel="preload"][href="about:blank"]');
+                brokenPreloads.forEach(el => el.parentNode && el.parentNode.removeChild(el));
+            } catch (e) { /* ignore */ }
 
             // Keyboard: ArrowUp/Down adjust row, Space toggle play
             container.addEventListener('keydown', (e) => {

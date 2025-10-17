@@ -1203,6 +1203,128 @@
             }
         }
 
+        /* Section 5: High-Pass Visual Aid */
+        .highpass .hp-grid {
+            display: grid;
+            grid-template-columns: 1fr 40px 1fr 40px 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+        .highpass .hp-canvas {
+            position: relative;
+            height: 140px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .highpass .hp-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .highpass .hp-arrow svg { width: 32px; height: 32px; overflow: visible; }
+        .highpass .hp-arrow path { stroke: #667eea; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .highpass .hp-dct {
+            background:
+                radial-gradient(circle at 0% 0%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.6) 10%, rgba(102,126,234,0.45) 24%, rgba(118,75,162,0.25) 40%, rgba(15,23,42,0.08) 60%, rgba(15,23,42,0.02) 100%),
+                #111827;
+        }
+        .highpass .hp-block {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 120px;
+            height: 120px;
+            background: #0b0f19; /* blacked-out low-freqs */
+            border-bottom-right-radius: 120px; /* quarter circle */
+            box-shadow: 0 0 0 2px #0b0f19 inset;
+            pointer-events: none;
+        }
+        .highpass .hp-result-photo {
+            filter: grayscale(1) contrast(1.25) brightness(1.05);
+        }
+        #section5.visible .highpass .hp-grid > * { opacity: 0; transform: translateY(8px); animation: fadeInUp 0.5s ease-out forwards; }
+        #section5.visible .highpass .hp-grid > *:nth-child(1){animation-delay:0s}
+        #section5.visible .highpass .hp-grid > *:nth-child(2){animation-delay:.05s}
+        #section5.visible .highpass .hp-grid > *:nth-child(3){animation-delay:.1s}
+        #section5.visible .highpass .hp-grid > *:nth-child(4){animation-delay:.15s}
+        #section5.visible .highpass .hp-grid > *:nth-child(5){animation-delay:.2s}
+        @media (max-width: 768px) {
+            .highpass .hp-grid { grid-template-columns: 1fr; }
+            .highpass .hp-arrow { transform: rotate(90deg); }
+        }
+
+        /* Section 4: Low-Pass Visual Aid */
+        .lowpass .lp-grid {
+            display: grid;
+            grid-template-columns: 1fr 40px 1fr 40px 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+        .lowpass .lp-canvas {
+            position: relative;
+            height: 140px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lowpass .lp-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .lowpass .lp-arrow svg { width: 32px; height: 32px; overflow: visible; }
+        .lowpass .lp-arrow path { stroke: #667eea; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .lowpass .lp-dct {
+            background:
+                radial-gradient(circle at 0% 0%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 10%, rgba(102,126,234,0.45) 25%, rgba(118,75,162,0.25) 40%, rgba(15,23,42,0.08) 60%, rgba(15,23,42,0.02) 100%),
+                #111827;
+        }
+        .lowpass .lp-mask {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #667eea;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.28);
+            pointer-events: none;
+        }
+        .lowpass .lp-cross::before,
+        .lowpass .lp-cross::after {
+            content: '';
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            width: 2px;
+            height: 56px;
+            background: #ef4444;
+        }
+        .lowpass .lp-cross::before { transform: translate(-8px,-8px) rotate(45deg); }
+        .lowpass .lp-cross::after { transform: translate(-8px,-8px) rotate(-45deg); }
+        .lowpass .lp-result-photo { filter: blur(2px) contrast(0.95) saturate(0.95); }
+        #section4.visible .lowpass .lp-grid > * { opacity: 0; transform: translateY(8px); animation: fadeInUp 0.5s ease-out forwards; }
+        #section4.visible .lowpass .lp-grid > *:nth-child(1){animation-delay:0s}
+        #section4.visible .lowpass .lp-grid > *:nth-child(2){animation-delay:.05s}
+        #section4.visible .lowpass .lp-grid > *:nth-child(3){animation-delay:.1s}
+        #section4.visible .lowpass .lp-grid > *:nth-child(4){animation-delay:.15s}
+        #section4.visible .lowpass .lp-grid > *:nth-child(5){animation-delay:.2s}
+        @media (max-width: 768px) {
+            .lowpass .lp-grid { grid-template-columns: 1fr; }
+            .lowpass .lp-arrow { transform: rotate(90deg); }
+        }
+
         /* Visual Aid (Section 2) */
         .visual-aid {
             margin: 1.5rem 0 0 0;
@@ -1217,7 +1339,7 @@
         }
         .va-grid {
             display: grid;
-            grid-template-columns: 1fr 40px 1fr 40px 1fr 40px 1fr 40px 1fr;
+            grid-template-columns: 1fr 40px 1fr 40px 1fr 40px 1fr;
             align-items: center;
             gap: 12px;
         }
@@ -1331,12 +1453,7 @@
                 repeating-linear-gradient(0deg, #e5e7eb 0, #e5e7eb 6px, #f3f4f6 6px, #f3f4f6 12px);
             filter: blur(0.3px) saturate(0.95);
         }
-        .va-output {
-            background:
-                linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.06)),
-                repeating-linear-gradient(0deg, #e5e7eb 0, #e5e7eb 6px, #f3f4f6 6px, #f3f4f6 12px);
-        }
-        .va-output-photo {
+        .va-result-photo {
             filter: blur(2px) contrast(0.95) saturate(0.95);
         }
         /* Animation: trigger when section becomes visible */
@@ -1354,8 +1471,6 @@
         #section2.visible .va-grid > *:nth-child(5) { animation-delay: 0.2s; }
         #section2.visible .va-grid > *:nth-child(6) { animation-delay: 0.25s; }
         #section2.visible .va-grid > *:nth-child(7) { animation-delay: 0.3s; }
-        #section2.visible .va-grid > *:nth-child(8) { animation-delay: 0.35s; }
-        #section2.visible .va-grid > *:nth-child(9) { animation-delay: 0.4s; }
         /* Mobile */
         @media (max-width: 768px) {
             .va-grid {
@@ -1365,6 +1480,64 @@
                 transform: rotate(90deg);
             }
         }
+
+        /* Section 6: Frequency Filter Playground */
+        .filter-playground {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .fp-panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+        .fp-panel {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .fp-panel canvas {
+            width: 128px;
+            height: 128px;
+            display: block;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .fp-controls {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 16px;
+            align-items: center;
+        }
+        .fp-control {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .fp-control label { font-size: 0.95rem; font-weight: 600; color: #374151; display: block; margin-bottom: 6px; }
+        .fp-control input[type="range"] { width: 100%; }
+        .fp-val { color: #667eea; font-weight: 700; }
+        .fp-actions { display: flex; gap: 12px; align-items: center; justify-content: flex-end; }
+        .fp-note { font-size: 0.875rem; color: #6b7280; }
+        @media (max-width: 768px){
+            .fp-panels { grid-template-columns: 1fr; }
+            .fp-controls { grid-template-columns: 1fr; }
+            .fp-actions { justify-content: flex-start; }
+        }
 </style>
 </head>
 <body>
@@ -1372,9 +1545,12 @@
 <div class="lesson-container">
 
 <section id="section1" class="visible">
+    <div class="image-placeholder">
+    <img src="images/l62_1.png" alt="A stylized image of a prism, but instead of light passing through and splitting into a rainbow, a small 8x8 image block passes through and splits into the 64 DCT basis functions. This visually represents the DCT's function of decomposition.">
+</div>
 <h1>Hacking Frequencies: Filtering in the DCT Domain</h1>
 <h2>The Frequency Equalizer</h2>
-<div class="image-placeholder">Image placeholder: A cartoonish image of a sound mixing board with sliders, but instead of labels like 'Bass' and 'Treble', the sliders are labeled 'Smoothness', 'Edges', 'Fine Textures', and 'Noise'. This creates a visual metaphor for frequency filtering.</div>
+
 <p>Welcome to the fun part! Now that we know how to use the DCT to split an image into its frequency components, we can start messing with them. Think of it like being a DJ with a sound equalizer for your pictures. Want more bass? Boost the low frequencies. Want more treble? Boost the highs. We can do the exact same thing with images to achieve some incredible effects.</p>
 <button class="continue-button" onclick="showNextSection(2)">Continue</button>
 </section>
@@ -1413,18 +1589,10 @@
 </div>
 <div class="va-panel">
 <div class="va-title">Step 3: Inverse DCT</div>
-<div class="va-canvas va-result" role="img" aria-label="Reconstructed image (blurred) after inverse DCT"></div>
+<div class="va-canvas va-result" role="img" aria-label="Reconstructed image (blurred) after inverse DCT">
+<img class="va-photo va-result-photo" src="assets/lesson3/cat.jpg" alt="Reconstructed image (blurred)" loading="lazy" decoding="async" onerror="this.style.display='none'">
+</div>
 <p class="va-desc">Back to pixels → blur emerges.</p>
-</div>
-<div class="va-arrow" aria-hidden="true">
-<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M2 16H26M20 10L26 16L20 22"></path></svg>
-</div>
-<div class="va-panel">
-<div class="va-title">Output Image</div>
-<div class="va-canvas va-output" role="img" aria-label="Output image preview (blurred from low-pass)">
-<img class="va-photo va-output-photo" src="assets/lesson3/cat.jpg" alt="Output cat image (blurred effect simulated)" loading="lazy" decoding="async" onerror="this.style.display='none'">
-</div>
-<p class="va-desc">Final output preview (example blur shown).</p>
 </div>
 </div>
 </figure>
@@ -1446,7 +1614,32 @@
 
 <section id="section4">
 <p>You got it! Removing high-frequency information is the very definition of blurring. In the DCT domain, this is super easy. We just take our DCT coefficients and set all the high-frequency ones—those far away from the top-left corner—to zero.</p>
-<div class="visual-aid-placeholder"><strong>Visual Aid</strong> — placeholder: Based on Figure 6.4. A three-panel diagram. Left: 'Original Image'. Middle: 'DCT Domain', showing the DCT coefficients with a conceptual circular mask over the top-left, indicating only these are kept. The caption reads 'Keep Low Frequencies, Zero-out High Frequencies'. Right: 'Result after Inverse DCT', showing a visibly blurred version of the original image.</div>
+<figure class="visual-aid lowpass" aria-labelledby="lp-caption">
+<figcaption id="lp-caption">Low‑Pass Filtering (keep lows, zero highs)</figcaption>
+<div class="lp-grid">
+<div class="va-panel">
+<div class="va-title">Original Image</div>
+<div class="lp-canvas lp-spatial" role="img" aria-label="Original image"><canvas id="lp-static-original" width="128" height="128" aria-label="Low-pass original"></canvas></div>
+<p class="va-desc">Spatial domain (pixels).</p>
+</div>
+<div class="lp-arrow" aria-hidden="true">
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M2 16H26M20 10L26 16L20 22"></path></svg>
+</div>
+<div class="va-panel">
+<div class="va-title">DCT + Low‑Pass Mask</div>
+<div class="lp-canvas lp-dct" role="img" aria-label="DCT magnitude with circular keep mask near top-left"><canvas id="lp-static-dct" width="128" height="128" aria-label="Low-pass DCT canvas"></canvas></div>
+<p class="va-desc">Keep low frequencies (bright corner), zero out the rest.</p>
+</div>
+<div class="lp-arrow" aria-hidden="true">
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M2 16H26M20 10L26 16L20 22"></path></svg>
+</div>
+<div class="va-panel">
+<div class="va-title">Inverse DCT (Result)</div>
+<div class="lp-canvas lp-result" role="img" aria-label="Blurred result after low‑pass"><canvas id="lp-static-result" width="128" height="128" aria-label="Low-pass result"></canvas></div>
+<p class="va-desc">Smoother image (edges/details suppressed).</p>
+</div>
+</div>
+</figure>
 <button class="continue-button" onclick="showNextSection(5)">Continue</button>
 </section>
 
@@ -1454,7 +1647,32 @@
 <h2>High-Pass Filtering: Finding the Edges</h2>
 <p>Okay, so if removing high frequencies causes blurring, what happens if we do the opposite? A <strong>high-pass filter</strong> blocks the low frequencies and lets the <em>high frequencies pass</em> through.</p>
 <p>This means we'll set the coefficients in the top-left corner—including the all-important DC component—to zero, and keep everything else. This effectively subtracts the 'smooth' parts of the image.</p>
-<div class="visual-aid-placeholder"><strong>Visual Aid</strong> — placeholder: Based on Figure 6.5. Another three-panel diagram. Left: 'Original Image'. Middle: 'DCT Domain', showing the DCT coefficients but with the top-left corner blacked out. The caption reads 'Zero-out Low Frequencies, Keep High Frequencies'. Right: 'Result after Inverse DCT', showing an image that looks like an edge-map—mostly dark, with the bright outlines of objects.</div>
+<figure class="visual-aid highpass" aria-labelledby="hp-caption">
+<figcaption id="hp-caption">High‑Pass Filtering (remove lows, keep highs)</figcaption>
+<div class="hp-grid">
+<div class="va-panel">
+<div class="va-title">Original Image</div>
+<div class="hp-canvas hp-spatial" role="img" aria-label="Original image"><canvas id="hp-static-original" width="128" height="128" aria-label="High-pass original"></canvas></div>
+<p class="va-desc">Spatial domain (pixels).</p>
+</div>
+<div class="hp-arrow" aria-hidden="true">
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M2 16H26M20 10L26 16L20 22"></path></svg>
+</div>
+<div class="va-panel">
+<div class="va-title">DCT + High‑Pass Mask</div>
+<div class="hp-canvas hp-dct" role="img" aria-label="DCT magnitude with low‑frequency region removed"><canvas id="hp-static-dct" width="128" height="128" aria-label="High-pass DCT canvas"></canvas></div>
+<p class="va-desc">Zero out low frequencies (top‑left corner), keep the rest.</p>
+</div>
+<div class="hp-arrow" aria-hidden="true">
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M2 16H26M20 10L26 16L20 22"></path></svg>
+</div>
+<div class="va-panel">
+<div class="va-title">Inverse DCT (Result)</div>
+<div class="hp-canvas hp-result" role="img" aria-label="Edge‑like result after high‑pass"><canvas id="hp-static-result" width="128" height="128" aria-label="High-pass result"></canvas></div>
+<p class="va-desc">Edges/details emphasized (smooth parts removed).</p>
+</div>
+</div>
+</figure>
 <p>The result is a form of edge detection! We're left with only the sharp details and textures. While there are other, more common ways to detect edges (which we'll see later!), this perfectly demonstrates what kind of information is stored in which frequencies.</p>
 <button class="continue-button" onclick="showNextSection(6)">Continue</button>
 </section>
@@ -1462,9 +1680,20 @@
 <section id="section6">
 <h2>The Interactive Filter Playground</h2>
 <p>Now it's your turn to be the frequency DJ. Use the sliders below to see the effects of low-pass and high-pass filtering in real-time.</p>
-<div class="interactive-placeholder"><strong>Interactive</strong> — placeholder: Frequency Filter Playground. A three-panel interactive tool. The left panel shows a sample photograph. The middle panel shows its DCT representation. The right panel shows the processed image. 
-- Below the panels are two sliders. The first is labeled 'Low-Pass Filter (Keep Frequencies up to...)' with a range from 100% down to 1%. As the student drags this slider down, a circular mask on the DCT image in the middle shrinks towards the top-left corner, and the processed image on the right becomes progressively blurrier.
-- The second slider is labeled 'High-Pass Filter (Keep Frequencies from...)' with a range from 0% up to 99%. As the student drags this slider up, the central circular area of the DCT image is blacked out, and the processed image on the right increasingly shows only the edges and fine details.</div>
+<div class="filter-playground" id="filterPlayground">
+<div class="fp-panels">
+<div class="fp-panel"><div class="va-title">Original</div><canvas id="fp-original" width="256" height="256" aria-label="Original image canvas"></canvas></div>
+<div class="fp-panel"><div class="va-title">Low‑Pass Mask</div><canvas id="fp-dct-lp" width="256" height="256" aria-label="DCT with low‑pass mask"></canvas></div>
+<div class="fp-panel"><div class="va-title">High‑Pass Mask</div><canvas id="fp-dct-hp" width="256" height="256" aria-label="DCT with high‑pass mask"></canvas></div>
+<div class="fp-panel"><div class="va-title">Combined Result</div><canvas id="fp-processed" width="256" height="256" aria-label="Processed image canvas"></canvas></div>
+</div>
+<div class="fp-controls">
+<div class="fp-control"><label for="fp-low">Low‑Pass Filter (keep up to): <span class="fp-val" id="fp-low-val">100%</span></label><input id="fp-low" type="range" min="1" max="100" value="100" step="1" aria-label="Low‑Pass keep percent"></div>
+<div class="fp-control"><label for="fp-high">High‑Pass Filter (keep from): <span class="fp-val" id="fp-high-val">0%</span></label><input id="fp-high" type="range" min="0" max="99" value="0" step="1" aria-label="High‑Pass keep from percent"></div>
+<div class="fp-actions"><button class="continue-button" type="button" id="fp-reset">Reset</button></div>
+</div>
+<p class="fp-note" id="fp-status" aria-live="polite">Combined: Low‑Pass + High‑Pass • Size: 128×128</p>
+</div>
 <p>Play around with the sliders. Notice how a tiny bit of low-pass filtering can subtly soften an image, while extreme filtering removes all detail. See how high-pass filtering can isolate the most detailed parts of the scene.</p>
 <div class="why-it-matters"><h3>Why It Matters</h3><p>Why does this matter? Filtering in the frequency domain gives us a powerful, intuitive way to manipulate the fundamental characteristics of an image. And while we might use other methods for simple blurring, understanding this concept is <em>crucial</em> for grasping how JPEG works—because, as we'll soon see, compression is essentially a very clever and aggressive form of frequency filtering!</p></div>
 <button class="continue-button" onclick="showNextSection(7)">Continue</button>
@@ -1489,7 +1718,6 @@
 <section id="section8">
 <h2>Review and Reflect</h2>
 <p>Let's recap our filtering experiments.</p>
-<div class="image-placeholder">Image placeholder: A simple icon showing a DCT grid. A 'blur' icon (like a water droplet) is placed over the high-frequency coefficients. An 'edge' icon (like a sharp mountain peak) is placed over the low-frequency coefficients, indicating what is removed for each filter type.</div>
 <p>In this lesson, we learned how to manipulate images by filtering in the frequency domain. The key takeaways are:</p>
 <ul>
 <li>The process is always <strong>Transform -> Modify -> Inverse Transform</strong>.</li>
@@ -1510,6 +1738,35 @@ function updateProgress(){const bar=document.getElementById('progressBar');const
 function revealAnswer(id){const el=document.getElementById(id);const btn=event&&event.target;if(el){el.style.display='block';el.classList.add('animate-in')}if(btn)btn.style.display='none'}
 function selectChoice(element,isCorrect,optionText,explanation){const group=element.parentNode.querySelectorAll('.choice-option');group.forEach(c=>{c.classList.remove('selected','correct','incorrect');const old=c.querySelector('.choice-explanation');if(old)old.remove()});element.classList.add('selected');element.classList.add(isCorrect?'correct':'incorrect');const ex=document.createElement('div');ex.className='choice-explanation animate-in';ex.style.display='block';ex.innerHTML='<strong>'+(isCorrect?'Correct!':'Not quite.')+'</strong> '+explanation;element.appendChild(ex);const cont=document.getElementById('continue-after-test-knowledge');if(cont&&cont.style.display==='none'){setTimeout(()=>{cont.style.display='inline-block'},600)}}
 document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' '){const btn=document.querySelector('#section'+currentSection+' .continue-button');if(btn&&btn.style.display!=='none'){e.preventDefault();btn.click()}}});
+// Section 6: Frequency Filter Playground (DCT/IDCT)
+(()=>{const section=document.getElementById('section6');if(!section)return;const originalCanvas=document.getElementById('fp-original');const dctCanvasLP=document.getElementById('fp-dct-lp');const dctCanvasHP=document.getElementById('fp-dct-hp');const processedCanvas=document.getElementById('fp-processed');const low=document.getElementById('fp-low');const high=document.getElementById('fp-high');const lowVal=document.getElementById('fp-low-val');const highVal=document.getElementById('fp-high-val');const statusEl=document.getElementById('fp-status');const resetBtn=document.getElementById('fp-reset');if(!originalCanvas||!dctCanvasLP||!dctCanvasHP||!processedCanvas||!low||!high)return;let size=128;const img=new Image();img.src='assets/lesson3/cat.jpg';img.crossOrigin='anonymous';const octx=originalCanvas.getContext('2d');const dlctx=dctCanvasLP.getContext('2d');const dhctx=dctCanvasHP.getContext('2d');const prctx=processedCanvas.getContext('2d');let basePixels;let cosTable;let alpha;let coeffs;let busy=false;function setStatus(lp=low.value,hp=high.value){statusEl.textContent=`LP ${lp}% • HP ${hp}% • Size: ${size}×${size}`}
+function initTables(n){cosTable=new Array(n);for(let k=0;k<n;k++){cosTable[k]=new Float32Array(n);for(let n2=0;n2<n;n2++)cosTable[k][n2]=Math.cos(Math.PI*(n2+0.5)*k/n)}alpha=new Float32Array(n);for(let k=0;k<n;k++)alpha[k]=k===0?1/Math.sqrt(n):Math.sqrt(2/n)}
+function toGrayscaleAndResizeFromSource(src,n){const tmp=document.createElement('canvas');const tctx=tmp.getContext('2d');const sw=src.width||src.naturalWidth;const sh=src.height||src.naturalHeight;const s=Math.min(sw,sh);tmp.width=n;tmp.height=n;tctx.drawImage(src,(sw-s)/2,(sh-s)/2,s,s,0,0,n,n);const d=tctx.getImageData(0,0,n,n).data;const g=new Float32Array(n*n);for(let i=0,j=0;i<d.length;i+=4,j++){g[j]=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]-128}return g}
+function getJpegOrientation(buf){try{const view=new DataView(buf);if(view.getUint16(0,false)!==0xFFD8)return 1;let offset=2;while(offset<view.byteLength){const marker=view.getUint16(offset,false);offset+=2;if((marker&0xFF00)!==0xFF00)break;const size=view.getUint16(offset,false);if(marker===0xFFE1){const start=offset+2;if(view.getUint32(start,false)!==0x45786966)return 1;const tiff=start+6;const little=view.getUint16(tiff,false)===0x4949;const ifd= view.getUint32(tiff+4,little);let dir=tiff+ifd;const entries=view.getUint16(dir,little);for(let i=0;i<entries;i++){const entry=dir+2+i*12;const tag=view.getUint16(entry,little);if(tag===0x0112){return view.getUint16(entry+8,little)}}}offset+=size}return 1}catch(e){return 1}}
+function dct2d(src,n){const tmp=new Float32Array(n*n);const dst=new Float32Array(n*n);for(let u=0;u<n;u++){for(let x=0;x<n;x++){let sum=0;for(let i=0;i<n;i++)sum+=src[i*n+x]*cosTable[u][i];tmp[u*n+x]=alpha[u]*sum}}for(let v=0;v<n;v++){for(let u=0;u<n;u++){let sum=0;for(let x=0;x<n;x++)sum+=tmp[u*n+x]*cosTable[v][x];dst[v*n+u]=alpha[v]*sum}}return dst}
+function idct2d(src,n){const tmp=new Float32Array(n*n);const dst=new Float32Array(n*n);for(let x=0;x<n;x++){for(let v=0;v<n;v++){let sum=0;for(let u=0;u<n;u++)sum+=alpha[u]*src[v*n+u]*cosTable[u][x];tmp[v*n+x]=sum*alpha[v]}}for(let i=0;i<n;i++){for(let j=0;j<n;j++){let sum=0;for(let v=0;v<n;v++)sum+=alpha[v]*tmp[v*n+j]*cosTable[v][i];dst[i*n+j]=sum}}return dst}
+function rotateCW(arr,n){const out=new Float32Array(n*n);for(let y=0;y<n;y++){for(let x=0;x<n;x++){out[y*n+x]=arr[(n-1-x)*n+y]}}return out}
+function drawImageCanvas(pixels,n,ctx){const imgData=ctx.createImageData(n,n);for(let i=0,j=0;i<imgData.data.length;i+=4,j++){const vv=pixels[j]+128;const v=Math.max(0,Math.min(255,Math.round(vv)));imgData.data[i]=imgData.data[i+1]=imgData.data[i+2]=v;imgData.data[i+3]=255}ctx.putImageData(imgData,0,0)}
+function drawDctHeatmap(coeff,n,ctx,maskR,mode){const mag=new Float32Array(n*n);let max=0;for(let i=0;i<coeff.length;i++){const m=Math.log1p(Math.abs(coeff[i]));mag[i]=m;if(m>max)max=m}const imgData=ctx.createImageData(n,n);const r2=maskR*maskR;for(let y=0;y<n;y++){for(let x=0;x<n;x++){const idx=y*n+x;const val=Math.floor((mag[idx]/max)*255)||0;const dx=x,dy=y;const inside=(dx*dx+dy*dy)<=r2;let shade=val;if(mode==='LP'&&!inside)shade=0;if(mode==='HP'&&inside)shade=0;const i4=idx*4;imgData.data[i4]=imgData.data[i4+1]=imgData.data[i4+2]=shade;imgData.data[i4+3]=255}}ctx.putImageData(imgData,0,0)}
+function applyMasksAndRender(){if(busy)return;busy=true;requestAnimationFrame(()=>{const n=size;const lp=parseInt(low.value,10);const hp=parseInt(high.value,10);lowVal.textContent=`${lp}%`;highVal.textContent=`${hp}%`;setStatus(lp,hp);const maxR=Math.hypot(n-1,n-1);const rLP=(lp/100)*maxR;const rHP=(hp/100)*maxR;const r2LP=rLP*rLP;const r2HP=rHP*rHP;const combined=new Float32Array(coeffs.length);for(let y=0;y<n;y++){for(let x=0;x<n;x++){const idx=y*n+x;const d2=x*x+y*y;const keepLP=d2<=r2LP;const keepHP=d2>r2HP;combined[idx]=coeffs[idx]*((keepLP&&keepHP)?1:0)}}
+drawDctHeatmap(coeffs,n,dlctx,rLP,'LP');drawDctHeatmap(coeffs,n,dhctx,rHP,'HP');const recon=idct2d(combined,n);const reconOriented=rotateCW(recon,n);drawImageCanvas(reconOriented,n,prctx);busy=false})}
+function handleChange(){applyMasksAndRender()}function reset(){low.value=100;high.value=0;lowVal.textContent='100%';highVal.textContent='0%';setStatus();applyMasksAndRender()}
+low.addEventListener('change',handleChange);high.addEventListener('change',handleChange);
+img.onload=()=>{const maxDim=Math.max(img.width,img.height);size=maxDim>800?128:128;originalCanvas.width=originalCanvas.height=size;dctCanvasLP.width=dctCanvasLP.height=size;dctCanvasHP.width=dctCanvasHP.height=size;processedCanvas.width=processedCanvas.height=size;initTables(size);basePixels=toGrayscaleAndResizeFromSource(img,size);drawImageCanvas(basePixels,size,octx);coeffs=dct2d(basePixels,size);reset()};
+low.addEventListener('input',handleChange);high.addEventListener('input',handleChange);resetBtn&&resetBtn.addEventListener('click',reset);
+})();
+// Section 4/5 static renders using the same DCT/IDCT core
+(()=>{const lpDct=document.getElementById('lp-static-dct');const lpRes=document.getElementById('lp-static-result');const hpDct=document.getElementById('hp-static-dct');const hpRes=document.getElementById('hp-static-result');const lpOrig=document.getElementById('lp-static-original');const hpOrig=document.getElementById('hp-static-original');if(!lpDct&&!hpDct&&!lpOrig&&!hpOrig)return;const n=128;const img=new Image();img.src='assets/lesson3/cat.jpg';img.crossOrigin='anonymous';let ct2,al2;function prepare(){ct2=new Array(n);for(let k=0;k<n;k++){ct2[k]=new Float32Array(n);for(let i=0;i<n;i++)ct2[k][i]=Math.cos(Math.PI*(i+0.5)*k/n)}al2=new Float32Array(n);for(let k=0;k<n;k++)al2[k]=k===0?1/Math.sqrt(n):Math.sqrt(2/n)}
+function toGray(src){const tmp=document.createElement('canvas');const t=tmp.getContext('2d');tmp.width=n;tmp.height=n;const sw=src.width||src.naturalWidth,sh=src.height||src.naturalHeight;const s=Math.min(sw,sh);t.drawImage(src,(sw-s)/2,(sh-s)/2,s,s,0,0,n,n);const d=t.getImageData(0,0,n,n).data;const g=new Float32Array(n*n);for(let i=0,j=0;i<d.length;i+=4,j++){g[j]=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]-128}return g}
+function dct2(src){const tmp=new Float32Array(n*n),dst=new Float32Array(n*n);for(let u=0;u<n;u++){for(let x=0;x<n;x++){let s=0;for(let i=0;i<n;i++)s+=src[i*n+x]*ct2[u][i];tmp[u*n+x]=al2[u]*s}}for(let v=0;v<n;v++){for(let u=0;u<n;u++){let s=0;for(let x=0;x<n;x++)s+=tmp[u*n+x]*ct2[v][x];dst[v*n+u]=al2[v]*s}}return dst}
+function idct2(src){const tmp=new Float32Array(n*n),dst=new Float32Array(n*n);for(let x=0;x<n;x++){for(let v=0;v<n;v++){let s=0;for(let u=0;u<n;u++)s+=al2[u]*src[v*n+u]*ct2[u][x];tmp[v*n+x]=s*al2[v]}}for(let i=0;i<n;i++){for(let j=0;j<n;j++){let s=0;for(let v=0;v<n;v++)s+=al2[v]*tmp[v*n+j]*ct2[v][i];dst[i*n+j]=s}}return dst}
+function rotateCW(arr){const out=new Float32Array(n*n);for(let y=0;y<n;y++){for(let x=0;x<n;x++){out[y*n+x]=arr[(n-1-x)*n+y]}}return out}
+function drawImg(p,ctx){const id=ctx.createImageData(n,n);for(let i=0,j=0;i<id.data.length;i+=4,j++){const v=Math.max(0,Math.min(255,Math.round(p[j]+128)));id.data[i]=id.data[i+1]=id.data[i+2]=v;id.data[i+3]=255}ctx.putImageData(id,0,0)}
+function drawHeat(coeff,ctx){let max=0;const mag=new Float32Array(n*n);for(let i=0;i<coeff.length;i++){const m=Math.log1p(Math.abs(coeff[i]));mag[i]=m;if(m>max)max=m}const id=ctx.createImageData(n,n);for(let y=0;y<n;y++){for(let x=0;x<n;x++){const idx=y*n+x;const shade=Math.floor((mag[idx]/max)*255)||0;const k=idx*4;id.data[k]=id.data[k+1]=id.data[k+2]=shade;id.data[k+3]=255}}ctx.putImageData(id,0,0)}
+function renderLP(px){const C=dct2(px);if(lpDct){const ctx=lpDct.getContext('2d');drawHeat(C,ctx);/* conceptual mask: blackout top-left corner */const id=ctx.getImageData(0,0,n,n);const r2=Math.pow(Math.hypot(n-1,n-1)*0.6,2);for(let y=0;y<n;y++)for(let x=0;x<n;x++){if(x*x+y*y>r2){const k=(y*n+x)*4;id.data[k]=id.data[k+1]=id.data[k+2]=0}}ctx.putImageData(id,0,0)}const r2lp=Math.pow(Math.hypot(n-1,n-1)*0.6,2);for(let y=0;y<n;y++)for(let x=0;x<n;x++){const i=y*n+x;if(x*x+y*y>r2lp)C[i]=0}const recon=idct2(C);const oriented=rotateCW(recon);if(lpRes)drawImg(oriented,lpRes.getContext('2d'))}
+function renderHP(px){const C=dct2(px);if(hpDct){const ctx=hpDct.getContext('2d');drawHeat(C,ctx);/* add faint speckle to highs */const id=ctx.getImageData(0,0,n,n);for(let y=0;y<n;y++)for(let x=0;x<n;x++){const d2=x*x+y*y;const r2=Math.pow(Math.hypot(n-1,n-1)*0.2,2);if(d2>r2 && Math.random()<0.03){const k=(y*n+x)*4;const v=id.data[k];const add=Math.floor(0.15*v);id.data[k]=id.data[k+1]=id.data[k+2]=Math.min(255,v+add)}}ctx.putImageData(id,0,0)}const r2=Math.pow(Math.hypot(n-1,n-1)*0.2,2);for(let y=0;y<n;y++)for(let x=0;x<n;x++){const i=y*n+x;if(x*x+y*y<=r2)C[i]=0}const recon=idct2(C);const oriented=rotateCW(recon);if(hpRes)drawImg(oriented,hpRes.getContext('2d'))}
+img.onload=()=>{prepare();const px=toGray(img);if(lpOrig)drawImg(px,lpOrig.getContext('2d'));if(hpOrig)drawImg(px,hpOrig.getContext('2d'));if(lpDct||lpRes)renderLP(px);if(hpDct||hpRes)renderHP(px)};
+})();
 function toggleCompleted(){const btn=document.getElementById('markCompletedBtn');if(!btn)return;const done=btn.classList.contains('completed');if(done)return;try{if(window.parent&&window.parent.ProgressTracker){let courseId='computer-vision';let pathId='fourier-transform-and-images';let moduleId='cv-dct-filtering';let lessonId='cv-l3-hacking-frequencies';if(window.parent.currentRoute){const r=window.parent.currentRoute;if(r.courseId)courseId=r.courseId;if(r.pathId)pathId=r.pathId;if(r.moduleId)moduleId=r.moduleId;if(r.lessonId)lessonId=r.lessonId}const urlParams=new URLSearchParams(window.location.search);if(urlParams.get('course'))courseId=urlParams.get('course');if(urlParams.get('path'))pathId=urlParams.get('path');if(urlParams.get('module'))moduleId=urlParams.get('module');if(urlParams.get('lesson'))lessonId=urlParams.get('lesson');window.parent.ProgressTracker.markLessonCompleted(courseId,pathId,moduleId,lessonId)}}catch(err){console.error('Error with ProgressTracker:',err)}btn.classList.add('completed');btn.innerHTML='✅ Completed!';localStorage.setItem('lesson_cv-ch06-l3_completed','true');const msg=document.createElement('div');msg.className='lesson-success-message';msg.textContent='🎉 Lesson Completed! Great Job! 🎉';document.querySelector('.lesson-container').appendChild(msg);requestAnimationFrame(()=>msg.classList.add('show'))}
 window.addEventListener('load',function(){const btn=document.getElementById('markCompletedBtn');if(!btn)return;try{if(window.parent&&window.parent.ProgressTracker){let courseId='computer-vision';let pathId='fourier-transform-and-images';let moduleId='cv-dct-filtering';let lessonId='cv-l3-hacking-frequencies';if(window.parent.currentRoute){const r=window.parent.currentRoute;if(r.courseId)courseId=r.courseId;if(r.pathId)pathId=r.pathId;if(r.moduleId)moduleId=r.moduleId;if(r.lessonId)lessonId=r.lessonId}const urlParams=new URLSearchParams(window.location.search);if(urlParams.get('course'))courseId=urlParams.get('course');if(urlParams.get('path'))pathId=urlParams.get('path');if(urlParams.get('module'))moduleId=urlParams.get('module');if(urlParams.get('lesson'))lessonId=urlParams.get('lesson');const progress=window.parent.ProgressTracker.getLessonProgress(courseId,pathId,moduleId,lessonId);if(progress.state===window.parent.ProgressTracker.STATES.COMPLETED){btn.classList.add('completed');btn.innerHTML='✅ Completed!';return}}}catch(e){}const isCompleted=localStorage.getItem('lesson_cv-ch06-l3_completed')==='true';if(isCompleted){btn.classList.add('completed');btn.innerHTML='✅ Completed!'}});
 document.documentElement.style.scrollBehavior='smooth';
