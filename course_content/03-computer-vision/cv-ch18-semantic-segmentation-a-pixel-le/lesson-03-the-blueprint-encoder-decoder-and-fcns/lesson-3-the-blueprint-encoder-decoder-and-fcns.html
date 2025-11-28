@@ -398,13 +398,13 @@ window.MathJax = {
 <div class="lesson-container">
 
 <section id="section1" class="visible">
+        <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Side-by-side comparison of classification label and segmentation mask of a cat">
+    </div>
     <h1>The Blueprint – Encoder-Decoder & FCNs</h1>
     <h2>The Semantic-Spatial Paradox</h2>
     <p>In previous lessons, we learned that Convolutional Neural Networks (CNNs) are amazing at telling us <em>what</em> is in an image. But Semantic Segmentation asks a harder question: <em>where</em> exactly is it, down to the last pixel?</p>
-    <div class="image-placeholder">
-        <img src="images/1.jpg" alt="Side-by-side comparison of classification label and segmentation mask of a cat">
-        <p class="image-caption">Classification gives you “It’s a cat.” Segmentation gives you the cat’s silhouette.</p>
-    </div>
+
     <p>We have a bit of a paradox here. To recognize an object, a neural network usually needs to 'zoom out' and look at the big picture, ignoring small details. But to draw a perfect outline of that object, it needs to 'zoom in' and focus entirely on those details.</p>
     <div class="continue-button" onclick="showNextSection(2)">Continue</div>
 </section>

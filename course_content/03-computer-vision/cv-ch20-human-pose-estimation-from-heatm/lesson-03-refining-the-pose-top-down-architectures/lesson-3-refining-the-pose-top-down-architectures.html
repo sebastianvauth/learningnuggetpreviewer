@@ -350,13 +350,13 @@ window.MathJax = {
 <div class="lesson-container">
 
 <section id="section1" class="visible">
+        <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Comparison of early-stage pose prediction vs refined output correcting limb positions." loading="lazy">
+    </div>
     <h1>Refining the Pose (Top-Down Architectures)</h1>
     <h2>Inside the Bounding Box</h2>
     <p>In the last lesson, we compared Top-Down and Bottom-Up strategies. We learned that Top-Down methods act like a sniper: first, they isolate the person using an object detector, and then they zoom in to find the skeleton.</p>
-    <div class="image-placeholder">
-        <img src="images/1.jpg" alt="Comparison of early-stage pose prediction vs refined output correcting limb positions." loading="lazy">
-        <p class="image-caption">Stage 1 is a rough sketch; by Stage 3 the arm lines up with reality—refinement is the whole point of this lesson.</p>
-    </div>
+
     <p>But what exactly happens inside that zoomed-in bounding box? It’s not always a one-shot guess. In this lesson, we are going to look at two heavyweights of the Top-Down world: <strong>Convolutional Pose Machines (CPM)</strong> and <strong>Stacked Hourglass Networks</strong>.</p>
     <div class="continue-button" onclick="showNextSection(2)">Continue</div>
 </section>
