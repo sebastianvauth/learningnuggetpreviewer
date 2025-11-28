@@ -1,0 +1,1025 @@
+﻿<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Paradigms of Perception</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #ffffff;
+    min-height: 100vh;
+    color: #2d3748;
+    line-height: 1.6;
+}
+
+/* Progress Bar */
+.progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+}
+
+/* Main Container */
+.lesson-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Sections */
+section {
+    background: transparent;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    display: none;
+    opacity: 0;
+    transition: all 0.6s ease;
+    transform: translateY(20px);
+    text-align: center;
+}
+
+section.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Reset text alignment for all content except continue buttons */
+section > *:not(.continue-button) {
+    text-align: left;
+}
+
+/* Typography */
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 1rem;
+}
+
+p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+li {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+strong {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+em {
+    color: #667eea;
+    font-style: normal;
+    font-weight: 500;
+}
+
+/* Placeholders */
+.image-placeholder, .interactive-placeholder, .visual-placeholder {
+    margin: 1.5rem 0;
+}
+
+.placeholder-box {
+    width: 100%;
+    height: 220px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    background: #f8fafc;
+    font-weight: 600;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Images */
+.lesson-container img {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 1.25rem auto;
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.15);
+}
+.image-caption {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+}
+
+/* Content Boxes */
+.why-it-matters, .vocab-section, .check-your-knowledge, .test-your-knowledge {
+    margin: 2rem 0;
+    padding: 2rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+}
+
+.why-it-matters {
+    background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+    border-left-color: #f093fb;
+    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+}
+
+.vocab-section {
+    background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+    border-left-color: #4facfe;
+    box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+}
+
+.vocab-section h4 {
+    color: #2d3748;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+}
+
+.test-your-knowledge, .check-your-knowledge {
+    background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+    border-left-color: #68d391;
+    box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+}
+
+.test-your-knowledge h3, .check-your-knowledge h3 {
+    color: #10b981;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.test-your-knowledge h4, .check-your-knowledge h4 {
+    color: #2d3748;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1.5rem 0 1rem 0;
+}
+
+/* Buttons */
+.continue-button, .reveal-button, .check-button {
+    display: inline-block;
+    padding: 16px 32px;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.continue-button:hover, .reveal-button:hover, .check-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+
+.continue-button.show-with-animation {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Multiple Choice */
+.multiple-choice { margin: 1.5rem 0; text-align: left; }
+.choice-option {
+    display: block;
+    margin: 1rem 0;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+.choice-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+.choice-option:hover { transform: translateX(5px); border-color: rgba(102,126,234,0.3); box-shadow: 0 10px 30px rgba(102,126,234,0.15); }
+.choice-option:hover::before { opacity: 0.05; }
+.choice-option.selected, .choice-option.correct { background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%); border-color: #68d391; color: #2d3748; }
+.choice-option.incorrect { background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%); border-color: #f87171; color: #2d3748; }
+.choice-explanation { display: none; margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 8px; font-size: 0.95rem; position: relative; z-index: 1; }
+
+/* Mark as Completed Button */
+.mark-completed-button {
+    display: none;
+    width: 100%;
+    max-width: 400px;
+    margin: 40px auto 20px auto;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+    text-align: center;
+    text-decoration: none;
+}
+.mark-completed-button.show { display: block; }
+.mark-completed-button.completed { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); cursor: default; }
+
+/* Success Message and Confetti */
+.success-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+    z-index: 10000;
+    opacity: 0;
+    animation: success-popup 2.5s ease-out;
+    pointer-events: none;
+}
+@keyframes success-popup {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    40% { transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+.confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+.confetti { position: absolute; font-size: 20px; animation: confetti-fall 3s linear infinite; }
+@keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+/* Animations for reveals */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeIn 0.5s ease-out; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lesson-container { padding: 20px 15px; }
+    section { padding: 15px 0; margin-bottom: 20px; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.75rem; }
+    p, li { font-size: 1rem; }
+    .continue-button { width: 100%; }
+}
+</style>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Split illustration comparing coordinate regression outputs to heatmap-based predictions." loading="lazy">
+        <p class="image-caption">Old-school coordinate regression guesses a pinpoint; heatmaps give the network a glowing search area.</p>
+    </div>
+    <h1>Paradigms of Perception</h1>
+    <h2>From Coordinates to Probability</h2>
+    <p>Welcome back! In the previous lesson, we figured out <em>what</em> we are looking for: the skeletal keypoints. Now, we have to tackle the harder question: <em>how</em> does the math actually find them?</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Heatmap Shift</h2>
+    <p>In the early days of Deep Learning, engineers tried the most obvious approach first: Coordinate Regression. They treated the image as an input and asked the neural network to spit out two numbers: \(x\) and \(y\).</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>It sounds logical, right? But it turns out, asking a network to pinpoint a single pixel coordinate on a \(1000 \times 1000\) image is incredibly difficult. It’s like asking you to point to a specific grain of sand on a beach.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>If the model guesses pixel 500 and the answer is 501, the error is small. But mathematically, the learning signal is weak. To solve this, modern computer vision shifted to a new paradigm: <strong>The Heatmap</strong> (also known as a Belief Map).</p>
+    <div class="visual-placeholder">
+        <img src="images/2.jpg" alt="Graph comparing a sharp spike distribution versus a smooth bell curve representing heatmap confidence." loading="lazy">
+        <p class="image-caption">Heatmaps replace the impossible spike with a bell curve that still nudges the network toward the maximum.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>Instead of predicting an exact coordinate, the network predicts a probability distribution. It paints a 'glow' over the area where it believes the joint is located.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Belief Map / Heatmap</h4>
+        <p>A 2D matrix (image) where the value of each pixel represents the model's confidence (probability) that a specific keypoint is located there.</p>
+    </div>
+    <p>Let's look at the math behind generating these heatmaps for training. We use a <strong>2D Gaussian distribution</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>The Math of the Glow</h2>
+    <p>To train a model to output a heatmap, we first need to create the 'Ground Truth'—the perfect answer key. We don't just mark one pixel as '1' and the rest as '0'. We create a smooth gradient.</p>
+    <p>The value \(G\) at any pixel \((x, y)\) is calculated based on its distance from the true keypoint \((x_0, y_0)\). The formula looks like this:</p>
+    <p>$$G(x, y) = \exp\left(-\frac{(x - x_0)^2 + (y - y_0)^2}{2\sigma^2}\right)$$</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>Don't let the exponents scare you! Let's break down what happens in this formula with a simple example calculation.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p><strong>Step 1: The Bullseye</strong><br>
+    Imagine the true elbow is at \((x_0, y_0) = (100, 100)\). Let's calculate the value for that exact pixel \((100, 100)\).<br>
+    The distance is zero:<br>
+    $$(100 - 100)^2 + (100 - 100)^2 = 0$$<br>
+    So the formula becomes:<br>
+    $$e^0 = 1$$<br>
+    The center pixel has the maximum confidence of 1 (100%).</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p><strong>Step 2: The Fade Out</strong><br>
+    Now, let's look at a pixel slightly away, say at \((103, 100)\). The distance is 3 pixels. Let's assume our spread (variance, \(\sigma\)) is 1.<br>
+    The squared distance is \(3^2 = 9\). The formula becomes:<br>
+    $$e^{-9 / 2} = e^{-4.5} \approx 0.011$$<br>
+    This pixel is very dim, but not zero. It provides a tiny hint.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p><strong>Step 3: The Result</strong><br>
+    This creates a bell curve shape. The model isn't punished harshly for being <em>slightly</em> off; it's guided gently toward the peak.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Heatmaps provide a <strong>richer learning signal</strong>. In coordinate regression, a wrong guess is just 'wrong'. With heatmaps, the gradient (slope) of the Gaussian curve guides the network spatially toward the correct location, making training much more stable.</p>
+    </div>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If we increase the value of sigma (\(\sigma\)) in the Gaussian formula, what happens to the heatmap?</h4>
+        <div id="cuy-sigma-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> The 'hot spot' becomes wider and blurrier. A larger sigma makes the target easier to find initially but makes precise localization harder. A smaller sigma requires more precision.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-sigma-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <h2>Crowd Control: Top-Down vs. Bottom-Up</h2>
+    <p>So, heatmaps are great for finding <em>an</em> elbow. But what happens when you point your camera at a marathon start line? There are hundreds of elbows!</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Crowded marathon scene highlighting overlapping pose skeletons and the multi-person challenge." loading="lazy">
+        <p class="image-caption">When dozens of elbows overlap, the key question becomes: which joint belongs to which person?</p>
+    <p>This is the <strong>Multi-Person Problem</strong>. To solve it, we have two main strategies: Top-Down and Bottom-Up.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Top-Down vs. Bottom-Up</h4>
+        <p><strong>Top-Down:</strong> Find the person first (bounding box), then find their joints.</p>
+        <p><strong>Bottom-Up:</strong> Find all joints in the image first, then connect them into people.</p>
+    </div>
+    <p>Let's visualize how these two strategies handle a growing crowd.</p>
+    <!-- START INTERACTIVE MODULE: PIPELINE SWITCH -->
+<div class="interactive-container" style="margin: 2rem 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    
+    <!-- Canvas Area -->
+    <div style="position: relative; background: #f8fafc; padding: 20px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+        <canvas id="pipelineCanvas" width="800" height="400" style="width: 100%; max-width: 100%; height: auto; border-radius: 8px; background: #edf2f7; cursor: crosshair;"></canvas>
+        
+        <!-- Legend Overlay -->
+        <div style="position: absolute; top: 30px; left: 30px; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; color: #4a5568; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                <span style="width: 10px; height: 10px; background: #ecc94b; margin-right: 8px; border-radius: 2px;"></span> Bounding Box
+            </div>
+            <div style="display: flex; align-items: center;">
+                <span style="width: 10px; height: 10px; background: #48bb78; margin-right: 8px; border-radius: 50%;"></span> Keypoints
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls Area -->
+    <div style="padding: 20px; background: #fff;">
+        
+        <!-- Top Row: Strategy Toggle & Stats -->
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px;">
+            
+            <!-- Strategy Toggle -->
+            <div style="display: flex; background: #edf2f7; padding: 4px; border-radius: 8px;">
+                <button id="btnTopDown" onclick="setMode('topdown')" style="padding: 8px 16px; border: none; background: #fff; color: #2d3748; border-radius: 6px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s;">Top-Down</button>
+                <button id="btnBottomUp" onclick="setMode('bottomup')" style="padding: 8px 16px; border: none; background: transparent; color: #718096; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s;">Bottom-Up</button>
+            </div>
+
+            <!-- Timer Display -->
+            <div style="text-align: right;">
+                <div style="font-size: 0.85rem; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">Processing Time</div>
+                <div id="processingTimer" style="font-size: 1.5rem; font-weight: 700; color: #2d3748; font-family: monospace;">0 ms</div>
+            </div>
+        </div>
+
+        <!-- Bottom Row: Sliders & Action -->
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+            
+            <div style="flex-grow: 1;">
+                <label style="display: block; font-size: 0.9rem; font-weight: 600; color: #4a5568; margin-bottom: 8px;">
+                    Crowd Density: <span id="densityVal" style="color: #667eea;">10 Runners</span>
+                </label>
+                <input type="range" id="densitySlider" min="1" max="50" value="10" oninput="updateCrowd()" 
+                       style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 5px; outline: none; -webkit-appearance: none;">
+            </div>
+
+            <button onclick="runSimulation()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 24px; border-radius: 50px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">
+                Run Detection
+            </button>
+        </div>
+        
+        <div id="simDescription" style="margin-top: 15px; font-size: 0.9rem; color: #718096; font-style: italic;">
+            Top-Down Mode: Detects each person individually. Time increases with crowd size.
+        </div>
+    </div>
+</div>
+
+<script>
+// --- Configuration ---
+const canvas = document.getElementById('pipelineCanvas');
+const ctx = canvas.getContext('2d');
+const timerDisplay = document.getElementById('processingTimer');
+const densityLabel = document.getElementById('densityVal');
+const descText = document.getElementById('simDescription');
+
+let currentMode = 'topdown'; // 'topdown' or 'bottomup'
+let runners = [];
+let isRunning = false;
+let animationFrameId;
+
+// --- Runner Class ---
+class Runner {
+    constructor(x, y, scale) {
+        this.x = x;
+        this.y = y;
+        this.scale = scale;
+        this.detected = false; // Has the box been drawn?
+        this.skeleton = false; // Has the skeleton been drawn?
+        
+        // Procedural Animation offset
+        this.phase = Math.random() * Math.PI * 2;
+        
+        // Joints relative to center
+        this.joints = {
+            head: {x: 0, y: -25},
+            neck: {x: 0, y: -15},
+            lShldr: {x: -10, y: -15}, rShldr: {x: 10, y: -15},
+            lElbow: {x: -15, y: -5}, rElbow: {x: 15, y: -5},
+            lHand: {x: -10, y: 5}, rHand: {x: 20, y: 0},
+            lHip: {x: -8, y: 10}, rHip: {x: 8, y: 10},
+            lKnee: {x: -12, y: 25}, rKnee: {x: 12, y: 25},
+            lFoot: {x: -12, y: 40}, rFoot: {x: 12, y: 40}
+        };
+    }
+
+    drawSilhouette(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(this.scale, this.scale);
+        
+        // Draw Gray Silhouette (The "Input Image")
+        ctx.strokeStyle = "#cbd5e0";
+        ctx.lineWidth = 8;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        
+        // Torso
+        ctx.beginPath(); ctx.moveTo(0, -15); ctx.lineTo(0, 10); ctx.stroke();
+        // Arms
+        ctx.beginPath(); ctx.moveTo(-10, -15); ctx.lineTo(-15, -5); ctx.lineTo(-10, 5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(10, -15); ctx.lineTo(15, -5); ctx.lineTo(20, 0); ctx.stroke();
+        // Legs
+        ctx.beginPath(); ctx.moveTo(-8, 10); ctx.lineTo(-12, 25); ctx.lineTo(-12, 40); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(8, 10); ctx.lineTo(12, 25); ctx.lineTo(12, 40); ctx.stroke();
+        // Head
+        ctx.fillStyle = "#cbd5e0";
+        ctx.beginPath(); ctx.arc(0, -25, 6, 0, Math.PI*2); ctx.fill();
+        
+        ctx.restore();
+    }
+
+    drawBoundingBox(ctx) {
+        if (!this.detected && currentMode === 'topdown') return;
+        
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(this.scale, this.scale);
+        
+        ctx.strokeStyle = "#ecc94b"; // Yellow
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.strokeRect(-25, -40, 50, 90);
+        
+        ctx.restore();
+    }
+
+    drawSkeleton(ctx) {
+        if (!this.skeleton && !this.detected) return; // Logic varies by mode
+        if (currentMode === 'topdown' && !this.skeleton) return;
+        
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(this.scale, this.scale);
+
+        // Limbs
+        ctx.strokeStyle = "#4facfe"; // Blueish
+        ctx.lineWidth = 3;
+        ctx.setLineDash([]);
+        
+        const j = this.joints;
+        const pairs = [
+            [j.head, j.neck], [j.neck, j.lShldr], [j.neck, j.rShldr],
+            [j.lShldr, j.lElbow], [j.lElbow, j.lHand],
+            [j.rShldr, j.rElbow], [j.rElbow, j.rHand],
+            [j.neck, j.lHip], [j.neck, j.rHip], // Spineish
+            [j.lHip, j.lKnee], [j.lKnee, j.lFoot],
+            [j.rHip, j.rKnee], [j.rKnee, j.rFoot]
+        ];
+
+        ctx.beginPath();
+        pairs.forEach(pair => {
+            ctx.moveTo(pair[0].x, pair[0].y);
+            ctx.lineTo(pair[1].x, pair[1].y);
+        });
+        ctx.stroke();
+
+        // Joints
+        ctx.fillStyle = "#48bb78"; // Green
+        Object.values(j).forEach(p => {
+            ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
+        });
+
+        ctx.restore();
+    }
+}
+
+// --- Logic ---
+
+function init() {
+    updateCrowd();
+    loop();
+}
+
+function setMode(mode) {
+    if(isRunning) return; // Lock during run
+    currentMode = mode;
+    
+    // Update UI Buttons
+    const btnTop = document.getElementById('btnTopDown');
+    const btnBot = document.getElementById('btnBottomUp');
+    
+    if(mode === 'topdown') {
+        btnTop.style.background = '#fff'; btnTop.style.color = '#2d3748'; btnTop.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+        btnBot.style.background = 'transparent'; btnBot.style.color = '#718096'; btnBot.style.boxShadow = 'none';
+        descText.innerHTML = "<strong>Top-Down:</strong> Detects each person individually. Time increases linearly with crowd size (O(n)).";
+    } else {
+        btnBot.style.background = '#fff'; btnBot.style.color = '#2d3748'; btnBot.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+        btnTop.style.background = 'transparent'; btnTop.style.color = '#718096'; btnTop.style.boxShadow = 'none';
+        descText.innerHTML = "<strong>Bottom-Down:</strong> Detects all keypoints simultaneously. Time is constant regardless of crowd size (O(1)).";
+    }
+    
+    resetSimulation();
+}
+
+function updateCrowd() {
+    if(isRunning) return;
+    const count = parseInt(document.getElementById('densitySlider').value);
+    densityLabel.innerText = count + (count === 1 ? ' Runner' : ' Runners');
+    
+    runners = [];
+    // Generate runners with pseudo-random overlap but keeping them within bounds
+    for(let i=0; i<count; i++) {
+        // Random position, biased towards bottom (perspective)
+        const y = 100 + Math.random() * 250;
+        // Scale based on y to fake depth
+        const scale = 0.5 + (y / 400) * 1.5;
+        const x = 50 + Math.random() * (700);
+        
+        runners.push(new Runner(x, y, scale));
+    }
+    
+    // Sort by Y so closer runners draw on top
+    runners.sort((a, b) => a.y - b.y);
+    
+    resetSimulation();
+}
+
+function resetSimulation() {
+    isRunning = false;
+    timerDisplay.innerText = "0 ms";
+    runners.forEach(r => { r.detected = false; r.skeleton = false; });
+    draw();
+}
+
+function runSimulation() {
+    if(isRunning) return;
+    resetSimulation();
+    isRunning = true;
+    
+    if (currentMode === 'topdown') {
+        runTopDown(0);
+    } else {
+        runBottomUp();
+    }
+}
+
+// Recursive Top-Down Loop
+function runTopDown(index) {
+    if (index >= runners.length) {
+        isRunning = false;
+        return;
+    }
+    
+    const runner = runners[index];
+    
+    // Step 1: Detect Box
+    runner.detected = true;
+    draw();
+    
+    setTimeout(() => {
+        // Step 2: Estimate Pose
+        runner.skeleton = true;
+        
+        // Update Time (Linear Cost: ~40ms per person)
+        const currentTime = parseInt(timerDisplay.innerText);
+        timerDisplay.innerText = (currentTime + 42) + " ms";
+        
+        draw();
+        
+        // Next person
+        setTimeout(() => {
+            runTopDown(index + 1);
+        }, 50); // Visual delay for effect
+    }, 100);
+}
+
+function runBottomUp() {
+    // Step 1: Detect All Joints (Heatmaps)
+    setTimeout(() => {
+        runners.forEach(r => r.skeleton = true); // In this simplified viz, we just show skeleton
+        
+        // Constant Time cost (e.g., 120ms flat)
+        timerDisplay.innerText = "128 ms";
+        
+        draw();
+        isRunning = false;
+    }, 600); // Wait a bit to simulate the heavy single-pass compute
+}
+
+// --- Drawing Loop ---
+function draw() {
+    // Clear
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw Ground/Horizon
+    ctx.fillStyle = "#e2e8f0";
+    ctx.fillRect(0, 150, canvas.width, canvas.height - 150);
+    
+    // Draw Runners
+    runners.forEach(r => {
+        r.drawSilhouette(ctx);
+        r.drawBoundingBox(ctx);
+        r.drawSkeleton(ctx);
+    });
+}
+
+function loop() {
+    // We only redraw on state changes for efficiency in this specific sim
+    // but could animate idle movement here if desired.
+    draw();
+    requestAnimationFrame(loop);
+}
+
+// Start
+init();
+
+</script>
+<!-- END INTERACTIVE MODULE -->
+    <p>Did you notice the timer? In Top-Down mode, the time increases with every new person added. In Bottom-Up mode, the detection time is roughly the same whether there is 1 person or 100.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>Top-Down follows a 'Detect-then-Estimate' pipeline. It relies heavily on an object detector to find the humans first. If the detector fails, the pose estimator never even gets a chance to try.</p>
+    <p>Bottom-Up follows an 'Estimate-then-Associate' pipeline. It finds all the parts first. Its main challenge isn't finding the parts, but figuring out how to connect them correctly (the association problem).</p>
+    <div class="why-it-matters">
+        <h3>Frequently Asked Question</h3>
+        <h4>Is Bottom-Up always better because it's faster in crowds?</h4>
+        <p>Not necessarily! While Bottom-Up is faster for crowds, Top-Down is often more accurate for single targets. By cropping the image to just one person (zooming in), the Top-Down model gets to see the person at a higher resolution compared to processing the whole wide scene at once.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <h2>Review and Reflect</h2>
+    <p>We've moved from the 'what' to the 'how'. We learned that modern Pose Estimation relies on <strong>Heatmaps</strong> (Belief Maps) rather than simple coordinates because they provide a better spatial learning signal for the AI.</p>
+    <p>We also broke down the two strategies for handling crowds: <strong>Top-Down</strong> (great for accuracy, slow for crowds) and <strong>Bottom-Up</strong> (great for speed, complex to associate).</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following best describes the advantage of using a Heatmap (Belief Map) over direct Coordinate Regression?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Actually, heatmaps take up more memory than two simple coordinates (x,y).')">It requires less computer memory to store.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The Gaussian distribution gives the network a \'hill\' to climb, providing helpful feedback even if the guess is slightly off, unlike the binary hit-or-miss of regression.')">It provides a spatially aware gradient that guides the network.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Processing heatmaps usually requires more GPU power due to the convolutional layers needed to generate the maps.')">It eliminates the need for GPU processing.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If you are building a real-time surveillance system for a crowded stadium, which strategy would likely offer better runtime performance?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'In a stadium with thousands of people, running a pose estimator thousands of times (once per box) would be incredibly slow.')">Top-Down Pose Estimation</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Spot on! Bottom-Up processing time is independent of the number of people, making it ideal for crowded scenes.')">Bottom-Up Pose Estimation</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which pipeline is best summarized as 'Detect-then-Estimate'?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. First you detect the human (bounding box), then you estimate the pose inside that box.')">Top-Down</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Bottom-Up is \'Estimate-then-Associate\'—finding the joints first.')">Bottom-Up</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is an output format, not a multi-person strategy.')">Coordinate Regression</div>
+        </div>
+    </div>
+    
+    <p>In the next lesson, we will zoom into the <strong>Top-Down</strong> approach and look at the specific neural network architectures—like Convolutional Pose Machines and Stacked Hourglass Networks—that make it work.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // LMS Integration placeholder
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Update with specific IDs for this new lesson
+                let courseId = 'computer-vision';
+                let pathId = 'pose-estimation';
+                let moduleId = 'cv-ch21-m2-paradigms';
+                let lessonId = 'cv-ch21-l2-paradigms-perception';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch21-m2-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check for previous completion
+    const isCompleted = localStorage.getItem('lesson_cv-ch21-m2-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

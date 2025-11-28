@@ -1,0 +1,469 @@
+/* Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #ffffff;
+    min-height: 100vh;
+    color: #2d3748;
+    line-height: 1.6;
+}
+
+/* Progress Bar */
+.faux-progress,
+.progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+}
+
+/* Layout */
+.lesson-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+section {
+    background: transparent;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    display: none;
+    opacity: 0;
+    transition: all 0.6s ease;
+    transform: translateY(20px);
+    text-align: center;
+}
+section.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+/* center all continue buttons only */
+section > *:not(.continue-button) {
+    text-align: left;
+}
+
+/* Typography */
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 1rem;
+}
+p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+}
+ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+li {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+strong { color: #2d3748; font-weight: 600; }
+em { color: #667eea; font-style: normal; font-weight: 500; }
+
+/* Image placeholders */
+.image-placeholder,
+.interactive-placeholder,
+.visual-aid-specific,
+.visual-aid-placeholder {
+    margin: 1.5rem 0;
+    padding: 16px;
+    border: 2px dashed rgba(102, 126, 234, 0.3);
+    border-radius: 12px;
+    background: rgba(102, 126, 234, 0.06);
+    color: #6b7280;
+}
+.image-placeholder img {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Content Boxes (from example lesson) */
+.vocab-section, .why-it-matters, .test-your-knowledge, .faq-section, 
+.stop-and-think, .check-your-knowledge {
+    margin: 2rem 0;
+    padding: 2rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+}
+.vocab-section::before, .why-it-matters::before, .test-your-knowledge::before,
+.faq-section::before, .stop-and-think::before, .check-your-knowledge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.05;
+    z-index: 0;
+}
+.vocab-section {
+    background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+    border-left-color: #4facfe;
+    box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+}
+.vocab-section::prerender,
+.vocab-section::before {
+    background: linear-gradient(45deg, #4facfe, #00f2fe);
+}
+.why-it-matters {
+    background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+    bborder-left-color: #f093fb;
+    border-left-color: #f093fb;
+    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+}
+.why-it-matters::before {
+    background: linear-gradient(45deg, #f093fb, #f5576c);
+}
+.test-your-knowledge, .check-your-knowledge {
+    background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+    border-left-color: #68d391;
+    box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+}
+.test-your-knowledge::before, .check-your-knowledge::before {
+    background: linear-gradient(45deg, #68d391, #4fd1c7);
+}
+.faq-section {
+    background: linear-gradient(135deg, #fffbeb 0%, #fefcf3 100%);
+    border-left-color: #fbbf24;
+    box-shadow: 0 10px 30px rgba(251, 191, 36, 0.1);
+}
+.faq-section::before {
+    background: linear-gradient(45deg, #fbbf24, #f59e0b);
+}
+.stop-and-think {
+    background: linear-gradient(135deg, #f3e8ff 0%, #f8f4ff 100%);
+    border-left-color: #a78bfa;
+    box-shadow: 0 10px 30px rgba(167, 139, 250, 0.1);
+}
+.stop-and-think::before {
+    background: linear-gradient(45deg, #a78bfa, #8b5cf6);
+}
+.vocab-section:hover, .why-it-matters:hover, .test-your-knowledge:hover,
+.faq-section:hover, .stop-and-think:hover, .check-your-knowledge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+.vocab-section h3 {
+    color: #0ea5e9;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+}
+.why-it-matters h1, .why-it-matters h2, .why-it-matters h3 {
+    color: #ec4899;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    position: relative;
+    zindex: 1;
+}
+.test-your-knowledge h1, .test-your-knowledge h2, .test-your-knowledge h3,
+.check-your-knowledge h1, .check-your-knowledge h2, .check-your-knowledge h3 {
+    color: #10b981;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+}
+.faq-section h1, .faq-section h2, .faq-section h3 {
+    color: #d97706;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+}
+.vocab-section h4, .test-your-knowledge h4, .check-your-knowledge h4, .faq-section h4 {
+    color: #2d3748;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1.5rem 0 1rem 0;
+    position: relative;
+    z-index: 1;
+}
+.vocab-term { color: #0ea5e9; font-weight: 600; }
+.vocab-section *, .why-it-matters *, .test-your-knowledge *, 
+.faq-section *, .stop-and-think *, .check-your-knowledge * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Buttons (from example lesson) */
+.continue-button, .reveal-button, .check-button {
+    display: inline-block;
+    padding: 16px 32px;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px ({}) 0 10px 30px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+.continue-button::before, .reveal-button::before, .check-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+.continue-button:hover, .reveal-button:hover, .check-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+.continue-button:hover::before, .reveal-button:hover::before, .check-button:hover::before {
+    left: 100%;
+}
+.continue-button:active, .reveal-button:active, .check-button:active {
+    transform: translateY(-1px);
+}
+.continue-button[style*="display: none"] {
+    display: none !important;
+}
+/* Ensure conditional continue buttons match styling exactly when shown */
+#continue-after-interactive:not([style*="display: none"]),
+#continue-after-check-knowledge:not([style*="display: none"]),
+#continue-after-test-knowledge:not([style*="display: none"]) {
+    display: inline-block !pmortant;
+    width: auto !important;
+    max-width: none !important;
+    min-width: auto !important;
+    padding: 16px 32px !important;
+    margin: 30px auto !important;
+    box-sizing: border-box !important;
+}
+.continue-button.show-with-action,
+.continue-button.show-with-animation {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Multiple Choice (from example lesson) */
+.multiple-choice {
+    margin: 1.5rem 0;
+}
+.choice-option {
+    display: block;
+    margin: 1rem 0;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: true;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+.choice-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+.choice-option:hover {
+    transform: translateX(5px);
+    border-color: rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+}
+.choice-option:hover::before {
+    oopacity: 0.05;
+    opacity: 0.05;
+}
+.choice-option.selected, .choice-option.uselected,
+.choice-option.correct {
+    background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+    border-color: #68d391;
+    color: #2d3748;
+}
+.choice-option.incorrect {
+    background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%);
+    border-color: #f87171;
+    color: #2d3748;
+}
+.choice-explanation {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f1f5f9;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    animation: fadeIn 0.5s ease;
+    position: relative;
+    z-index: 1;
+}
+@keyframes fadeln {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Accessibility */
+.choice-option:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+.continue-button:focus, .reveal-button:focus, .check-button:focus {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Mark as Completed (from example lesson) */
+.mark-completed-button {
+    display: none;
+    width: 100%;
+    max-width: 400px;
+    margin: 40px auto 20px auto;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+    text-align: center;
+    text-decoration: none;
+}
+.mark-completed-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(72, 187, 120, 0.4);
+    background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+}
+.mark-completed-button.show {
+    display: block;
+}
+.mark-completed-button.completed {
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    box-shadow: 0 4px 20px rgba(148, 163, 184, 0.3);
+    cursor: default;
+}
+.mark-completed-button.completed:hover {
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    box-shadow: 0 4px 20px rgba(148, 163, 184, 0.3);
+    transform: none;
+}
+
+/* Success banner (from example) */
+.lesson-success-message {
+    text-align: center;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 20px auto;
+    max-width: 300px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+}
+.lesson-success-message.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+

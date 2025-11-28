@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Hands-On with Illusions">
+  <defs>
+    <linearGradient id="bg5" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#0ea5a4"/>
+    </linearGradient>
+    <linearGradient id="accent5" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect rx="20" ry="20" x="6" y="6" width="116" height="116" fill="url(#bg5)"/>
+
+  <!-- Simplified Penrose-like triangle -->
+  <g fill="#ecfeff" opacity="0.95">
+    <path d="M64 26 L92 78 H36 Z"/>
+  </g>
+  <!-- Slider under triangle -->
+  <rect x="28" y="88" width="72" height="6" rx="3" fill="#ecfeff" opacity="0.8"/>
+  <circle cx="56" cy="91" r="8" fill="url(#accent5)"/>
+</svg>
+
+
+
+
+
+

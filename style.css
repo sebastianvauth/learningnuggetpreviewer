@@ -2038,8 +2038,16 @@ mark {
 
 .brilliant-lesson-item.locked {
     background: var(--color-gray-100);
-    opacity: 0.6;
+    opacity: 0.45;
+    filter: grayscale(0.85);
     cursor: not-allowed;
+    pointer-events: none;
+    border-color: transparent;
+}
+
+.brilliant-lesson-item.locked .lesson-item-title,
+.brilliant-lesson-item.locked .lesson-item-meta {
+    color: var(--color-gray-400);
 }
 
 .lesson-status-indicator {
@@ -2523,6 +2531,17 @@ mark {
 .module-status-indicator .status-icon.not-started {
     background: var(--color-gray-300);
     color: var(--color-gray-600);
+}
+
+/* Module icon in course page list */
+.module-list-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    background: var(--color-gray-100);
+    padding: var(--space-2);
+    flex-shrink: 0;
 }
 
 .module-card-content {
@@ -4309,11 +4328,15 @@ mark {
 
 .course-card-locked {
     position: relative;
-    opacity: 0.8;
+    opacity: 0.45;
+    filter: grayscale(0.85);
+    cursor: not-allowed;
+    transition: opacity 0.2s ease;
 }
 
 .course-card-locked:hover {
-    opacity: 1;
+    opacity: 0.45;
+    filter: grayscale(0.85);
 }
 
 .course-card-lock {
@@ -4328,6 +4351,37 @@ mark {
     backdrop-filter: blur(5px);
     z-index: 2;
 } 
+
+/* ========================================
+   GLOBAL DISABLED CARD STATE
+   ======================================== */
+.card-disabled {
+    position: relative;
+    opacity: 0.45 !important;
+    filter: grayscale(0.85);
+    cursor: not-allowed !important;
+    pointer-events: none;
+    animation: none !important;
+}
+
+.card-disabled::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: rgba(15, 23, 42, 0.35);
+    pointer-events: none;
+}
+
+.card-disabled .featured-continue-btn,
+.card-disabled .continue-action-btn {
+    opacity: 0.9;
+    cursor: not-allowed;
+}
+
+.card-disabled .continue-arrow {
+    transform: none !important;
+}
 
 /* ========================================
    GLOBAL CONFETTI CELEBRATION

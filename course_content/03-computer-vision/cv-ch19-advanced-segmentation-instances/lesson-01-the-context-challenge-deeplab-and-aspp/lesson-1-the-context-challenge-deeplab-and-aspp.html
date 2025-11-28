@@ -1,0 +1,1052 @@
+﻿<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>The Context Challenge – DeepLab and ASPP</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #ffffff;
+    min-height: 100vh;
+    color: #2d3748;
+    line-height: 1.6;
+}
+
+/* Progress Bar */
+.progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+}
+
+/* Main Container */
+.lesson-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Sections */
+section {
+    background: transparent;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    display: none;
+    opacity: 0;
+    transition: all 0.6s ease;
+    transform: translateY(20px);
+    text-align: center;
+}
+
+section.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Reset text alignment */
+section > *:not(.continue-button) {
+    text-align: left;
+}
+
+/* Typography */
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 1rem;
+}
+
+p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+li {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+strong {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+/* Placeholders */
+.image-placeholder, .interactive-placeholder, .visual-placeholder {
+    margin: 1.5rem 0;
+}
+
+.image-placeholder img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+}
+
+.image-caption {
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.placeholder-box {
+    width: 100%;
+    height: 220px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    background: #f8fafc;
+    font-weight: 600;
+    padding: 20px;
+    text-align: center;
+}
+
+.lesson-container img {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+/* Content Boxes */
+.why-it-matters, .vocab-section, .check-your-knowledge, .test-your-knowledge, .faq-section {
+    margin: 2rem 0;
+    padding: 2rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+}
+
+.why-it-matters {
+    background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+    border-left-color: #f093fb;
+    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+}
+
+.vocab-section {
+    background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+    border-left-color: #4facfe;
+    box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+}
+
+.faq-section {
+    background: linear-gradient(135deg, #fffbf0 0%, #fffdf7 100%);
+    border-left-color: #f6ad55;
+    box-shadow: 0 10px 30px rgba(246, 173, 85, 0.1);
+}
+
+.vocab-section h4, .faq-section h4 {
+    color: #2d3748;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+}
+
+/* Knowledge boxes */
+.test-your-knowledge, .check-your-knowledge {
+    background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+    border-left-color: #68d391;
+    box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+}
+.test-your-knowledge h3, .check-your-knowledge h3 {
+    color: #10b981;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+.test-your-knowledge h4, .check-your-knowledge h4 {
+    color: #2d3748;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1.5rem 0 1rem 0;
+}
+
+/* Buttons */
+.continue-button, .reveal-button, .check-button {
+    display: inline-block;
+    padding: 16px 32px;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.continue-button:hover, .reveal-button:hover, .check-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+
+.continue-button.show-with-animation {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Multiple Choice */
+.multiple-choice { margin: 1.5rem 0; text-align: left; }
+.choice-option {
+    display: block;
+    margin: 1rem 0;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+.choice-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+.choice-option:hover { transform: translateX(5px); border-color: rgba(102,126,234,0.3); box-shadow: 0 10px 30px rgba(102,126,234,0.15); }
+.choice-option:hover::before { opacity: 0.05; }
+.choice-option.selected, .choice-option.correct { background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%); border-color: #68d391; color: #2d3748; }
+.choice-option.incorrect { background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%); border-color: #f87171; color: #2d3748; }
+.choice-explanation { display: none; margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 8px; font-size: 0.95rem; position: relative; z-index: 1; }
+
+/* Mark as Completed Button */
+.mark-completed-button {
+    display: none;
+    width: 100%;
+    max-width: 400px;
+    margin: 40px auto 20px auto;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+    text-align: center;
+    text-decoration: none;
+}
+.mark-completed-button.show { display: block; }
+.mark-completed-button.completed { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); cursor: default; }
+
+/* Success Message and Confetti */
+.success-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+    z-index: 10000;
+    opacity: 0;
+    animation: success-popup 2.5s ease-out;
+    pointer-events: none;
+}
+@keyframes success-popup {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    40% { transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+.confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+.confetti { position: absolute; font-size: 20px; animation: confetti-fall 3s linear infinite; }
+@keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+/* Animations for reveals */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeIn 0.5s ease-out; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lesson-container { padding: 20px 15px; }
+    section { padding: 15px 0; margin-bottom: 20px; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.75rem; }
+    p, li { font-size: 1rem; }
+    .continue-button { width: 100%; }
+}
+</style>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <h1>The Context Challenge</h1>
+    <h2>The Resolution vs. Context Dilemma</h2>
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Split comparison showing zoomed-in fur detail versus a blurry cat silhouette">
+        <p class="image-caption">High-resolution detail versus low-resolution context, the core DeepLab dilemma.</p>
+    </div>
+    <p>Welcome back! In the previous chapter, we looked at the U-Net architecture. It tried to solve a fundamental problem in computer vision by using an encoder to shrink the image (gathering context) and a decoder to expand it back up (restoring resolution). But what if there was a way to see the whole picture without shrinking it down to a postage stamp first?</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Receptive Field Definition -->
+<section id="section2">
+    <h2>The Receptive Field Problem</h2>
+    <p>To understand the solution, we first need to understand the problem: the <strong>Receptive Field</strong>.</p>
+    <p>The Receptive Field is simply the part of the input image that a specific neuron is looking at. In a standard Convolutional Neural Network (CNN), this field starts small (\(3 \times 3\) pixels).</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Pooling and Stride -->
+<section id="section3">
+    <p>To increase this field—to let the network 'see' that a pixel belongs to a car and not just a gray blob—we usually use <strong>Pooling</strong> or <strong>Strided Convolutions</strong>. This downsamples the image.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: The Loss of Detail -->
+<section id="section4">
+    <p>The problem? Downsampling kills detail. By the time you know <em>what</em> the object is (context), you've lost the information about exactly <em>where</em> its edges are (spatial resolution).</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Pyramid diagram showing shrinking receptive field through downsampling">
+        <p class="image-caption">Downsampling pyramid: context grows while spatial precision fades.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Enter DeepLab -->
+<section id="section5">
+    <p>Enter the hero of our lesson: The <strong>DeepLab</strong> family of models and their secret weapon, <strong>Atrous Convolution</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Atrous Explanation -->
+<section id="section6">
+    <h2>Expanding the View: Atrous Convolution</h2>
+    <p>DeepLab introduces a clever trick to increase the receptive field without downsampling the image. It's called Atrous (or Dilated) Convolution.</p>
+    <p>Imagine a standard \(3 \times 3\) convolutional kernel. It looks at a tight block of 9 pixels. Now, imagine taking those 9 weights and pulling them apart, inserting empty spaces (zeros) between them.</p>
+    <p>This spacing is controlled by a parameter called the <strong>dilation rate (\(r\))</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Interactive Slider -->
+<section id="section7">
+    <p>Let's see this in action. Use the slider below to change the dilation rate of a kernel centered on an image.</p>
+    <!-- Dilation Interactive Module -->
+<div class="dilation-interactive-wrapper">
+  <style>
+      .dilation-interactive-wrapper {
+          background: #f8fafc;
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 20px 0;
+          text-align: center;
+          font-family: -apple-system, system-ui, sans-serif;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      }
+
+      .canvas-container {
+          position: relative;
+          margin: 0 auto;
+          max-width: 100%;
+          overflow: hidden;
+          display: flex;
+          justify-content: center;
+      }
+
+      canvas#dilationCanvas {
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+          max-width: 100%;
+          height: auto;
+          cursor: crosshair;
+      }
+
+      .controls-container {
+          margin-top: 20px;
+          padding: 15px;
+          background: white;
+          border-radius: 8px;
+          border: 1px solid #e2e8f0;
+      }
+
+      .slider-group {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 15px;
+          margin-bottom: 10px;
+      }
+
+      input[type=range] {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 60%;
+          height: 8px;
+          background: #cbd5e1;
+          border-radius: 5px;
+          outline: none;
+      }
+
+      input[type=range]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          cursor: pointer;
+          box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+          border: 2px solid white;
+      }
+
+      input[type=range]::-moz-range-thumb {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          cursor: pointer;
+          border: 2px solid white;
+      }
+
+      .rate-display {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #2d3748;
+          min-width: 60px;
+          text-align: left;
+      }
+
+      .info-panel {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 15px;
+          font-size: 0.95rem;
+          color: #4a5568;
+          border-top: 1px solid #edf2f7;
+          padding-top: 15px;
+      }
+
+      .metric-box {
+          text-align: center;
+      }
+
+      .metric-value {
+          display: block;
+          font-weight: 700;
+          color: #667eea;
+          font-size: 1.1rem;
+      }
+
+      .context-label {
+          font-size: 0.9rem;
+          font-weight: 600;
+          padding: 4px 12px;
+          border-radius: 20px;
+          background: #edf2f7;
+          color: #4a5568;
+          transition: all 0.3s ease;
+      }
+
+      .highlight-weights { color: #e53e3e; font-weight: bold; }
+  </style>
+
+  <div class="canvas-container">
+      <canvas id="dilationCanvas" width="500" height="350"></canvas>
+  </div>
+
+  <div class="controls-container">
+      <div class="slider-group">
+          <span style="font-weight:600; color:#718096;">Rate (r):</span>
+          <input type="range" id="dilationSlider" min="1" max="24" value="1" step="1">
+          <span class="rate-display" id="rateValue">1</span>
+      </div>
+
+      <div class="info-panel">
+          <div class="metric-box">
+              <span class="metric-value">9</span>
+              Active Weights
+          </div>
+          <div class="metric-box">
+              <span id="fieldSize" class="metric-value">3 × 3</span>
+              Receptive Field
+          </div>
+          <div id="contextLabel" class="context-label">Standard Conv</div>
+      </div>
+  </div>
+
+  <script>
+      (function() {
+          const canvas = document.getElementById('dilationCanvas');
+          const ctx = canvas.getContext('2d');
+          const slider = document.getElementById('dilationSlider');
+          const rateDisplay = document.getElementById('rateValue');
+          const fieldSizeDisplay = document.getElementById('fieldSize');
+          const contextLabel = document.getElementById('contextLabel');
+
+          // Configuration
+          const PIXEL_SIZE = 7; // Size of one "image pixel" on canvas
+          const GRID_W = Math.ceil(canvas.width / PIXEL_SIZE);
+          const GRID_H = Math.ceil(canvas.height / PIXEL_SIZE);
+          const CENTER_X = Math.floor(GRID_W / 2);
+          const CENTER_Y = Math.floor(GRID_H / 2);
+
+          // Generate a fake "Image" (Pixel Art)
+          // 0: Sky, 1: Grass, 2: Cat Body, 3: Cat Eyes, 4: Cat Nose
+          const imageGrid = new Array(GRID_W * GRID_H).fill(0);
+
+          function generateImage() {
+              for (let y = 0; y < GRID_H; y++) {
+                  for (let x = 0; x < GRID_W; x++) {
+                      const idx = y * GRID_W + x;
+                      
+                      // Background (Sky/Grass)
+                      if (y > GRID_H * 0.6) imageGrid[idx] = 1; // Grass
+                      else imageGrid[idx] = 0; // Sky
+
+                      // The Cat (Center Object)
+                      let dx = x - CENTER_X;
+                      let dy = y - CENTER_Y;
+                      
+                      // Head shape (Circle-ish)
+                      if (dx*dx + dy*dy < 100) imageGrid[idx] = 2; // Grey Fur
+                      
+                      // Ears
+                      if (Math.abs(dx - 6) < 3 && Math.abs(dy + 8) < 4) imageGrid[idx] = 2;
+                      if (Math.abs(dx + 6) < 3 && Math.abs(dy + 8) < 4) imageGrid[idx] = 2;
+
+                      // Eyes
+                      if (Math.abs(dy + 2) < 2) {
+                          if (Math.abs(dx - 3) < 2) imageGrid[idx] = 3; // Eye
+                          if (Math.abs(dx + 3) < 2) imageGrid[idx] = 3; // Eye
+                      }
+                      
+                      // Nose
+                      if (Math.abs(dx) < 2 && Math.abs(dy - 3) < 2) imageGrid[idx] = 4; // Nose
+                  }
+              }
+          }
+
+          function getColor(type) {
+              switch(type) {
+                  case 0: return '#ebf8ff'; // Sky
+                  case 1: return '#f0fff4'; // Grass
+                  case 2: return '#a0aec0'; // Cat Fur
+                  case 3: return '#f6e05e'; // Eyes
+                  case 4: return '#fc8181'; // Nose
+                  default: return '#fff';
+              }
+          }
+
+          function draw() {
+              const rate = parseInt(slider.value);
+              
+              // 1. Draw Image Layer
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              
+              for (let y = 0; y < GRID_H; y++) {
+                  for (let x = 0; x < GRID_W; x++) {
+                      ctx.fillStyle = getColor(imageGrid[y * GRID_W + x]);
+                      ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+                      
+                      // Faint grid lines
+                      ctx.strokeStyle = 'rgba(0,0,0,0.03)';
+                      ctx.lineWidth = 1;
+                      ctx.strokeRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+                  }
+              }
+
+              // 2. Draw Receptive Field (The Kernel)
+              const kernelOffsets = [-1, 0, 1];
+              
+              // Calculate span for bounding box
+              const span = 1 * rate; 
+              const boxSize = (span * 2 + 1) * PIXEL_SIZE;
+              const startX = (CENTER_X - span) * PIXEL_SIZE;
+              const startY = (CENTER_Y - span) * PIXEL_SIZE;
+
+              // Draw bounding box (The "Context" Area)
+              ctx.strokeStyle = 'rgba(102, 126, 234, 0.5)';
+              ctx.lineWidth = 2;
+              ctx.setLineDash([5, 5]);
+              ctx.strokeRect(startX, startY, boxSize, boxSize);
+              ctx.setLineDash([]);
+
+              // Draw Connecting Lines (Visualizing the "Atrous" gaps)
+              ctx.beginPath();
+              ctx.strokeStyle = 'rgba(229, 62, 62, 0.3)'; // Faint red
+              ctx.lineWidth = 1;
+              
+              // Draw lines from center to outer points
+              const cPx = CENTER_X * PIXEL_SIZE + PIXEL_SIZE/2;
+              const cPy = CENTER_Y * PIXEL_SIZE + PIXEL_SIZE/2;
+              
+              kernelOffsets.forEach(dy => {
+                  kernelOffsets.forEach(dx => {
+                      if (dx === 0 && dy === 0) return;
+                      const px = (CENTER_X + dx * rate) * PIXEL_SIZE + PIXEL_SIZE/2;
+                      const py = (CENTER_Y + dy * rate) * PIXEL_SIZE + PIXEL_SIZE/2;
+                      ctx.moveTo(cPx, cPy);
+                      ctx.lineTo(px, py);
+                  });
+              });
+              ctx.stroke();
+
+              // Draw the 9 Weights (Red dots)
+              kernelOffsets.forEach(dy => {
+                  kernelOffsets.forEach(dx => {
+                      const gx = CENTER_X + (dx * rate);
+                      const gy = CENTER_Y + (dy * rate);
+                      
+                      const px = gx * PIXEL_SIZE;
+                      const py = gy * PIXEL_SIZE;
+
+                      // Draw Shadow/Glow
+                      ctx.fillStyle = 'rgba(229, 62, 62, 0.2)';
+                      ctx.fillRect(px - 2, py - 2, PIXEL_SIZE + 4, PIXEL_SIZE + 4);
+
+                      // Draw Active Pixel
+                      ctx.fillStyle = '#e53e3e'; // Red
+                      ctx.fillRect(px, py, PIXEL_SIZE, PIXEL_SIZE);
+                      
+                      // Border
+                      ctx.strokeStyle = 'white';
+                      ctx.lineWidth = 1;
+                      ctx.strokeRect(px, py, PIXEL_SIZE, PIXEL_SIZE);
+                  });
+              });
+
+              updateText(rate);
+          }
+
+          function updateText(rate) {
+              rateDisplay.textContent = rate;
+              
+              // Calculate Effective Receptive Field: K + (K-1)(r-1) for K=3
+              // Or simply: width = (rate * 2) + 1
+              const fieldDim = (rate * 2) + 1;
+              fieldSizeDisplay.textContent = `${fieldDim} × ${fieldDim}`;
+
+              // Update context label based on narrative
+              if (rate === 1) {
+                  contextLabel.textContent = "Standard Conv (Local)";
+                  contextLabel.style.background = "#edf2f7";
+                  contextLabel.style.color = "#4a5568";
+              } else if (rate < 6) {
+                  contextLabel.textContent = "Expanding View";
+                  contextLabel.style.background = "#ebf8ff";
+                  contextLabel.style.color = "#3182ce";
+              } else if (rate < 15) {
+                  contextLabel.textContent = "Capturing Object (Cat)";
+                  contextLabel.style.background = "#feebc8";
+                  contextLabel.style.color = "#d69e2e";
+              } else {
+                  contextLabel.textContent = "Global Context (Scene)";
+                  contextLabel.style.background = "#c6f6d5";
+                  contextLabel.style.color = "#38a169";
+              }
+          }
+
+          // Init
+          generateImage();
+          draw();
+
+          // Event Listener
+          slider.addEventListener('input', draw);
+      })();
+  </script>
+</div>
+    <p>Notice what happened? At \(r=1\), we had a standard convolution. At \(r=24\), the kernel covered the entire image width.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Parameter Count Check -->
+<section id="section8">
+    <p>Crucially, even though the field of view expanded massively, the number of learnable parameters (the red dots in the simulation) stayed exactly the same: 9.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Does increasing the dilation rate increase the number of trainable parameters in the network?</h4>
+        <div id="cuy-params-answer" style="display:none;" class="animate-in">
+            <strong>Answer: No.</strong> The number of parameters stays the same. The physical 'footprint' is larger, but the number of weights (active points) remains constant. The spaces in between are just zeros. This is why Atrous convolution is so powerful—it gains context 'for free' in terms of parameter count.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-params-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: ASPP Intro -->
+<section id="section9">
+    <h2>ASPP: The Best of Both Worlds</h2>
+    <p>So, should we just set the dilation rate to 24 and call it a day? Not exactly. If we only look at the big picture, we might miss the small details.</p>
+    <p>To capture <em>both</em> local details and global context, DeepLabv2 introduced <strong>Atrous Spatial Pyramid Pooling (ASPP)</strong>.</p>
+    <p>Instead of choosing one dilation rate, ASPP says: 'Why not use them all?'</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Stop and Think -->
+<section id="section10">
+    <p>ASPP applies multiple parallel convolutions to the same feature map, each with a different rate (e.g., \(r=6, r=12, r=18, r=24\)). The results are then concatenated together.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why do we need to keep the low dilation rates (like 6) if the high rates (like 24) already capture the whole image?</h4>
+        <div id="sat-rates-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Think about segmenting a small button on a shirt versus segmenting the shirt itself. The high rate (\(r=24\)) sees the shirt and the person, but the gaps between its weights might completely step over the small button! The low rate (\(r=6\)) is needed to capture those fine, tightly packed details.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('sat-rates-answer')">Reveal Thoughts</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: DeepLabv3 -->
+<section id="section11">
+    <p>DeepLabv3 refined this further by adding an <strong>Image-Level Feature</strong> branch (Global Average Pooling) to the ASPP module. This squeezes the entire image into a single feature vector to ensure the network understands the absolute global context (e.g., 'This is a photo of a beach').</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Playful illustration contrasting DeepLab's attention to detail and context simultaneously">
+        <p class="image-caption">DeepLab juggling global context and fine detail with ASPP.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Review and Reflect -->
+<section id="section12">
+    <h2>Review and Reflect</h2>
+    <p>You've just learned how modern segmentation networks handle the trade-off between seeing detail and seeing context.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Without techniques like Atrous Convolution and ASPP, segmentation maps are often compromised. They are either too blurry because of excessive downsampling (pooling), or they lack context, causing the network to misclassify pixels because it can't 'see' what object they belong to.</p>
+    </div>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Atrous (Dilated) Convolution</h4>
+        <p>A convolution where the kernel weights are spaced apart by a 'dilation rate', allowing the filter to cover a larger area (receptive field) without increasing the number of parameters or reducing image resolution.</p>
+        
+        <h4>ASPP (Atrous Spatial Pyramid Pooling)</h4>
+        <p>A module used in DeepLab that runs multiple atrous convolutions with different dilation rates in parallel. This captures features at multiple scales (local and global) simultaneously.</p>
+    </div>
+
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <h4>Is Atrous Convolution the same as Pooling?</h4>
+        <p>No. Pooling reduces the resolution of the image (downsampling) to gain context. Atrous convolution expands the field of view (context) <em>without</em> reducing resolution. It keeps the image size constant while looking at a larger area.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Quiz -->
+<section id="section13">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>What is the primary purpose of using parallel branches with different dilation rates in the ASPP module?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Running multiple branches actually increases computation slightly compared to a single branch, though it is still efficient.')">To reduce the computational cost of the network.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Spot on! The different rates allow the network to see fine details (low rate) and global context (high rate) at the same time.')">To capture features at multiple scales simultaneously.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'ASPP preserves resolution, but it does not increase it (upsampling).')">To increase the resolution of the output image.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'If only it were that easy! You still need plenty of training data.')">To eliminate the need for training data.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(14)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 14: Conclusion -->
+<section id="section14">
+    <p>Great job! You now understand how networks can 'see' the big picture. In the next lesson, we will clarify exactly <em>what</em> we are trying to see by defining the different types of segmentation: Semantic, Instance, and Panoptic.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 14;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section13') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Default values, replace with actual route data if available
+                let courseId = 'computer-vision';
+                let pathId = 'segmentation';
+                let moduleId = 'cv-ch21-m2-deeplab';
+                let lessonId = 'cv-ch21-l2-deeplab-aspp';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch21-l2-deeplab-aspp_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+        let courseId = 'computer-vision';
+        let pathId = 'segmentation';
+        let moduleId = 'cv-ch21-m2-deeplab';
+        let lessonId = 'cv-ch21-l2-deeplab-aspp';
+        
+        if (window.parent.currentRoute) {
+            const route = window.parent.currentRoute;
+            if (route.courseId) courseId = route.courseId;
+            if (route.pathId) pathId = route.pathId;
+            if (route.moduleId) moduleId = route.moduleId;
+            if (route.lessonId) lessonId = route.lessonId;
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('course')) courseId = urlParams.get('course');
+        if (urlParams.get('path')) pathId = urlParams.get('path');
+        if (urlParams.get('module')) moduleId = urlParams.get('module');
+        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+        const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+        if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+            button.classList.add('completed');
+            button.innerHTML = '✅ Completed!';
+            return;
+        }
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch21-l2-deeplab-aspp_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

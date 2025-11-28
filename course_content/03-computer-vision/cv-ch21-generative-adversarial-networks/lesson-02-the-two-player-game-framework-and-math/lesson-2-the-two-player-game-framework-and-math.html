@@ -1,0 +1,1067 @@
+﻿<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>The Two-Player Game</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #ffffff;
+    min-height: 100vh;
+    color: #2d3748;
+    line-height: 1.6;
+}
+
+/* Progress Bar */
+.progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+}
+
+/* Main Container */
+.lesson-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Sections */
+section {
+    background: transparent;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    display: none;
+    opacity: 0;
+    transition: all 0.6s ease;
+    transform: translateY(20px);
+    text-align: center;
+}
+
+section.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Reset text alignment for all content except continue buttons */
+section > *:not(.continue-button) {
+    text-align: left;
+}
+
+/* Typography */
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 1rem;
+}
+
+p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+li {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+strong {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+em {
+    color: #667eea;
+    font-style: normal;
+    font-weight: 500;
+}
+
+/* Placeholders */
+.image-placeholder, .interactive-placeholder, .visual-placeholder {
+    margin: 1.5rem 0;
+}
+
+.placeholder-box {
+    width: 100%;
+    height: 220px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    background: #f8fafc;
+    font-weight: 600;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Ensure images fit column width */
+.lesson-container img {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 10px;
+    margin: 1.25rem auto;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+.image-caption {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #64748b;
+    margin-top: 0.4rem;
+}
+
+/* Content Boxes */
+.why-it-matters, .vocab-section, .check-your-knowledge, .test-your-knowledge {
+    margin: 2rem 0;
+    padding: 2rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+}
+
+/* Re-using 'why-it-matters' style for FAQ/Notes */
+.why-it-matters {
+    background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+    border-left-color: #f093fb;
+    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+}
+
+.vocab-section {
+    background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+    border-left-color: #4facfe;
+    box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+}
+
+.vocab-section h4 {
+    color: #2d3748;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+}
+
+.test-your-knowledge, .check-your-knowledge {
+    background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+    border-left-color: #68d391;
+    box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+}
+.test-your-knowledge h3, .check-your-knowledge h3 {
+    color: #10b981;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+.test-your-knowledge h4, .check-your-knowledge h4 {
+    color: #2d3748;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1.5rem 0 1rem 0;
+}
+
+/* Buttons */
+.continue-button, .reveal-button, .check-button {
+    display: inline-block;
+    padding: 16px 32px;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.continue-button:hover, .reveal-button:hover, .check-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+
+.continue-button.show-with-animation {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Multiple Choice */
+.multiple-choice { margin: 1.5rem 0; text-align: left; }
+.choice-option {
+    display: block;
+    margin: 1rem 0;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+.choice-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+.choice-option:hover { transform: translateX(5px); border-color: rgba(102,126,234,0.3); box-shadow: 0 10px 30px rgba(102,126,234,0.15); }
+.choice-option:hover::before { opacity: 0.05; }
+.choice-option.selected, .choice-option.correct { background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%); border-color: #68d391; color: #2d3748; }
+.choice-option.incorrect { background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%); border-color: #f87171; color: #2d3748; }
+.choice-explanation { display: none; margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 8px; font-size: 0.95rem; position: relative; z-index: 1; }
+
+/* Mark as Completed Button */
+.mark-completed-button {
+    display: none;
+    width: 100%;
+    max-width: 400px;
+    margin: 40px auto 20px auto;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+    text-align: center;
+    text-decoration: none;
+}
+.mark-completed-button.show { display: block; }
+.mark-completed-button.completed { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); cursor: default; }
+
+/* Success Message and Confetti */
+.success-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+    z-index: 10000;
+    opacity: 0;
+    animation: success-popup 2.5s ease-out;
+    pointer-events: none;
+}
+@keyframes success-popup {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    40% { transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+.confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+.confetti { position: absolute; font-size: 20px; animation: confetti-fall 3s linear infinite; }
+@keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+/* Animations for reveals */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeIn 0.5s ease-out; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lesson-container { padding: 20px 15px; }
+    section { padding: 15px 0; margin-bottom: 20px; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.75rem; }
+    p, li { font-size: 1rem; }
+    .continue-button { width: 100%; }
+}
+</style>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Illustration showing an art forger facing off against a vigilant detective." loading="lazy">
+        <p class="image-caption">The classic GAN metaphor: a forger invents masterpieces while a detective hunts for flaws.</p>
+    </div>
+    <h1>The Forger and The Detective</h1>
+    <p>Welcome back to the Creative Universe. Now that we know <em>what</em> we want to achieve—generating realistic data—we need to figure out <em>how</em> to do it. The solution proposed by Ian Goodfellow in 2014 is essentially a competitive game.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Analogy</h2>
+    <p>Imagine an art forger who wants to create fake paintings that look exactly like masterpieces by Van Gogh. At first, the forger is terrible; their paintings look like random splashes of paint.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>Now, imagine a detective whose sole job is to spot these fakes. The detective studies real Van Goghs and compares them to the forger's work.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>This creates a rivalry. The detective rejects the bad fakes, forcing the forger to get better. As the forger improves, the detective has to look closer and learn more subtle details to tell them apart. Over time, both become experts.</p>
+    <p>In the world of Deep Learning, this is exactly how a <strong>Generative Adversarial Network (GAN)</strong> works. It isn't one network; it's two networks fighting each other.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <h2>Mapping the Architecture</h2>
+    <p>Let's translate our analogy into technical components. We have two distinct neural networks: the <strong>Generator</strong> (\(G\)) and the <strong>Discriminator</strong> (\(D\)).</p>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        .interactive-gan-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        canvas#ganCanvas {
+            width: 100%;
+            height: 350px;
+            display: block;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 10px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="interactive-gan-container">
+    <canvas id="ganCanvas"></canvas>
+    <div class="controls">
+        <p>Watching: <strong id="statusText">Generating Fake...</strong></p>
+    </div>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('ganCanvas');
+    const ctx = canvas.getContext('2d');
+    const statusText = document.getElementById('statusText');
+    const parentSection = document.getElementById('section5');
+
+    // Configuration
+    let width, height;
+    const padding = 20;
+    
+    // Animation State
+    let frame = 0;
+    let particles = []; // Data packets traveling
+    let phase = 'generate'; // generate -> send_fake -> send_real
+    let phaseTimer = 0;
+    let probability = 0.5; // The output meter value
+    let targetProbability = 0.5;
+
+    // Node Positions (Calculated in resize)
+    const nodes = {
+        latent: { x: 0, y: 0, w: 0, h: 0, label: 'Latent (z)', type: 'noise' },
+        generator: { x: 0, y: 0, w: 0, h: 0, label: 'Generator', type: 'trap-expand' },
+        fakeImg: { x: 0, y: 0, w: 0, h: 0, label: 'Fake Img', type: 'image-fake' },
+        realImg: { x: 0, y: 0, w: 0, h: 0, label: 'Real Data (x)', type: 'image-real' },
+        discriminator: { x: 0, y: 0, w: 0, h: 0, label: 'Discriminator', type: 'trap-contract' },
+        output: { x: 0, y: 0, w: 0, h: 0, label: 'Prob', type: 'meter' }
+    };
+
+    function resize() {
+        const rect = canvas.getBoundingClientRect();
+        width = rect.width;
+        height = rect.height;
+
+        if (!width || !height) {
+            return false;
+        }
+        
+        const dpr = window.devicePixelRatio || 1;
+
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        // Layout Logic (Responsive)
+        const col1 = width * 0.15;
+        const col2 = width * 0.35;
+        const col3 = width * 0.55;
+        const col4 = width * 0.75;
+        const col5 = width * 0.90;
+
+        const rowTop = height * 0.25;
+        const rowBot = height * 0.75;
+        const rowMid = height * 0.5;
+
+        // Define Nodes
+        nodes.latent = { x: col1, y: rowTop, w: 60, h: 60, label: 'Latent (z)', color: '#a0aec0' };
+        nodes.generator = { x: col2, y: rowTop, w: 80, h: 60, label: 'Gen (G)', color: '#667eea' };
+        nodes.fakeImg = { x: col3, y: rowTop, w: 60, h: 60, label: 'Fake Img', color: '#9f7aea' };
+        nodes.realImg = { x: col3, y: rowBot, w: 60, h: 60, label: 'Real (x)', color: '#48bb78' };
+        nodes.discriminator = { x: col4, y: rowMid, w: 90, h: 70, label: 'Disc (D)', color: '#ed8936' };
+        nodes.output = { x: col5, y: rowMid, w: 20, h: 100, label: 'P(Real)', color: '#2d3748' };
+        return true;
+    }
+
+    // Helper: Draw Rounded Rect
+    function drawRoundBox(x, y, w, h, radius, fill, stroke) {
+        ctx.beginPath();
+        ctx.roundRect(x - w/2, y - h/2, w, h, radius);
+        if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); }
+        ctx.closePath();
+    }
+
+    // Helper: Draw Trapezoid
+    function drawTrapezoid(x, y, w, h, type, fill) {
+        ctx.beginPath();
+        const halfH = h/2;
+        const halfW = w/2;
+        const narrow = w * 0.6; // Narrow side width
+        
+        if (type === 'expand') {
+            // Narrow Left, Wide Right
+            ctx.moveTo(x - halfW, y - halfH * 0.6);
+            ctx.lineTo(x + halfW, y - halfH);
+            ctx.lineTo(x + halfW, y + halfH);
+            ctx.lineTo(x - halfW, y + halfH * 0.6);
+        } else {
+            // Wide Left, Narrow Right
+            ctx.moveTo(x - halfW, y - halfH);
+            ctx.lineTo(x + halfW, y - halfH * 0.6);
+            ctx.lineTo(x + halfW, y + halfH * 0.6);
+            ctx.lineTo(x - halfW, y + halfH);
+        }
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+    }
+
+    // Helper: Draw Arrow
+    function drawArrow(fromX, fromY, toX, toY, active = false) {
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.strokeStyle = active ? '#2d3748' : '#cbd5e1';
+        ctx.lineWidth = active ? 3 : 2;
+        ctx.stroke();
+
+        // Arrowhead
+        const angle = Math.atan2(toY - fromY, toX - fromX);
+        const headLen = 10;
+        ctx.beginPath();
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+        ctx.fillStyle = active ? '#2d3748' : '#cbd5e1';
+        ctx.fill();
+    }
+
+    // Animation Loop
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        frame++;
+
+        // 1. Draw Connections (Background)
+        drawArrow(nodes.latent.x + 30, nodes.latent.y, nodes.generator.x - 40, nodes.generator.y, phase === 'generate');
+        drawArrow(nodes.generator.x + 40, nodes.generator.y, nodes.fakeImg.x - 30, nodes.fakeImg.y, phase === 'generate');
+        
+        // Fake -> Disc connection
+        drawArrow(nodes.fakeImg.x + 30, nodes.fakeImg.y, nodes.discriminator.x - 45, nodes.discriminator.y - 15, phase === 'send_fake');
+        
+        // Real -> Disc connection
+        drawArrow(nodes.realImg.x + 30, nodes.realImg.y, nodes.discriminator.x - 45, nodes.discriminator.y + 15, phase === 'send_real');
+
+        // Disc -> Output connection
+        drawArrow(nodes.discriminator.x + 45, nodes.discriminator.y, nodes.output.x - 15, nodes.output.y, true);
+
+        // 2. Logic Controller
+        if (particles.length === 0) {
+            phaseTimer++;
+            if (phaseTimer > 30) {
+                if (phase === 'generate') {
+                    // Spawn particle: Latent -> Gen
+                    particles.push({ 
+                        x: nodes.latent.x, y: nodes.latent.y, 
+                        targetX: nodes.generator.x, targetY: nodes.generator.y, 
+                        type: 'noise', step: 0 
+                    });
+                    statusText.innerHTML = "1. Sampling random noise (z)...";
+                } else if (phase === 'send_fake') {
+                    // Spawn particle: Fake Img -> Disc
+                    particles.push({
+                        x: nodes.fakeImg.x, y: nodes.fakeImg.y,
+                        targetX: nodes.discriminator.x, targetY: nodes.discriminator.y,
+                        type: 'fake', step: 0
+                    });
+                    statusText.innerHTML = "3. Discriminator judging Fake Image...";
+                } else if (phase === 'send_real') {
+                    // Spawn particle: Real Img -> Disc
+                    particles.push({
+                        x: nodes.realImg.x, y: nodes.realImg.y,
+                        targetX: nodes.discriminator.x, targetY: nodes.discriminator.y,
+                        type: 'real', step: 0
+                    });
+                    statusText.innerHTML = "4. Discriminator judging Real Data...";
+                }
+                phaseTimer = 0;
+            }
+        }
+
+        // 3. Update & Draw Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            const dx = p.targetX - p.x;
+            const dy = p.targetY - p.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist < 5) {
+                // Arrived
+                particles.splice(i, 1);
+                handleArrival(p);
+            } else {
+                p.x += (dx / dist) * 6; // Speed
+                p.y += (dy / dist) * 6;
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = p.type === 'real' ? '#48bb78' : (p.type === 'fake' ? '#9f7aea' : '#a0aec0');
+                ctx.fill();
+            }
+        }
+
+        // 4. Draw Nodes
+        
+        // Latent Space (Noise Box)
+        drawRoundBox(nodes.latent.x, nodes.latent.y, nodes.latent.w, nodes.latent.h, 8, '#f7fafc', '#a0aec0');
+        ctx.fillStyle = '#a0aec0';
+        for(let i=0; i<15; i++) { // Render simple static
+             ctx.fillRect(nodes.latent.x - 20 + Math.random()*40, nodes.latent.y - 20 + Math.random()*40, 2, 2);
+        }
+        drawLabel(nodes.latent);
+
+        // Generator
+        drawTrapezoid(nodes.generator.x, nodes.generator.y, nodes.generator.w, nodes.generator.h, 'expand', nodes.generator.color);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('GEN', nodes.generator.x, nodes.generator.y + 5);
+
+        // Fake Image Box
+        drawRoundBox(nodes.fakeImg.x, nodes.fakeImg.y, nodes.fakeImg.w, nodes.fakeImg.h, 4, 'white', '#9f7aea');
+        // Simple "face" schematic
+        ctx.fillStyle = '#e9d8fd';
+        ctx.beginPath(); ctx.arc(nodes.fakeImg.x, nodes.fakeImg.y, 15, 0, Math.PI*2); ctx.fill();
+        drawLabel(nodes.fakeImg);
+
+        // Real Image Box (Stack effect)
+        drawRoundBox(nodes.realImg.x + 4, nodes.realImg.y + 4, nodes.realImg.w, nodes.realImg.h, 4, '#c6f6d5', '#48bb78');
+        drawRoundBox(nodes.realImg.x, nodes.realImg.y, nodes.realImg.w, nodes.realImg.h, 4, 'white', '#48bb78');
+        // Simple "face" schematic
+        ctx.fillStyle = '#c6f6d5';
+        ctx.beginPath(); ctx.arc(nodes.realImg.x, nodes.realImg.y, 15, 0, Math.PI*2); ctx.fill();
+        drawLabel(nodes.realImg);
+
+        // Discriminator
+        drawTrapezoid(nodes.discriminator.x, nodes.discriminator.y, nodes.discriminator.w, nodes.discriminator.h, 'contract', nodes.discriminator.color);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText('DISC', nodes.discriminator.x, nodes.discriminator.y + 5);
+
+        // Output Meter
+        drawMeter(nodes.output.x, nodes.output.y);
+
+        requestAnimationFrame(animate);
+    }
+
+    function handleArrival(p) {
+        if (p.type === 'noise') {
+            // Noise reached Gen. Next: Gen -> Fake Img
+            particles.push({
+                x: nodes.generator.x, y: nodes.generator.y,
+                targetX: nodes.fakeImg.x, targetY: nodes.fakeImg.y,
+                type: 'fake', step: 1
+            });
+            statusText.innerHTML = "2. Generator creates a Fake Image...";
+        } else if (p.type === 'fake' && p.step === 1) {
+            // Created Fake Image. End of "Generate" phase.
+            // Decide next phase based on toggle or random. Let's toggle.
+            // But we actually want to show comparison.
+            phase = 'send_fake';
+        } else if (p.type === 'fake' && p.step === 0) {
+            // Fake reached Disc.
+            targetProbability = 0.15; // Low probability for fake
+            phase = 'send_real'; // Next, check real
+        } else if (p.type === 'real') {
+            // Real reached Disc.
+            targetProbability = 0.95; // High probability for real
+            phase = 'generate'; // Restart loop
+        }
+    }
+
+    function drawLabel(node) {
+        ctx.fillStyle = '#4a5568';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(node.label, node.x, node.y + node.h/2 + 15);
+    }
+
+    function drawMeter(x, y) {
+        // Background Bar
+        const h = 80;
+        const w = 12;
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(x - w/2, y - h/2, w, h);
+        
+        // Lerp Probability
+        probability += (targetProbability - probability) * 0.1;
+
+        // Fill Bar
+        const fillH = h * probability;
+        const gradient = ctx.createLinearGradient(0, y + h/2, 0, y - h/2);
+        gradient.addColorStop(0, '#f56565'); // Red (Fake/0)
+        gradient.addColorStop(1, '#48bb78'); // Green (Real/1)
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x - w/2, y + h/2 - fillH, w, fillH);
+
+        // Border
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.strokeRect(x - w/2, y - h/2, w, h);
+
+        // Text Labels
+        ctx.fillStyle = '#2d3748';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('1 (Real)', x + 10, y - h/2 + 10);
+        ctx.fillText('0 (Fake)', x + 10, y + h/2);
+        
+        // Indicator
+        ctx.fillStyle = '#2d3748';
+        ctx.beginPath();
+        ctx.moveTo(x - w, y + h/2 - fillH);
+        ctx.lineTo(x - w - 5, y + h/2 - fillH - 4);
+        ctx.lineTo(x - w - 5, y + h/2 - fillH + 4);
+        ctx.fill();
+    }
+
+    function watchForVisibility() {
+        if (!parentSection || !('MutationObserver' in window)) return;
+        let visibilityObserver;
+        const attemptResize = () => {
+            if (!parentSection.classList.contains('visible')) return;
+            if (resize()) {
+                if (visibilityObserver) visibilityObserver.disconnect();
+            } else {
+                requestAnimationFrame(attemptResize);
+            }
+        };
+        visibilityObserver = new MutationObserver(attemptResize);
+        visibilityObserver.observe(parentSection, { attributes: true, attributeFilter: ['class'] });
+        attemptResize();
+    }
+
+    // Init
+    const initialized = resize();
+    if (!initialized) {
+        watchForVisibility();
+    }
+    window.addEventListener('resize', resize);
+    requestAnimationFrame(animate);
+
+})();
+</script>
+</body>
+</html>
+    <p>Take a look at the diagram above. The flow starts from two places: real data from our dataset (\(x\)) and random noise (\(z\)).</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>The <strong>Generator (\(G\))</strong> takes a random noise vector (\(z\)) from a 'latent space' and transforms it into an image. Architecturally, this is usually a <strong>Decoder</strong>, similar to the upsampling path in a segmentation network. Its goal is to fool the Discriminator.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Latent Space</h4>
+        <p>A compressed, abstract representation of data. In GANs, we usually sample this from a simple distribution (like Gaussian noise). The Generator learns to map points from this simple noise space to complex images.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>The <strong>Discriminator (\(D\))</strong> is the adversary. It takes an image as input and acts as a binary classifier. It outputs a probability: how likely is it that this image is real? Architecturally, this is a standard <strong>Encoder</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <h2>Decoding the Math</h2>
+    <p>To train these networks, we define a single mathematical objective they fight over. This is called a <strong>Minimax Game</strong>.</p>
+    <p>The equation might look intimidating, but we will break it down step-by-step. Here is the full objective function value \(V(D, G)\):</p>
+
+    <p>$$ \min_G \max_D V(D, G) = \mathbb{E}_{x \sim p_{data}(x)} [\log D(x)] + \mathbb{E}_{z \sim p_z(z)} [\log(1 - D(G(z)))] $$</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>Let's look at this from the <strong>Discriminator's perspective</strong> first. The Discriminator wants to <strong>Maximize</strong> (\(\max_D\)) this value. Ideally, it wants to correctly identify real images as real (output 1) and fake images as fake (output 0).</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>Look at the first term: \(\mathbb{E}_{x}[\log D(x)]\). This deals with real data. If \(D(x)\) predicts 1 (correct), then \(\log(1) = 0\). If it predicts 0.01 (wrong), \(\log(0.01)\) is a large negative number. So, maximizing this term means pushing the prediction toward 1.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>Now the second term: \(\log(1 - D(G(z)))\). Here, \(D(G(z))\) is the prediction on a fake image. The Discriminator wants this to be 0. If \(D(G(z)) = 0\), then \(\log(1 - 0) = \log(1) = 0\). This is the maximum possible value.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>Now, swap roles. Let's look at the <strong>Generator's perspective</strong>. It wants to <strong>Minimize</strong> (\(\min_G\)) this exact same formula.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>In the equation above, which term can the Generator actually influence?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The Generator never sees the real data directly in this function; this term only depends on x (real images) and D.')">The first term: \(\mathbb{E}_{x}[\log D(x)]\)</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The Generator creates G(z), so it directly affects this term.')">The second term: \(\mathbb{E}_{z}[\log(1 - D(G(z)))]\)</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-math-check" onclick="showNextSection(13)" style="display: none;">Continue</div>
+</section>
+
+<section id="section13">
+    <p>The Generator wants to trick the Discriminator. It wants \(D(G(z))\) to be close to 1 (classifying the fake as real).</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p>Let's calculate what happens if the Generator succeeds perfectly. If \(D(G(z)) \approx 1\), then the term becomes \(\log(1 - 1) = \log(0)\).
+    As you know, \(\log(0)\) approaches negative infinity (\(-\infty\)).</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <p>So, by driving the value toward negative infinity, the Generator is effectively <strong>minimizing</strong> the function. This mathematical tug-of-war drives the learning process.</p>
+    <div class="why-it-matters">
+        <h3>Frequently Asked</h3>
+        <p><strong>Where does the 'noise' z come from?</strong></p>
+        <p>It is usually just random numbers generated from a normal (Gaussian) distribution. It acts as the 'seed' of creativity. By changing the input noise vector slightly, we get a slightly different output image from the Generator.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <h2>The End Game</h2>
+    <p>So, when does the game end? In Game Theory, this is known as a <strong>Nash Equilibrium</strong>.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt=""Meme: Thanos/Arm Wrestling - Perfectly balanced" loading="lazy">
+        <p class="image-caption">At equilibrium, neither player can improve alone—perfect balance means the detector just guesses.</p>
+    </div>
+    <p>The ideal state is reached when the Generator produces images that are so perfect, the Discriminator cannot tell the difference between real and fake.</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <p>At this point, the Discriminator is reduced to random guessing. For any image it sees, it outputs a probability of 0.5.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Nash Equilibrium</h4>
+        <p>In a game involving two or more players, a Nash Equilibrium is a state where no player can gain anything by changing only their own strategy. In GANs, this means the Generator is optimal, and the Discriminator is doing the best it can (random guessing) against perfect fakes.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <p>Ideally, we stop training here. However, as we will see in the next lesson, reaching this equilibrium in practice is incredibly difficult.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why do you think it's problematic if the Discriminator wins the game too early (i.e., it effectively distinguishes all fakes with 100% confidence)?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> If the Discriminator is perfect (\(D(G(z)) = 0\)), the log term becomes \(\log(1)=0\). The curve becomes flat. Without a slope (gradient), the Generator has no mathematical guidance on how to improve!
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <h2>Review and Reflect</h2>
+    <p>We've defined the rules of engagement for our neural networks.</p>
+    <p>To summarize:</p>
+    <ul>
+        <li>The <strong>Generator</strong> creates fake images from noise (\(z\)) to minimize the objective.</li>
+        <li>The <strong>Discriminator</strong> tries to distinguish real (\(x\)) from fake (\(G(z)\)) to maximize the objective.</li>
+        <li>They play a <strong>Minimax Game</strong> until (hopefully) the Generator creates perfect replicas.</li>
+    </ul>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If the Discriminator outputs 0.5 for a generated image, what does this imply?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not necessarily. It might mean the Generator is just very good.')">The Discriminator is broken.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Actually, 0.5 is the best possible result for the Generator. It means the Discriminator is unsure.')">The Generator has failed to fool the Discriminator.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! If the probability is 50/50, the Discriminator is just guessing, meaning the fake is perfect.')">The Generator has created an image indistinguishable from reality (Nash Equilibrium).</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-final-test" onclick="showNextSection(20)" style="display: none;">Continue</div>
+</section>
+
+<section id="section20">
+    <p>In the next lesson, we will look at the messy reality of training these networks and the specific algorithms we use to keep this game balanced.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 20;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Logic for continuing after quiz (Section 12 and 19)
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        let continueBtnId = '';
+        if (parentSection.id === 'section12') continueBtnId = 'continue-after-math-check';
+        if (parentSection.id === 'section19') continueBtnId = 'continue-after-final-test';
+        
+        if (continueBtnId) {
+            const continueButton = document.getElementById(continueBtnId);
+            if (continueButton && continueButton.style.display === 'none') {
+                setTimeout(() => {
+                    continueButton.style.display = 'block';
+                    continueButton.classList.add('show-with-animation');
+                }, 800);
+            }
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // ... (Completion tracking logic omitted for brevity as it relies on parent context) ...
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch21-m1-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+// Initial check for completion
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch21-m1-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

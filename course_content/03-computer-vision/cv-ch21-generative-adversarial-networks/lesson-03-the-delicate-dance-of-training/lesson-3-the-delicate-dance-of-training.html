@@ -1,0 +1,677 @@
+﻿<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>The Delicate Dance of Training</title>
+<style>
+/* --- CSS STYLES --- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #ffffff; min-height: 100vh; color: #2d3748; line-height: 1.6; }
+
+/* Progress Bar */
+.progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: rgba(0, 0, 0, 0.1); z-index: 1000; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); width: 0%; transition: width 0.5s ease; box-shadow: 0 0 10px rgba(79, 172, 254, 0.5); }
+
+/* Main Container */
+.lesson-container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+/* Sections */
+section { background: transparent; margin-bottom: 30px; padding: 20px 0; display: none; opacity: 0; transition: all 0.6s ease; transform: translateY(20px); text-align: center; }
+section.visible { display: block; opacity: 1; transform: translateY(0); }
+section > *:not(.continue-button) { text-align: left; }
+
+/* Typography */
+h1 { font-size: 2.5rem; font-weight: 700; color: #2d3748; margin-bottom: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; }
+h2 { font-size: 2rem; font-weight: 600; color: #2d3748; margin-bottom: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+h3 { font-size: 1.25rem; font-weight: 600; color: #4a5568; margin-bottom: 1rem; }
+p { font-size: 1.125rem; line-height: 1.7; color: #4a5568; margin-bottom: 1.5rem; text-align: left; }
+ul { margin-left: 1.5rem; margin-bottom: 1.5rem; text-align: left; }
+li { font-size: 1.125rem; line-height: 1.7; color: #4a5568; margin-bottom: 0.5rem; }
+strong { color: #2d3748; font-weight: 600; }
+em { color: #667eea; font-style: normal; font-weight: 500; }
+
+/* Placeholders & Interactive Containers */
+.image-placeholder, .interactive-placeholder, .visual-placeholder { margin: 1.5rem 0; }
+.placeholder-box { width: 100%; height: 220px; border: 2px dashed #cbd5e1; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #94a3b8; background: #f8fafc; font-weight: 600; padding: 20px; text-align: center; }
+.lesson-container img { max-width: 100%; width: 100%; height: auto; display: block; border-radius: 10px; margin: 1.25rem auto; box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12); }
+.image-caption { text-align: center; font-size: 0.95rem; color: #64748b; margin-top: 0.4rem; }
+.interactive-container { width: 100%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; position: relative; overflow: hidden; margin: 1.5rem 0; }
+
+/* Content Boxes */
+.why-it-matters, .vocab-section, .check-your-knowledge, .test-your-knowledge, .faq-section { margin: 2rem 0; padding: 2rem; border-radius: 8px; border-left: 4px solid; transition: all 0.3s ease; position: relative; overflow: hidden; text-align: left; }
+.why-it-matters { background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%); border-left-color: #f093fb; box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1); }
+.vocab-section { background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%); border-left-color: #4facfe; box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1); }
+.vocab-section h4 { color: #2d3748; font-size: 1.25rem; font-weight: 600; margin: 0 0 0.75rem 0; }
+.test-your-knowledge, .check-your-knowledge, .faq-section { background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%); border-left-color: #68d391; box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1); }
+.test-your-knowledge h3, .check-your-knowledge h3, .faq-section h3 { color: #10b981; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 1rem; }
+
+/* Buttons */
+.continue-button, .reveal-button, .check-button { display: inline-block; padding: 16px 32px; margin-top: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 50px; text-decoration: none; cursor: pointer; border: none; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3); position: relative; overflow: hidden; }
+.continue-button:hover, .reveal-button:hover, .check-button:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4); }
+.continue-button.show-with-animation { opacity: 0; transform: translateY(20px); animation: fadeInUp 0.6s ease-out forwards; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Multiple Choice */
+.multiple-choice { margin: 1.5rem 0; text-align: left; }
+.choice-option { display: block; margin: 1rem 0; padding: 1.5rem; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; font-size: 1rem; font-weight: 500; position: relative; overflow: hidden; }
+.choice-option.selected, .choice-option.correct { background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%); border-color: #68d391; color: #2d3748; }
+.choice-option.incorrect { background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%); border-color: #f87171; color: #2d3748; }
+.choice-explanation { display: none; margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 8px; font-size: 0.95rem; position: relative; z-index: 1; }
+
+/* Mark as Completed Button */
+.mark-completed-button { display: none; width: 100%; max-width: 400px; margin: 40px auto 20px auto; padding: 16px 32px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3); text-align: center; text-decoration: none; }
+.mark-completed-button.show { display: block; }
+.mark-completed-button.completed { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); cursor: default; }
+
+/* Success Message and Confetti */
+.success-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 20px 30px; border-radius: 12px; font-size: 1.1rem; font-weight: 600; box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3); z-index: 10000; opacity: 0; animation: success-popup 2.5s ease-out; pointer-events: none; }
+@keyframes success-popup { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } }
+.confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+.confetti { position: absolute; font-size: 20px; animation: confetti-fall 3s linear infinite; }
+@keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+.animate-in { animation: fadeIn 0.5s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 768px) { .lesson-container { padding: 20px 15px; } section { padding: 15px 0; margin-bottom: 20px; } h1 { font-size: 2rem; } h2 { font-size: 1.75rem; } p, li { font-size: 1rem; } .continue-button { width: 100%; } }
+</style>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Two neural networks depicted as dancers trying to stay in sync on a crowded floor." loading="lazy">
+        <p class="image-caption">GAN training is a choreography—if one partner stumbles or sprints, the whole routine falls apart.</p>
+    </div>
+    <h1>The Delicate Dance of Training</h1>
+    <h2>Introduction: A Turn-Based Game</h2>
+    <p>In our previous lesson, we established that GANs are a minimax game between a Generator (the Forger) and a Discriminator (the Detective). But here is the trillion-dollar question: how do we actually train them?</p>
+    <p>You might think we can just run backpropagation on both networks simultaneously, but that would be chaos. Imagine a Forger trying to learn a painting style while the Detective changes the rules of what 'real' looks like every single second. No one would learn anything. Instead, we use a turn-based system.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>We have to orchestrate a delicate dance where each player takes a turn improving while the other stands still.</p>
+    <div class="interactive-container" style="height: 350px;">
+        <canvas id="ganTrainingCanvas"></canvas>
+        <div id="phaseIndicator" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.9); padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; color: #2d3748; box-shadow: 0 2px 10px rgba(0,0,0,0.1); pointer-events: none;">
+            Initializing...
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>This loop is the heartbeat of GAN training. Let's break down the steps of this dance.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <h2>Step 1: Training the Discriminator</h2>
+    <p>In the first part of the cycle, we focus entirely on the Detective.</p>
+    <p>We sample a batch of real images from our dataset and a batch of fake images created by the Generator. For this step, we treat the Generator as a fixed constant—it's just a source of data, like the dataset.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>The Discriminator's goal is to maximize the probability of assigning the correct label to both real and fake images. Mathematically, we want to maximize the value function \(V(D, G)\):</p>
+    <p>$$ \text{maximize } \mathbb{E}_{x}[\log D(x)] + \mathbb{E}_{z}[\log(1 - D(G(z)))] $$</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>Because we are trying to <em>maximize</em> this value (climbing the hill of accuracy), we update the Discriminator's weights using <strong>Gradient Ascent</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Gradient Ascent</h4>
+        <p>An optimization algorithm used to find the local maximum of a function. Unlike Gradient Descent (which goes down the slope to minimize error), Gradient Ascent moves up the slope to maximize an objective (like the Discriminator's accuracy).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <h2>Step 2: Training the Generator</h2>
+    <p>Once the Discriminator has had its turn and updated its weights, we freeze it. Now, it's the Generator's turn.</p>
+    <p>We sample a new batch of noise vectors \(z\) and generate images. We pass these through the frozen Discriminator.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>The Generator wants to minimize the Discriminator's success. It wants the Discriminator to output \(1\) (Real) for the fake images. So, the Generator tries to minimize the second term of the equation:</p>
+    <p>$$ \text{minimize } \mathbb{E}_{z}[\log(1 - D(G(z)))] $$</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>Since we are minimizing, we use standard <strong>Gradient Descent</strong> here.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why is it crucial to freeze the Discriminator's weights while we are training the Generator?</h4>
+        <div id="sat-freeze-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Think about shooting an arrow at a target. If the target moves randomly while the arrow is in mid-air (i.e., if D updates while G is calculating gradients), the feedback G receives becomes meaningless. G needs a stationary target to learn how to fool it.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('sat-freeze-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <h2>When the Dance Goes Wrong</h2>
+    <p>In a perfect world, this alternating process leads to a Nash Equilibrium where the Generator creates perfect images. In the real world, however, this process is notoriously unstable.</p>
+    <p>Because the two networks are fighting against each other, several things can go wrong. Let's look at the most common pitfalls.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>First, there is the problem of <strong>Vanishing Gradients</strong>. If the Discriminator gets too smart, too fast, it creates a problem.</p>
+    <p>Imagine the Generator outputs a fuzzy grey blob, and the Discriminator (which has seen real photos) says, "That is 100% fake." If the Discriminator outputs a probability of exactly 0, the slope of the loss function becomes flat.</p>
+    <p>When the slope is flat, the gradient is zero. The Generator receives no feedback on <em>how</em> to improve—it just knows it failed, but not which direction to move to get better. The learning stalls completely.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>Another issue is <strong>Non-Convergence</strong>. Because we are training two separate networks that are constantly changing the landscape for each other, the system often oscillates. Player A moves left, Player B moves right, Player A moves right... and they end up running in circles forever without improving.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <h2>The Nightmare of Mode Collapse</h2>
+    <p>Perhaps the most fascinating failure mode is called Mode Collapse. This happens when the Generator acts like a lazy student who finds a cheat code.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Comic showing a generator repeatedly outputting the same dog while the discriminator grows suspicious." loading="lazy">
+        <p class="image-caption">Mode collapse is the generator’s shortcut: “If this one dog fools you, I’ll just ship that dog forever.”</p>
+    </div>
+    <p>Real data usually has many 'modes' or clusters. For example, a dataset of digits has 10 modes (0 through 9). Mode collapse occurs when the Generator figures out one specific output that successfully fools the Discriminator and then produces <em>only</em> that output, ignoring the variety in the real data.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Mode Collapse</h4>
+        <p>A common failure in GAN training where the Generator produces a limited variety of samples (e.g., only generating the number '4' in a digit dataset), failing to capture the full diversity of the training distribution.</p>
+    </div>
+    <p>Let's visualize what this looks like in practice.</p>
+    
+    <div class="interactive-container" style="padding: 20px;">
+        <!-- Scenario Toggles -->
+        <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 15px;">
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; color: #2d3748;">
+                <input type="radio" name="modeScenario" value="success" checked onchange="window.updateModeScenario('success')">
+                Scenario A: Success
+            </label>
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; color: #2d3748;">
+                <input type="radio" name="modeScenario" value="collapse" onchange="window.updateModeScenario('collapse')">
+                Scenario B: Mode Collapse
+            </label>
+        </div>
+
+        <!-- Canvas -->
+        <div style="position: relative; width: 100%; height: 320px; background: white; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); overflow: hidden;">
+            <canvas id="modeCollapseCanvas"></canvas>
+        </div>
+
+        <!-- Slider Control -->
+        <div style="margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; color: #4a5568;">
+                <span>Untrained</span>
+                <span>Training Progress</span>
+                <span>Converged</span>
+            </div>
+            <input type="range" id="trainingSlider" min="0" max="100" value="0" style="width: 100%; cursor: pointer;">
+        </div>
+    </div>
+
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <p>In the collapsed scenario, the Generator is technically winning—it is producing realistic data (the points overlap with real data). However, it has failed to capture the diversity of the 'Creative Universe'.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Understanding these pitfalls explains why GANs are famous for being 'finicky' and 'hard to tune.' Getting them to converge requires careful selection of hyperparameters and often a lot of patience.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>Training a GAN is a balancing act. We use an alternating algorithm to update the Discriminator (via Gradient Ascent) and the Generator (via Gradient Descent) sequentially.</p>
+    <p>We've also seen that this adversarial nature leads to unique challenges:</p>
+    <ol>
+        <li><strong>Vanishing Gradients:</strong> When the Detective is too good, the Forger learns nothing.</li>
+        <li><strong>Non-Convergence:</strong> The players chase each other in circles.</li>
+        <li><strong>Mode Collapse:</strong> The Forger lazily repeats the same successful trick.</li>
+    </ol>
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Which of the following best describes the 'Mode Collapse' phenomenon?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This usually means training hasn\'t started or has diverged, but it\'s not specifically mode collapse.')">The Generator produces images that look like static noise.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is the Vanishing Gradient problem.')">The Discriminator becomes too strong and rejects everything.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! The Generator collapses the entire probability distribution into a single point or mode.')">The Generator produces realistic images, but very little variety (e.g., only one type of face).</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That would result in the Discriminator trying to lose the game, but it\'s not Mode Collapse.')">The Discriminator calculates the gradient using Descent instead of Ascent.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>During the Generator training phase (Step 2), what happens to the Discriminator?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, that happens in Step 1.')">It is updated using Gradient Ascent.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! We need a stationary target for the Generator to learn against.')">Its weights are frozen (held constant).</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, that would erase all the progress the Discriminator has made.')">It is re-initialized with random weights.</div>
+        </div>
+    </div>
+
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <h4>If Mode Collapse is so bad, how do we fix it?</h4>
+        <p>There are several advanced techniques! One common method is 'Minibatch Discrimination,' where the Discriminator looks at a whole batch of images at once rather than one by one. If the batch lacks diversity (i.e., all images look the same), the Discriminator can penalize the Generator, forcing it to spread out.</p>
+    </div>
+
+    <p>Now that we know how to train them (and how they fail), we need to figure out how to grade them. If a Generator produces a 'good' image, how do we measure 'good'? That's our next lesson.</p>
+
+    <div class="continue-button" id="continue-after-test-knowledge" style="display: none;" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+</div>
+
+<!-- --- MAIN SCRIPT LOGIC --- -->
+<script>
+/* -----------------------------------------
+   GLOBAL & NAVIGATION LOGIC
+   ----------------------------------------- */
+let currentSection = 1;
+const totalSections = 17;
+let ganAnimInitialized = false;
+let modeAnimInitialized = false;
+
+updateProgress();
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    
+    if (currentSection === 17 && nextSectionId === 18) {
+        // End of lesson logic
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) {
+            completedButton.classList.add('show');
+            setTimeout(() => { completedButton.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200);
+        }
+        if (currentButton) currentButton.style.display = 'none';
+        return;
+    }
+
+    if (!nextSectionElement) return;
+    
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    // Scroll
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+
+    // --- LAZY LOAD INTERACTIVES ---
+    // We wait 300ms for the 'visible' class to apply display:block, so canvas has dimensions
+    if (nextSectionId === 2 && !ganAnimInitialized) {
+        setTimeout(initSection2, 300);
+    }
+    if (nextSectionId === 14 && !modeAnimInitialized) {
+        setTimeout(initSection14, 300);
+    }
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section17') {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) {
+            completedButton.classList.add('show');
+            setTimeout(() => { completedButton.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 500);
+        }
+    }
+}
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch21-m1-l2_training_completed', 'true');
+    }
+}
+
+/* -----------------------------------------
+   INTERACTIVE 1: SECTION 2 (GAN DANCE)
+   ----------------------------------------- */
+function initSection2() {
+    ganAnimInitialized = true;
+    const canvas = document.getElementById('ganTrainingCanvas');
+    const ctx = canvas.getContext('2d');
+    const indicator = document.getElementById('phaseIndicator');
+    
+    let width = 0, height = 0;
+    let phase = 1; 
+    let lastTime = 0;
+    let phaseTimer = 0;
+    const PHASE_DURATION = 4000; 
+    
+    const colors = {
+        activeStart: '#667eea', activeEnd: '#764ba2', frozen: '#cbd5e1',
+        frozenText: '#94a3b8', bg: '#f8fafc', text: '#2d3748', white: '#ffffff', lock: '#4a5568'
+    };
+    let particles = [];
+    
+    function resize() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        width = rect.width;
+        height = rect.height || 350;
+        const dpr = window.devicePixelRatio || 1;
+
+        canvas.width = Math.max(1, Math.round(width * dpr));
+        canvas.height = Math.max(1, Math.round(height * dpr));
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resize);
+    resize(); 
+
+    function drawRoundedRect(x, y, w, h, r, isActive) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        
+        if (isActive) {
+            const grad = ctx.createLinearGradient(x, y, x + w, y + h);
+            grad.addColorStop(0, colors.activeStart);
+            grad.addColorStop(1, colors.activeEnd);
+            ctx.fillStyle = grad;
+            ctx.shadowColor = 'rgba(102, 126, 234, 0.4)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 5;
+        } else {
+            ctx.fillStyle = colors.frozen; ctx.shadowColor = 'transparent';
+        }
+        ctx.fill(); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+    }
+
+    function drawLock(x, y) {
+        ctx.save();
+        ctx.strokeStyle = colors.lock; ctx.fillStyle = colors.lock; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(x, y - 5, 6, Math.PI, 0); ctx.stroke();
+        ctx.fillRect(x - 8, y - 5, 16, 14);
+        ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(x - 1, y, 2, 5);
+        ctx.restore();
+    }
+
+    function drawConnection(x1, y1, x2, y2, isActive) {
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+        ctx.strokeStyle = isActive ? '#a0aec0' : '#e2e8f0'; ctx.lineWidth = 2; ctx.stroke();
+        if (isActive && Math.random() > 0.90) {
+            particles.push({ x: x1, y: y1, tx: x2, ty: y2, progress: 0, speed: 0.02 + Math.random() * 0.01 });
+        }
+    }
+
+    function animate(timestamp) {
+        const dt = timestamp - lastTime; lastTime = timestamp;
+        phaseTimer += dt;
+        if (phaseTimer > PHASE_DURATION) {
+            phaseTimer = 0; phase = phase === 1 ? 2 : 1;
+            if (phase === 1) {
+                indicator.innerHTML = 'Phase 1: Update <span style="color:#764ba2">Discriminator</span> (Ascent)';
+                indicator.style.borderLeft = "4px solid #764ba2";
+            } else {
+                indicator.innerHTML = 'Phase 2: Update <span style="color:#667eea">Generator</span> (Descent)';
+                indicator.style.borderLeft = "4px solid #667eea";
+            }
+        }
+
+        const cx = width / 2; const cy = height / 2;
+        const boxW = 140; const boxH = 60;
+        const posNoise = { x: cx - 180, y: cy + 60 };
+        const posReal = { x: cx - 180, y: cy - 60 };
+        const posG = { x: cx, y: cy + 60 };
+        const posD = { x: cx + 180, y: cy };
+        
+        ctx.clearRect(0, 0, width, height);
+        
+        drawConnection(posNoise.x + boxW/2, posNoise.y + boxH/2, posG.x - boxW/2, posG.y + boxH/2, true);
+        drawConnection(posG.x + boxW/2, posG.y + boxH/2, posD.x - boxW/2, posD.y + boxH/2, true);
+        drawConnection(posReal.x + boxW/2, posReal.y + boxH/2, posD.x - boxW/2, posD.y + boxH/2, phase === 1);
+
+        ctx.fillStyle = colors.activeStart;
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i]; p.progress += p.speed;
+            let curX = p.x + (p.tx - p.x) * p.progress; let curY = p.y + (p.ty - p.y) * p.progress;
+            ctx.beginPath(); ctx.arc(curX, curY, 3, 0, Math.PI * 2); ctx.fill();
+            if (p.progress >= 1) particles.splice(i, 1);
+        }
+
+        ctx.fillStyle = '#e2e8f0'; drawRoundedRect(posNoise.x - 40, posNoise.y, 80, boxH, 8, false);
+        ctx.fillStyle = '#718096'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Noise (z)', posNoise.x, posNoise.y + 35);
+
+        ctx.fillStyle = '#e2e8f0'; drawRoundedRect(posReal.x - 40, posReal.y, 80, boxH, 8, false);
+        ctx.fillStyle = phase === 1 ? '#718096' : '#cbd5e1'; ctx.fillText('Real Data', posReal.x, posReal.y + 35);
+
+        const gActive = (phase === 2);
+        drawRoundedRect(posG.x - boxW/2, posG.y, boxW, boxH, 10, gActive);
+        ctx.fillStyle = gActive ? 'white' : colors.frozenText; ctx.fillText('Generator', posG.x, posG.y + 35);
+        if (!gActive) drawLock(posG.x, posG.y - 15);
+        else {
+            ctx.save(); ctx.translate(posG.x, posG.y + boxH + 20); ctx.fillStyle = '#e53e3e'; ctx.font = '12px sans-serif'; ctx.fillText('▼ Descent', 0, 0); ctx.restore();
+        }
+
+        const dActive = (phase === 1);
+        drawRoundedRect(posD.x - boxW/2, posD.y, boxW, boxH, 10, dActive);
+        ctx.fillStyle = dActive ? 'white' : colors.frozenText; ctx.fillText('Discriminator', posD.x, posD.y + 35);
+        if (!dActive) drawLock(posD.x, posD.y - 15);
+        else {
+            ctx.save(); ctx.translate(posD.x, posD.y + boxH + 20); ctx.fillStyle = '#38a169'; ctx.font = '12px sans-serif'; ctx.fillText('▲ Ascent', 0, 0); ctx.restore();
+        }
+
+        ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(0, height - 4, width, 4);
+        ctx.fillStyle = phase === 1 ? colors.activeEnd : colors.activeStart; ctx.fillRect(0, height - 4, width * (phaseTimer / PHASE_DURATION), 4);
+
+        requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+}
+
+/* -----------------------------------------
+   INTERACTIVE 2: SECTION 14 (MODE COLLAPSE)
+   ----------------------------------------- */
+function initSection14() {
+    modeAnimInitialized = true;
+    const canvas = document.getElementById('modeCollapseCanvas');
+    const ctx = canvas.getContext('2d');
+    const slider = document.getElementById('trainingSlider');
+    
+    let width, height, centerX, centerY;
+    let progress = 0; 
+    let currentScenario = 'success';
+    const NUM_REAL_POINTS = 300; const NUM_FAKE_POINTS = 300; const NUM_MODES = 8;
+    const MODE_RADIUS = 100; const CLUSTER_SPREAD = 15;
+    
+    const realPoints = []; const fakePoints = []; const modes = [];
+
+    function init() {
+        for (let i = 0; i < NUM_MODES; i++) {
+            const angle = (i / NUM_MODES) * Math.PI * 2;
+            modes.push({ x: Math.cos(angle) * MODE_RADIUS, y: Math.sin(angle) * MODE_RADIUS });
+        }
+        for (let i = 0; i < NUM_REAL_POINTS; i++) {
+            const modeIndex = Math.floor(Math.random() * NUM_MODES);
+            const mode = modes[modeIndex];
+            const u = 1 - Math.random(); const v = Math.random();
+            const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            const z2 = Math.sqrt(-2.0 * Math.log(u)) * Math.sin(2.0 * Math.PI * v);
+            realPoints.push({ x: mode.x + z * CLUSTER_SPREAD, y: mode.y + z2 * CLUSTER_SPREAD });
+        }
+        for (let i = 0; i < NUM_FAKE_POINTS; i++) {
+            const targetModeIndex = i % NUM_MODES; 
+            const startX = (Math.random() - 0.5) * 40; const startY = (Math.random() - 0.5) * 40;
+            const u = 1 - Math.random(); const v = Math.random();
+            const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            const z2 = Math.sqrt(-2.0 * Math.log(u)) * Math.sin(2.0 * Math.PI * v);
+            fakePoints.push({ startX: startX, startY: startY, targetMode: targetModeIndex, finalOffsetX: z * CLUSTER_SPREAD, finalOffsetY: z2 * CLUSTER_SPREAD });
+        }
+        resize(); loop();
+    }
+
+    function resize() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        width = rect.width; height = 320;
+        canvas.width = width * 2; canvas.height = height * 2;
+        canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
+        ctx.scale(2, 2);
+        centerX = width / 2; centerY = height / 2;
+        draw();
+    }
+
+    function lerp(start, end, t) { return start * (1 - t) + end * t; }
+
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        ctx.strokeStyle = '#f1f5f9'; ctx.lineWidth = 1;
+        for (let x = centerX % 40; x < width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); }
+        for (let y = centerY % 40; y < height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
+        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(centerX, 0); ctx.lineTo(centerX, height); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(width, centerY); ctx.stroke();
+
+        ctx.fillStyle = 'rgba(66, 153, 225, 0.6)';
+        for (let p of realPoints) { ctx.beginPath(); ctx.arc(centerX + p.x, centerY + p.y, 3, 0, Math.PI * 2); ctx.fill(); }
+
+        ctx.fillStyle = currentScenario === 'success' ? 'rgba(72, 187, 120, 0.8)' : 'rgba(237, 137, 54, 0.8)'; 
+        if (currentScenario === 'collapse') ctx.fillStyle = 'rgba(56, 161, 105, 0.9)';
+
+        for (let p of fakePoints) {
+            let targetX, targetY;
+            if (currentScenario === 'success') {
+                const m = modes[p.targetMode]; targetX = m.x + p.finalOffsetX; targetY = m.y + p.finalOffsetY;
+            } else {
+                const collapseTarget = modes[2]; 
+                targetX = collapseTarget.x + (p.finalOffsetX * 0.2); targetY = collapseTarget.y + (p.finalOffsetY * 0.2);
+            }
+            const ease = 1 - Math.pow(1 - progress, 3);
+            const curX = lerp(p.startX, targetX, ease); const curY = lerp(p.startY, targetY, ease);
+            ctx.beginPath(); ctx.arc(centerX + curX, centerY + curY, 4, 0, Math.PI * 2); ctx.fill();
+        }
+        
+        ctx.fillStyle = '#4a5568'; ctx.font = '600 14px sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText(currentScenario === 'success' ? 'Distribution: Balanced' : 'Distribution: Collapsed', width - 20, 30);
+    }
+
+    function loop() { draw(); requestAnimationFrame(loop); }
+
+    window.addEventListener('resize', resize);
+    
+    slider.addEventListener('input', (e) => { progress = e.target.value / 100; });
+    window.updateModeScenario = function(val) { currentScenario = val; };
+
+    init();
+}
+
+/* -----------------------------------------
+   CELEBRATION & UTILS
+   ----------------------------------------- */
+function triggerCelebration() { createConfetti(); showSuccessMessage(); }
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div'); confettiContainer.className = 'confetti-container'; document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '💃', '🕺', '🤖', '⚡']; const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div'); confetti.className = 'confetti';
+            if (Math.random() > 0.6) { confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)]; } else { confetti.innerHTML = '●'; confetti.style.color = colors[Math.floor(Math.random() * colors.length)]; }
+            confetti.style.left = Math.random() * 100 + '%'; confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div'); successMessage.className = 'success-message'; successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉'; document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn'); if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch21-m1-l2_training_completed') === 'true';
+    if (isCompleted) { button.classList.add('completed'); button.innerHTML = '✅ Completed!'; }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') { e.preventDefault(); btn.click(); }
+    }
+});
+document.documentElement.style.scrollBehavior = 'smooth';
+</script>
+</body>
+</html>

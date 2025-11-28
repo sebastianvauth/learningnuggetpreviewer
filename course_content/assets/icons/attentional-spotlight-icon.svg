@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Attentional Spotlight">
+  <defs>
+    <linearGradient id="bg7" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#0ea5a4"/>
+    </linearGradient>
+    <linearGradient id="accent7" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect rx="20" ry="20" x="6" y="6" width="116" height="116" fill="url(#bg7)"/>
+
+  <!-- Magnifier/flashlight cone -->
+  <path d="M92 44 L52 84 L44 76 Z" fill="url(#accent7)" opacity="0.9"/>
+  <!-- Flashlight body -->
+  <rect x="36" y="76" width="20" height="10" rx="3" transform="rotate(-45 46 81)" fill="#ecfeff"/>
+  <circle cx="92" cy="44" r="12" fill="#ecfeff"/>
+  <circle cx="92" cy="44" r="6" fill="#0f172a" opacity="0.5"/>
+</svg>
+
+
+
+
+
+

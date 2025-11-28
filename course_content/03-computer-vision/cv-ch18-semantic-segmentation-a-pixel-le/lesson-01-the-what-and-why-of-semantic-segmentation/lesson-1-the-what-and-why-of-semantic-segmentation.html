@@ -1,0 +1,1093 @@
+﻿<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>The "What" and "Why" of Semantic Segmentation</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #ffffff;
+    min-height: 100vh;
+    color: #2d3748;
+    line-height: 1.6;
+}
+
+/* Progress Bar */
+.progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+}
+
+/* Main Container */
+.lesson-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Sections */
+section {
+    background: transparent;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    display: none;
+    opacity: 0;
+    transition: all 0.6s ease;
+    transform: translateY(20px);
+    text-align: center;
+}
+
+section.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Reset text alignment for all content except continue buttons */
+section > *:not(.continue-button) {
+    text-align: left;
+}
+
+/* Typography */
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 1rem;
+}
+
+p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+li {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+strong {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+em {
+    color: #667eea;
+    font-style: normal;
+    font-weight: 500;
+}
+
+/* Placeholders */
+.image-placeholder, .interactive-placeholder, .visual-placeholder {
+    margin: 1.5rem 0;
+}
+
+.image-placeholder img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+}
+
+.image-caption {
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.placeholder-box {
+    width: 100%;
+    height: 220px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    background: #f8fafc;
+    font-weight: 600;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Ensure images fit column width */
+.lesson-container img {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Content Boxes */
+.why-it-matters, .vocab-section, .check-your-knowledge, .test-your-knowledge {
+    margin: 2rem 0;
+    padding: 2rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+}
+
+.why-it-matters {
+    background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+    border-left-color: #f093fb;
+    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+}
+
+.vocab-section {
+    background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+    border-left-color: #4facfe;
+    box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+}
+
+.vocab-section h4 {
+    color: #2d3748;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+}
+
+.test-your-knowledge, .check-your-knowledge {
+    background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+    border-left-color: #68d391;
+    box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+}
+.test-your-knowledge h3, .check-your-knowledge h3 {
+    color: #10b981;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+.test-your-knowledge h4, .check-your-knowledge h4 {
+    color: #2d3748;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1.5rem 0 1rem 0;
+}
+
+/* Buttons */
+.continue-button, .reveal-button, .check-button {
+    display: inline-block;
+    padding: 16px 32px;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.continue-button:hover, .reveal-button:hover, .check-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+
+.continue-button.show-with-animation {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Multiple Choice */
+.multiple-choice { margin: 1.5rem 0; text-align: left; }
+.choice-option {
+    display: block;
+    margin: 1rem 0;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+.choice-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+.choice-option:hover { transform: translateX(5px); border-color: rgba(102,126,234,0.3); box-shadow: 0 10px 30px rgba(102,126,234,0.15); }
+.choice-option:hover::before { opacity: 0.05; }
+.choice-option.selected, .choice-option.correct { background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%); border-color: #68d391; color: #2d3748; }
+.choice-option.incorrect { background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%); border-color: #f87171; color: #2d3748; }
+.choice-explanation { display: none; margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 8px; font-size: 0.95rem; position: relative; z-index: 1; }
+
+/* Mark as Completed Button */
+.mark-completed-button {
+    display: none;
+    width: 100%;
+    max-width: 400px;
+    margin: 40px auto 20px auto;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+    text-align: center;
+    text-decoration: none;
+}
+.mark-completed-button.show { display: block; }
+.mark-completed-button.completed { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); cursor: default; }
+
+/* Success Message and Confetti */
+.success-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+    z-index: 10000;
+    opacity: 0;
+    animation: success-popup 2.5s ease-out;
+    pointer-events: none;
+}
+@keyframes success-popup {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    40% { transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+.confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+.confetti { position: absolute; font-size: 20px; animation: confetti-fall 3s linear infinite; }
+@keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+/* Animations for reveals */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeIn 0.5s ease-out; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lesson-container { padding: 20px 15px; }
+    section { padding: 15px 0; margin-bottom: 20px; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.75rem; }
+    p, li { font-size: 1rem; }
+    .continue-button { width: 100%; }
+}
+</style>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <h1>The "What" and "Why" of Semantic Segmentation</h1>
+    <h2>Welcome to the Pixel Level</h2>
+    <p>Welcome to the granular world of computer vision. In previous lessons, we've asked questions like "Is there a car in this image?" (Classification) or "Where are the cars located?" (Object Detection). But sometimes, a box isn't enough.</p>
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Diagram comparing classification, detection, and segmentation outputs">
+        <p class="image-caption">Classification → Detection → Segmentation: from labels and boxes to pixel masks.</p>
+    </div>
+    <p>To truly understand a scene, we need to go deeper. We need to move from drawing boxes to painting pixels. This is the domain of <strong>Semantic Segmentation</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Defining the Task -->
+<section id="section2">
+    <h2>Defining the Task</h2>
+    <p>The objective of semantic segmentation is deceptively simple: assign a specific class label to <strong>every single pixel</strong> in an image.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: The Mask -->
+<section id="section3">
+    <p>This process yields a dense, pixel-perfect map—often called a <strong>segmentation mask</strong>. In this mask, regions are colored according to their class. All 'road' pixels might be grey, all 'car' pixels blue, and all 'sky' pixels cyan.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Architecture Duality -->
+<section id="section4">
+    <p>This introduces a fascinating duality. Conceptually, it is more complex than object detection because the output is much finer. However, architecturally, it can be more straightforward.</p>
+    <p>Unlike object detection, where a model must output a variable number of bounding boxes (maybe zero, maybe fifty), a segmentation network always outputs a fixed-size tensor: a mask with the same height and width as the input image.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Illustration of a robot comparing bounding boxes and precise segmentation masks">
+        <p class="image-caption">Boxes approximate, masks understand: when pixel precision matters.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Check Your Knowledge (MRI) -->
+<section id="section5">
+    <p>Let's see if you can identify when this level of precision is actually necessary.</p>
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>You are designing a system to measure the exact volume of a brain tumor from an MRI scan to track its growth over time. Which computer vision task is most appropriate?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Classification would only tell you if a tumor is present or not, but not its size or shape.')">Image Classification</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Detection would give you a box around the tumor. However, tumors are irregular shapes, so the box area would include healthy tissue, making volume calculations inaccurate.')">Object Detection</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! By classifying every pixel as \'tumor\' or \'healthy tissue\', you can count the exact number of tumor pixels and calculate a precise volume.')">Semantic Segmentation</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-mri" onclick="showNextSection(6)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 6: Annotation Bottleneck -->
+<section id="section6">
+    <h2>The Annotation Bottleneck</h2>
+    <p>If semantic segmentation is so precise, why don't we use it for everything? The answer lies in the data.</p>
+    <p>Creating a high-quality, pixel-perfect ground truth mask is an incredibly meticulous and labor-intensive process. This is known as the <strong>Annotation Bottleneck</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Cost and Stop & Think -->
+<section id="section7">
+    <p>For complex datasets like A2D2 (a driving dataset), a single mask can cost between 8 and 10 euros to produce. It often requires multiple human annotators to ensure the edges are perfect.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop And Think</h3>
+        <h4>Why is annotating for segmentation so much more expensive than object detection?</h4>
+        <div id="cuy-annotation-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Think about the user interaction. For object detection, an annotator clicks twice: top-left and bottom-right to create a box. For segmentation, they must trace a complex polygon around the object, potentially clicking dozens or hundreds of times for a single object to get the shape right.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-annotation-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Real World Apps -->
+<section id="section8">
+    <h2>Real-World Applications</h2>
+    <p>Despite the cost, the detailed scene understanding provided by semantic segmentation is invaluable across numerous domains. Let's look at where this technology is deployed today.</p>
+    <div class="interactive-module-container" id="segmentationInteractive">
+      <style>
+          .interactive-module-container {
+              width: 100%;
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 12px;
+              overflow: hidden;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          }
+          
+          /* Canvas Area */
+          .canvas-wrapper {
+              position: relative;
+              width: 100%;
+              height: 0;
+              padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+              background: #000;
+          }
+          
+          #segCanvas {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              cursor: crosshair;
+          }
+  
+          /* Controls Area */
+          .controls-area {
+              padding: 20px;
+              background: white;
+              border-top: 1px solid #e2e8f0;
+          }
+  
+          .slide-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 15px;
+          }
+  
+          .slide-title {
+              font-size: 1.25rem;
+              font-weight: 700;
+              color: #2d3748;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              background-clip: text;
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+          }
+  
+          .slide-nav-btn {
+              background: #f1f5f9;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: 600;
+              color: #4a5568;
+              transition: all 0.2s;
+          }
+          .slide-nav-btn:hover { background: #e2e8f0; color: #2d3748; }
+          .slide-nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  
+          .slide-description {
+              font-size: 1rem;
+              color: #4a5568;
+              margin-bottom: 20px;
+              min-height: 3em; /* Prevent jump on text change */
+          }
+  
+          /* Slider Styling */
+          .slider-container {
+              display: flex;
+              align-items: center;
+              gap: 15px;
+              background: #f8fafc;
+              padding: 10px 15px;
+              border-radius: 8px;
+              border: 1px solid #e2e8f0;
+          }
+  
+          .slider-label {
+              font-size: 0.85rem;
+              font-weight: 600;
+              color: #64748b;
+              white-space: nowrap;
+          }
+  
+          input[type=range] {
+              -webkit-appearance: none;
+              appearance: none;
+              width: 100%;
+              height: 6px;
+              background: #cbd5e1;
+              border-radius: 5px;
+              outline: none;
+          }
+  
+          input[type=range]::-webkit-slider-thumb {
+              -webkit-appearance: none;
+              appearance: none;
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              background: #764ba2;
+              cursor: pointer;
+              transition: transform 0.2s;
+          }
+          
+          input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+      </style>
+  
+      <div class="canvas-wrapper">
+          <canvas id="segCanvas"></canvas>
+      </div>
+  
+      <div class="controls-area">
+          <div class="slide-header">
+              <button class="slide-nav-btn" id="prevBtn" onclick="changeSlide(-1)">← Prev</button>
+              <div class="slide-title" id="slideTitle">Autonomous Driving</div>
+              <button class="slide-nav-btn" id="nextBtn" onclick="changeSlide(1)">Next →</button>
+          </div>
+          
+          <p class="slide-description" id="slideText">
+              Identifying safe drivable space and vulnerable road users.
+          </p>
+  
+          <div class="slider-container">
+              <span class="slider-label">Raw Image</span>
+              <input type="range" min="0" max="100" value="0" class="slider" id="opacitySlider" oninput="updateRender()">
+              <span class="slider-label">Segmentation Mask</span>
+          </div>
+      </div>
+  
+      <script>
+          // Module Scope to prevent global namespace pollution
+          (function() {
+              const canvas = document.getElementById('segCanvas');
+              const ctx = canvas.getContext('2d');
+              const titleEl = document.getElementById('slideTitle');
+              const textEl = document.getElementById('slideText');
+              const slider = document.getElementById('opacitySlider');
+              const prevBtn = document.getElementById('prevBtn');
+              const nextBtn = document.getElementById('nextBtn');
+  
+              // Internal resolution for crisp rendering
+              const width = 800;
+              const height = 450;
+              canvas.width = width;
+              canvas.height = height;
+  
+              let currentSlideIndex = 0;
+              let animationFrameId;
+  
+              // --- Drawing Helpers ---
+  
+              function drawRect(x, y, w, h, color) {
+                  ctx.fillStyle = color;
+                  ctx.fillRect(x, y, w, h);
+              }
+  
+              function drawCircle(x, y, r, color) {
+                  ctx.beginPath();
+                  ctx.arc(x, y, r, 0, Math.PI * 2);
+                  ctx.fillStyle = color;
+                  ctx.fill();
+              }
+  
+              function drawPoly(points, color) {
+                  ctx.beginPath();
+                  ctx.moveTo(points[0][0], points[0][1]);
+                  for (let i = 1; i < points.length; i++) {
+                      ctx.lineTo(points[i][0], points[i][1]);
+                  }
+                  ctx.closePath();
+                  ctx.fillStyle = color;
+                  ctx.fill();
+              }
+  
+              // --- Scenes ---
+  
+              const scenes = [
+                  {
+                      title: "Autonomous Driving",
+                      text: "Identifying safe drivable space and vulnerable road users. Notice how the chaotic world is simplified into 'Drive Here' (Green) and 'Stop Here' (Red).",
+                      drawRaw: () => {
+                          // Sky
+                          drawRect(0, 0, width, height/2, '#87CEEB');
+                          // Ground
+                          drawRect(0, height/2, width, height/2, '#5e6873'); // Asphalt
+                          // Perspective Road
+                          drawPoly([[350, 225], [450, 225], [750, 450], [50, 450]], '#4a525a');
+                          // Lane lines
+                          ctx.strokeStyle = 'white';
+                          ctx.setLineDash([20, 15]);
+                          ctx.lineWidth = 3;
+                          ctx.beginPath();
+                          ctx.moveTo(400, 225);
+                          ctx.lineTo(400, 450);
+                          ctx.stroke();
+                          ctx.setLineDash([]);
+                          
+                          // Pedestrian (Simple Stick figure representation)
+                          const drawPed = (x, y, scale) => {
+                              ctx.fillStyle = '#1a202c';
+                              // Body
+                              drawRect(x - 5*scale, y - 30*scale, 10*scale, 30*scale, '#2d3748');
+                              // Head
+                              drawCircle(x, y - 35*scale, 6*scale, '#ecc94b');
+                          };
+                          
+                          drawPed(600, 350, 2.5);
+                          drawPed(150, 400, 3);
+                      },
+                      drawMask: () => {
+                          // Road Mask (Green)
+                          drawPoly([[350, 225], [450, 225], [750, 450], [50, 450]], 'rgba(72, 187, 120, 1.0)'); // Green
+                          
+                          // Pedestrian Masks (Red)
+                          const drawPedMask = (x, y, scale) => {
+                              // Bounding box approximation for pixel mask
+                              drawRect(x - 10*scale, y - 45*scale, 20*scale, 50*scale, 'rgba(245, 101, 101, 1.0)');
+                          };
+                          drawPedMask(600, 350, 2.5);
+                          drawPedMask(150, 400, 3);
+  
+                          // Sky Mask (Blueish - semantic label 'Sky')
+                          drawRect(0, 0, width, height/2, 'rgba(66, 153, 225, 0.5)');
+                      }
+                  },
+                  {
+                      title: "Medical Imaging",
+                      text: "Precise measurement of tumors and organ isolation. Segmentation allows computers to calculate the exact volume of anomalies.",
+                      drawRaw: () => {
+                          // Background (Black MRI style)
+                          drawRect(0, 0, width, height, '#000000');
+                          
+                          // Draw "Brain" outline
+                          ctx.fillStyle = '#1a1a1a';
+                          ctx.beginPath();
+                          ctx.ellipse(400, 225, 150, 180, 0, 0, Math.PI * 2);
+                          ctx.fill();
+                          
+                          // Internal Structure (Grey Matter)
+                          ctx.fillStyle = '#2d2d2d';
+                          ctx.beginPath();
+                          ctx.ellipse(400, 225, 130, 160, 0, 0, Math.PI * 2);
+                          ctx.fill();
+  
+                          // "Tumor" (Irregular white/grey blob)
+                          ctx.fillStyle = '#a0aec0'; 
+                          ctx.beginPath();
+                          ctx.moveTo(450, 180);
+                          ctx.bezierCurveTo(480, 170, 500, 200, 480, 220);
+                          ctx.bezierCurveTo(460, 240, 430, 230, 440, 200);
+                          ctx.fill();
+                          
+                          // Add Noise
+                          for(let i=0; i<1000; i++) {
+                              const x = Math.random() * width;
+                              const y = Math.random() * height;
+                              drawRect(x,y,2,2, 'rgba(255,255,255,0.05)');
+                          }
+                      },
+                      drawMask: () => {
+                          // Healthy Brain Mask (Blue)
+                          ctx.fillStyle = 'rgba(66, 153, 225, 0.4)';
+                          ctx.beginPath();
+                          ctx.ellipse(400, 225, 130, 160, 0, 0, Math.PI * 2);
+                          ctx.fill();
+  
+                          // Tumor Mask (Bright Pink/Red) - Critical Area
+                          ctx.fillStyle = 'rgba(237, 100, 166, 1.0)'; 
+                          ctx.beginPath();
+                          ctx.moveTo(450, 180);
+                          ctx.bezierCurveTo(480, 170, 500, 200, 480, 220);
+                          ctx.bezierCurveTo(460, 240, 430, 230, 440, 200);
+                          ctx.fill();
+                      }
+                  },
+                  {
+                      title: "Consumer Tech",
+                      text: "Virtual backgrounds rely on separating the user from the environment. The model must segment 'Person' vs 'Background'.",
+                      drawRaw: () => {
+                          // Background (Messy Room)
+                          drawRect(0, 0, width, height, '#f7fafc');
+                          // Bookshelf
+                          drawRect(50, 50, 200, 300, '#718096');
+                          drawRect(60, 60, 180, 10, '#cbd5e1'); // Shelf
+                          drawRect(60, 120, 180, 10, '#cbd5e1'); // Shelf
+                          // Plant
+                          drawCircle(650, 300, 40, '#48bb78');
+                          drawRect(640, 340, 20, 60, '#a0aec0'); // Pot
+  
+                          // Person (Silhouette)
+                          ctx.fillStyle = '#2b6cb0'; // Shirt
+                          ctx.beginPath();
+                          ctx.arc(400, 450, 120, Math.PI, 0); // Shoulders
+                          ctx.fill();
+                          
+                          ctx.fillStyle = '#f6e05e'; // Skin tone
+                          ctx.beginPath();
+                          ctx.arc(400, 280, 60, 0, Math.PI*2); // Head
+                          ctx.fill();
+                      },
+                      drawMask: () => {
+                          // Background Mask (Purple - to be removed/blurred)
+                          ctx.fillStyle = 'rgba(128, 90, 213, 0.8)';
+                          ctx.fillRect(0,0,width,height);
+  
+                          // Person Mask (Transparent - keep this pixel)
+                          ctx.globalCompositeOperation = 'destination-out';
+                          
+                          ctx.beginPath();
+                          ctx.arc(400, 450, 120, Math.PI, 0);
+                          ctx.fill();
+                          
+                          ctx.beginPath();
+                          ctx.arc(400, 280, 60, 0, Math.PI*2);
+                          ctx.fill();
+                          
+                          ctx.globalCompositeOperation = 'source-over';
+                      }
+                  }
+              ];
+  
+              // --- Rendering Logic ---
+  
+              window.updateRender = function() {
+                  // Clear Canvas
+                  ctx.clearRect(0, 0, width, height);
+  
+                  const currentScene = scenes[currentSlideIndex];
+                  const opacity = slider.value / 100;
+  
+                  // 1. Draw Raw Scene
+                  ctx.save();
+                  currentScene.drawRaw();
+                  ctx.restore();
+  
+                  // 2. Draw Mask with Opacity
+                  if (opacity > 0) {
+                      ctx.save();
+                      ctx.globalAlpha = opacity;
+                      currentScene.drawMask();
+                      ctx.restore();
+                  }
+              };
+  
+              window.changeSlide = function(direction) {
+                  currentSlideIndex += direction;
+                  
+                  // Bounds check
+                  if (currentSlideIndex < 0) currentSlideIndex = 0;
+                  if (currentSlideIndex >= scenes.length) currentSlideIndex = scenes.length - 1;
+  
+                  // Update UI
+                  titleEl.textContent = scenes[currentSlideIndex].title;
+                  textEl.textContent = scenes[currentSlideIndex].text;
+                  prevBtn.disabled = currentSlideIndex === 0;
+                  nextBtn.disabled = currentSlideIndex === scenes.length - 1;
+                  
+                  // Reset slider for new slide? Optional. Let's keep it to maintain context.
+                  // slider.value = 0; 
+  
+                  updateRender();
+              };
+  
+              // Init
+              updateRender();
+  
+          })();
+      </script>
+  </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Vocab -->
+<section id="section9">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Dense Prediction</h4>
+        <p>A type of computer vision task where a prediction is made for every single pixel in the input image, rather than a single label for the whole image.</p>
+    </div>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Segmentation Mask</h4>
+        <p>The output of a segmentation model. It is a map of the same height and width as the input, where each pixel's value corresponds to its predicted class.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Why It Matters -->
+<section id="section10">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p><strong>Precision is safety.</strong> In autonomous driving, a bounding box isn't enough. If a car thinks a piece of the sidewalk inside a bounding box is actually 'road', it might drive onto the curb. Semantic segmentation tells the car exactly where the asphalt ends and the sidewalk begins.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Test Knowledge -->
+<section id="section11">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following statements about Semantic Segmentation is FALSE?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is true. It is the definition of the task.')">It assigns a class label to every pixel.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is true. The mask usually matches the input height and width.')">The output size is fixed relative to the input image size.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! This statement is False. Due to the need for precise outlining, segmentation is significantly more expensive and time-consuming to annotate.')">It is generally cheaper to annotate than Object Detection.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is true.')">It is used in medical imaging for tumor analysis.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-false-test" onclick="showNextSection(12)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 12: FAQ -->
+<section id="section12">
+    <div class="check-your-knowledge">
+        <h3>Frequently Asked Question</h3>
+        <h4>Does semantic segmentation distinguish between two different cars?</h4>
+        <div id="faq-instances-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> No, it generally does not. In standard Semantic Segmentation, all pixels belonging to the class 'car' are given the same label (e.g., Blue). If two cars are overlapping, they will look like one big blue blob. Distinguishing between individual instances of the same class is a different task called <strong>Instance Segmentation</strong>.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('faq-instances-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Review -->
+<section id="section13">
+    <h2>Review and Reflect</h2>
+    <p>You have now entered the world of pixel-level understanding.</p>
+    <p>In this lesson, we defined <strong>Semantic Segmentation</strong> as the task of assigning a class to every pixel, creating a <strong>Segmentation Mask</strong>. We explored why this is powerful for tasks like self-driving and medicine, but also why the <strong>Annotation Bottleneck</strong> makes it costly.</p>
+    <p>But once we have these expensive masks, how do we know if our model is doing a good job? Is 95% accuracy good enough? In the next lesson, we will see why standard accuracy might actually be dangerous.</p>
+
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 13;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Logic to show continue button after interaction (specifically for Section 5 and 11)
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        // Find if there is a hidden continue button in this section
+        const continueButton = parentSection.querySelector('.continue-button[style*="display: none"]');
+        if (continueButton) {
+             setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Example IDs - in a real scenario these would likely be dynamic
+                let courseId = 'computer-vision';
+                let pathId = 'semantic-segmentation';
+                let moduleId = 'cv-ch22-m1-foundations';
+                let lessonId = 'cv-ch22-l1-what-why-semantic';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch22-m1-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    // Check completion status on load
+    if (window.parent && window.parent.ProgressTracker) {
+        // Logic similar to toggleCompleted to get IDs
+        let courseId = 'computer-vision';
+        let pathId = 'semantic-segmentation';
+        let moduleId = 'cv-ch22-m1-foundations';
+        let lessonId = 'cv-ch22-l1-what-why-semantic';
+        
+        // ... (Logic to get params same as above)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('course')) courseId = urlParams.get('course');
+        // ...
+        
+        try {
+            const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+            if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+                button.classList.add('completed');
+                button.innerHTML = '✅ Completed!';
+                return;
+            }
+        } catch(e) {}
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch22-m1-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

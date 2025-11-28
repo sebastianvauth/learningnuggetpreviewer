@@ -1,0 +1,1170 @@
+﻿<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>The Gold Standard – U-Net</title>
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+body {
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+background: #ffffff;
+min-height: 100vh;
+color: #2d3748;
+line-height: 1.6;
+}
+/* Progress Bar */
+.progress-container {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 4px;
+background: rgba(0, 0, 0, 0.1);
+z-index: 1000;
+}
+.progress-bar {
+height: 100%;
+background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+width: 0%;
+transition: width 0.5s ease;
+box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+}
+/* Main Container */
+.lesson-container {
+max-width: 900px;
+margin: 0 auto;
+padding: 40px 20px;
+}
+/* Sections */
+section {
+background: transparent;
+margin-bottom: 30px;
+padding: 20px 0;
+display: none;
+opacity: 0;
+transition: all 0.6s ease;
+transform: translateY(20px);
+text-align: center;
+}
+section.visible {
+display: block;
+opacity: 1;
+transform: translateY(0);
+}
+/* Reset text alignment for all content except continue buttons */
+section > *:not(.continue-button) {
+text-align: left;
+}
+/* Typography */
+h1 {
+font-size: 2.5rem;
+font-weight: 700;
+color: #2d3748;
+margin-bottom: 1.5rem;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+line-height: 1.2;
+}
+h2 {
+font-size: 2rem;
+font-weight: 600;
+color: #2d3748;
+margin-bottom: 1.5rem;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+h3 {
+font-size: 1.25rem;
+font-weight: 600;
+color: #4a5568;
+margin-bottom: 1rem;
+}
+p {
+font-size: 1.125rem;
+line-height: 1.7;
+color: #4a5568;
+margin-bottom: 1.5rem;
+text-align: left;
+}
+ul {
+margin-left: 1.5rem;
+margin-bottom: 1.5rem;
+text-align: left;
+}
+li {
+font-size: 1.125rem;
+line-height: 1.7;
+color: #4a5568;
+margin-bottom: 0.5rem;
+}
+strong {
+color: #2d3748;
+font-weight: 600;
+}
+em {
+color: #667eea;
+font-style: normal;
+font-weight: 500;
+}
+/* Placeholders */
+.image-placeholder, .interactive-placeholder, .visual-placeholder {
+margin: 1.5rem 0;
+}
+.placeholder-box {
+width: 100%;
+height: 220px;
+border: 2px dashed #cbd5e1;
+border-radius: 12px;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #94a3b8;
+background: #f8fafc;
+font-weight: 600;
+padding: 20px;
+text-align: center;
+}
+.lesson-container img {
+max-width: 100%;
+width: 100%;
+height: auto;
+display: block;
+border-radius: 8px;
+margin: 1.5rem auto;
+}
+.image-caption {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-top: 0.75rem;
+}
+/* Content Boxes */
+.why-it-matters, .vocab-section, .check-your-knowledge, .test-your-knowledge, .faq-section {
+margin: 2rem 0;
+padding: 2rem;
+border-radius: 8px;
+border-left: 4px solid;
+transition: all 0.3s ease;
+position: relative;
+overflow: hidden;
+text-align: left;
+}
+.why-it-matters {
+background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+border-left-color: #f093fb;
+box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+}
+.vocab-section {
+background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+border-left-color: #4facfe;
+box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+}
+.vocab-section h4 {
+color: #2d3748;
+font-size: 1.25rem;
+font-weight: 600;
+margin: 0 0 0.75rem 0;
+}
+.test-your-knowledge, .check-your-knowledge, .faq-section {
+background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+border-left-color: #68d391;
+box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+}
+.test-your-knowledge h3, .check-your-knowledge h3 {
+color: #10b981;
+font-size: 0.875rem;
+text-transform: uppercase;
+letter-spacing: 0.05em;
+font-weight: 700;
+margin-bottom: 1rem;
+}
+.test-your-knowledge h4, .check-your-knowledge h4, .faq-section h4 {
+color: #2d3748;
+font-size: 1.25rem;
+font-weight: 600;
+margin: 1.5rem 0 1rem 0;
+}
+.faq-section h3 {
+color: #2d3748;
+font-size: 1.25rem;
+font-weight: 600;
+margin-bottom: 1rem;
+}
+/* Buttons */
+.continue-button, .reveal-button, .check-button {
+display: inline-block;
+padding: 16px 32px;
+margin-top: 2rem;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+border-radius: 50px;
+text-decoration: none;
+cursor: pointer;
+border: none;
+font-size: 1rem;
+font-weight: 600;
+transition: all 0.3s ease;
+box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+position: relative;
+overflow: hidden;
+}
+.continue-button:hover, .reveal-button:hover, .check-button:hover {
+transform: translateY(-3px);
+box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+.continue-button.show-with-animation {
+opacity: 0;
+transform: translateY(20px);
+animation: fadeInUp 0.6s ease-out forwards;
+}
+@keyframes fadeInUp {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+/* Multiple Choice */
+.multiple-choice { margin: 1.5rem 0; text-align: left; }
+.choice-option {
+display: block;
+margin: 1rem 0;
+padding: 1.5rem;
+background: #f8fafc;
+border: 2px solid #e2e8f0;
+border-radius: 12px;
+cursor: pointer;
+transition: all 0.3s ease;
+font-size: 1rem;
+font-weight: 500;
+position: relative;
+overflow: hidden;
+}
+.choice-option::before {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+opacity: 0;
+transition: opacity 0.3s ease;
+z-index: 0;
+}
+.choice-option:hover { transform: translateX(5px); border-color: rgba(102,126,234,0.3); box-shadow: 0 10px 30px rgba(102,126,234,0.15); }
+.choice-option:hover::before { opacity: 0.05; }
+.choice-option.selected, .choice-option.correct { background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%); border-color: #68d391; color: #2d3748; }
+.choice-option.incorrect { background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%); border-color: #f87171; color: #2d3748; }
+.choice-explanation { display: none; margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 8px; font-size: 0.95rem; position: relative; z-index: 1; }
+/* Mark as Completed Button */
+.mark-completed-button {
+display: none;
+width: 100%;
+max-width: 400px;
+margin: 40px auto 20px auto;
+padding: 16px 32px;
+background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+color: white;
+border: none;
+border-radius: 50px;
+font-size: 1rem;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s ease;
+box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+text-align: center;
+text-decoration: none;
+}
+.mark-completed-button.show { display: block; }
+.mark-completed-button.completed { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); cursor: default; }
+/* Success Message and Confetti */
+.success-message {
+position: fixed;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+background: linear-gradient(135deg, #28a745, #20c997);
+color: white;
+padding: 20px 30px;
+border-radius: 12px;
+font-size: 1.1rem;
+font-weight: 600;
+box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+z-index: 10000;
+opacity: 0;
+animation: success-popup 2.5s ease-out;
+pointer-events: none;
+}
+@keyframes success-popup {
+0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+40% { transform: translate(-50%, -50%) scale(1); }
+80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+.confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+.confetti { position: absolute; font-size: 20px; animation: confetti-fall 3s linear infinite; }
+@keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+/* Animations for reveals */
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeIn 0.5s ease-out; }
+/* Responsive */
+@media (max-width: 768px) {
+.lesson-container { padding: 20px 15px; }
+section { padding: 15px 0; margin-bottom: 20px; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.75rem; }
+p, li { font-size: 1rem; }
+.continue-button { width: 100%; }
+}
+</style>
+<script>
+window.MathJax = {
+tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+<h1>The Gold Standard – U-Net</h1>
+<div class="image-placeholder">
+  <img src="images/1.jpg" alt="Illustration comparing an early FCN segmentation mask with a sharper U-Net prediction." loading="lazy">
+  <p class="image-caption">FCNs opened the door, but U-Net perfected the craft—note how the right image captures far sharper boundaries.</p>
+</div>
+<h2>Enter the Superstar</h2>
+<p>In the last lesson, we saw how Fully Convolutional Networks (FCNs) started a revolution. They took us from simple classification to pixel-level heatmaps. But revolutions are messy. The first FCNs were powerful, but their results could be a bit... fuzzy. They often struggled to pinpoint the exact pixel where a cat's ear ended and the sofa began.</p>
+<div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+<!-- Section 2: Intro Part 2 -->
+<section id="section2">
+<h2>From Cells to Self-Driving</h2>
+<p>In 2015, a team at the University of Freiburg introduced an architecture designed not for self-driving cars, but for biomedical image segmentation—specifically, counting cells under a microscope.</p>
+<div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+<!-- Section 3: U-Net Intro -->
+<section id="section3">
+<p>They called it <strong>U-Net</strong>. While FCNs were the pioneers, U-Net became the gold standard. It perfected the Encoder-Decoder idea into an elegant, symmetrical structure that remains the default starting point for almost any segmentation project today.</p>
+<div class="image-placeholder">
+  <img src="images/2.jpg" alt="Diagram of the U-Net encoder-decoder architecture with its symmetrical U-shaped layout." loading="lazy">
+  <p class="image-caption">The classic U-shape: the contracting path on the left, expansive path on the right, and bridges that keep spatial detail intact.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+<!-- Section 4: Anatomy Intro -->
+<section id="section4">
+<p>Let's dissect the anatomy of this network. It is shaped like the letter 'U' (hence the name) and consists of three main parts.</p>
+<div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+<!-- Section 5: Contracting Path -->
+<section id="section5">
+<p>1. <strong>The Contracting Path (Left):</strong> This is a standard CNN encoder. It applies convolutions and max pooling to downsample the image. It sacrifices spatial resolution to gain semantic context (understanding <em>what</em> is in the image).</p>
+<div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+<!-- Section 6: Expansive Path -->
+<section id="section6">
+<p>2. <strong>The Expansive Path (Right):</strong> This is the decoder. It uses transposed convolutions to upsample the features back to the original image size (recovering <em>where</em> things are).</p>
+<div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+<!-- Section 7: Bridge -->
+<section id="section7">
+<p>3. <strong>The Bridge (Bottom):</strong> Connecting the deepest layer of the encoder to the beginning of the decoder.</p>
+<div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+<!-- Section 8: Interactive Symmetry -->
+<section id="section8">
+<p>But the real magic isn't in the U-shape itself—it's in how the left and right sides talk to each other.</p>
+<div class="check-your-knowledge">
+<h3>Check Your Understanding</h3>
+<h4>Looking at the symmetry of the U-Net, what must be true about the spatial dimensions (height and width) of the feature maps at corresponding levels on the left and right sides?</h4>
+<div class="multiple-choice">
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. The goal is to restore resolution, so we want them to match.')">The right side is always half the size of the left.</div>
+<div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! To combine them, the decoder upsamples features until they match the spatial dimensions of the corresponding encoder layer.')">They should be effectively the same size.</div>
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That would be a classification output, not a segmentation map.')">The right side is purely 1x1 dimensions.</div>
+</div>
+</div>
+<div class="continue-button" id="continue-after-symmetry" style="display: none;" onclick="showNextSection(9)">Continue</div>
+</section>
+<!-- Section 9: Concatenation Intro -->
+<section id="section9">
+<h2>The Concatenation Revolution</h2>
+<p>Recall that FCNs used skip connections to combine deep, semantic info with shallow, spatial info. They typically did this via <strong>addition</strong>.</p>
+<div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+<!-- Section 10: Addition Analogy -->
+<section id="section10">
+<p>Addition is like mixing paint. If you have a 'red' feature map (spatial info) and add it to a 'blue' feature map (semantic info), you get 'purple'. You can't easily separate the original spatial details from the semantic context later.</p>
+<div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+<!-- Section 11: U-Net Difference -->
+<section id="section11">
+<p>U-Net does something different. It uses <strong>Concatenation</strong>.</p>
+<div class="image-placeholder">
+  <img src="images/3.jpg" alt="Side-by-side visualization of feature addition versus channel-wise concatenation." loading="lazy">
+  <p class="image-caption">Addition blends features like paint; concatenation stacks them so the decoder can keep every edge intact.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+<!-- Section 12: Vocab -->
+<section id="section12">
+<p>Instead of mixing the values, U-Net stacks the feature maps along the channel axis. It's like making a sandwich rather than blending a smoothie. The decoder receives the raw, unadulterated high-resolution features from the encoder and places them right next to the upsampled semantic features.</p>
+<div class="vocab-section">
+<h3>Build Your Vocab</h3>
+<h4>Concatenation</h4>
+<p>In the context of Neural Networks, concatenation is the operation of joining two tensors along a specific dimension (usually the channel dimension). Unlike addition, which sums values element-wise, concatenation preserves the individual values of both inputs by increasing the depth of the resulting tensor.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+<!-- Section 13: Math Addition -->
+<section id="section13">
+<p>Let's look at the math. Suppose we have a feature map from the Encoder (\(E\)) and an upsampled map from the Decoder (\(D\)).</p>
+<p>If we use <strong>Addition</strong> (like FCN):<br>
+$$ Output = E + D $$<br>
+Here, \(E\) and \(D\) must have the exact same number of channels, and the information is blended.</p>
+<div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+<!-- Section 14: Math Concat -->
+<section id="section14">
+<p>If we use <strong>Concatenation</strong> (like U-Net):<br>
+$$ Output = [E, D] $$<br>
+Here, if \(E\) has \(64\) channels and \(D\) has \(64\) channels, the output has \(128\) channels. The network can now learn its own filters to decide how to best combine the 'where' (from \(E\)) and the 'what' (from \(D\)).</p>
+<div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+<!-- Section 15: Stop and Think -->
+<section id="section15">
+<p>This preserves pure spatial information, allowing U-Net to produce incredibly sharp boundaries.</p>
+<div class="check-your-knowledge">
+<h3>Stop and Think</h3>
+<h4>U-Net was originally designed for medical imaging. Why do you think this architecture is particularly popular in medicine, where datasets are often very small (e.g., only 30 training images)?</h4>
+<div id="cuy-stopthink-answer" style="display:none;" class="animate-in">
+<strong>Answer:</strong> Because of the concatenation skip connections! They allow the network to directly 'recycle' the high-resolution features from the input. This makes the model very efficient at learning precise structures without needing millions of images to relearn how to generate edges from scratch.
+</div>
+<button class="reveal-button" onclick="revealAnswer('cuy-stopthink-answer')">Reveal Answer</button>
+</div>
+<div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+<!-- Section 16: Interactive Build -->
+<section id="section16">
+<h2>Build the U</h2>
+<p>Let's assemble a U-Net to solidify our understanding of the data flow.</p>
+<!-- REPLACEMENT FOR SECTION 16 INTERACTIVE PLACEHOLDER -->
+<div class="unet-builder-container">
+  <div class="canvas-toolbar">
+      <p><strong>Task:</strong> Drag components from the bank below to build the architecture.</p>
+      <button onclick="unetGame.reset()" class="reset-btn">Reset Board</button>
+  </div>
+  <canvas id="unetCanvas" width="800" height="500"></canvas>
+  <div id="game-feedback" class="game-feedback">System Online</div>
+</div>
+
+<style>
+/* Specific styles for this interactive */
+.unet-builder-container {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px;
+  margin: 20px 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.canvas-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0 10px;
+}
+
+.reset-btn {
+  background: #e2e8f0;
+  border: none;
+  padding: 5px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #4a5568;
+  transition: background 0.2s;
+}
+
+.reset-btn:hover {
+  background: #cbd5e1;
+}
+
+canvas#unetCanvas {
+  background: white;
+  border-radius: 8px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  cursor: grab;
+  touch-action: none; /* Prevent scrolling while dragging on mobile */
+}
+
+canvas#unetCanvas:active {
+  cursor: grabbing;
+}
+
+.game-feedback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px 40px;
+  border-radius: 15px;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #48bb78;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  border: 4px solid #48bb78;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.game-feedback.active {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+</style>
+
+<script>
+class UNetBuilder {
+  constructor(canvasId) {
+      this.canvas = document.getElementById(canvasId);
+      this.ctx = this.canvas.getContext('2d');
+      
+      // Logical Scaling for high DPI or responsive width
+      this.width = 800;
+      this.height = 500;
+      
+      // Game State
+      this.dragItem = null;
+      this.isDragging = false;
+      this.completed = false;
+      
+      // Define Component Types and Colors
+      this.types = {
+          CONV:   { label: 'Conv Block',   color: '#667eea', w: 80, h: 40 },
+          POOL:   { label: 'Max Pool',     color: '#f56565', w: 60, h: 30 },
+          UP:     { label: 'Up-Conv',      color: '#48bb78', w: 60, h: 30 },
+          CONCAT: { label: 'Concat',       color: '#a0aec0', w: 80, h: 20 },
+          FINAL:  { label: 'Final 1x1',    color: '#ed8936', w: 80, h: 40 }
+      };
+
+      // Source Bank (Positioned at bottom)
+      this.bank = [
+          { type: 'CONV',   x: 60,  y: 440 },
+          { type: 'POOL',   x: 180, y: 440 },
+          { type: 'UP',     x: 300, y: 440 },
+          { type: 'CONCAT', x: 420, y: 440 },
+          { type: 'FINAL',  x: 540, y: 440 }
+      ];
+
+      // Define The U-Net Structure (Drop Zones)
+      // Coords relative to 800x500 canvas
+      this.zones = [
+          // Encoder (Left Side)
+          { id: 1, type: 'CONV', x: 100, y: 50,  filled: false }, // L1
+          { id: 2, type: 'POOL', x: 110, y: 120, filled: false }, // P1
+          { id: 3, type: 'CONV', x: 100, y: 180, filled: false }, // L2
+          { id: 4, type: 'POOL', x: 110, y: 250, filled: false }, // P2
+          
+          // Bottleneck
+          { id: 5, type: 'CONV', x: 250, y: 320, filled: false }, // Bottom
+          
+          // Decoder (Right Side - Moving Up)
+          // L2 Level
+          { id: 6, type: 'UP',     x: 430, y: 250, filled: false }, 
+          { id: 7, type: 'CONCAT', x: 260, y: 190, filled: false, bridgeFrom: 3 }, // Bridge L2
+          { id: 8, type: 'CONV',   x: 420, y: 180, filled: false },
+          
+          // L1 Level
+          { id: 9, type: 'UP',     x: 430, y: 120, filled: false },
+          { id: 10, type: 'CONCAT',x: 260, y: 60,  filled: false, bridgeFrom: 1 }, // Bridge L1
+          { id: 11, type: 'CONV',  x: 420, y: 50,  filled: false },
+          
+          // Final
+          { id: 12, type: 'FINAL', x: 550, y: 50,  filled: false }
+      ];
+
+      // Bind Events
+      this.handleMouseDown = this.handleMouseDown.bind(this);
+      this.handleMouseMove = this.handleMouseMove.bind(this);
+      this.handleMouseUp = this.handleMouseUp.bind(this);
+      
+      this.canvas.addEventListener('mousedown', this.handleMouseDown);
+      this.canvas.addEventListener('mousemove', this.handleMouseMove);
+      this.canvas.addEventListener('mouseup', this.handleMouseUp);
+      
+      // Touch events
+      this.canvas.addEventListener('touchstart', (e) => {
+          const touch = e.touches[0];
+          this.handleMouseDown({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => e.preventDefault() });
+      }, {passive: false});
+      this.canvas.addEventListener('touchmove', (e) => {
+          const touch = e.touches[0];
+          this.handleMouseMove({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => e.preventDefault() });
+      }, {passive: false});
+      this.canvas.addEventListener('touchend', this.handleMouseUp);
+
+      // Initial Draw
+      this.draw();
+  }
+
+  getMousePos(evt) {
+      const rect = this.canvas.getBoundingClientRect();
+      // Calculate scale factors in case canvas is resized via CSS
+      const scaleX = this.canvas.width / rect.width;
+      const scaleY = this.canvas.height / rect.height;
+      
+      return {
+          x: (evt.clientX - rect.left) * scaleX,
+          y: (evt.clientY - rect.top) * scaleY
+      };
+  }
+
+  handleMouseDown(e) {
+      if(e.preventDefault) e.preventDefault();
+      const pos = this.getMousePos(e);
+      
+      // Check if clicking source bank
+      for (let item of this.bank) {
+          const def = this.types[item.type];
+          if (this.isInside(pos, item.x, item.y, def.w, def.h)) {
+              this.isDragging = true;
+              this.dragItem = { 
+                  type: item.type, 
+                  x: pos.x, 
+                  y: pos.y, 
+                  offsetX: pos.x - item.x, 
+                  offsetY: pos.y - item.y 
+              };
+              return;
+          }
+      }
+  }
+
+  handleMouseMove(e) {
+      if (!this.isDragging) return;
+      if(e.preventDefault) e.preventDefault();
+      const pos = this.getMousePos(e);
+      this.dragItem.x = pos.x;
+      this.dragItem.y = pos.y;
+      this.draw();
+  }
+
+  handleMouseUp(e) {
+      if (!this.isDragging) return;
+      this.isDragging = false;
+      
+      // Check for drop on zones
+      // Center of the dragged item
+      const def = this.types[this.dragItem.type];
+      const cx = this.dragItem.x; // Mouse is roughly center/offset based
+      const cy = this.dragItem.y;
+
+      let dropped = false;
+
+      for (let zone of this.zones) {
+          if (zone.filled) continue;
+          
+          // Simple distance check or box overlap
+          const zDef = this.types[zone.type];
+          // Check if mouse is somewhat inside zone
+          if (cx > zone.x - 20 && cx < zone.x + zDef.w + 20 &&
+              cy > zone.y - 20 && cy < zone.y + zDef.h + 20) {
+              
+              if (zone.type === this.dragItem.type) {
+                  zone.filled = true;
+                  dropped = true;
+                  // Visual feedback
+              } else {
+                  // Wrong type visual feedback could go here
+              }
+              break;
+          }
+      }
+
+      this.dragItem = null;
+      this.draw();
+      this.checkCompletion();
+  }
+
+  isInside(pos, x, y, w, h) {
+      return pos.x >= x && pos.x <= x + w && pos.y >= y && pos.y <= y + h;
+  }
+
+  checkCompletion() {
+      const allFilled = this.zones.every(z => z.filled);
+      if (allFilled && !this.completed) {
+          this.completed = true;
+          document.getElementById('game-feedback').classList.add('active');
+          
+          // Find the continue button in Section 16 specifically
+          const section = document.getElementById('section16');
+          if(section) {
+              const btn = section.querySelector('.continue-button');
+              if(btn) {
+                  setTimeout(() => {
+                      btn.style.display = 'block';
+                      btn.classList.add('show-with-animation');
+                  }, 1000);
+              }
+          }
+      }
+  }
+
+  reset() {
+      this.zones.forEach(z => z.filled = false);
+      this.completed = false;
+      document.getElementById('game-feedback').classList.remove('active');
+      this.draw();
+  }
+
+  draw() {
+      // Clear
+      this.ctx.clearRect(0, 0, this.width, this.height);
+
+      // 1. Draw Background Arrows (The U-Shape)
+      this.ctx.strokeStyle = '#e2e8f0';
+      this.ctx.lineWidth = 4;
+      this.ctx.lineJoin = 'round';
+      
+      this.ctx.beginPath();
+      // Connect L1 -> P1 -> L2 -> P2 -> Bottom -> Up1 -> L2_D -> Up2 -> L1_D -> Final
+      // We use the center points of the zones
+      
+      const getCenter = (id) => {
+          const z = this.zones.find(z => z.id === id);
+          const def = this.types[z.type];
+          return { x: z.x + def.w/2, y: z.y + def.h/2 };
+      };
+
+      const drawArrow = (fromId, toId) => {
+          const p1 = getCenter(fromId);
+          const p2 = getCenter(toId);
+          this.ctx.moveTo(p1.x, p1.y);
+          this.ctx.lineTo(p2.x, p2.y);
+      };
+
+      // Encoder Path
+      drawArrow(1, 2);
+      drawArrow(2, 3);
+      drawArrow(3, 4);
+      drawArrow(4, 5); // To bottom
+      
+      // Decoder Path
+      drawArrow(5, 6); // Bot to Up1
+      drawArrow(6, 8); // Up1 to Conv
+      drawArrow(8, 9); // Conv to Up2
+      drawArrow(9, 11); // Up2 to Conv
+      drawArrow(11, 12); // Conv to Final
+
+      this.ctx.stroke();
+
+      // Draw Skip Connections (Concatenation) lines
+      this.ctx.strokeStyle = '#cbd5e1';
+      this.ctx.setLineDash([5, 5]);
+      this.ctx.beginPath();
+      
+      // Bridge L2
+      const pL2 = getCenter(3);
+      const pCon2 = getCenter(7);
+      const pDec2 = getCenter(8);
+      this.ctx.moveTo(pL2.x, pL2.y);
+      this.ctx.lineTo(pCon2.x, pCon2.y);
+      this.ctx.lineTo(pDec2.x, pDec2.y);
+
+      // Bridge L1
+      const pL1 = getCenter(1);
+      const pCon1 = getCenter(10);
+      const pDec1 = getCenter(11);
+      this.ctx.moveTo(pL1.x, pL1.y);
+      this.ctx.lineTo(pCon1.x, pCon1.y);
+      this.ctx.lineTo(pDec1.x, pDec1.y);
+
+      this.ctx.stroke();
+      this.ctx.setLineDash([]);
+
+
+      // 2. Draw Zones
+      for (let zone of this.zones) {
+          const def = this.types[zone.type];
+          
+          if (zone.filled) {
+              // Draw filled block
+              this.drawBlock(zone.x, zone.y, def.w, def.h, def.color, def.label, true);
+          } else {
+              // Draw Empty Slot
+              this.ctx.fillStyle = '#f7fafc';
+              this.ctx.strokeStyle = '#cbd5e1';
+              this.ctx.lineWidth = 2;
+              this.drawRoundedRect(zone.x, zone.y, def.w, def.h, 5, false, true);
+              
+              // Label
+              this.ctx.fillStyle = '#a0aec0';
+              this.ctx.font = '10px sans-serif';
+              this.ctx.textAlign = 'center';
+              this.ctx.textBaseline = 'middle';
+              this.ctx.fillText(def.label, zone.x + def.w/2, zone.y + def.h/2);
+          }
+      }
+
+      // 3. Draw Bank Divider
+      this.ctx.strokeStyle = '#e2e8f0';
+      this.ctx.beginPath();
+      this.ctx.moveTo(20, 400);
+      this.ctx.lineTo(780, 400);
+      this.ctx.stroke();
+
+      this.ctx.fillStyle = '#718096';
+      this.ctx.font = 'bold 12px sans-serif';
+      this.ctx.textAlign = 'left';
+      this.ctx.fillText("COMPONENT BANK", 20, 420);
+
+      // 4. Draw Bank Items (Source)
+      for (let item of this.bank) {
+          const def = this.types[item.type];
+          this.drawBlock(item.x, item.y, def.w, def.h, def.color, def.label, false);
+          // Draw a little stack shadow to imply infinite supply
+          this.ctx.fillStyle = def.color;
+          this.ctx.globalAlpha = 0.5;
+          this.ctx.beginPath();
+          this.ctx.roundRect(item.x + 4, item.y + 4, def.w, def.h, 5);
+          this.ctx.fill();
+          this.ctx.globalAlpha = 1.0;
+      }
+
+      // 5. Draw Currently Dragged Item
+      if (this.isDragging && this.dragItem) {
+          const def = this.types[this.dragItem.type];
+          // Center on mouse
+          const drawX = this.dragItem.x - (this.dragItem.offsetX || def.w/2);
+          const drawY = this.dragItem.y - (this.dragItem.offsetY || def.h/2);
+          
+          this.ctx.shadowBlur = 10;
+          this.ctx.shadowColor = 'rgba(0,0,0,0.3)';
+          this.drawBlock(drawX, drawY, def.w, def.h, def.color, def.label, true);
+          this.ctx.shadowBlur = 0;
+      }
+  }
+
+  drawBlock(x, y, w, h, color, label, solid) {
+      this.ctx.fillStyle = color;
+      this.drawRoundedRect(x, y, w, h, 6, true, false);
+      
+      // Shine effect
+      this.ctx.fillStyle = 'rgba(255,255,255,0.2)';
+      this.ctx.beginPath();
+      this.ctx.arc(x + 10, y + 10, 15, 0, Math.PI*2);
+      this.ctx.fill();
+
+      // Text
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = 'bold 11px sans-serif';
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      this.ctx.fillText(label, x + w/2, y + h/2);
+  }
+
+  drawRoundedRect(x, y, w, h, r, fill, stroke) {
+      this.ctx.beginPath();
+      this.ctx.moveTo(x + r, y);
+      this.ctx.lineTo(x + w - r, y);
+      this.ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      this.ctx.lineTo(x + w, y + h - r);
+      this.ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      this.ctx.lineTo(x + r, y + h);
+      this.ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      this.ctx.lineTo(x, y + r);
+      this.ctx.quadraticCurveTo(x, y, x + r, y);
+      this.ctx.closePath();
+      if (fill) this.ctx.fill();
+      if (stroke) {
+          this.ctx.setLineDash([4, 4]);
+          this.ctx.stroke();
+          this.ctx.setLineDash([]);
+      }
+  }
+}
+
+// Initialize when section becomes visible or on load
+let unetGame = null;
+window.addEventListener('load', () => {
+ unetGame = new UNetBuilder('unetCanvas');
+});
+</script>
+<p>Perfect structure. Notice how every time we downsample on the left, we lose spatial info, but we save a copy of it to send across the 'bridge' to the right side later.</p>
+<div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+<!-- Section 17: Why It Matters -->
+<section id="section17">
+<div class="why-it-matters">
+<h3>Why It Matters</h3>
+<p>U-Net struck the perfect balance. It is robust, trains relatively quickly, and works surprisingly well even with limited data. If you are starting a new segmentation project today—whether detecting roads for satellites or counting cells for biology—U-Net is the first architecture you should try.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+<!-- Section 18: FAQ -->
+<section id="section18">
+<div class="faq-section">
+<h3>FAQ</h3>
+<strong>Is U-Net only for black and white medical images?</strong>
+<p>Not at all! While it started there, U-Net is used for everything: satellite color imagery, RGB street scenes, and even depth estimation. The input can have any number of channels (RGB = 3), and the output can have any number of classes.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+<!-- Section 19: Quiz 1 -->
+<section id="section19">
+<div class="test-your-knowledge">
+<h3>Test Your Knowledge</h3>
+<h4>Which of the following best describes the 'Skip Connections' in a standard U-Net?</h4>
+<div class="multiple-choice">
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Addition blends the features. U-Net prefers to keep them separate.')">Element-wise Addition</div>
+<div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! It stacks the encoder features onto the decoder features along the depth dimension.')">Channel-wise Concatenation</div>
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Multiplication is used in attention mechanisms (which we\'ll see later), but not in standard U-Net skips.')">Multiplication</div>
+</div>
+</div>
+<div class="continue-button" id="continue-after-quiz1" style="display: none;" onclick="showNextSection(20)">Continue</div>
+</section>
+<!-- Section 20: Quiz 2 -->
+<section id="section20">
+<div class="test-your-knowledge">
+<h3>Test Your Knowledge</h3>
+<h4>What is the primary purpose of the 'Expansive Path' (Right side) of the U-Net?</h4>
+<div class="multiple-choice">
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That\'s what a classification head does. We are doing segmentation.')">To classify the image into a single category.</div>
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That is the job of the Contracting Path (Encoder) on the left.')">To reduce the image size and extract features.</div>
+<div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Yes! It takes the semantic features and blows them back up to the original image size.')">To upsample features and restore spatial resolution.</div>
+</div>
+</div>
+<div class="continue-button" id="continue-after-quiz2" style="display: none;" onclick="showNextSection(21)">Continue</div>
+</section>
+<!-- Section 21: Review -->
+<section id="section21">
+<h2>Review and Reflect</h2>
+<p>U-Net represents the maturity of segmentation architectures. We moved from the ad-hoc 'convolutionalization' of FCNs to a deliberate, symmetrical design.</p>
+<ul>
+<li>The <strong>Contracting Path</strong> gathers context.</li>
+<li>The <strong>Expansive Path</strong> restores location.</li>
+<li><strong>Concatenation</strong> bridges the two, preserving the fine details needed for pixel-perfect masks.</li>
+</ul>
+<p>However, even U-Net has limits. It looks at the image locally. In the next and final lesson, we will look at advanced techniques like Pyramid Pooling and Dilated Convolutions to give our models a wider field of view and even sharper edges.</p>
+<p>Great job mastering the architecture!</p>
+</section>
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+<script>
+let currentSection = 1;
+const totalSections = 21;
+
+updateProgress();
+if (currentSection === totalSections) {
+const completedButton = document.getElementById('markCompletedBtn');
+if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+const currentButton = event && event.target;
+if (!nextSectionElement) return;
+if (currentButton && currentButton.classList.contains('continue-button')) {
+currentButton.style.display = 'none';
+}
+nextSectionElement.classList.add('visible');
+currentSection = nextSectionId;
+updateProgress();
+if (currentSection === totalSections) {
+const completedButton = document.getElementById('markCompletedBtn');
+if (completedButton) completedButton.classList.add('show');
+}
+setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+const progressBar = document.getElementById('progressBar');
+const progress = (currentSection / totalSections) * 100;
+progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+const revealText = document.getElementById(id);
+const revealButton = event && event.target;
+if (revealText) {
+revealText.style.display = "block";
+revealText.classList.add('animate-in');
+}
+if (revealButton) {
+revealButton.style.display = "none";
+}
+}
+
+function selectChoice(element, isCorrect, explanation) {
+const choices = element.parentNode.querySelectorAll('.choice-option');
+choices.forEach(choice => {
+choice.classList.remove('selected', 'correct', 'incorrect');
+const existing = choice.querySelector('.choice-explanation');
+if (existing) existing.remove();
+});
+element.classList.add('selected');
+element.classList.add(isCorrect ? 'correct' : 'incorrect');
+const explanationDiv = document.createElement('div');
+explanationDiv.className = 'choice-explanation';
+explanationDiv.style.display = 'block';
+explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+element.appendChild(explanationDiv);
+
+// Logic to show hidden continue buttons in parent section
+const parentSection = element.closest('section');
+if (parentSection) {
+const continueButton = parentSection.querySelector('.continue-button');
+if (continueButton && continueButton.style.display === 'none') {
+setTimeout(() => {
+continueButton.style.display = 'block';
+continueButton.classList.add('show-with-animation');
+}, 800);
+}
+}
+}
+
+document.addEventListener('keydown', function(e) {
+if (e.key === 'ArrowRight' || e.key === ' ') {
+const btn = document.querySelector(`#section${currentSection} .continue-button`);
+if (btn && btn.style.display !== 'none') {
+e.preventDefault();
+btn.click();
+}
+}
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+const button = document.getElementById('markCompletedBtn');
+if (!button) return;
+const isCompleted = button.classList.contains('completed');
+if (!isCompleted) {
+try {
+if (window.parent && window.parent.ProgressTracker) {
+// Adjust these IDs based on your actual course structure
+let courseId = 'computer-vision';
+let pathId = 'segmentation';
+let moduleId = 'cv-ch22-m1-unet';
+let lessonId = 'cv-ch22-l1-the-gold-standard';
+if (window.parent.currentRoute) {
+const route = window.parent.currentRoute;
+if (route.courseId) courseId = route.courseId;
+if (route.pathId) pathId = route.pathId;
+if (route.moduleId) moduleId = route.moduleId;
+if (route.lessonId) lessonId = route.lessonId;
+}
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('course')) courseId = urlParams.get('course');
+if (urlParams.get('path')) pathId = urlParams.get('path');
+if (urlParams.get('module')) moduleId = urlParams.get('module');
+if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+}
+} catch (error) {
+console.error('Error with ProgressTracker:', error);
+}
+button.classList.add('completed');
+button.innerHTML = '✅ Completed!';
+triggerCelebration();
+localStorage.setItem('lesson_cv-ch22-m1-l1_completed', 'true');
+}
+}
+
+function triggerCelebration() {
+createConfetti();
+showSuccessMessage();
+}
+
+function createConfetti() {
+const confettiContainer = document.createElement('div');
+confettiContainer.className = 'confetti-container';
+document.body.appendChild(confettiContainer);
+const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+for (let i = 0; i < 40; i++) {
+setTimeout(() => {
+const confetti = document.createElement('div');
+confetti.className = 'confetti';
+if (Math.random() > 0.6) {
+confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+} else {
+confetti.innerHTML = '●';
+confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+}
+confetti.style.left = Math.random() * 100 + '%';
+confetti.style.animationDelay = Math.random() * 2 + 's';
+document.querySelector('.confetti-container').appendChild(confetti);
+}, i * 50);
+}
+setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+const successMessage = document.createElement('div');
+successMessage.className = 'success-message';
+successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+document.body.appendChild(successMessage);
+setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+const button = document.getElementById('markCompletedBtn');
+if (!button) return;
+if (window.parent && window.parent.ProgressTracker) {
+// Mock ID check, similar to toggleCompleted
+let courseId = 'computer-vision';
+let pathId = 'segmentation';
+let moduleId = 'cv-ch22-m1-unet';
+let lessonId = 'cv-ch22-l1-the-gold-standard';
+if (window.parent.currentRoute) {
+const route = window.parent.currentRoute;
+if (route.courseId) courseId = route.courseId;
+if (route.pathId) pathId = route.pathId;
+if (route.moduleId) moduleId = route.moduleId;
+if (route.lessonId) lessonId = route.lessonId;
+}
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('course')) courseId = urlParams.get('course');
+if (urlParams.get('path')) pathId = urlParams.get('path');
+if (urlParams.get('module')) moduleId = urlParams.get('module');
+if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+if (progress && progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+button.classList.add('completed');
+button.innerHTML = '✅ Completed!';
+return;
+}
+}
+const isCompleted = localStorage.getItem('lesson_cv-ch22-m1-l1_completed') === 'true';
+if (isCompleted) {
+button.classList.add('completed');
+button.innerHTML = '✅ Completed!';
+}
+});
+</script>
+</body>
+</html>

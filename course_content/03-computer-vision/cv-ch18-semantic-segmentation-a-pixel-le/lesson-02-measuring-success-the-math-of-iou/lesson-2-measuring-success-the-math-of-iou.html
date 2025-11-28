@@ -1,0 +1,1025 @@
+﻿<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Measuring Success – The Math of IoU</title>
+<style>
+/* 
+   CORE STYLES FROM TEMPLATE 
+   (Unchanged to ensure visual consistency)
+*/
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #ffffff;
+    min-height: 100vh;
+    color: #2d3748;
+    line-height: 1.6;
+}
+
+/* Progress Bar */
+.progress-container {
+    position: fixed; top: 0; left: 0; width: 100%; height: 4px;
+    background: rgba(0, 0, 0, 0.1); z-index: 1000;
+}
+.progress-bar {
+    height: 100%; background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    width: 0%; transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+}
+
+/* Main Container */
+.lesson-container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+/* Sections */
+section {
+    background: transparent; margin-bottom: 30px; padding: 20px 0;
+    display: none; opacity: 0; transition: all 0.6s ease;
+    transform: translateY(20px); text-align: center;
+}
+section.visible { display: block; opacity: 1; transform: translateY(0); }
+section > *:not(.continue-button) { text-align: left; }
+
+/* Typography */
+h1 {
+    font-size: 2.5rem; font-weight: 700; color: #2d3748; margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; line-height: 1.2;
+}
+h2 {
+    font-size: 2rem; font-weight: 600; color: #2d3748; margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+h3 { font-size: 1.25rem; font-weight: 600; color: #4a5568; margin-bottom: 1rem; }
+p { font-size: 1.125rem; line-height: 1.7; color: #4a5568; margin-bottom: 1.5rem; text-align: left; }
+ul { margin-left: 1.5rem; margin-bottom: 1.5rem; text-align: left; }
+li { font-size: 1.125rem; line-height: 1.7; color: #4a5568; margin-bottom: 0.5rem; }
+strong { color: #2d3748; font-weight: 600; }
+em { color: #667eea; font-style: normal; font-weight: 500; }
+
+/* Placeholders */
+.image-placeholder, .interactive-placeholder, .visual-placeholder { margin: 1.5rem 0; }
+.image-placeholder img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+}
+.image-caption {
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+    color: #94a3b8;
+    text-align: center;
+}
+.placeholder-box {
+    width: 100%; height: 220px; border: 2px dashed #cbd5e1; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: #94a3b8; background: #f8fafc; font-weight: 600; padding: 20px; text-align: center;
+}
+.lesson-container img { max-width: 100%; width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 8px; }
+
+/* Content Boxes */
+.why-it-matters, .vocab-section, .check-your-knowledge, .test-your-knowledge {
+    margin: 2rem 0; padding: 2rem; border-radius: 8px; border-left: 4px solid;
+    transition: all 0.3s ease; position: relative; overflow: hidden; text-align: left;
+}
+.why-it-matters {
+    background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+    border-left-color: #f093fb; box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+}
+.vocab-section {
+    background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+    border-left-color: #4facfe; box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+}
+.vocab-section h4 { color: #2d3748; font-size: 1.25rem; font-weight: 600; margin: 0 0 0.75rem 0; }
+
+.test-your-knowledge, .check-your-knowledge {
+    background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+    border-left-color: #68d391; box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+}
+.test-your-knowledge h3, .check-your-knowledge h3 {
+    color: #10b981; font-size: 0.875rem; text-transform: uppercase;
+    letter-spacing: 0.05em; font-weight: 700; margin-bottom: 1rem;
+}
+.test-your-knowledge h4, .check-your-knowledge h4 {
+    color: #2d3748; font-size: 1.25rem; font-weight: 600; margin: 1.5rem 0 1rem 0;
+}
+
+/* Buttons */
+.continue-button, .reveal-button, .check-button {
+    display: inline-block; padding: 16px 32px; margin-top: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white; border-radius: 50px; text-decoration: none; cursor: pointer;
+    border: none; font-size: 1rem; font-weight: 600; transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3); position: relative; overflow: hidden;
+}
+.continue-button:hover, .reveal-button:hover, .check-button:hover {
+    transform: translateY(-3px); box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+.continue-button.show-with-animation {
+    opacity: 0; transform: translateY(20px); animation: fadeInUp 0.6s ease-out forwards;
+}
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Multiple Choice */
+.multiple-choice { margin: 1.5rem 0; text-align: left; }
+.choice-option {
+    display: block; margin: 1rem 0; padding: 1.5rem; background: #f8fafc;
+    border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer;
+    transition: all 0.3s ease; font-size: 1rem; font-weight: 500; position: relative; overflow: hidden;
+}
+.choice-option::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0; transition: opacity 0.3s ease; z-index: 0;
+}
+.choice-option:hover { transform: translateX(5px); border-color: rgba(102,126,234,0.3); box-shadow: 0 10px 30px rgba(102,126,234,0.15); }
+.choice-option:hover::before { opacity: 0.05; }
+.choice-option.selected, .choice-option.correct { background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%); border-color: #68d391; color: #2d3748; }
+.choice-option.incorrect { background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%); border-color: #f87171; color: #2d3748; }
+.choice-explanation { display: none; margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 8px; font-size: 0.95rem; position: relative; z-index: 1; }
+
+/* Mark as Completed Button */
+.mark-completed-button {
+    display: none; width: 100%; max-width: 400px; margin: 40px auto 20px auto;
+    padding: 16px 32px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white; border: none; border-radius: 50px; font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+    text-align: center; text-decoration: none;
+}
+.mark-completed-button.show { display: block; }
+.mark-completed-button.completed { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); cursor: default; }
+
+/* Success Message and Confetti */
+.success-message {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #28a745, #20c997); color: white;
+    padding: 20px 30px; border-radius: 12px; font-size: 1.1rem; font-weight: 600;
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3); z-index: 10000;
+    opacity: 0; animation: success-popup 2.5s ease-out; pointer-events: none;
+}
+@keyframes success-popup {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    40% { transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+.confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+.confetti { position: absolute; font-size: 20px; animation: confetti-fall 3s linear infinite; }
+@keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-in { animation: fadeIn 0.5s ease-out; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lesson-container { padding: 20px 15px; }
+    section { padding: 15px 0; margin-bottom: 20px; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.75rem; }
+    p, li { font-size: 1rem; }
+    .continue-button { width: 100%; }
+}
+</style>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <h1>Measuring Success – The Math of IoU</h1>
+    <h2>The 99% Trap</h2>
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Dashcam-style road scene dominated by sky and asphalt">
+        <p class="image-caption">Most pixels belong to big background classes—until a tiny pedestrian steps in.</p>
+    </div>
+    
+    <p>Imagine you have a test with 100 questions. If you answer 99 of them correctly, you're a genius, right? In the world of semantic segmentation, not necessarily. In fact, you could score 99% and still cause a catastrophic accident.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>Why Accuracy Lies</h2>
+    <p>Let's look at a typical self-driving car scenario. The camera sees a street. Most of the image is 'Road', 'Sky', or 'Building'. Maybe 1% of the pixels belong to a 'Pedestrian'.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>If you train a model and it decides to just be lazy, predicting 'Road' or 'Sky' for every single pixel, it will be right 99% of the time. It has high <strong>Pixel Accuracy</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Pixel Accuracy (PA)</h4>
+        <p>A basic metric that calculates the percentage of pixels in an image that were classified correctly, regardless of their class: (Correct Pixels / Total Pixels).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>But a model that ignores the pedestrian entirely is useless. This deceptive high score happens because of <strong>Class Imbalance</strong>.</p>
+    <!-- START: Interactive Module for Section 4 -->
+<div class="interactive-container" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0;">
+    
+  <!-- Header / Controls -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+      <div>
+          <h3 style="margin: 0; color: #2d3748; font-size: 1.1rem;">Class Imbalance Simulator</h3>
+          <p style="margin: 0; font-size: 0.9rem; color: #718096;">Total Pixels: 9,050</p>
+      </div>
+      
+      <!-- Toggle Switch -->
+      <label class="toggle-switch" style="display: flex; align-items: center; cursor: pointer;">
+          <span style="margin-right: 10px; font-weight: 600; color: #4a5568; font-size: 0.9rem;">Predict "All Background"</span>
+          <div style="position: relative; width: 50px; height: 28px;">
+              <input type="checkbox" id="imbalanceToggle" onchange="updateImbalanceChart()" style="opacity: 0; width: 0; height: 0;">
+              <span class="slider" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px;"></span>
+              <span class="slider-knob" style="position: absolute; content: ''; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;"></span>
+          </div>
+      </label>
+  </div>
+
+  <!-- Canvas -->
+  <div style="position: relative; width: 100%; height: 250px;">
+      <canvas id="imbalanceCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
+  </div>
+
+  <!-- Live Stats -->
+  <div style="display: flex; gap: 20px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+      <div style="flex: 1;">
+          <div style="font-size: 0.85rem; color: #718096; text-transform: uppercase; font-weight: 700;">Global Accuracy</div>
+          <div id="globalAccDisplay" style="font-size: 1.5rem; font-weight: 800; color: #2d3748;">100.0%</div>
+      </div>
+      <div style="flex: 1;">
+          <div style="font-size: 0.85rem; color: #718096; text-transform: uppercase; font-weight: 700;">Traffic Light Accuracy</div>
+          <div id="classAccDisplay" style="font-size: 1.5rem; font-weight: 800; color: #2d3748;">100.0%</div>
+      </div>
+  </div>
+
+  <!-- CSS for Toggle -->
+  <style>
+      .toggle-switch input:checked + .slider { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+      .toggle-switch input:checked + .slider .slider-knob { transform: translateX(22px); }
+      .interactive-container { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+  </style>
+
+  <!-- JS Logic -->
+  <script>
+      (function() {
+          const canvas = document.getElementById('imbalanceCanvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Data
+          const skyPixels = 9000;
+          const lightPixels = 50;
+          const totalPixels = skyPixels + lightPixels;
+          
+          // Animation State
+          let isLazy = false;
+          let currentGlobalAcc = 100;
+          let currentClassAcc = 100;
+          
+          function resizeCanvas() {
+              const rect = canvas.parentElement.getBoundingClientRect();
+              const width = rect.width;
+              const height = rect.height;
+              if (!width || !height) return;
+              const dpr = window.devicePixelRatio || 1;
+              canvas.width = width * dpr;
+              canvas.height = height * dpr;
+              ctx.setTransform(1, 0, 0, 1, 0, 0);
+              ctx.scale(dpr, dpr);
+              canvas.style.width = width + 'px';
+              canvas.style.height = height + 'px';
+              draw();
+          }
+
+          function draw() {
+              const w = canvas.width / window.devicePixelRatio;
+              const h = canvas.height / window.devicePixelRatio;
+              
+              // Clear
+              ctx.clearRect(0, 0, w, h);
+              
+              // Layout calculations
+              const margin = { top: 40, bottom: 40, left: 60, right: 20 };
+              const chartW = w - margin.left - margin.right;
+              const chartH = h - margin.top - margin.bottom;
+              const barWidth = chartW / 4;
+              const spacing = chartW / 4;
+              
+              // Scale height (Max is Sky Pixels)
+              const scaleY = (val) => (val / skyPixels) * chartH;
+
+              // --- Draw Axes ---
+              ctx.beginPath();
+              ctx.strokeStyle = '#cbd5e1';
+              ctx.lineWidth = 2;
+              ctx.moveTo(margin.left, margin.top);
+              ctx.lineTo(margin.left, h - margin.bottom); // Y Axis
+              ctx.lineTo(w - margin.right, h - margin.bottom); // X Axis
+              ctx.stroke();
+
+              // --- Draw Bars ---
+              
+              // 1. SKY BAR (Ground Truth)
+              const skyH = scaleY(skyPixels);
+              const skyX = margin.left + (spacing/2);
+              const skyY = h - margin.bottom - skyH;
+              
+              // Draw GT Shadow (Ghost)
+              ctx.fillStyle = '#ebf8ff'; // Very light blue
+              ctx.fillRect(skyX, skyY, barWidth, skyH);
+              ctx.strokeStyle = '#4299e1';
+              ctx.strokeRect(skyX, skyY, barWidth, skyH);
+
+              // 2. LIGHT BAR (Ground Truth)
+              // We artificially enforce a minimum height of 4px so it's visible, otherwise 50px is too small
+              const lightH = Math.max(scaleY(lightPixels), 4); 
+              const lightX = skyX + barWidth + spacing;
+              const lightY = h - margin.bottom - lightH;
+              
+              // Draw GT Shadow (Ghost)
+              ctx.fillStyle = '#fff5f5'; // Very light red
+              ctx.fillRect(lightX, lightY, barWidth, lightH);
+              ctx.strokeStyle = '#f56565';
+              ctx.strokeRect(lightX, lightY, barWidth, lightH);
+
+              // --- Draw PREDICTION Overlay ---
+              
+              // Prediction for Sky
+              ctx.fillStyle = '#4299e1'; // Sky Blue
+              // If lazy, we predict sky correctly. If ideal, we predict sky correctly.
+              // Animate height slightly? No, keep it solid.
+              ctx.fillRect(skyX, skyY, barWidth, skyH);
+              
+              // Label for Sky
+              ctx.fillStyle = '#2d3748';
+              ctx.font = 'bold 12px sans-serif';
+              ctx.textAlign = 'center';
+              ctx.fillText('SKY', skyX + barWidth/2, h - margin.bottom + 20);
+              ctx.font = '10px sans-serif';
+              ctx.fillStyle = '#718096';
+              ctx.fillText('9000px', skyX + barWidth/2, skyY - 8);
+
+              // Prediction for Traffic Light
+              if (isLazy) {
+                  // Lazy Mode: We predict SKY (Blue) over the Traffic Light spot
+                  ctx.fillStyle = '#4299e1'; // Blue color
+                  // We draw a box representing the "miss"
+                  ctx.fillRect(lightX, lightY, barWidth, lightH);
+                  
+                  // Draw a big X or warning
+                  ctx.strokeStyle = '#fff';
+                  ctx.lineWidth = 2;
+                  ctx.beginPath();
+                  ctx.moveTo(lightX, lightY);
+                  ctx.lineTo(lightX + barWidth, lightY + lightH);
+                  ctx.moveTo(lightX + barWidth, lightY);
+                  ctx.lineTo(lightX, lightY + lightH);
+                  ctx.stroke();
+
+                  // Label
+                  ctx.fillStyle = '#e53e3e';
+                  ctx.font = 'bold 12px sans-serif';
+                  ctx.fillText('LIGHT', lightX + barWidth/2, h - margin.bottom + 20);
+                  ctx.font = 'bold 10px sans-serif';
+                  ctx.fillText('MISSED!', lightX + barWidth/2, lightY - 8);
+                  
+              } else {
+                  // Ideal Mode: We predict LIGHT (Red)
+                  ctx.fillStyle = '#f56565'; // Red
+                  ctx.fillRect(lightX, lightY, barWidth, lightH);
+
+                  // Label
+                  ctx.fillStyle = '#2d3748';
+                  ctx.font = 'bold 12px sans-serif';
+                  ctx.fillText('LIGHT', lightX + barWidth/2, h - margin.bottom + 20);
+                  ctx.font = '10px sans-serif';
+                  ctx.fillStyle = '#718096';
+                  ctx.fillText('50px', lightX + barWidth/2, lightY - 8);
+              }
+          }
+
+          // Global function to be called by HTML toggle
+          window.updateImbalanceChart = function() {
+              const checkbox = document.getElementById('imbalanceToggle');
+              isLazy = checkbox.checked;
+              
+              const globalText = document.getElementById('globalAccDisplay');
+              const classText = document.getElementById('classAccDisplay');
+              
+              if (isLazy) {
+                  // Calculate Lazy Acc: (9000 Correct Sky + 0 Correct Light) / 9050 Total
+                  const acc = ((9000 / 9050) * 100).toFixed(1);
+                  globalText.innerHTML = acc + '%';
+                  globalText.style.color = '#e53e3e'; // Alert color even though high
+                  
+                  classText.innerHTML = '0.0%';
+                  classText.style.color = '#e53e3e'; // Red
+              } else {
+                  globalText.innerHTML = '100.0%';
+                  globalText.style.color = '#38a169'; // Green
+                  
+                  classText.innerHTML = '100.0%';
+                  classText.style.color = '#38a169'; // Green
+              }
+              
+              draw();
+          };
+
+          // Init
+          window.addEventListener('resize', resizeCanvas);
+          resizeCanvas(); // Initial draw
+          document.addEventListener('lesson:section-visible', function(event) {
+              if (event.detail && event.detail.id === 4) {
+                  requestAnimationFrame(resizeCanvas);
+              }
+          });
+      })();
+  </script>
+</div>
+<!-- END: Interactive Module -->
+    <p>The metric we used—Pixel Accuracy—is blind to the importance of small objects. We need a metric that punishes the model for missing the pedestrian, no matter how small they are.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Why is Pixel Accuracy (PA) often considered a poor metric for semantic segmentation?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'PA is actually very simple to calculate (Correct / Total), so that is not the issue.')">It is too computationally expensive to calculate.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. If one class dominates the image, the model can ignore everything else and still get a high PA score.')">It is easily skewed by Class Imbalance, favoring large background classes.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'PA works fine on color images; it just checks pixel labels.')">It cannot handle color images.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-quiz-1" onclick="showNextSection(6)" style="display: none;">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>The Hero Metric: IoU</h2>
+    <p>To fix this, we need a metric that measures the <strong>overlap</strong> between what we predicted and what is actually there. Enter <strong>Intersection over Union (IoU)</strong>.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Venn diagram illustrating intersection and union regions">
+        <p class="image-caption">IoU focuses on overlap: green is correct, red and blue expose the mistakes.</p>
+    </div>
+    <p>IoU doesn't care if the object is tiny or huge. It asks a simple question: Of all the pixels that involved this object (either in the ground truth or your prediction), how many did you get right?</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>The formula for the IoU of a specific class (let's say, 'Cat') is:</p>
+    <p>$$ \text{IoU}_{cat} = \frac{\text{Area of Overlap}}{\text{Area of Union}} $$</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>Let's break this down into the building blocks we know: True Positives (TP), False Positives (FP), and False Negatives (FN).</p>
+    <ul>
+        <li><strong>Intersection:</strong> These are the pixels you correctly identified as 'Cat' ($TP$).</li>
+        <li><strong>Union:</strong> This is the total area of the 'Cat' on the ground truth map PLUS any extra pixels you incorrectly called 'Cat'. Mathematically, this is $TP + FP + FN$.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>So the actionable formula is:</p>
+    <p>$$ \text{IoU} = \frac{TP}{TP + FP + FN} $$</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Intersection over Union (IoU)</h4>
+        <p>The standard metric for segmentation. It measures the overlap between the predicted mask and the ground truth mask divided by their union. It effectively penalizes both false positives (hallucinating objects) and false negatives (missing objects).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>Notice what is missing? <strong>True Negatives (TN)</strong>. The millions of correct 'Sky' pixels don't help your 'Cat' score. You only get credit for the cat.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why is excluding True Negatives (TN) from the formula so important for solving the Class Imbalance problem?</h4>
+        <div id="cuy-iou-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> If we included TN, the massive amount of correctly identified background pixels (sky, road) would inflate the denominator and numerator, hiding the fact that we might have missed the small object entirely. By excluding TN, the score focuses purely on the object of interest.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-iou-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <h2>Step-by-Step Calculation</h2>
+    <p>Let's verify this with some numbers. Imagine we are trying to segment a Cat in an image.</p>
+    <p>Here are our pixel counts:</p>
+    <ul>
+        <li><strong>True Positives (TP):</strong> 300 pixels (You correctly found the cat).</li>
+        <li><strong>False Positives (FP):</strong> 100 pixels (You painted some background as cat).</li>
+        <li><strong>False Negatives (FN):</strong> 100 pixels (You missed part of the cat's tail).</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <h3>Doing the Math</h3>
+    <p>First, calculate the <strong>Intersection</strong> (the Numerator):</p>
+    <p>$$ \text{Intersection} = TP = 300 $$</p>
+    <p>Next, calculate the <strong>Union</strong> (the Denominator):</p>
+    <p>$$ \text{Union} = TP + FP + FN $$</p>
+    <p>$$ \text{Union} = 300 + 100 + 100 = 500 $$</p>
+    <p>Finally, divide them to get the IoU:</p>
+    <p>$$ \text{IoU} = \frac{300}{500} = 0.6 $$</p>
+    <p>An IoU of 0.6 (or 60%) is a decent start, but in state-of-the-art research, we aim much higher!</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>Try it yourself using this interactive tool. Drag the predicted mask over the ground truth and watch how the Intersection, Union, and IoU score update instantly.</p>
+
+    <!-- START: IoU Interactive Module -->
+<div class="iou-interactive-container" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0; user-select: none; -webkit-user-select: none;">
+    
+  <!-- Instructions -->
+  <div style="text-align: center; margin-bottom: 15px; color: #4a5568;">
+      <p style="margin: 0; font-size: 0.95rem;"><strong>Drag the Red Box</strong> to overlap the Blue Box.</p>
+      <div style="display: flex; justify-content: center; gap: 15px; font-size: 0.8rem; margin-top: 8px;">
+          <span style="display:flex; align-items:center;"><span style="width:10px; height:10px; background:rgba(66, 153, 225, 0.8); display:inline-block; margin-right:5px; border-radius:2px;"></span> Missed (FN)</span>
+          <span style="display:flex; align-items:center;"><span style="width:10px; height:10px; background:rgba(245, 101, 101, 0.8); display:inline-block; margin-right:5px; border-radius:2px;"></span> Excess (FP)</span>
+          <span style="display:flex; align-items:center;"><span style="width:10px; height:10px; background:#48bb78; display:inline-block; margin-right:5px; border-radius:2px;"></span> Correct (TP)</span>
+      </div>
+  </div>
+
+  <!-- Canvas -->
+  <div style="position: relative; width: 100%; height: 300px; cursor: move; border: 1px solid #e2e8f0; border-radius: 8px; background: white; overflow: hidden;">
+      <canvas id="iouCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
+  </div>
+
+  <!-- Live Calculation -->
+  <div style="margin-top: 20px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
+      <div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; font-family: monospace; font-size: 1.1rem;">
+          
+          <div style="text-align: center;">
+              <div style="color: #48bb78; font-weight: bold;">INTERSECTION</div>
+              <div id="val-intersect">0</div>
+          </div>
+          
+          <div style="font-size: 1.5rem; color: #cbd5e1;">/</div>
+          
+          <div style="text-align: center;">
+              <div style="color: #2d3748; font-weight: bold;">UNION</div>
+              <div id="val-union">0</div>
+          </div>
+          
+          <div style="font-size: 1.5rem; color: #2d3748;">=</div>
+          
+          <div style="text-align: center; background: #ebf8ff; padding: 5px 15px; border-radius: 6px; border: 1px solid #bee3f8;">
+              <div style="color: #3182ce; font-weight: bold;">IoU</div>
+              <div id="val-iou" style="font-weight: 800; font-size: 1.2rem;">0.00</div>
+          </div>
+      </div>
+  </div>
+
+  <script>
+      (function() {
+          const canvas = document.getElementById('iouCanvas');
+          const ctx = canvas.getContext('2d');
+          
+          // State
+          const boxSize = 120; // 120x120 pixels
+          
+          // Ground Truth (Fixed)
+          let gt = { x: 0, y: 0, w: boxSize, h: boxSize };
+          
+          // Prediction (Draggable)
+          let pred = { x: 0, y: 0, w: boxSize, h: boxSize };
+          
+          // Dragging State
+          let isDragging = false;
+          let dragOffset = { x: 0, y: 0 };
+          let hasLaidOut = false;
+          
+          function init() {
+              resize();
+          }
+
+          function resize() {
+              const rect = canvas.parentElement.getBoundingClientRect();
+              const width = rect.width;
+              const height = rect.height;
+              if (!width || !height) return;
+              const dpr = window.devicePixelRatio || 1;
+              canvas.width = width * dpr;
+              canvas.height = height * dpr;
+              ctx.setTransform(1, 0, 0, 1, 0, 0);
+              ctx.scale(dpr, dpr);
+              canvas.style.width = width + 'px';
+              canvas.style.height = height + 'px';
+              
+              if (!hasLaidOut) {
+                  const centerX = width / 2;
+                  const centerY = height / 2;
+                  gt.x = centerX - boxSize + 20;
+                  gt.y = centerY - (boxSize / 2);
+                  
+                  pred.x = centerX - 20;
+                  pred.y = centerY - (boxSize / 2);
+                  hasLaidOut = true;
+              }
+              
+              updateStats();
+              draw();
+          }
+
+          // --- Math Helpers ---
+          function getIntersection(r1, r2) {
+              const x1 = Math.max(r1.x, r2.x);
+              const y1 = Math.max(r1.y, r2.y);
+              const x2 = Math.min(r1.x + r1.w, r2.x + r2.w);
+              const y2 = Math.min(r1.y + r1.h, r2.y + r2.h);
+              
+              if (x2 < x1 || y2 < y1) return null;
+              return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+          }
+
+          function updateStats() {
+              const intersection = getIntersection(gt, pred);
+              const areaI = intersection ? (intersection.w * intersection.h) : 0;
+              const areaGT = gt.w * gt.h;
+              const areaPred = pred.w * pred.h;
+              const areaU = areaGT + areaPred - areaI;
+              
+              const iou = areaI / areaU;
+
+              // Update DOM
+              document.getElementById('val-intersect').innerText = Math.round(areaI).toLocaleString();
+              document.getElementById('val-union').innerText = Math.round(areaU).toLocaleString();
+              document.getElementById('val-iou').innerText = iou.toFixed(3);
+              
+              // Color feedback for the score
+              const iouBox = document.getElementById('val-iou').parentElement;
+              if(iou > 0.9) {
+                  iouBox.style.background = '#def7ec';
+                  iouBox.style.borderColor = '#38a169';
+                  iouBox.style.color = '#046c4e';
+              } else {
+                  iouBox.style.background = '#ebf8ff';
+                  iouBox.style.borderColor = '#bee3f8';
+                  iouBox.style.color = '#3182ce';
+              }
+          }
+
+          function draw() {
+              const w = canvas.width / window.devicePixelRatio;
+              const h = canvas.height / window.devicePixelRatio;
+              
+              ctx.clearRect(0, 0, w, h);
+              
+              // Draw Grid (Optional background texture)
+              ctx.strokeStyle = '#f1f5f9';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              for(let x=0; x<w; x+=20) { ctx.moveTo(x,0); ctx.lineTo(x,h); }
+              for(let y=0; y<h; y+=20) { ctx.moveTo(0,y); ctx.lineTo(w,y); }
+              ctx.stroke();
+
+              // 1. Draw Ground Truth (Blue -> False Negative base)
+              // We draw this first. Any part not covered by Pred remains blue.
+              ctx.fillStyle = 'rgba(66, 153, 225, 0.3)'; // Blue
+              ctx.strokeStyle = '#4299e1';
+              ctx.lineWidth = 2;
+              ctx.fillRect(gt.x, gt.y, gt.w, gt.h);
+              ctx.strokeRect(gt.x, gt.y, gt.w, gt.h);
+              
+              // Label GT
+              ctx.fillStyle = '#2b6cb0';
+              ctx.font = 'bold 12px sans-serif';
+              ctx.fillText("Ground Truth", gt.x + 5, gt.y - 8);
+
+              // 2. Draw Prediction (Red -> False Positive base)
+              // We draw this. Any part not overlapping GT remains Red.
+              ctx.fillStyle = 'rgba(245, 101, 101, 0.3)'; // Red
+              ctx.strokeStyle = '#f56565';
+              ctx.lineWidth = 2;
+              ctx.fillRect(pred.x, pred.y, pred.w, pred.h);
+              ctx.strokeRect(pred.x, pred.y, pred.w, pred.h);
+              
+              // Label Pred
+              ctx.fillStyle = '#c53030';
+              ctx.fillText("Prediction", pred.x + 5, pred.y + pred.h + 20);
+
+              // 3. Draw Intersection (Green -> True Positive)
+              const intersection = getIntersection(gt, pred);
+              if (intersection) {
+                  ctx.fillStyle = 'rgba(72, 187, 120, 0.9)'; // Strong Green
+                  ctx.fillRect(intersection.x, intersection.y, intersection.w, intersection.h);
+                  
+                  // Highlight border of intersection
+                  ctx.strokeStyle = '#2f855a';
+                  ctx.strokeRect(intersection.x, intersection.y, intersection.w, intersection.h);
+              }
+          }
+
+          // --- Interaction ---
+          function getPointerPos(e) {
+              const rect = canvas.getBoundingClientRect();
+              const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+              const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+              return {
+                  x: (clientX - rect.left) * (canvas.width / rect.width / window.devicePixelRatio),
+                  y: (clientY - rect.top) * (canvas.height / rect.height / window.devicePixelRatio)
+              };
+          }
+
+          function onDown(e) {
+              const pos = getPointerPos(e);
+              // Simple hit test
+              if (pos.x >= pred.x && pos.x <= pred.x + pred.w &&
+                  pos.y >= pred.y && pos.y <= pred.y + pred.h) {
+                  isDragging = true;
+                  dragOffset.x = pos.x - pred.x;
+                  dragOffset.y = pos.y - pred.y;
+                  canvas.style.cursor = 'grabbing';
+              }
+          }
+
+          function onMove(e) {
+              if (!isDragging) return;
+              e.preventDefault(); // Prevent scrolling on mobile
+              const pos = getPointerPos(e);
+              
+              // Update position
+              pred.x = pos.x - dragOffset.x;
+              pred.y = pos.y - dragOffset.y;
+              
+              // Keep inside canvas (optional, but good UX)
+              const w = canvas.width / window.devicePixelRatio;
+              const h = canvas.height / window.devicePixelRatio;
+              pred.x = Math.max(0, Math.min(pred.x, w - pred.w));
+              pred.y = Math.max(0, Math.min(pred.y, h - pred.h));
+              
+              updateStats();
+              draw();
+          }
+
+          function onUp() {
+              isDragging = false;
+              canvas.style.cursor = 'move';
+          }
+
+          // Listeners
+          canvas.addEventListener('mousedown', onDown);
+          window.addEventListener('mousemove', onMove);
+          window.addEventListener('mouseup', onUp);
+          
+          canvas.addEventListener('touchstart', onDown, {passive: false});
+          window.addEventListener('touchmove', onMove, {passive: false});
+          window.addEventListener('touchend', onUp);
+          
+          window.addEventListener('resize', resize);
+          document.addEventListener('lesson:section-visible', function(event) {
+              if (event.detail && event.detail.id === 13 && !hasLaidOut) {
+                  requestAnimationFrame(resize);
+              }
+          });
+          
+          // Kickoff
+          init();
+          
+      })();
+  </script>
+</div>
+<!-- END: IoU Interactive Module -->
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If your model predicts a mask that is perfect (matches the ground truth exactly), what are the values of FP and FN?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'If FP or FN were 1, there would be a mistake. A perfect match means no mistakes.')">FP = 1, FN = 1</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! If the mask is perfect, there are no False Positives and no False Negatives. The Union equals the Intersection, and IoU = 1.0.')">FP = 0, FN = 0</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Ideally, perfection is always 0 errors, regardless of image size.')">It depends on the image size.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-quiz-2" onclick="showNextSection(14)" style="display: none;">Continue</div>
+</section>
+
+<section id="section14">
+    <h2>Averaging and the Dice Score</h2>
+    <p>We've looked at the score for a single class (the Cat). But a dataset has many classes: Road, Car, Tree, Sign.</p>
+    <p>To get a single score for the whole model, we calculate the IoU for <strong>each class individually</strong> and then take the average. This is called the <strong>Mean IoU (mIoU)</strong>.</p>
+    <p>$$ \text{mIoU} = \frac{1}{N} \sum_{i=1}^{N} \text{IoU}_i $$</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Mean IoU (mIoU)</h4>
+        <p>The average of the IoU scores for all classes. By calculating per-class first, we ensure that small classes (like traffic lights) have just as much impact on the final score as large classes (like road).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <h3>The Dice Coefficient</h3>
+    <p>There is one other metric you might see, especially if you work in <strong>Medical Imaging</strong>: the <strong>Dice Coefficient</strong> (also known as the F1 Score).</p>
+    <p>It is very similar to IoU but gives slightly more weight to the correct pixels (TP). The formula is:</p>
+    <p>$$ \text{Dice} = \frac{2 \cdot TP}{2 \cdot TP + FP + FN} $$</p>
+    <div class="why-it-matters">
+        <h3>Frequently Asked</h3>
+        <h4>Is a Dice score of 0.8 good?</h4>
+        <p>It depends on the difficulty of the task! In general, a Dice score of 0.8 indicates a very strong overlap (usually higher than an IoU of 0.8 because of the math). However, for simple tasks, you might expect 0.95, while for very hard tasks like segmenting thin blood vessels, 0.7 might be state-of-the-art.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <h2>Review and Reflect</h2>
+
+    <p>We've learned that standard accuracy is dangerous when valid pixels are rare. By switching to <strong>IoU</strong>, we force our models to be honest about how well they actually overlap with the objects we care about.</p>
+    <p>Now that we know how to <em>measure</em> success, we need to build a neural network architecture capable of achieving it. In the next lesson, we will look at the blueprint for segmentation networks: the <strong>Encoder-Decoder</strong>.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+document.dispatchEvent(new CustomEvent('lesson:section-visible', { detail: { id: currentSection } }));
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    document.dispatchEvent(new CustomEvent('lesson:section-visible', { detail: { id: nextSectionId } }));
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Logic to show continue button after answering specific quizzes
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        const continueBtn = parentSection.querySelector('.continue-button');
+        if (continueBtn && continueBtn.style.display === 'none') {
+            setTimeout(() => {
+                continueBtn.style.display = 'block';
+                continueBtn.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Default placeholders - typically these would be dynamic
+                let courseId = 'computer-vision';
+                let pathId = 'semantic-segmentation';
+                let moduleId = 'cv-ch22-m1-metrics';
+                let lessonId = 'cv-ch22-l2-iou-math';
+                
+                // Try to grab params from URL or parent route
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch22-l2_iou_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage first
+    const isCompleted = localStorage.getItem('lesson_cv-ch22-l2_iou_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

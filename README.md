@@ -12,6 +12,7 @@ Notes
 - Lessons keep CSS inline in the first `<style>` block. For new lessons, copy that block from the reference lesson.
 - Global app styles for dashboards and shells live in `style.css`.
 - Keep files under 300 lines when feasible; refactor large pages into smaller sections if needed.
+- Interactive canvases listen for section visibility via `MutationObserver`, or run a local `syncCanvasSize()` guard inside their draw loop, so layout/resize math reruns as soon as hidden sections become visible (prevents zero-width renders).
 
 Testing
 - Open `tests/test_runner.html` to run the parser tests.

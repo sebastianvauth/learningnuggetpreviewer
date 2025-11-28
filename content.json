@@ -4,20 +4,20 @@
                         "id":  "computer-vision",
                         "title":  "Computer Vision",
                         "description":  "Image processing, object detection, and computer vision techniques",
-                        "icon":  "course_content/assets/icons/neural-networks-icon.svg",
+                        "icon":  "course_content/assets/icons/computer-vision-icon.svg",
                         "learningPaths":  [
                                               {
                                                   "id":  "introduction-to-vision",
                                                   "title":  "An Introduction to Vision",
                                                   "description":  "This chapter explores the fascinating world of human perception to understand its flaws and strengths. Through interactive illusions, we\u0027ll define the core challenge of computer vision: teaching a machine to see like us.",
-                                                  "icon":  "course_content/assets/icons/neural-networks-icon.svg",
+                                                  "icon":  "course_content/assets/icons/intro-vision-icon.svg",
                                                   "folder":  "03-computer-vision//cv-ch01-an-introduction-to-vision",
                                                   "modules":  [
                                                                   {
                                                                       "id":  "cv-selective-filter",
                                                                       "title":  "The Selective Filter",
                                                                       "description":  "Learn why our vision isn\u0027t a camera but an evolutionary filter. We\u0027ll explore how we recognize objects and why we only perceive a tiny fraction of the world.",
-                                                                      "icon":  "course_content/assets/icons/neural-networks-icon.svg",
+                                                                      "icon":  "course_content/assets/icons/selective-filter-icon.svg",
                                                                       "folder":  "cv-ch01-m1-how-we-see-the-human-vision-filter",
                                                                       "lessons":  [
                                                                                       {
@@ -36,7 +36,7 @@
                                                                       "id":  "cv-light-to-meaning",
                                                                       "title":  "From Light to Meaning",
                                                                       "description":  "Discover the model of how our brain turns raw light into meaning. We\u0027ll differentiate between objective data and our subjective experience of the world.",
-                                                                      "icon":  "course_content/assets/icons/neural-networks-icon.svg",
+                                                                      "icon":  "course_content/assets/icons/from-light-to-meaning-icon.svg",
                                                                       "folder":  "cv-ch01-m2-from-light-to-meaning-a-model-of-percep",
                                                                       "lessons":  [
                                                                                       {
@@ -55,7 +55,7 @@
                                                                       "id":  "cv-power-context",
                                                                       "title":  "The Power of Context",
                                                                       "description":  "Explore how context rules our perception. Through classic illusions, we\u0027ll see how what surrounds an object can completely change how we perceive it.",
-                                                                      "icon":  "course_content/assets/icons/neural-networks-icon.svg",
+                                                                      "icon":  "course_content/assets/icons/power-of-context-icon.svg",
                                                                       "folder":  "cv-ch01-m3-the-interpreting-brain-context-is-every",
                                                                       "lessons":  [
                                                                                       {
@@ -79,7 +79,7 @@
                                                                       "id":  "cv-hands-on-illusions",
                                                                       "title":  "Hands-On with Illusions",
                                                                       "description":  "Witness how the brain invents motion and color that aren\u0027t there. Then, step into the \u0027Illusion Playground\u0027 to experiment with these phenomena yourself.",
-                                                                      "icon":  "course_content/assets/icons/neural-networks-icon.svg",
+                                                                      "icon":  "course_content/assets/icons/illusions-hands-on-icon.svg",
                                                                       "folder":  "cv-ch01-m4-the-fallible-brain-illusions-and-invent",
                                                                       "lessons":  [
                                                                                       {
@@ -108,7 +108,7 @@
                                                                       "id":  "cv-attentional-spotlight",
                                                                       "title":  "The Attentional Spotlight",
                                                                       "description":  "Discover the power and limits of attention. Through interactive demos, we\u0027ll explore \u0027change blindness\u0027 and why we often miss things happening right in front of us.",
-                                                                      "icon":  "course_content/assets/icons/neural-networks-icon.svg",
+                                                                      "icon":  "course_content/assets/icons/attentional-spotlight-icon.svg",
                                                                       "folder":  "cv-ch01-m5-the-attentive-brain-the-art-of-ignoring",
                                                                       "lessons":  [
                                                                                       {
@@ -127,7 +127,7 @@
                                                                       "id":  "cv-core-challenge",
                                                                       "title":  "The Core Challenge",
                                                                       "description":  "This capstone module connects human perception to machines. We\u0027ll define the core challenge of computer vision: bridging the gap between a meaningless pixel and true understanding.",
-                                                                      "icon":  "course_content/assets/icons/neural-networks-icon.svg",
+                                                                      "icon":  "course_content/assets/icons/core-challenge-icon.svg",
                                                                       "folder":  "cv-ch01-m6-human-vs-machine-the-core-challenge",
                                                                       "lessons":  [
                                                                                       {
@@ -2346,124 +2346,231 @@
                                                   "folder":  "03-computer-vision//cv-ch18-semantic-segmentation-a-pixel-le",
                                                   "modules":  [
                                                                   {
-                                                                      "id":  "cv-foundations-semantic-segmentation",
-                                                                      "title":  "Foundations of Semantic Segmentation",
-                                                                      "description":  "Learn what semantic segmentation is and why it\u0027s so powerful. We\u0027ll differentiate it from other vision tasks, understand its real-world impact, and then learn how to properly measure a model\u0027s performance with the industry-standard IoU metric.",
+                                                                      "id":  "semseg-what-why",
+                                                                      "title":  "The \"What\" and \"Why\" of Semantic Segmentation",
+                                                                      "description":  "Start with the human side of dense prediction. We compare annotation mindsets, visualize dense outputs, and ground the task in real benchmarks before hearing from practitioners living in pixel land.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch18-m1-module-1-foundations-and-theory",
+                                                                      "folder":  "lesson-01-the-what-and-why-of-semantic-segmentation",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "cv-l1-pixel-perfect-vision-semantic-segmentation",
-                                                                                          "title":  "Lesson 1: Pixel-Perfect Vision: What is Semantic Segmentation?",
-                                                                                          "file":  "l1.1-lesson-1-pixel-perfect-vision-what-is-semanti.html"
+                                                                                          "id":  "semseg-l1-what-why",
+                                                                                          "title":  "Lesson 1: The \"What\" and \"Why\" of Semantic Segmentation",
+                                                                                          "file":  "lesson-1-the-what-and-why-of-semantic-segmentation.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod1-segmentation-conversation",
-                                                                                          "title":  "Lesson 1.1: The Segmentation Conversation",
-                                                                                          "file":  "pod4.4-lesson-4-the-segmentation-conversation.html"
+                                                                                          "id":  "semseg-exp-human-annotator",
+                                                                                          "title":  "Lesson 1.1: Experiment – The Human Annotator",
+                                                                                          "file":  "lesson-1-1-experiment-the-human-annotator.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-l2-measuring-matters-intersection-union",
-                                                                                          "title":  "Lesson 2: Measuring What Matters: Intersection over Union (IoU)",
-                                                                                          "file":  "l1.1-lesson-2-measuring-what-matters-intersection.html"
+                                                                                          "id":  "semseg-vid-dense-predictions",
+                                                                                          "title":  "Lesson 1.2: Manim Video Explainer – Visualizing Dense Predictions",
+                                                                                          "file":  "lesson-1-2-manim-video-explainer-visualizing-dense-predictions.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-vid1-iou-metric-visualized",
-                                                                                          "title":  "Lesson 2.1: The IoU Metric, Visualized",
-                                                                                          "file":  "vid5.5-lesson-5-semantic-segmentati.html"
+                                                                                          "id":  "semseg-ex-shape-predictions",
+                                                                                          "title":  "Lesson 1.3: Exercise – The Shape of Predictions",
+                                                                                          "file":  "lesson-1-3-exercise-the-shape-of-predictions.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-ex1-segmentation-scorecard",
-                                                                                          "title":  "Lesson 2.2: The Segmentation Scorecard",
-                                                                                          "file":  "ex2.2-lesson-2-semantic-segmentati.html"
+                                                                                          "id":  "semseg-cod-hello-mask",
+                                                                                          "title":  "Lesson 1.4: Coding – Hello, Mask!",
+                                                                                          "file":  "lesson-1-4-coding-hello-mask.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod2-why-metrics-matter",
-                                                                                          "title":  "Lesson 2.3: Why Metrics Matter",
-                                                                                          "file":  "pod4.4-lesson-4-semantic-segmentati.html"
+                                                                                          "id":  "semseg-example-cityscapes",
+                                                                                          "title":  "Lesson 1.5: Example – The Cityscapes Benchmark",
+                                                                                          "file":  "lesson-1-5-example-the-cityscapes-benchmark.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-pod-pixel-perspective",
+                                                                                          "title":  "Lesson 1.6: Podcast – The Pixel Perspective",
+                                                                                          "file":  "lesson-1-6-podcast-the-pixel-perspective.html"
                                                                                       }
                                                                                   ]
                                                                   },
                                                                   {
-                                                                      "id":  "cv-foundational-architectures",
-                                                                      "title":  "Foundational Architectures",
-                                                                      "description":  "Discover the elegant blueprint that powers nearly all modern segmentation models. We\u0027ll explore the encoder-decoder paradigm, the pioneering Fully Convolutional Network (FCN), and the \"upsampling engine\" that makes reconstruction possible.",
+                                                                      "id":  "semseg-math-iou",
+                                                                      "title":  "Measuring Success – The Math of IoU",
+                                                                      "description":  "Move from intuition to evaluation rigor. We visualize overlaps, run IoU drills, and code the metric from scratch while debating where metrics mislead us.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch18-m2-module-2-core-concepts-and-applications",
+                                                                      "folder":  "lesson-02-measuring-success-the-math-of-iou",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "cv-l3-blueprint-encoder-decoders-fcn",
-                                                                                          "title":  "Lesson 3: The Blueprint: Encoder-Decoders \u0026 The FCN",
-                                                                                          "file":  "l1.1-lesson-3-the-blueprint-encoder-decoders-and-t.html"
+                                                                                          "id":  "semseg-l2-math-iou",
+                                                                                          "title":  "Lesson 2: Measuring Success – The Math of IoU",
+                                                                                          "file":  "lesson-2-measuring-success-the-math-of-iou.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod3-aha-moment-fcn",
-                                                                                          "title":  "Lesson 3.1: The \u0027Aha!\u0027 Moment of FCN",
-                                                                                          "file":  "pod4.4-lesson-4-the-aha-moment-of-fcn.html"
+                                                                                          "id":  "semseg-vid-visualizing-overlap",
+                                                                                          "title":  "Lesson 2.1: Manim Video Explainer – Visualizing the Overlap",
+                                                                                          "file":  "lesson-2-1-manim-video-explainer-visualizing-the-overlap.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-exp1-skip-connection-playground",
-                                                                                          "title":  "Lesson 3.2: The Skip Connection Playground",
-                                                                                          "file":  "exp6.6-lesson-6-the-skip-connection-playground.html"
+                                                                                          "id":  "semseg-ex-iou-gym",
+                                                                                          "title":  "Lesson 2.2: Exercise – The IoU Gym",
+                                                                                          "file":  "lesson-2-2-exercise-the-iou-gym.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-l4-upsampling-engine-transposed-convolutions",
-                                                                                          "title":  "Lesson 4: The Upsampling Engine: Transposed Convolutions",
-                                                                                          "file":  "l1.1-lesson-1-semantic-segmentati.html"
+                                                                                          "id":  "semseg-cod-iou-from-scratch",
+                                                                                          "title":  "Lesson 2.3: Coding – Implementing IoU from Scratch",
+                                                                                          "file":  "lesson-2-3-coding-implementing-iou-from-scratch.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-vid2-truth-about-deconvolution",
-                                                                                          "title":  "Lesson 4.1: The Truth About \u0027Deconvolution\u0027",
-                                                                                          "file":  "vid5.5-lesson-5-semantic-segmentati.html"
-                                                                                      },
-                                                                                      {
-                                                                                          "id":  "cv-pod4-learnable-vs-fixed",
-                                                                                          "title":  "Lesson 4.2: Learnable vs. Fixed",
-                                                                                          "file":  "pod4.4-lesson-4-semantic-segmentati.html"
+                                                                                          "id":  "semseg-pod-metric-trap",
+                                                                                          "title":  "Lesson 2.4: Podcast – The Metric Trap",
+                                                                                          "file":  "lesson-2-4-podcast-the-metric-trap.html"
                                                                                       }
                                                                                   ]
                                                                   },
                                                                   {
-                                                                      "id":  "cv-modern-architectures-advanced-methods",
-                                                                      "title":  "Modern Architectures and Advanced Methods",
-                                                                      "description":  "Go from the blueprint to the masterpiece. We\u0027ll dissect the famous U-Net architecture and then implement a mini-version ourselves. Finally, we\u0027ll explore advanced techniques that solve the lingering challenges of context and boundary refinement.",
+                                                                      "id":  "semseg-blueprint",
+                                                                      "title":  "The Blueprint – Encoder-Decoder & FCNs",
+                                                                      "description":  "Lay out the structural DNA of segmentation networks. We explore FCNs, skip connections, and hourglass ideas through interactives, code, and mental arithmetic.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch18-m3-module-3-advanced-applications-and-futu",
+                                                                      "folder":  "lesson-03-the-blueprint-encoder-decoder-and-fcns",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "cv-l5-masterpiece-unet-symmetrical-power",
-                                                                                          "title":  "Lesson 5: The Masterpiece: U-Net\u0027s Symmetrical Power",
-                                                                                          "file":  "l1.1-lesson-5-the-masterpiece-u-nets-symmetrical-p.html"
+                                                                                          "id":  "semseg-l3-blueprint",
+                                                                                          "title":  "Lesson 3: The Blueprint – Encoder-Decoder & FCNs",
+                                                                                          "file":  "lesson-3-the-blueprint-encoder-decoder-and-fcns.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod5-elegance-u",
-                                                                                          "title":  "Lesson 5.1: The Elegance of the \u0027U\u0027",
-                                                                                          "file":  "pod4.4-lesson-4-the-elegance-of-the-u.html"
+                                                                                          "id":  "semseg-vid-shape-of-data",
+                                                                                          "title":  "Lesson 3.1: Manim Video Explainer – The Shape of Data",
+                                                                                          "file":  "lesson-3-1-manim-video-explainer-the-shape-of-data.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-cod1-building-mini-unet-pytorch",
-                                                                                          "title":  "Lesson 5.2: Coding Lab: Building a Mini U-Net in PyTorch",
-                                                                                          "file":  "cod3.3-lesson-3-building-a-mini-u-net-in-pytorch.html"
+                                                                                          "id":  "semseg-exp-skip-playground",
+                                                                                          "title":  "Lesson 3.2: Experiment – The Skip Connection Playground",
+                                                                                          "file":  "lesson-3-2-experiment-the-skip-connection-playground.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-l6-pushing-limits-advanced-segmentation",
-                                                                                          "title":  "Lesson 6: Pushing the Limits: Advanced Segmentation Techniques",
-                                                                                          "file":  "l1.1-lesson-1-semantic-segmentati.html"
+                                                                                          "id":  "semseg-cod-building-hourglass",
+                                                                                          "title":  "Lesson 3.3: Coding – Building the Hourglass in PyTorch",
+                                                                                          "file":  "lesson-3-3-coding-building-the-hourglass-in-pytorch.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod6-pro-gamer-moves",
-                                                                                          "title":  "Lesson 6.1: The Pro-Gamer Moves",
-                                                                                          "file":  "pod4.4-lesson-4-semantic-segmentati.html"
+                                                                                          "id":  "semseg-ex-tensor-arithmetic",
+                                                                                          "title":  "Lesson 3.4: Exercise – Tensor Arithmetic",
+                                                                                          "file":  "lesson-3-4-exercise-tensor-arithmetic.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-exp2-advanced-techniques-sandbox",
-                                                                                          "title":  "Lesson 6.2: Advanced Techniques Sandbox",
-                                                                                          "file":  "exp6.6-lesson-6-semantic-segmentati.html"
+                                                                                          "id":  "semseg-pod-killed-fc-layer",
+                                                                                          "title":  "Lesson 3.5: Podcast – \"The Day We Killed the Fully Connected Layer\"",
+                                                                                          "file":  "lesson-3-5-podcast-the-day-we-killed-the-fully-connected-layer.html"
+                                                                                      }
+                                                                                  ]
+                                                                  },
+                                                                  {
+                                                                      "id":  "semseg-upsampling-math",
+                                                                      "title":  "The Math of Upsampling – Transposed Convolutions",
+                                                                      "description":  "Demystify deconvolution. We visualize spread, decode the human intuition of upsampling, and implement ConvTranspose2d from first principles while arguing about the \"deconvolution\" misnomer.",
+                                                                      "icon":  "course_content/assets/icons/neural-networks-icon.svg",
+                                                                      "folder":  "lesson-04-the-math-of-upsampling-transposed-convolutions",
+                                                                      "lessons":  [
+                                                                                      {
+                                                                                          "id":  "semseg-l4-upsampling",
+                                                                                          "title":  "Lesson 4: The Math of Upsampling – Transposed Convolutions",
+                                                                                          "file":  "lesson-4-the-math-of-upsampling-transposed-convolutions.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-example1-case-study-self-driving-car",
-                                                                                          "title":  "Lesson 6.3: Case Study: The Eyes of a Self-Driving Car",
-                                                                                          "file":  "ex2.2-lesson-2-semantic-segmentati.html"
+                                                                                          "id":  "semseg-vid-visualizing-spread",
+                                                                                          "title":  "Lesson 4.1: Manim Video Explainer – Visualizing the \"Spread\"",
+                                                                                          "file":  "lesson-4-1-manim-video-explainer-visualizing-the-spread.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-ex-human-decoder",
+                                                                                          "title":  "Lesson 4.2: Exercise – The Human Decoder",
+                                                                                          "file":  "lesson-4-2-exercise-the-human-decoder.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-cod-convtranspose",
+                                                                                          "title":  "Lesson 4.3: Coding – Building `ConvTranspose2d` from Scratch",
+                                                                                          "file":  "lesson-4-3-coding-building-convtranspose2d-from-scratch.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-pod-deconvolution-debate",
+                                                                                          "title":  "Lesson 4.4: Podcast – The \"Deconvolution\" Debate",
+                                                                                          "file":  "lesson-4-4-podcast-the-deconvolution-debate.html"
+                                                                                      }
+                                                                                  ]
+                                                                  },
+                                                                  {
+                                                                      "id":  "semseg-gold-standard-unet",
+                                                                      "title":  "The Gold Standard – U-Net",
+                                                                      "description":  "Celebrate the blueprint that changed medicine. We visualize the math, code a PyTorch U-Net, and run architectural arithmetic drills before recapping its impact on healthcare.",
+                                                                      "icon":  "course_content/assets/icons/neural-networks-icon.svg",
+                                                                      "folder":  "lesson-05-the-gold-standard-u-net",
+                                                                      "lessons":  [
+                                                                                      {
+                                                                                          "id":  "semseg-l5-gold-standard",
+                                                                                          "title":  "Lesson 5: The Gold Standard – U-Net",
+                                                                                          "file":  "lesson-5-the-gold-standard-u-net.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-vid-unet-math",
+                                                                                          "title":  "Lesson 5.1: Manim Video Explainer - Visualizing the Math",
+                                                                                          "file":  "lesson-5-1-manim-video-explainer-visualizing-the-math.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-cod-unet-pytorch",
+                                                                                          "title":  "Lesson 5.2: Coding - the U-Net in PyTorch",
+                                                                                          "file":  "lesson-5-2-coding-the-u-net-in-pytorch.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-ex-architectural-arithmetic",
+                                                                                          "title":  "Lesson 5.3: Exercise - Architectural Arithmetic",
+                                                                                          "file":  "lesson-5-3-exercise-architectural-arithmetic.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-pod-architecture-changed-medicine",
+                                                                                          "title":  "Lesson 5.4: Podcast - The Architecture That Changed Medicine",
+                                                                                          "file":  "lesson-5-4-podcast-the-architecture-that-changed-medicine.html"
+                                                                                      }
+                                                                                  ]
+                                                                  },
+                                                                  {
+                                                                      "id":  "semseg-context-boundaries",
+                                                                      "title":  "Context & Boundaries – Advanced Refinements",
+                                                                      "description":  "Close with boundary-aware tricks, dilation labs, and modern U-Net builds. We calculate IoU like pros, visualize upsampling, and tinker with receptive fields while discussing the saga of segmentation research.",
+                                                                      "icon":  "course_content/assets/icons/neural-networks-icon.svg",
+                                                                      "folder":  "lesson-06-context-and-boundaries-advanced-refinements",
+                                                                      "lessons":  [
+                                                                                      {
+                                                                                          "id":  "semseg-l6-context-boundaries",
+                                                                                          "title":  "Lesson 6: Context & Boundaries – Advanced Refinements",
+                                                                                          "file":  "lesson-6-context-and-boundaries-advanced-refinements.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-ex-metric-master",
+                                                                                          "title":  "Lesson 6.1: Exercise Lesson - The Metric Master (Calculating IoU)",
+                                                                                          "file":  "lesson-6-1-exercise-the-metric-master-calculating-iou.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-vid-visualizing-upsample",
+                                                                                          "title":  "Lesson 6.2: Manim Video Explainer - Visualizing the \"Upsample\"",
+                                                                                          "file":  "lesson-6-2-manim-video-explainer-visualizing-the-upsample.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-example-cityscapes-autonomous",
+                                                                                          "title":  "Lesson 6.3: Example - The Cityscapes Dataset & Autonomous Driving",
+                                                                                          "file":  "lesson-6-3-example-the-cityscapes-dataset-and-autonomous-driving.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-cod-building-unet",
+                                                                                          "title":  "Lesson 6.4: Coding - Building a U-Net in PyTorch",
+                                                                                          "file":  "lesson-6-4-coding-building-a-u-net-in-pytorch.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-exp-receptive-field-dilation",
+                                                                                          "title":  "Lesson 6.5: Experiment - The Receptive Field & Dilation Lab",
+                                                                                          "file":  "lesson-6-5-experiment-the-receptive-field-and-dilation-lab.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "semseg-pod-segmentation-saga",
+                                                                                          "title":  "Lesson 6.6: Podcast - The Segmentation Saga",
+                                                                                          "file":  "lesson-6-6-podcast-the-segmentation-saga.html"
                                                                                       }
                                                                                   ]
                                                                   }
@@ -2477,123 +2584,163 @@
                                                   "folder":  "03-computer-vision//cv-ch19-advanced-segmentation-instances",
                                                   "modules":  [
                                                                   {
-                                                                      "id":  "cv-mastering-multi-scale-context",
-                                                                      "title":  "Mastering Multi-Scale Context",
-                                                                      "description":  "Learn how the DeepLab family of models solved the critical challenge of seeing both the \"forest\" and the \"trees.\" We\u0027ll explore the elegant trick of atrous convolution and see how the ASPP module enables a model to analyze an image at multiple scales simultaneously.",
+                                                                      "id":  "advseg-context-challenge",
+                                                                      "title":  "The Context Challenge – DeepLab and ASPP",
+                                                                      "description":  "Capture long-range context without sacrificing resolution. We rebuild the DeepLab intuition, visualize atrous rates, and apply ASPP to real Cityscapes edge cases.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch19-m1-module-1-foundations-and-theory",
+                                                                      "folder":  "lesson-01-the-context-challenge-deeplab-and-aspp",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "cv-l1-mastering-context-deeplab",
-                                                                                          "title":  "Lesson 1: Mastering Context with DeepLab",
-                                                                                          "file":  "l1.1-lesson-1-advanced-segmentati.html"
+                                                                                          "id":  "advseg-l1-context-challenge",
+                                                                                          "title":  "Lesson 1: The Context Challenge – DeepLab and ASPP",
+                                                                                          "file":  "lesson-1-the-context-challenge-deeplab-and-aspp.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod1-bigger-isnt-always-better",
-                                                                                          "title":  "Podcast: Why Bigger Isn\u0027t Always Better",
-                                                                                          "file":  "pod4.4-lesson-4-advanced-segmentati.html"
+                                                                                          "id":  "advseg-vid-atrous-visualizer",
+                                                                                          "title":  "Lesson 1.1: Manim Video Explainer – Visualizing Atrous Convolution",
+                                                                                          "file":  "lesson-1-1-manim-video-explainer-visualizing-atrous-convolution.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-vid1-visualizing-atrous-convolution",
-                                                                                          "title":  "Math Explainer: Visualizing Atrous Convolution",
-                                                                                          "file":  "vid5.5-lesson-5-advanced-segmentati.html"
+                                                                                          "id":  "advseg-cod-build-aspp",
+                                                                                          "title":  "Lesson 1.2: Coding Lab – Building ASPP in PyTorch",
+                                                                                          "file":  "lesson-1-2-coding-lab-building-aspp-in-pytorch.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-ex1-receptive-field-challenge",
-                                                                                          "title":  "Exercise: The Receptive Field Challenge",
-                                                                                          "file":  "ex2.2-lesson-2-advanced-segmentati.html"
+                                                                                          "id":  "advseg-exp-receptive-field-tuner",
+                                                                                          "title":  "Lesson 1.3: Experiment – The Receptive Field Tuner",
+                                                                                          "file":  "lesson-1-3-experiment-the-receptive-field-tuner.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-cod1-putting-deeplab-test",
-                                                                                          "title":  "Coding: Putting DeepLab to the Test",
-                                                                                          "file":  "cod3.3-lesson-3-advanced-segmentati.html"
+                                                                                          "id":  "advseg-ex-receptive-field-math",
+                                                                                          "title":  "Lesson 1.4: Exercise – Receptive Field Arithmetic",
+                                                                                          "file":  "lesson-1-4-exercise-receptive-field-arithmetic.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "advseg-example-cityscapes-pole",
+                                                                                          "title":  "Lesson 1.5: Real-World Example – Cityscapes & The Pole Problem",
+                                                                                          "file":  "lesson-1-5-real-world-example-cityscapes-and-the-pole-problem.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "advseg-pod-holy-cheese",
+                                                                                          "title":  "Lesson 1.6: Podcast – \"The Holy Cheese of Deep Learning\"",
+                                                                                          "file":  "lesson-1-6-podcast-the-holy-cheese-of-deep-learning.html"
                                                                                       }
                                                                                   ]
                                                                   },
                                                                   {
-                                                                      "id":  "cv-spectrum-understanding",
-                                                                      "title":  "A Spectrum of Understanding",
-                                                                      "description":  "Discover that \"segmentation\" is not a single task but a spectrum of understanding. We will clearly define and differentiate between semantic, instance, and panoptic segmentation, establishing the \"what,\" the \"which,\" and the \"everything\" of scene parsing.",
+                                                                      "id":  "advseg-taxonomy",
+                                                                      "title":  "The Segmentation Taxonomy – Semantic, Instance, and Panoptic",
+                                                                      "description":  "Define \"things\" vs. \"stuff\", annotate pixels, and merge masks into panoptic predictions. We explore Tesla\u2019s stack and debate what the true Holy Grail looks like.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch19-m2-module-2-core-concepts-and-applications",
+                                                                      "folder":  "lesson-02-the-segmentation-taxonomy-semantic-instance-and-panoptic",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "cv-l2-beyond-pixels-instance-panoptic",
-                                                                                          "title":  "Lesson 2: Beyond Pixels: Instance \u0026 Panoptic Segmentation",
-                                                                                          "file":  "l1.1-lesson-1-advanced-segmentati.html"
+                                                                                          "id":  "advseg-l2-taxonomy",
+                                                                                          "title":  "Lesson 2: The Segmentation Taxonomy – Semantic, Instance, and Panoptic",
+                                                                                          "file":  "lesson-2-the-segmentation-taxonomy-semantic-instance-and-panoptic.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod2-things-stuff-robot-vacuums",
-                                                                                          "title":  "Podcast: Things, Stuff, and Robot Vacuums",
-                                                                                          "file":  "pod4.4-lesson-4-advanced-segmentati.html"
+                                                                                          "id":  "advseg-exp-annotation-station",
+                                                                                          "title":  "Lesson 2.1: Experiment – The Annotation Station",
+                                                                                          "file":  "lesson-2-1-experiment-the-annotation-station.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-example1-ar-apps-understand-room",
-                                                                                          "title":  "Real-World Example: How Augmented Reality Apps Understand Your Room",
-                                                                                          "file":  "ex2.2-lesson-2-advanced-segmentati.html"
+                                                                                          "id":  "advseg-cod-panoptic-merger",
+                                                                                          "title":  "Lesson 2.2: Coding – The Panoptic Merger",
+                                                                                          "file":  "lesson-2-2-coding-the-panoptic-merger.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-exp1-segmentation-sorter",
-                                                                                          "title":  "Hands-On: The Segmentation Sorter",
-                                                                                          "file":  "exp6.6-lesson-6-advanced-segmentati.html"
+                                                                                          "id":  "advseg-vid-pixel-conflict",
+                                                                                          "title":  "Lesson 2.3: Manim Video Explainer – The Pixel Conflict",
+                                                                                          "file":  "lesson-2-3-manim-video-explainer-the-pixel-conflict.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "advseg-example-tesla-stack",
+                                                                                          "title":  "Lesson 2.4: Example – The Tesla Vision Stack",
+                                                                                          "file":  "lesson-2-4-example-the-tesla-vision-stack.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "advseg-pod-things-stuff",
+                                                                                          "title":  "Lesson 2.5: Podcast – \"Things, Stuff, and The Holy Grail\"",
+                                                                                          "file":  "lesson-2-5-podcast-things-stuff-and-the-holy-grail.html"
                                                                                       }
                                                                                   ]
                                                                   },
                                                                   {
-                                                                      "id":  "cv-architecture-precision",
-                                                                      "title":  "The Architecture of Precision",
-                                                                      "description":  "Dissect the influential Mask R-CNN architecture to understand how it performs instance segmentation. We will uncover the \"secret sauce\" of RoIAlign and see how maintaining perfect spatial alignment is the key to generating pixel-perfect masks.",
+                                                                      "id":  "advseg-mask-rcnn",
+                                                                      "title":  "Mask R-CNN & The Alignment Problem",
+                                                                      "description":  "RoIAlign math, mask precision, and the practicalities of running Mask R-CNN. We blend geometry explainers with hands-on PyTorch demos.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch19-m3-module-3-advanced-applications-and-futu",
+                                                                      "folder":  "lesson-03-mask-r-cnn-and-the-alignment-problem",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "cv-l3-how-mask-rcnn-roialign",
-                                                                                          "title":  "Lesson 3: The \"How\": Mask R-CNN and RoIAlign",
-                                                                                          "file":  "l1.1-lesson-1-advanced-segmentati.html"
+                                                                                          "id":  "advseg-l3-mask-rcnn",
+                                                                                          "title":  "Lesson 3: Mask R-CNN & The Alignment Problem",
+                                                                                          "file":  "lesson-3-mask-r-cnn-and-the-alignment-problem.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod3-case-blurry-masks",
-                                                                                          "title":  "Podcast: The Case of the Blurry Masks",
-                                                                                          "file":  "pod4.4-lesson-4-advanced-segmentati.html"
+                                                                                          "id":  "advseg-vid-geometry-roialign",
+                                                                                          "title":  "Lesson 3.1: Manim Video Explainer - The Geometry of RoIAlign",
+                                                                                          "file":  "lesson-3-1-manim-video-explainer-the-geometry-of-roialign.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-vid2-precision-roialign",
-                                                                                          "title":  "Math Explainer: The Precision of RoIAlign",
-                                                                                          "file":  "vid5.5-lesson-5-advanced-segmentati.html"
+                                                                                          "id":  "advseg-ex-mathematics-masks",
+                                                                                          "title":  "Lesson 3.2: Exercise - The Mathematics of Masks",
+                                                                                          "file":  "lesson-3-2-exercise-the-mathematics-of-masks.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-cod2-mask-rcnn-detective",
-                                                                                          "title":  "Coding: Becoming a Mask R-CNN Detective",
-                                                                                          "file":  "cod3.3-lesson-3-advanced-segmentati.html"
+                                                                                          "id":  "advseg-cod-mask-rcnn-pytorch",
+                                                                                          "title":  "Lesson 3.3: Coding - Running Mask R-CNN in PyTorch",
+                                                                                          "file":  "lesson-3-3-coding-running-mask-r-cnn-in-pytorch.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "advseg-pod-mask-revolution",
+                                                                                          "title":  "Lesson 3.4: Podcast - The \"Mask\" Revolution",
+                                                                                          "file":  "lesson-3-4-podcast-the-mask-revolution.html"
                                                                                       }
                                                                                   ]
                                                                   },
                                                                   {
-                                                                      "id":  "cv-modern-era-generalists",
-                                                                      "title":  "The Modern Era and the Rise of Generalists",
-                                                                      "description":  "This capstone module launches us to the current frontier of AI. We\u0027ll meet hybrid Transformer models, automated frameworks that build models for us, and the game-changing Segment Anything Model (SAM), a foundation model you can interact with directly.",
+                                                                      "id":  "advseg-modern-era",
+                                                                      "title":  "The Modern Era – Transformers and Foundation Models",
+                                                                      "description":  "Meet SAM, transformers, and prompt-driven workflows. We visualize RoIAlign geometry again, practice dilation math, and run prompt-engineer experiments that hint at the future of segmentation.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch19-m4-module-4-advanced-applications-and-futu",
+                                                                      "folder":  "lesson-04-the-modern-era-transformers-and-foundation-models",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "cv-l4-modern-era-foundation-models",
-                                                                                          "title":  "Lesson 4: The Modern Era: Foundation Models \u0026 Automation",
-                                                                                          "file":  "l1.1-lesson-1-advanced-segmentati.html"
+                                                                                          "id":  "advseg-l4-modern-era",
+                                                                                          "title":  "Lesson 4: The Modern Era – Transformers and Foundation Models",
+                                                                                          "file":  "lesson-4-the-modern-era-transformers-and-foundation-models.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod4-one-model-rule-them-all",
-                                                                                          "title":  "Podcast: One Model to Rule Them All?",
-                                                                                          "file":  "pod4.4-lesson-4-advanced-segmentati.html"
+                                                                                          "id":  "advseg-vid-roialign-geometry",
+                                                                                          "title":  "Lesson 4.1: Manim Video Explainer – The Geometry of RoIAlign",
+                                                                                          "file":  "lesson-4-1-manim-video-explainer-the-geometry-of-roialign.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-example2-epic-story-sa1b",
-                                                                                          "title":  "Real-World Example: The Epic Story of SA-1B",
-                                                                                          "file":  "ex2.2-lesson-2-advanced-segmentati.html"
+                                                                                          "id":  "advseg-ex-dilation-calculator",
+                                                                                          "title":  "Lesson 4.2: Exercise – Calculating with Dilation",
+                                                                                          "file":  "lesson-4-2-exercise-calculating-with-dilation.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-cod3-prompting-future-sam",
-                                                                                          "title":  "Coding: Prompting the Future: Your First Interaction with SAM",
-                                                                                          "file":  "cod3.3-lesson-3-advanced-segmentati.html"
+                                                                                          "id":  "advseg-cod-instance-segmentation",
+                                                                                          "title":  "Lesson 4.3: Coding – Instance Segmentation with PyTorch",
+                                                                                          "file":  "lesson-4-3-coding-instance-segmentation-with-pytorch.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "advseg-exp-prompt-engineer",
+                                                                                          "title":  "Lesson 4.4: Experiment – The \"Prompt Engineer\" Playground",
+                                                                                          "file":  "lesson-4-4-experiment-the-prompt-engineer-playground.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "advseg-example-self-driving-eye",
+                                                                                          "title":  "Lesson 4.5: Real-World Example – The Self-Driving Car's Eye",
+                                                                                          "file":  "lesson-4-5-real-world-example-the-self-driving-cars-eye.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "advseg-pod-death-specialist",
+                                                                                          "title":  "Lesson 4.6: Podcast – The Death of the Specialist Model?",
+                                                                                          "file":  "lesson-4-6-podcast-the-death-of-the-specialist-model.html"
                                                                                       }
                                                                                   ]
                                                                   }
@@ -2607,157 +2754,148 @@
                                                   "folder":  "03-computer-vision//cv-ch20-human-pose-estimation-from-heatm",
                                                   "modules":  [
                                                                   {
-                                                                      "id":  "cv-core-problem-grand-strategies",
-                                                                      "title":  "The Core Problem \u0026 Grand Strategies",
-                                                                      "description":  "Learn the what, why, and how of Human Pose Estimation. We\u0027ll define the core task, explore its real-world challenges, and contrast the two major strategies—Top-Down and Bottom-Up—that form the foundation of all modern approaches.",
+                                                                      "id":  "hpe-skeleton-machine",
+                                                                      "title":  "The Skeleton in the Machine",
+                                                                      "description":  "Kick off HPE by blending history, intuition, and math. We contrast sampling vs. classifying, explore the legacy of motion capture, and build intuition for scale invariance before listening to practitioners decode body language.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch20-m1-module-1-foundations-and-theory",
+                                                                      "folder":  "lesson-01-the-skeleton-in-the-machine",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "cv-l1-what-world-human-pose-estimation",
-                                                                                          "title":  "Lesson 1: What in the World is Human Pose Estimation?",
-                                                                                          "file":  "l1.1-lesson-1-human-pose-estimati.html"
+                                                                                          "id":  "hpe-l1-skeleton-machine",
+                                                                                          "title":  "Lesson 1: The Skeleton in the Machine",
+                                                                                          "file":  "lesson-1-the-skeleton-in-the-machine.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-example1-hawkeye-sports",
-                                                                                          "title":  "Case Study: Hawk-Eye in Sports",
-                                                                                          "file":  "ex2.2-lesson-2-human-pose-estimati.html"
+                                                                                          "id":  "hpe-exp-pckh-playground",
+                                                                                          "title":  "Lesson 1.1: Experiment - The PCKh Playground",
+                                                                                          "file":  "lesson-1-1-experiment-the-pckh-playground.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-exp1-strategists-choice",
-                                                                                          "title":  "Playground: The Strategist\u0027s Choice",
-                                                                                          "file":  "exp6.6-lesson-6-human-pose-estimati.html"
+                                                                                          "id":  "hpe-cod-keypoints-visualizer",
+                                                                                          "title":  "Lesson 1.2: Coding - Loading and Visualizing Keypoints (Python/Colab)",
+                                                                                          "file":  "lesson-1-2-coding-loading-and-visualizing-keypoints-python-colab.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod1-lay-of-land",
-                                                                                          "title":  "Podcast 1: The Lay of the Land",
-                                                                                          "file":  "pod4.4-lesson-4-human-pose-estimati.html"
+                                                                                          "id":  "hpe-example-mocap-history",
+                                                                                          "title":  "Lesson 1.3: Example - The History of MoCap (Motion Capture)",
+                                                                                          "file":  "lesson-1-3-example-the-history-of-mocap-motion-capture.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "hpe-vid-scale-invariance",
+                                                                                          "title":  "Lesson 1.4: Manim Video Explainer - The Math of Scale Invariance",
+                                                                                          "file":  "lesson-1-4-manim-video-explainer-the-math-of-scale-invariance.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "hpe-pod-body-language-machines",
+                                                                                          "title":  "Lesson 1.5: Podcast - \"The Body Language of Machines\"",
+                                                                                          "file":  "lesson-1-5-podcast-the-body-language-of-machines.html"
                                                                                       }
                                                                                   ]
                                                                   },
                                                                   {
-                                                                      "id":  "cv-heatmap-paradigm",
-                                                                      "title":  "The Heatmap Paradigm",
-                                                                      "description":  "Discover the conceptual breakthrough that revolutionized pose estimation. We\u0027ll move beyond simple coordinate prediction to the robust paradigm of heatmap regression and explore the elegant mathematics of 2D Gaussians that make it all work.",
+                                                                      "id":  "hpe-paradigms-perception",
+                                                                      "title":  "Paradigms of Perception",
+                                                                      "description":  "Shift from intuition to probabilistic thinking. This module contrasts coordinate vs. heatmap paradigms, paints with Gaussian belief maps, and debates why modern systems lean on distributions.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch20-m2-module-2-core-concepts-and-applications",
+                                                                      "folder":  "lesson-02-paradigms-of-perception",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "cv-l2-heatmap-paradigm-painting-probabilities",
-                                                                                          "title":  "Lesson 2: The Heatmap Paradigm: Painting with Probabilities",
-                                                                                          "file":  "l1.1-lesson-1-human-pose-estimati.html"
+                                                                                          "id":  "hpe-l2-paradigms",
+                                                                                          "title":  "Lesson 2: Paradigms of Perception",
+                                                                                          "file":  "lesson-2-paradigms-of-perception.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-vid1-2d-gaussian-function",
-                                                                                          "title":  "Math Explainer: The 2D Gaussian Function",
-                                                                                          "file":  "vid5.5-lesson-5-human-pose-estimati.html"
+                                                                                          "id":  "hpe-vid-gaussian-mountain",
+                                                                                          "title":  "Lesson 2.1: Manim Video Explainer - The Gaussian Mountain: Visualizing Belief Maps",
+                                                                                          "file":  "lesson-2-1-manim-video-explainer-the-gaussian-mountain-visualizing-belief-maps.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-ex1-heatmap-calculations",
-                                                                                          "title":  "Exercise: Heatmap Calculations",
-                                                                                          "file":  "ex2.2-lesson-2-human-pose-estimati.html"
+                                                                                          "id":  "hpe-cod-painting-probabilities",
+                                                                                          "title":  "Lesson 2.2: Coding Lab - Painting with Probabilities",
+                                                                                          "file":  "lesson-2-2-coding-lab-painting-with-probabilities.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-cod1-generating-heatmap",
-                                                                                          "title":  "Coding Lab 1: Generating a Heatmap",
-                                                                                          "file":  "cod3.3-lesson-3-human-pose-estimati.html"
+                                                                                          "id":  "hpe-exp-crowd-efficiency",
+                                                                                          "title":  "Lesson 2.3: Experiment - The Crowd Efficiency Challenge",
+                                                                                          "file":  "lesson-2-3-experiment-the-crowd-efficiency-challenge.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod2-aha-moment",
-                                                                                          "title":  "Podcast 2: The \u0027Aha!\u0027 Moment",
-                                                                                          "file":  "pod4.4-lesson-4-human-pose-estimati.html"
+                                                                                          "id":  "hpe-pod-heatmaps-vs-coords",
+                                                                                          "title":  "Lesson 2.4: Podcast - TechTalk: Why Coordinates are Out and Heatmaps are In",
+                                                                                          "file":  "lesson-2-4-podcast-techtalk-why-coordinates-are-out-and-heatmaps-are-in.html"
                                                                                       }
                                                                                   ]
                                                                   },
                                                                   {
-                                                                      "id":  "cv-top-down-architectures-detail",
-                                                                      "title":  "Top-Down Architectures in Detail",
-                                                                      "description":  "Take a deep dive into the architectures of two legendary Top-Down models. We\u0027ll dissect the multi-stage refinement of CPM and the symmetrical, multi-scale fusion of Stacked Hourglass to understand how to build networks that see both the forest and the trees.",
+                                                                      "id":  "hpe-top-down-dance",
+                                                                      "title":  "Refining the Pose (Top-Down Architectures)",
+                                                                      "description":  "Walk through the delicate choreography of CPM, Hourglass, and top-down refinement. We visualize expanding fields of view, code structural blocks, and run experiments that surface trade-offs.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch20-m3-module-3-advanced-applications-and-futu",
+                                                                      "folder":  "lesson-03-refining-the-pose-top-down-architectures",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "cv-l3-masters-context-top-down",
-                                                                                          "title":  "Lesson 3: Masters of Context: Top-Down Architectures",
-                                                                                          "file":  "l1.1-lesson-1-human-pose-estimati.html"
+                                                                                          "id":  "hpe-l3-top-down",
+                                                                                          "title":  "Lesson 3: The Delicate Dance of Training",
+                                                                                          "file":  "lesson-3-refining-the-pose-top-down-architectures.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-example2-unet-connection",
-                                                                                          "title":  "Case Study: The U-Net Connection",
-                                                                                          "file":  "ex2.2-lesson-2-human-pose-estimati.html"
+                                                                                          "id":  "hpe-vid-expanding-fov",
+                                                                                          "title":  "Lesson 3.1: Manim Video Explainer - \"The Expanding Field of View\"",
+                                                                                          "file":  "lesson-3-1-manim-video-explainer-the-expanding-field-of-view.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-exp2-architects-toolbox",
-                                                                                          "title":  "Playground: The Architect\u0027s Toolbox",
-                                                                                          "file":  "exp6.6-lesson-6-human-pose-estimati.html"
+                                                                                          "id":  "hpe-exp-cpm-playground",
+                                                                                          "title":  "Lesson 3.2: Experiment - \"The CPM Refinement Playground\"",
+                                                                                          "file":  "lesson-3-2-experiment-the-cpm-refinement-playground.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod3-architectural-tradeoffs",
-                                                                                          "title":  "Podcast 3: Architectural Trade-offs",
-                                                                                          "file":  "pod4.4-lesson-4-human-pose-estimati.html"
+                                                                                          "id":  "hpe-cod-hourglass-block",
+                                                                                          "title":  "Lesson 3.3: Coding - \"Building an Hourglass Block\"",
+                                                                                          "file":  "lesson-3-3-coding-building-an-hourglass-block.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "hpe-ex-architectural-arithmetic",
+                                                                                          "title":  "Lesson 3.4: Exercise - \"Architectural Arithmetic\"",
+                                                                                          "file":  "lesson-3-4-exercise-architectural-arithmetic.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "hpe-pod-brute-force-elegance",
+                                                                                          "title":  "Lesson 3.5: Podcast - \"Brute Force vs. Elegance\"",
+                                                                                          "file":  "lesson-3-5-podcast-brute-force-vs-elegance.html"
                                                                                       }
                                                                                   ]
                                                                   },
                                                                   {
-                                                                      "id":  "cv-bottom-up-revolution",
-                                                                      "title":  "The Bottom-Up Revolution",
-                                                                      "description":  "Explore the elegant solution to tracking poses in crowded scenes with OpenPose. We\u0027ll tackle the difficult \u0027association problem\u0027 and learn how the ingenious invention of Part Affinity Fields (PAFs) allows a network to connect all the right dots.",
+                                                                      "id":  "hpe-connecting-dots",
+                                                                      "title":  "Connecting the Dots (Bottom-Up & Future)",
+                                                                      "description":  "Finish with bottom-up strategies, association scoring, and future-looking ethics. We animate line integrals, hand-match keypoints, code the PAF scorer, and end with a debate on the vector revolution.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch20-m4-module-4-advanced-applications-and-futu",
+                                                                      "folder":  "lesson-04-connecting-the-dots-bottom-up-and-future",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "cv-l4-openpose-art-association",
-                                                                                          "title":  "Lesson 4: OpenPose and the Art of Association",
-                                                                                          "file":  "l1.1-lesson-1-human-pose-estimati.html"
+                                                                                          "id":  "hpe-l4-connecting-dots",
+                                                                                          "title":  "Lesson 4: Connecting the Dots (Bottom-Up & Future)",
+                                                                                          "file":  "lesson-4-connecting-the-dots-bottom-up-and-future.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-vid2-line-integral-pafs",
-                                                                                          "title":  "Math Explainer: The Line Integral for PAFs",
-                                                                                          "file":  "vid5.5-lesson-5-human-pose-estimati.html"
+                                                                                          "id":  "hpe-vid-line-integral",
+                                                                                          "title":  "Lesson 4.1: Manim Video Explainer - The Line Integral Visualization",
+                                                                                          "file":  "lesson-4-1-manim-video-explainer-the-line-integral-visualization.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-ex2-paf-connection-scoring",
-                                                                                          "title":  "Exercise: PAF Connection Scoring",
-                                                                                          "file":  "ex2.2-lesson-2-human-pose-estimati.html"
+                                                                                          "id":  "hpe-ex-manual-matching",
+                                                                                          "title":  "Lesson 4.2: Exercise - Manual Matching",
+                                                                                          "file":  "lesson-4-2-exercise-manual-matching.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-cod2-association-scorer",
-                                                                                          "title":  "Coding Lab 2: The Association Scorer",
-                                                                                          "file":  "cod3.3-lesson-3-human-pose-estimati.html"
+                                                                                          "id":  "hpe-cod-paf-scorer",
+                                                                                          "title":  "Lesson 4.3: Coding - Building the PAF Scorer",
+                                                                                          "file":  "lesson-4-3-coding-building-the-paf-scorer.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "cv-pod4-genius-vector-field",
-                                                                                          "title":  "Podcast 4: The Genius of the Vector Field",
-                                                                                          "file":  "pod4.4-lesson-4-human-pose-estimati.html"
-                                                                                      }
-                                                                                  ]
-                                                                  },
-                                                                  {
-                                                                      "id":  "cv-skeletons-solutions",
-                                                                      "title":  "From Skeletons to Solutions",
-                                                                      "description":  "This capstone module connects theory to practice. We\u0027ll see how HPE serves as a powerful building block for higher-level AI tasks, recap our entire journey, and implement a mini-project to analyze motion from a video.",
-                                                                      "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch20-m5-module-5-advanced-applications-and-futu",
-                                                                      "lessons":  [
-                                                                                      {
-                                                                                          "id":  "cv-l5-skeletons-solutions-applications-recap",
-                                                                                          "title":  "Lesson 5: From Skeletons to Solutions: Applications \u0026 Recap",
-                                                                                          "file":  "l1.1-lesson-1-human-pose-estimati.html"
-                                                                                      },
-                                                                                      {
-                                                                                          "id":  "cv-example3-pose-based-action-recognition",
-                                                                                          "title":  "Case Study: Pose-Based Action Recognition",
-                                                                                          "file":  "ex2.2-lesson-2-human-pose-estimati.html"
-                                                                                      },
-                                                                                      {
-                                                                                          "id":  "cv-cod3-putting-all-together",
-                                                                                          "title":  "Coding Lab 3: Putting It All Together",
-                                                                                          "file":  "cod3.3-lesson-3-human-pose-estimati.html"
-                                                                                      },
-                                                                                      {
-                                                                                          "id":  "cv-pod5-future-articulated",
-                                                                                          "title":  "Podcast 5: The Future is Articulated",
-                                                                                          "file":  "pod4.4-lesson-4-human-pose-estimati.html"
+                                                                                          "id":  "hpe-pod-vector-revolution",
+                                                                                          "title":  "Lesson 4.4: Podcast - \"The Vector Revolution\"",
+                                                                                          "file":  "lesson-4-4-podcast-the-vector-revolution.html"
                                                                                       }
                                                                                   ]
                                                                   }
@@ -2771,127 +2909,192 @@
                                                   "folder":  "03-computer-vision//cv-ch21-generative-adversarial-networks",
                                                   "modules":  [
                                                                   {
-                                                                      "id":  "ml-foundation-generative-art",
-                                                                      "title":  "The Foundation of Generative Art",
-                                                                      "description":  "Before we build an AI artist, we must first learn how to be an art critic. This module introduces the core concept of generative modeling and explores the crucial metrics, Inception Score (IS) and Fréchet Inception Distance (FID), that allow us to objectively score the quality and diversity of AI-generated art.",
+                                                                      "id":  "gan-entering-creative-universe",
+                                                                      "title":  "Entering the Creative Universe",
+                                                                      "description":  "Kick off the chapter by grounding GANs in creativity, probability, and storytelling. This module sets the tone, introduces distributions, and explores why generative models feel more like artists than analysts.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch21-m1-module-1-foundations-and-theory",
+                                                                      "folder":  "lesson-01-entering-the-creative-universe",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "ml-l1-what-building-how-judge",
-                                                                                          "title":  "Lesson 1: What Are We Building and How Do We Judge It?",
-                                                                                          "file":  "l1.1-lesson-1-what-are-we-building-and-how-do-we-j.html"
+                                                                                          "id":  "gan-l1-entering-creative-universe",
+                                                                                          "title":  "Lesson 1: Entering the Creative Universe",
+                                                                                          "file":  "lesson-1-entering-the-creative-universe.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "ml-vid1-visualizing-evaluation-metrics",
-                                                                                          "title":  "Manim Video: Visualizing Evaluation Metrics",
-                                                                                          "file":  "vid5.5-lesson-5-visualizing-evaluation-metrics.html"
+                                                                                          "id":  "gan-l1-1-math-of-distributions",
+                                                                                          "title":  "Lesson 1.1: Manim Video Explainer - The Math of Distributions",
+                                                                                          "file":  "lesson-1-1-manim-video-explainer-the-math-of-distributions.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "ml-pod1-critic-creator",
-                                                                                          "title":  "Podcast: The Critic and The Creator",
-                                                                                          "file":  "pod4.4-lesson-4-the-critic-and-the-creator.html"
+                                                                                          "id":  "gan-l1-2-sampling-vs-classifying",
+                                                                                          "title":  "Lesson 1.2: Coding Lab - Sampling vs. Classifying",
+                                                                                          "file":  "lesson-1-2-coding-lab-sampling-vs-classifying.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l1-3-real-world-scenarios",
+                                                                                          "title":  "Lesson 1.3: Real-World Scenarios",
+                                                                                          "file":  "lesson-1-3-real-world-scenarios.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l1-4-podcast-shift-creativity",
+                                                                                          "title":  "Lesson 1.4: Podcast - The Shift to Creativity",
+                                                                                          "file":  "lesson-1-4-podcast-the-shift-to-creativity.html"
                                                                                       }
                                                                                   ]
                                                                   },
                                                                   {
-                                                                      "id":  "ml-adversarial-game",
-                                                                      "title":  "The Adversarial Game",
-                                                                      "description":  "Discover the elegant \"cat-and-mouse\" game at the heart of GANs. We\u0027ll meet the two key players—the Generator and the Discriminator—and break down the minimax objective function that pits them against each other in a duel that drives both to perfection.",
+                                                                      "id":  "gan-two-player-game",
+                                                                      "title":  "The Two-Player Game (Framework & Math)",
+                                                                      "description":  "Dive deep into the minimax duel between generator and discriminator. We visualize the tug-of-war, build the core PyTorch components, and map the math behind adversarial equilibrium to concrete scenarios.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch21-m2-module-2-core-concepts-and-applications",
+                                                                      "folder":  "lesson-02-the-two-player-game-framework-and-math",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "ml-l2-gan-framework-two-player-game",
-                                                                                          "title":  "Lesson 2: The GAN Framework: A Two-Player Game",
-                                                                                          "file":  "l1.1-lesson-2-the-gan-framework-a-two-player-game.html"
+                                                                                          "id":  "gan-l2-two-player-game",
+                                                                                          "title":  "Lesson 2: The Two-Player Game (Framework & Math)",
+                                                                                          "file":  "lesson-2-the-two-player-game-framework-and-math.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "ml-vid2-minimax-game",
-                                                                                          "title":  "Manim Video: The Minimax Game",
-                                                                                          "file":  "vid5.5-lesson-5-the-minimax-game.html"
+                                                                                          "id":  "gan-l2-1-visualizing-minimax",
+                                                                                          "title":  "Lesson 2.1: Manim Video Explainer - Visualizing the Minimax Tug-of-War",
+                                                                                          "file":  "lesson-2-1-manim-video-explainer-visualizing-the-minimax-tug-of-war.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "ml-example1-faces-never-were",
-                                                                                          "title":  "Example Lesson: The Faces That Never Were",
-                                                                                          "file":  "ex2.2-lesson-2-the-faces-that-never-were.html"
+                                                                                          "id":  "gan-l2-2-coding-adversaries",
+                                                                                          "title":  "Lesson 2.2: Coding the Adversaries - Building the Players in PyTorch",
+                                                                                          "file":  "lesson-2-2-coding-the-adversaries-building-the-players-in-pytorch.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "ml-pod2-art-rivalry",
-                                                                                          "title":  "Podcast: The Art of the Rivalry",
-                                                                                          "file":  "pod4.4-lesson-4-the-art-of-the-rivalry.html"
+                                                                                          "id":  "gan-l2-3-calculating-standoff",
+                                                                                          "title":  "Lesson 2.3: Calculating the Standoff - Crunching the Adversarial Numbers",
+                                                                                          "file":  "lesson-2-3-calculating-the-standoff-crunching-the-adversarial-numbers.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l2-4-art-auction-algorithm",
+                                                                                          "title":  "Lesson 2.4: Real-World Example - The Art Auction & The Algorithm",
+                                                                                          "file":  "lesson-2-4-real-world-example-the-art-auction-and-the-algorithm.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l2-5-podcast-art-of-war",
+                                                                                          "title":  "Lesson 2.5: Podcast Review - The Art of War (Between Networks)",
+                                                                                          "file":  "lesson-2-5-podcast-review-the-art-of-war-between-networks.html"
                                                                                       }
                                                                                   ]
                                                                   },
                                                                   {
-                                                                      "id":  "ml-reality-training",
-                                                                      "title":  "The Reality of Training",
-                                                                      "description":  "Step into the role of the trainer and learn the delicate, alternating dance of GAN training. We\u0027ll explore why this process is notoriously unstable and then get hands-on experience in the \"GAN Playground\" to witness and diagnose common pitfalls like mode collapse and vanishing gradients.",
+                                                                      "id":  "gan-delicate-dance-training",
+                                                                      "title":  "The Delicate Dance of Training",
+                                                                      "description":  "Focus on stabilization strategies, optimization intuition, and the realities of adversarial training. From Minimax geometry to orchestration in code, this module exposes pitfalls and practical fixes.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch21-m3-module-3-advanced-applications-and-futu",
+                                                                      "folder":  "lesson-03-the-delicate-dance-of-training",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "ml-l3-training-gans-common-pitfalls",
-                                                                                          "title":  "Lesson 3: Training GANs and Common Pitfalls",
-                                                                                          "file":  "l1.1-lesson-3-training-gans-and-common-pitfalls.html"
+                                                                                          "id":  "gan-l3-delicate-dance-training",
+                                                                                          "title":  "Lesson 3: The Delicate Dance of Training",
+                                                                                          "file":  "lesson-3-the-delicate-dance-of-training.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "ml-exp1-gan-playground",
-                                                                                          "title":  "Experiment Lesson: The GAN Playground",
-                                                                                          "file":  "exp6.6-lesson-6-the-gan-playground.html"
+                                                                                          "id":  "gan-l3-1-minimax-landscape",
+                                                                                          "title":  "Lesson 3.1: Manim Video Explainer - The Minimax Landscape",
+                                                                                          "file":  "lesson-3-1-manim-video-explainer-the-minimax-landscape.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "ml-pod3-why-so-hard",
-                                                                                          "title":  "Podcast: Why Is This So Hard?",
-                                                                                          "file":  "pod4.4-lesson-4-why-is-this-so-hard.html"
+                                                                                          "id":  "gan-l3-2-orchestrating-loop",
+                                                                                          "title":  "Lesson 3.2: Coding - Orchestrating the Loop (PyTorch)",
+                                                                                          "file":  "lesson-3-2-coding-orchestrating-the-loop-pytorch.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l3-3-mode-collapse-lab",
+                                                                                          "title":  "Lesson 3.3: Experiment - The Mode Collapse Lab",
+                                                                                          "file":  "lesson-3-3-experiment-the-mode-collapse-lab.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l3-4-calculating-steps",
+                                                                                          "title":  "Lesson 3.4: Exercise - Calculating the Steps",
+                                                                                          "file":  "lesson-3-4-exercise-calculating-the-steps.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l3-5-podcast-war-stories",
+                                                                                          "title":  "Lesson 3.5: Podcast - \"War Stories from the Training Loop\"",
+                                                                                          "file":  "lesson-3-5-podcast-war-stories-from-the-training-loop.html"
                                                                                       }
                                                                                   ]
                                                                   },
                                                                   {
-                                                                      "id":  "ml-gaining-control-power",
-                                                                      "title":  "Gaining Control and Power",
-                                                                      "description":  "Move beyond random generation to directed creation. This module introduces advanced architectures that give us control over the GAN\u0027s output. We\u0027ll explore Conditional GANs for specific requests and the magic of CycleGAN, which can translate between image domains—like horses to zebras—without any paired data.",
+                                                                      "id":  "gan-judging-the-art",
+                                                                      "title":  "Judging the Art (Evaluation Metrics)",
+                                                                      "description":  "Evaluate generated art with rigor. We unpack Fréchet Inception Distance, build tooling for qualitative and quantitative review, and connect metrics to creative judgment.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch21-m4-module-4-advanced-applications-and-futu",
+                                                                      "folder":  "lesson-04-judging-the-art-evaluation-metrics",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "ml-l4-leveling-up-conditional-gans",
-                                                                                          "title":  "Lesson 4: Leveling Up: Conditional GANs and Image Translation",
-                                                                                          "file":  "l1.1-lesson-4-leveling-up-conditional-gans-and-ima.html"
+                                                                                          "id":  "gan-l4-judging-the-art",
+                                                                                          "title":  "Lesson 4: Judging the Art (Evaluation Metrics)",
+                                                                                          "file":  "lesson-4-judging-the-art-evaluation-metrics.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "ml-cod1-first-conditional-gan",
-                                                                                          "title":  "Coding Lesson: Your First Conditional GAN",
-                                                                                          "file":  "cod3.3-lesson-3-your-first-conditional-gan.html"
+                                                                                          "id":  "gan-l4-1-geometry-of-fid",
+                                                                                          "title":  "Lesson 4.1: Manim Video Explainer - The Geometry of FID",
+                                                                                          "file":  "lesson-4-1-manim-video-explainer-the-geometry-of-fid.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "ml-pod4-creative-explosion",
-                                                                                          "title":  "Podcast: The Creative Explosion",
-                                                                                          "file":  "pod4.4-lesson-4-the-creative-explosion.html"
+                                                                                          "id":  "gan-l4-2-evaluators-dashboard",
+                                                                                          "title":  "Lesson 4.2: Experiment - The Evaluator's Dashboard",
+                                                                                          "file":  "lesson-4-2-experiment-the-evaluators-dashboard.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l4-3-calculating-fid",
+                                                                                          "title":  "Lesson 4.3: Coding - Calculating FID from Scratch",
+                                                                                          "file":  "lesson-4-3-coding-calculating-fid-from-scratch.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l4-4-podcast-art-critic",
+                                                                                          "title":  "Lesson 4.4: Podcast - The Art Critic in the Machine",
+                                                                                          "file":  "lesson-4-4-podcast-the-art-critic-in-the-machine.html"
                                                                                       }
                                                                                   ]
                                                                   },
                                                                   {
-                                                                      "id":  "ml-big-picture-beyond",
-                                                                      "title":  "The Big Picture and Beyond",
-                                                                      "description":  "This capstone module places GANs in the broader context of modern AI. We\u0027ll look at the current state-of-the-art with Diffusion Models and reflect on the profound and lasting legacy of the adversarial idea, solidifying your understanding of the generative AI landscape.",
+                                                                      "id":  "gan-evolving-architectures-future",
+                                                                      "title":  "Evolving Architectures & The Future",
+                                                                      "description":  "Cap the journey with cutting-edge GAN innovations. We visualize saddle points, implement DCGAN, experiment with playgrounds, and explore deepfakes, super-resolution, and future-facing ethics.",
                                                                       "icon":  "course_content/assets/icons/neural-networks-icon.svg",
-                                                                      "folder":  "cv-ch21-m5-module-5-advanced-applications-and-futu",
+                                                                      "folder":  "lesson-05-evolving-architectures-and-the-future",
                                                                       "lessons":  [
                                                                                       {
-                                                                                          "id":  "ml-l5-beyond-gans-big-picture",
-                                                                                          "title":  "Lesson 5: Beyond GANs and The Big Picture",
-                                                                                          "file":  "l1.1-lesson-5-beyond-gans-and-the-big-picture.html"
+                                                                                          "id":  "gan-l5-evolving-architectures",
+                                                                                          "title":  "Lesson 5: Evolving Architectures & The Future",
+                                                                                          "file":  "lesson-5-evolving-architectures-and-the-future.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "ml-example2-rise-diffusion-models",
-                                                                                          "title":  "Example Lesson: The Rise of the Diffusion Models",
-                                                                                          "file":  "ex2.2-lesson-2-the-rise-of-the-diffusion-models.html"
+                                                                                          "id":  "gan-l5-1-visualizing-saddle-point",
+                                                                                          "title":  "Lesson 5.1: Manim Video Explainer - Visualizing the Saddle Point",
+                                                                                          "file":  "lesson-5-1-manim-video-explainer-visualizing-the-saddle-point.html"
                                                                                       },
                                                                                       {
-                                                                                          "id":  "ml-pod5-shoulders-giants",
-                                                                                          "title":  "Podcast: The Shoulders of Giants",
-                                                                                          "file":  "pod4.4-lesson-4-the-shoulders-of-giants.html"
+                                                                                          "id":  "gan-l5-2-building-dcgan-mnist",
+                                                                                          "title":  "Lesson 5.2: Coding - Building a DCGAN for MNIST",
+                                                                                          "file":  "lesson-5-2-coding-building-a-dcgan-for-mnist.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l5-3-gan-playground",
+                                                                                          "title":  "Lesson 5.3: Experiment - The GAN Playground",
+                                                                                          "file":  "lesson-5-3-experiment-the-gan-playground.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l5-4-calculation-and-evaluation",
+                                                                                          "title":  "Lesson 5.4: Exercise - Calculation & Evaluation",
+                                                                                          "file":  "lesson-5-4-exercise-calculation-and-evaluation.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l5-5-art-of-deception",
+                                                                                          "title":  "Lesson 5.5: Example - The Art of Deception (Deepfakes & Super-Resolution)",
+                                                                                          "file":  "lesson-5-5-example-the-art-of-deception-deepfakes-and-super-resolution.html"
+                                                                                      },
+                                                                                      {
+                                                                                          "id":  "gan-l5-6-podcast-forger-detective",
+                                                                                          "title":  "Lesson 5.6: Podcast - The Forger and the Detective",
+                                                                                          "file":  "lesson-5-6-podcast-the-forger-and-the-detective.html"
                                                                                       }
                                                                                   ]
                                                                   }

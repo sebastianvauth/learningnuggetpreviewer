@@ -1,0 +1,128 @@
+{
+    "lesson": {
+      "title": "Seeing Like a Human - Non-Linear Gamma Correction",
+      "sections": [
+        {
+          "title": "Introduction: Beyond the Straight Line",
+          "content": "# Lesson 3: Seeing Like a Human - Non-Linear Gamma Correction",
+          "image": {
+            "description": "An image showing a comparison. On the left, a ruler represents a linear transformation, rigidly measuring everything the same. On the right, a flexible, curved measuring tape is wrapped around a complex shape, representing a non-linear transformation that adapts to different tones. The caption reads 'Linear vs. Non-Linear'."
+          },
+          "text": "Last time, we used straight lines to adjust our images. Linear transformations are powerful, but they have a key limitation: they treat a dark gray pixel and a light gray pixel in exactly the same way. But our eyes don't work like that! We're much more sensitive to changes in dark tones than in bright ones. In this lesson, we'll explore a more nuanced, non-linear approach called Gamma Correction that mimics human perception and produces more natural-looking results."
+        },
+        {
+          "title": "The Power of Gamma",
+          "content": "So what's the magic behind this more 'human' approach? It's not a straight line, but a curve. Specifically, a power-law function. Meet Gamma, your new best friend for sophisticated image adjustments.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "mathematicalExplanation": {
+                "title": "The Gamma Correction Formula",
+                "steps": [
+                  {
+                    "step": 1,
+                    "title": "Normalize the Input",
+                    "text": "First, we can't work with values from 0 to 255 directly. We need to scale our input gray value, `g`, down to a range of `[0, 1]`. We do this with a simple division:\n\n$$\\frac{g}{255}$$"
+                  },
+                  {
+                    "step": 2,
+          "title": "Apply the Power of Gamma ($\\gamma$)",
+                    "text": "Now for the core of the transformation. We take our normalized value and raise it to the power of gamma, denoted by the Greek letter $\\gamma$. \n\n$$\\left(\\frac{g}{255}\\right)^\\gamma$$"
+                  },
+                  {
+                    "step": 3,
+                    "title": "Scale it Back",
+                    "text": "Finally, we take the result and scale it back up to our familiar `[0, 255]` range by multiplying by 255. This gives us our complete formula:\n\n$$f(g) = 255 \\cdot \\left(\\frac{g}{255}\\right)^\\gamma$$"
+                  }
+                ]
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Interactive Playground: The Gamma Curve Explorer",
+          "content": "The effect of gamma is best understood by playing with it. Watch how the curve bends and how the image responds. Notice what happens at the very beginning and very end of the curve!",
+          "interactive": {
+            "description": "A user interface titled 'The Gamma Curve Explorer'.\n- **Left Side:** The sample portrait image from Figure 8.4 is displayed.\n- **Right Side:**\n  - **A Single Slider:** Labeled 'Gamma (γ)' and ranges from 0.2 to 5.0. Default is 1.0.\n  - **The Gamma Curve Graph:** A graph with 'Input' (0-255) on the x-axis and 'Output' (0-255) on the y-axis. A dotted diagonal line represents γ=1 (no change).\n- **Functionality:** As the user moves the slider:\n  - If `γ < 1` (e.g., 0.5), the solid curve bows *upwards* above the diagonal, and the image becomes brighter, especially in the mid-tones.\n  - If `γ > 1` (e.g., 2.2), the solid curve sags *downwards* below the diagonal, and the image becomes darker.\n  - **Crucially**, no matter the gamma value, the solid curve always starts at (0,0) and ends at (255,255), visually reinforcing that pure black and pure white are unaffected."
+          },
+          "continueButton": true
+        },
+        {
+          "title": "Gamma's Superpower",
+          "content": "Did you notice something amazing in the playground? No matter how you changed gamma, pure black stayed pure black, and pure white stayed pure white. This is Gamma's superpower!",
+          "whyItMatters": {
+            "text": "By preserving the black and white points, Gamma Correction avoids the harsh 'clipping' we saw with linear transformations. This means you don't get 'crushed blacks' (where all dark details become pure black) or 'blown-out whites' (where all bright details become pure white). It leads to more natural-looking adjustments and preserves precious detail in the shadows and highlights."
+          },
+          "continueButton": true
+        },
+        {
+          "title": "Gamma by the Numbers",
+          "content": "Let's get our hands dirty and see how this works with our trusty 4x4 patch from the lecture notes (Figure 8.2). We'll focus on a mid-tone pixel with a value of `g = 85`.",
+          "mathematicalExplanation": {
+            "title": "Worked Example: Gamma in Action",
+            "steps": [
+              {
+                "step": 1,
+                "title": "Case 1: Brightening with $\\gamma = 0.3$",
+                "text": "We want to make the image brighter. Let's use $\\gamma = 0.3$. Plugging `g=85` into our formula:\n\n$$f(85) = 255 \\cdot \\left(\\frac{85}{255}\\right)^{0.3} \\approx 255 \\cdot (0.333)^{0.3} \\approx 255 \\cdot 0.719 \\approx 183$$\n\nThe dark-ish value of 85 was expanded all the way up to a bright 183!"
+              },
+              {
+                "step": 2,
+                "title": "Case 2: Darkening with $\\gamma = 3$",
+                "text": "Now let's make the image darker with $\\gamma = 3$. Again, with `g=85`:\n\n$$f(85) = 255 \\cdot \\left(\\frac{85}{255}\\right)^{3} \\approx 255 \\cdot (0.333)^{3} \\approx 255 \\cdot 0.037 \\approx 9$$\n\nThis time, the same value of 85 was compressed down to a very dark 9!"
+              }
+            ]
+          },
+          "visualAid": {
+            "description": "A side-by-side display of the two resulting 4x4 patches from the calculations above (as seen in Figure 8.5 of the notes). The left patch is labeled 'γ = 0.3 (Brighter)' and the right patch is labeled 'γ = 3 (Darker)'. This provides a clear visual confirmation of the math."
+          },
+          "continueButton": true
+        },
+        {
+          "title": "Frequently Asked Questions",
+          "frequentlyAsked": {
+            "question": "Why is it even called 'Gamma Correction'?",
+            "answer": "Great question with a historical root! Old-school CRT monitors (the big, boxy ones) didn't display brightness linearly. Their response to an electrical signal was naturally a power-law function, and this inherent curve was called the monitor's 'gamma'. To make an image look correct on the screen, engineers had to apply an *inverse* gamma curve to the image signal *before* sending it to the monitor. This process was called 'Gamma Correction', and the name stuck!"
+          },
+          "continueButton": true
+        },
+        {
+          "title": "Test Your Knowledge",
+          "testYourKnowledge": {
+            "question": "You have a photograph that looks a bit washed out. You want to make the dark areas darker and the light areas lighter, increasing the overall 'punch' of the image, while making sure the whitest whites don't get clipped. Which Gamma value would be most appropriate?",
+            "options": [
+              {
+                "option": "γ = 0.4",
+                "explanation": "A gamma less than 1 will actually make the image brighter and even more washed out by compressing the brights and expanding the darks.",
+                "correct": false
+              },
+              {
+                "option": "γ = 1.0",
+                "explanation": "A gamma of 1 is the identity transformation – it won't change the image at all.",
+                "correct": false
+              },
+              {
+                "option": "γ = 2.2",
+                "explanation": "Exactly! A gamma greater than 1 darkens the mid-tones and expands the brights, which increases contrast and adds 'punch' without clipping the whites.",
+                "correct": true
+              },
+              {
+                "option": "Use a linear transformation instead.",
+                "explanation": "While a linear transform could increase contrast, it risks clipping the bright areas, which the question specifically wants to avoid.",
+                "correct": false
+              }
+            ]
+          }
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "You've just unlocked a technique used across digital imaging, from photography to video games to medical imaging!",
+          "image": {
+            "description": "A simple graphic showing the three gamma curves from Figure 8.4: the upward curve for γ<1 labeled 'Brighter Mid-tones', the downward curve for γ>1 labeled 'Darker Mid-tones', and the straight line for γ=1 labeled 'No Change'."
+          },
+          "text": "In this lesson, we discovered:\n- **Non-Linear Power:** Gamma Correction uses a power-law function, $f(g) = 255 \\cdot (g/255)^\\gamma$, to make more nuanced adjustments.\n- **The Gamma Effect:** A $\\gamma < 1$ brightens an image, while a $\\gamma > 1$ darkens it.\n- **The Superpower:** It preserves pure black and pure white, avoiding harsh clipping and creating more natural-looking results.\n\nSo far, *we've* been manually choosing the parameters (`c1`, `c2`, `γ`). But what if the image could tell us how to improve itself automatically? In our next lesson, we'll dive into histogram-based methods, where the image's own data guides the transformation."
+        }
+      ]
+    }
+  }

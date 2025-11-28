@@ -1,0 +1,1454 @@
+﻿<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>The Modern Era: Transformers and Foundation Models</title>
+<style>
+/* Core Design System */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #ffffff;
+    min-height: 100vh;
+    color: #2d3748;
+    line-height: 1.6;
+}
+
+/* Progress Bar */
+.progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+}
+
+/* Main Container */
+.lesson-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Sections */
+section {
+    background: transparent;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    display: none;
+    opacity: 0;
+    transition: all 0.6s ease;
+    transform: translateY(20px);
+    text-align: center;
+}
+
+section.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Text Alignment Override */
+section > *:not(.continue-button):not(.sam-simulator-controls) {
+    text-align: left;
+}
+
+/* Typography */
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 1rem;
+}
+
+p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+strong {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.image-placeholder {
+    margin: 1.5rem 0;
+}
+
+.image-placeholder img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+    display: block;
+}
+
+.image-caption {
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+    color: #94a3b8;
+    text-align: center;
+}
+
+/* Placeholders & Visuals */
+.placeholder-box {
+    width: 100%;
+    height: 220px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    background: #f8fafc;
+    font-weight: 600;
+    padding: 20px;
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+/* Special Boxes */
+.why-it-matters, .vocab-section, .check-your-knowledge, .test-your-knowledge, .stop-and-think {
+    margin: 2rem 0;
+    padding: 2rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+}
+
+.why-it-matters {
+    background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+    border-left-color: #f093fb;
+    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+}
+
+.vocab-section {
+    background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+    border-left-color: #4facfe;
+    box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+}
+
+.test-your-knowledge, .check-your-knowledge, .stop-and-think {
+    background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+    border-left-color: #68d391;
+    box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+}
+
+.check-your-knowledge h3, .stop-and-think h3 {
+    color: #10b981;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+/* Buttons */
+.continue-button, .reveal-button {
+    display: inline-block;
+    padding: 16px 32px;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.continue-button:hover, .reveal-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+
+/* SAM Simulator Specific Styles */
+.sam-simulator {
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 2px solid #e2e8f0;
+}
+
+.sam-viewport {
+    width: 100%;
+    height: 250px;
+    background: white;
+    border-radius: 8px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    overflow: hidden;
+    border: 1px solid #cbd5e1;
+}
+
+.sam-image-placeholder {
+    color: #cbd5e1;
+    font-weight: bold;
+    font-size: 1.5rem;
+    z-index: 1;
+}
+
+.sam-mask {
+    position: absolute;
+    display: none;
+    z-index: 2;
+    opacity: 0.6;
+}
+
+.mask-mug {
+    width: 40px; height: 50px; background: #3b82f6; border-radius: 4px; top: 100px; left: 30%;
+}
+.mask-toaster {
+    width: 80px; height: 60px; background: #22c55e; border-radius: 4px; top: 90px; left: 60%;
+}
+.mask-spoon {
+    width: 60px; height: 10px; background: #a855f7; border-radius: 50px; top: 160px; left: 45%;
+}
+
+.sam-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.sam-tool {
+    padding: 8px 16px;
+    border: 1px solid #cbd5e1;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.sam-tool:hover { background: #f8fafc; border-color: #94a3b8; }
+.sam-tool.active { background: #e0f2fe; border-color: #3b82f6; color: #0369a1; font-weight: 600; }
+.sam-feedback { margin-top: 15px; font-style: italic; color: #64748b; text-align: center; min-height: 1.6em;}
+
+/* Multiple Choice */
+.multiple-choice { margin: 1.5rem 0; text-align: left; }
+.choice-option {
+    display: block;
+    margin: 1rem 0;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+.choice-option:hover { transform: translateX(5px); border-color: rgba(102,126,234,0.3); }
+.choice-option.selected.correct { background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%); border-color: #68d391; }
+.choice-option.selected.incorrect { background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%); border-color: #f87171; }
+.choice-explanation { display: none; margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 8px; font-size: 0.95rem; }
+
+/* Mark as Completed Button */
+.mark-completed-button {
+    display: none;
+    width: 100%;
+    max-width: 400px;
+    margin: 40px auto 20px auto;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+    text-align: center;
+}
+.mark-completed-button.show { display: block; }
+.mark-completed-button.completed { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); cursor: default; }
+
+/* Success Message & Confetti */
+.success-message {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white; padding: 20px 30px; border-radius: 12px;
+    font-size: 1.1rem; font-weight: 600; opacity: 0; pointer-events: none;
+    animation: success-popup 2.5s ease-out; z-index: 10000;
+}
+@keyframes success-popup {
+    0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+    20%, 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+.confetti { position: absolute; font-size: 20px; animation: confetti-fall 3s linear infinite; }
+@keyframes confetti-fall { 0% { transform: translateY(-100vh); } 100% { transform: translateY(100vh) rotate(720deg); } }
+
+@media (max-width: 768px) {
+    .lesson-container { padding: 20px 15px; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.75rem; }
+}
+</style>
+<script>
+    // MathJax Configuration if needed
+    window.MathJax = {
+        tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+        options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+    <!-- Section 1: Intro -->
+    <section id="section1" class="visible">
+        <h1>The Modern Era: Transformers and Foundation Models</h1>
+        <h2>A New Age of Segmentation</h2>
+        <div class="image-placeholder">
+            <img src="images/1.jpg" alt="Timeline illustration from handcrafted CNNs to hybrid systems to foundation models">
+            <p class="image-caption">A timeline showing the journey from handcrafted CNNs to foundation models.</p>
+        </div>
+        <p>Welcome to the final lesson of this chapter! For the last few lessons, we've been acting like artisans—hand-crafting architectures, carefully placing convolution layers, and agonizing over dilation rates in ASPP. We built specialized tools for specialized jobs.</p>
+        <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+    </section>
+
+    <!-- Section 2: Specialists to Generalists -->
+    <section id="section2">
+        <h2>From Specialists to Generalists</h2>
+        <p>For years, if you wanted to segment a brain tumor, you built a 'Brain Tumor Network.' If you wanted to segment a cat, you built a 'Cat Network.'</p>
+        <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+    </section>
+
+    <!-- Section 3: Paradigm Shift Details -->
+    <section id="section3">
+        <p>But today, the paradigm has shifted. We are moving away from training specialized models from scratch toward using massive, pre-trained systems that understand images in a general sense.</p>
+        <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+    </section>
+
+    <!-- Section 4: The Three Stages -->
+    <section id="section4">
+        <p>This transition happened in three stages: Hybridization, Automation, and finally, the Foundation Model era.</p>
+        <div class="image-placeholder">
+            <img src="images/2.jpg" alt="Flowchart illustrating the progression from specialized CNNs to hybrid, automated, and foundation models">
+            <p class="image-caption">Hybrid → Automated → Foundation: how segmentation workflows evolved.</p>
+        </div>
+        <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+    </section>
+
+    <!-- Section 5: Stage 1 Swin-Unet -->
+    <section id="section5">
+        <h3>Stage 1: The Hybrid Approach (Swin-Unet)</h3>
+        <p>First, researchers realized that while Convolutional Neural Networks (CNNs) are great at detecting local features (edges, textures), they struggle with 'long-range dependencies'—understanding how pixels on opposite sides of an image relate to each other.</p>
+        <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+    </section>
+
+    <!-- Section 6: Enter Transformer -->
+    <section id="section6">
+        <p>Enter the <strong>Transformer</strong>. Originally built for language (like ChatGPT), Transformers are masters of global context. However, they lack the spatial precision we need for segmentation.</p>
+        <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+    </section>
+
+    <!-- Section 7: Swin-Unet Details -->
+    <section id="section7">
+        <p>The solution? Marry them. <strong>Swin-Unet</strong> is a hybrid architecture. It takes the classic U-Net shape we know and love but replaces the standard convolutional blocks with <strong>Swin Transformer blocks</strong>.</p>
+        
+        <!-- Swin-Unet Interactive Module -->
+<div class="interactive-container" style="width: 100%; max-width: 800px; margin: 0 auto; position: relative;">
+  <canvas id="unetCanvas" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: col-resize; touch-action: none; background: #f8fafc;"></canvas>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('unetCanvas');
+  const ctx = canvas.getContext('2d');
+  let sliderPos = 0.5; // 0 to 1
+  let isDragging = false;
+  let width, height;
+  
+  // Architecture Nodes (U-Shape positions)
+  const nodes = [
+      { x: 0.2, y: 0.15, type: 'enc', id: 1 }, // Top Left
+      { x: 0.2, y: 0.40, type: 'enc', id: 2 },
+      { x: 0.2, y: 0.65, type: 'enc', id: 3 },
+      { x: 0.5, y: 0.85, type: 'bottle', id: 4 }, // Bottleneck
+      { x: 0.8, y: 0.65, type: 'dec', id: 5 },
+      { x: 0.8, y: 0.40, type: 'dec', id: 6 },
+      { x: 0.8, y: 0.15, type: 'dec', id: 7 } // Top Right
+  ];
+
+  function resize() {
+      const parentWidth = canvas.parentElement.clientWidth;
+      // Aspect ratio 16:9 roughly
+      canvas.width = parentWidth * window.devicePixelRatio;
+      canvas.height = (parentWidth * 0.6) * window.devicePixelRatio;
+      canvas.style.height = (parentWidth * 0.6) + 'px';
+      
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      width = parentWidth;
+      height = parentWidth * 0.6;
+      draw();
+  }
+
+  // --- Drawing Helpers ---
+
+  function drawGrid(opacity) {
+      ctx.strokeStyle = `rgba(203, 213, 225, ${opacity})`; // slate-300
+      ctx.lineWidth = 1;
+      const step = 20;
+      for (let x = 0; x < width; x += step) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+      }
+      for (let y = 0; y < height; y += step) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+      }
+  }
+
+  function drawConnections(isTransformer) {
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // 1. Downsampling / Upsampling path
+      ctx.beginPath();
+      ctx.strokeStyle = isTransformer ? '#d6bcfa' : '#cbd5e1'; // purple-200 vs slate-300
+      ctx.lineWidth = 4;
+      
+      // Connect nodes in sequence
+      ctx.moveTo(nodes[0].x * width, nodes[0].y * height);
+      for(let i=1; i<nodes.length; i++) {
+          ctx.lineTo(nodes[i].x * width, nodes[i].y * height);
+      }
+      ctx.stroke();
+
+      // 2. Skip Connections (The dashed lines)
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = isTransformer ? '#805ad5' : '#475569'; // purple-600 vs slate-600
+      ctx.lineWidth = 2;
+      
+      // E1 -> D1
+      ctx.beginPath(); ctx.moveTo(nodes[0].x * width + 40, nodes[0].y * height); ctx.lineTo(nodes[6].x * width - 40, nodes[6].y * height); ctx.stroke();
+      // E2 -> D2
+      ctx.beginPath(); ctx.moveTo(nodes[1].x * width + 40, nodes[1].y * height); ctx.lineTo(nodes[5].x * width - 40, nodes[5].y * height); ctx.stroke();
+      // E3 -> D3
+      ctx.beginPath(); ctx.moveTo(nodes[2].x * width + 40, nodes[2].y * height); ctx.lineTo(nodes[4].x * width - 40, nodes[4].y * height); ctx.stroke();
+
+      ctx.setLineDash([]);
+  }
+
+  function drawConvBlock(node) {
+      const cx = node.x * width;
+      const cy = node.y * height;
+      const size = 35;
+      
+      // Draw 3 stacked squares to represent feature maps
+      ctx.fillStyle = '#ebf8ff'; // blue-50
+      ctx.strokeStyle = '#3182ce'; // blue-600
+      ctx.lineWidth = 2;
+
+      for(let i=0; i<3; i++) {
+          const offset = (i-1) * 4;
+          ctx.fillRect(cx - size/2 + offset, cy - size/2 - offset, size, size);
+          ctx.strokeRect(cx - size/2 + offset, cy - size/2 - offset, size, size);
+      }
+      
+      // Label
+      ctx.fillStyle = '#2c5282';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText("Conv2D", cx, cy + size + 10);
+  }
+
+  function drawTransformerBlock(node) {
+      const cx = node.x * width;
+      const cy = node.y * height;
+      const w = 45;
+      const h = 35;
+
+      // Glow effect
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'rgba(159, 122, 234, 0.5)';
+
+      // Block body
+      const grad = ctx.createLinearGradient(cx - w/2, cy - h/2, cx + w/2, cy + h/2);
+      grad.addColorStop(0, '#9f7aea'); // purple-400
+      grad.addColorStop(1, '#b83280'); // pink-600
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.roundRect(cx - w/2, cy - h/2, w, h, 6);
+      ctx.fill();
+      
+      ctx.shadowBlur = 0; // Reset glow for icon
+
+      // "Attention" Icon inside (Simple grid)
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      const pad = 8;
+      ctx.fillRect(cx - 10, cy - 10, 8, 8);
+      ctx.fillRect(cx + 2, cy - 10, 8, 8);
+      ctx.fillRect(cx - 10, cy + 2, 8, 8);
+      ctx.fillRect(cx + 2, cy + 2, 8, 8);
+
+      // Label
+      ctx.fillStyle = '#6b46c1';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText("Swin Block", cx, cy + h + 10);
+  }
+
+  function drawScene(type) {
+      const isSwin = type === 'swin';
+      
+      // Background Text
+      ctx.save();
+      ctx.font = 'bold 60px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = isSwin ? 'rgba(236, 72, 153, 0.08)' : 'rgba(71, 85, 105, 0.08)';
+      ctx.fillText(isSwin ? "SWIN TRANSFORMER" : "STANDARD U-NET", width/2, height/2);
+      ctx.restore();
+
+      drawGrid(isSwin ? 0.05 : 0.15);
+      drawConnections(isSwin);
+
+      nodes.forEach(node => {
+          if (isSwin) {
+              drawTransformerBlock(node);
+          } else {
+              drawConvBlock(node);
+          }
+      });
+
+      // Legend/Helper Text
+      ctx.font = '14px sans-serif';
+      ctx.fillStyle = '#475569';
+      ctx.textAlign = isSwin ? 'right' : 'left';
+      const mx = isSwin ? width - 20 : 20;
+      ctx.fillText(isSwin ? "Global Context (Attention)" : "Local Features (Convolution)", mx, 30);
+  }
+
+  function drawSlider() {
+      const x = sliderPos * width;
+      
+      // Line
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      // Handle
+      ctx.beginPath();
+      ctx.arc(x, height/2, 15, 0, Math.PI * 2);
+      ctx.fillStyle = 'white';
+      ctx.fill();
+      ctx.shadowBlur = 5;
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Arrows on handle
+      ctx.fillStyle = '#64748b';
+      ctx.beginPath();
+      ctx.moveTo(x - 4, height/2);
+      ctx.lineTo(x + 4, height/2 - 5);
+      ctx.lineTo(x + 4, height/2 + 5);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x + 4, height/2); // actually just arrows pointing left/right
+      // Let's simplify: < >
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '14px sans-serif';
+      ctx.fillText("↔", x, height/2);
+  }
+
+  function draw() {
+      ctx.clearRect(0, 0, width, height);
+      const splitX = sliderPos * width;
+
+      // 1. Draw Left Side (Standard)
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, splitX, height);
+      ctx.clip();
+      // Background
+      ctx.fillStyle = '#f1f5f9'; // slate-100
+      ctx.fillRect(0,0,width,height);
+      drawScene('standard');
+      ctx.restore();
+
+      // 2. Draw Right Side (Swin)
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(splitX, 0, width - splitX, height);
+      ctx.clip();
+      // Background
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, '#fff5f7'); // pink-50
+      grad.addColorStop(1, '#f3e8ff'); // purple-100
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,width,height);
+      drawScene('swin');
+      ctx.restore();
+
+      // 3. Draw Slider UI
+      drawSlider();
+  }
+
+  // --- Interaction ---
+
+  function getX(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      return clientX - rect.left;
+  }
+
+  function handleStart(e) {
+      isDragging = true;
+      handleMove(e);
+  }
+
+  function handleMove(e) {
+      if (!isDragging) return;
+      e.preventDefault(); // prevent scroll on touch
+      let x = getX(e);
+      // Clamp
+      x = Math.max(0, Math.min(width, x));
+      sliderPos = x / width;
+      requestAnimationFrame(draw);
+  }
+
+  function handleEnd() {
+      isDragging = false;
+  }
+
+  // Event Listeners
+  window.addEventListener('resize', resize);
+  canvas.addEventListener('mousedown', handleStart);
+  canvas.addEventListener('touchstart', handleStart);
+  window.addEventListener('mousemove', handleMove);
+  window.addEventListener('touchmove', handleMove);
+  window.addEventListener('mouseup', handleEnd);
+  window.addEventListener('touchend', handleEnd);
+
+  // Init
+  resize();
+})();
+</script>
+        
+        <p>This creates a 'best of both worlds' scenario: The Transformer backbone captures global context, while the U-Net structure preserves high-resolution spatial details.</p>
+        <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+    </section>
+
+    <!-- Section 8: Stage 2 nnU-Net -->
+    <section id="section8">
+        <h3>Stage 2: The Ultimate Engineer (nnU-Net)</h3>
+        <p>Before we reached true Foundation Models, there was an interesting detour called <strong>nnU-Net</strong> (no-new-Net).</p>
+        <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+    </section>
+
+    <!-- Section 9: nnU-Net Details -->
+    <section id="section9">
+        <p>Researchers realized that many 'new' architectures were just old architectures with better hyperparameter tuning. nnU-Net isn't a new network; it's a <strong>self-configuring framework</strong>.</p>
+        <p>It looks at your dataset—analyzing image sizes, spacing, and resolution—and automatically designs the perfect U-Net for you. It's like having a master engineer automate the tedious work we discussed in Lesson 1.</p>
+        <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+    </section>
+
+    <!-- Section 10: Stage 3 SAM -->
+    <section id="section10">
+        <h3>Stage 3: The Segment Anything Model (SAM)</h3>
+        <p>Now, we arrive at the current frontier: <strong>Foundation Models</strong>. The most famous of these in segmentation is the <strong>Segment Anything Model (SAM)</strong>.</p>
+        <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+    </section>
+
+    <!-- Section 11: Foundation Model & Zero Shot -->
+    <section id="section11">
+        <p>SAM represents a fundamental change. Instead of training a model to 'find cats,' SAM is trained on 1.1 billion masks (the SA-1B dataset) to simply 'understand objects.'</p>
+        
+        <div class="vocab-section">
+            <h3>Build Your Vocab</h3>
+            <h4>Foundation Model</h4>
+            <p>A large-scale model trained on a vast amount of data that can be adapted to a wide range of downstream tasks (like segmentation, detection, or classification) without retraining.</p>
+        </div>
+
+        <p>Because it has seen so many objects, it possesses a capability called <strong>Zero-Shot Transfer</strong>.</p>
+
+        <div class="vocab-section">
+            <h3>Build Your Vocab</h3>
+            <h4>Zero-Shot Transfer</h4>
+            <p>The ability of a model to perform a task on data or classes it was not explicitly trained on, relying on its general understanding of the problem space.</p>
+        </div>
+        <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+    </section>
+
+    <!-- Section 12: Promptable Design Intro -->
+    <section id="section12">
+        <p>But how do we tell it <em>what</em> to segment? This brings us to the core innovation: <strong>Promptable Design</strong>.</p>
+        <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+    </section>
+
+    <!-- Section 13: Architecture -->
+    <section id="section13">
+        <h2>Talking to the Model: Promptable Design</h2>
+        <p>SAM is designed to take two inputs: the image and a <strong>prompt</strong>. The prompt tells the model where to look.</p>
+        <div class="image-placeholder">
+            <img src="images/3.jpg" alt="Diagram showing SAM image encoder, prompt encoder, and mask decoder pipeline">
+            <p class="image-caption">SAM’s promptable design: image encoder + prompt encoder feeding the mask decoder.</p>
+        </div>
+        <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+    </section>
+
+    <!-- Section 14: Simulator -->
+    <section id="section14">
+        <p>Let's try this out. Below is a simulation of how we interact with SAM.</p>
+        
+        <!-- Interactive SAM Simulator -->
+        <!-- SAM Simulator Interactive Module -->
+<div class="sam-interactive-container" style="max-width: 800px; margin: 0 auto; font-family: -apple-system, sans-serif;">
+    
+  <!-- Canvas Viewport -->
+  <div style="position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #e2e8f0;">
+      <canvas id="samCanvas" style="width: 100%; display: block; background: #f8fafc; cursor: crosshair; touch-action: none;"></canvas>
+      
+      <!-- Floating Feedback Toast -->
+      <div id="samToast" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; opacity: 0; transition: opacity 0.3s; pointer-events: none;">
+          Processing...
+      </div>
+  </div>
+
+  <!-- Controls Toolbar -->
+  <div class="sam-controls" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; justify-content: center; align-items: center;">
+      
+      <button class="sam-tool-btn active" data-tool="point" onclick="selectSamTool('point')">
+          <span>📍</span> Point
+      </button>
+      <button class="sam-tool-btn" data-tool="box" onclick="selectSamTool('box')">
+          <span>🔲</span> Box
+      </button>
+      <button class="sam-tool-btn" data-tool="text" onclick="selectSamTool('text')">
+          <span>📝</span> Text
+      </button>
+      <div style="width: 1px; height: 24px; background: #cbd5e1; margin: 0 10px;"></div>
+      <button class="sam-tool-btn reset" onclick="resetSam()">
+          <span>↺</span> Reset
+      </button>
+  </div>
+
+  <!-- Text Input Area (Conditional) -->
+  <div id="samInputArea" style="margin-top: 15px; display: none; justify-content: center; gap: 10px;">
+      <input type="text" id="samTextInput" placeholder="Type 'spoon', 'mug', or 'toaster'..." 
+             style="padding: 10px 15px; border: 2px solid #cbd5e1; border-radius: 8px; width: 250px; font-size: 1rem; outline: none;">
+      <button onclick="submitSamText()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Segment</button>
+  </div>
+
+  <!-- Instructions / Status -->
+  <p id="samInstruction" style="text-align: center; color: #64748b; font-size: 0.95rem; margin-top: 15px; font-style: italic;">
+      Select <strong>Point</strong> tool and click on the <strong>Red Mug</strong>.
+  </p>
+
+</div>
+
+<style>
+  .sam-tool-btn {
+      padding: 8px 16px;
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #475569;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+  }
+  .sam-tool-btn:hover { background: #f1f5f9; transform: translateY(-1px); }
+  .sam-tool-btn.active {
+      background: #e0f2fe; border-color: #3b82f6; color: #0369a1; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.15);
+  }
+  .sam-tool-btn.reset:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+  
+  #samTextInput:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2); }
+</style>
+
+<script>
+// Encapsulate to avoid global scope pollution
+(function() {
+  const canvas = document.getElementById('samCanvas');
+  const ctx = canvas.getContext('2d');
+  const toast = document.getElementById('samToast');
+  const inputArea = document.getElementById('samInputArea');
+  const textInput = document.getElementById('samTextInput');
+  const instruction = document.getElementById('samInstruction');
+
+  // State
+  let currentTool = 'point'; // point, box, text
+  let width, height;
+  let isDragging = false;
+  let dragStart = { x: 0, y: 0 };
+  let dragCurrent = { x: 0, y: 0 };
+  
+  // Mask States
+  const masks = {
+      mug: { active: false, color: 'rgba(59, 130, 246, 0.6)', label: 'Mug' },    // Blue
+      toaster: { active: false, color: 'rgba(34, 197, 94, 0.6)', label: 'Toaster' }, // Green
+      spoon: { active: false, color: 'rgba(168, 85, 247, 0.6)', label: 'Spoon' }   // Purple
+  };
+
+  // Object Definitions (Relative positions 0-1)
+  const objects = {
+      mug: { x: 0.3, y: 0.6, w: 0.12, h: 0.15, type: 'cylinder' },
+      toaster: { x: 0.65, y: 0.55, w: 0.2, h: 0.18, type: 'rect' },
+      spoon: { x: 0.45, y: 0.75, w: 0.15, h: 0.04, type: 'line' }
+  };
+
+  // --- Drawing Logic ---
+
+  function resize() {
+      const parentWidth = canvas.parentElement.clientWidth;
+      if (!parentWidth) {
+          return; // Skip until the section is visible and has width
+      }
+      canvas.width = parentWidth * window.devicePixelRatio;
+      canvas.height = (parentWidth * 0.6) * window.devicePixelRatio;
+      canvas.style.height = (parentWidth * 0.6) + 'px';
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset any prior scaling before applying DPR scale
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      width = parentWidth;
+      height = parentWidth * 0.6;
+      draw();
+  }
+
+  function drawScene() {
+      // 1. Background (Countertop & Wall)
+      ctx.fillStyle = '#f8fafc'; // Wall
+      ctx.fillRect(0, 0, width, height);
+      
+      ctx.fillStyle = '#e2e8f0'; // Counter
+      ctx.fillRect(0, height * 0.5, width, height * 0.5);
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.beginPath(); ctx.moveTo(0, height*0.5); ctx.lineTo(width, height*0.5); ctx.stroke();
+
+      // 2. Draw Objects
+      drawObject('toaster', objects.toaster);
+      drawObject('mug', objects.mug);
+      drawObject('spoon', objects.spoon);
+
+      // 3. Draw Masks (if active)
+      if (masks.toaster.active) drawMask('toaster', objects.toaster);
+      if (masks.mug.active) drawMask('mug', objects.mug);
+      if (masks.spoon.active) drawMask('spoon', objects.spoon);
+      
+      // 4. UI Overlays (Box Dragging)
+      if (currentTool === 'box' && isDragging) {
+          ctx.strokeStyle = '#22c55e';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+          const w = dragCurrent.x - dragStart.x;
+          const h = dragCurrent.y - dragStart.y;
+          ctx.strokeRect(dragStart.x, dragStart.y, w, h);
+          ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
+          ctx.fillRect(dragStart.x, dragStart.y, w, h);
+          ctx.setLineDash([]);
+          
+          // Corner handles
+          ctx.fillStyle = '#22c55e';
+          ctx.fillRect(dragStart.x - 3, dragStart.y - 3, 6, 6);
+          ctx.fillRect(dragStart.x + w - 3, dragStart.y + h - 3, 6, 6);
+      }
+  }
+
+  function drawObject(name, obj) {
+      const x = obj.x * width;
+      const y = obj.y * height;
+      const w = obj.w * width;
+      const h = obj.h * height;
+
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'rgba(0,0,0,0.1)';
+
+      if (name === 'mug') {
+          // Body
+          ctx.fillStyle = '#ef4444'; // Red
+          ctx.beginPath();
+          ctx.roundRect(x, y, w, h, 8);
+          ctx.fill();
+          // Handle
+          ctx.lineWidth = 6;
+          ctx.strokeStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.arc(x + w, y + h/2, h/3, 1.5 * Math.PI, 0.5 * Math.PI);
+          ctx.stroke();
+          // Rim
+          ctx.fillStyle = '#fecaca';
+          ctx.beginPath(); ctx.ellipse(x + w/2, y, w/2, 6, 0, 0, 2*Math.PI); ctx.fill();
+      } 
+      else if (name === 'toaster') {
+          // Body
+          ctx.fillStyle = '#64748b'; // Silver
+          ctx.beginPath(); ctx.roundRect(x, y, w, h, 12); ctx.fill();
+          // Slots
+          ctx.fillStyle = '#334155';
+          ctx.fillRect(x + w*0.2, y, w*0.15, h*0.1);
+          ctx.fillRect(x + w*0.65, y, w*0.15, h*0.1);
+          // Knob
+          ctx.fillStyle = '#1e293b';
+          ctx.beginPath(); ctx.arc(x + w - 15, y + h/2, 10, 0, 2*Math.PI); ctx.fill();
+      }
+      else if (name === 'spoon') {
+          ctx.fillStyle = '#94a3b8'; // Metal
+          ctx.strokeStyle = '#94a3b8';
+          ctx.lineWidth = 4;
+          // Handle
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w*0.7, y + h); ctx.stroke();
+          // Bowl
+          ctx.beginPath(); 
+          ctx.ellipse(x + w*0.8, y + h + 2, w*0.2, h, Math.PI / 4, 0, 2*Math.PI); 
+          ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+  }
+
+  function drawMask(name, obj) {
+      const x = obj.x * width;
+      const y = obj.y * height;
+      const w = obj.w * width;
+      const h = obj.h * height;
+
+      ctx.fillStyle = masks[name].color;
+      
+      if (name === 'mug') {
+          ctx.beginPath(); ctx.roundRect(x - 5, y - 5, w + 30, h + 10, 8); ctx.fill();
+      } 
+      else if (name === 'toaster') {
+          ctx.beginPath(); ctx.roundRect(x - 5, y - 5, w + 10, h + 10, 12); ctx.fill();
+      }
+      else if (name === 'spoon') {
+          ctx.beginPath(); 
+          ctx.ellipse(x + w/2, y + h/2, w/1.5, h*2, Math.PI / 8, 0, 2*Math.PI); 
+          ctx.fill();
+      }
+  }
+
+  function draw() {
+      ctx.clearRect(0, 0, width, height);
+      drawScene();
+  }
+
+  // --- Logic Helpers ---
+
+  function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+      const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+      return {
+          x: clientX - rect.left,
+          y: clientY - rect.top
+      };
+  }
+
+  function checkPointCollision(px, py) {
+      // Simple bounding box check
+      for (const [key, obj] of Object.entries(objects)) {
+          const ox = obj.x * width;
+          const oy = obj.y * height;
+          const ow = obj.w * width;
+          const oh = obj.h * height;
+
+          // Extra padding for spoon
+          const pad = key === 'spoon' ? 20 : 0;
+
+          if (px >= ox - pad && px <= ox + ow + pad && py >= oy - pad && py <= oy + oh + pad) {
+              return key;
+          }
+      }
+      return null;
+  }
+
+  function checkBoxIntersection(box) {
+      // Calculate center of box
+      const cx = box.x + box.w / 2;
+      const cy = box.y + box.h / 2;
+      
+      // Find object closest to center of box
+      for (const [key, obj] of Object.entries(objects)) {
+          const ox = obj.x * width;
+          const oy = obj.y * height;
+          const ow = obj.w * width;
+          const oh = obj.h * height;
+          
+          // If the object center is inside the drawn box OR box center is inside object
+          if ((cx > ox && cx < ox + ow && cy > oy && cy < oy + oh) || 
+              (box.x < ox + ow && box.x + box.w > ox && box.y < oy + oh && box.y + box.h > oy)) {
+              return key;
+          }
+      }
+      return null;
+  }
+
+  function showToast(msg) {
+      toast.textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+  }
+
+  // --- Interaction Handlers ---
+
+  canvas.addEventListener('mousedown', startInteraction);
+  canvas.addEventListener('touchstart', startInteraction);
+  canvas.addEventListener('mousemove', moveInteraction);
+  canvas.addEventListener('touchmove', moveInteraction);
+  window.addEventListener('mouseup', endInteraction);
+  window.addEventListener('touchend', endInteraction);
+
+  function startInteraction(e) {
+      if (currentTool === 'text') return;
+      const pos = getMousePos(e);
+      
+      if (currentTool === 'point') {
+          // Click Effect
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 5, 0, 2*Math.PI);
+          ctx.fillStyle = '#3b82f6';
+          ctx.fill();
+          
+          const hit = checkPointCollision(pos.x, pos.y);
+          if (hit) {
+              masks[hit].active = true;
+              showToast(`Segmented: ${masks[hit].label}`);
+              draw();
+          } else {
+              showToast("No object found here.");
+          }
+      } else if (currentTool === 'box') {
+          isDragging = true;
+          dragStart = pos;
+          dragCurrent = pos;
+      }
+  }
+
+  function moveInteraction(e) {
+      if (!isDragging || currentTool !== 'box') return;
+      e.preventDefault(); // Stop scroll
+      dragCurrent = getMousePos(e);
+      draw();
+  }
+
+  function endInteraction(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      
+      if (currentTool === 'box') {
+          // Calculate Box Geometry
+          const x = Math.min(dragStart.x, dragCurrent.x);
+          const y = Math.min(dragStart.y, dragCurrent.y);
+          const w = Math.abs(dragCurrent.x - dragStart.x);
+          const h = Math.abs(dragCurrent.y - dragStart.y);
+
+          if (w < 10 || h < 10) return; // Ignore tiny drags
+
+          const hit = checkBoxIntersection({x,y,w,h});
+          if (hit) {
+              masks[hit].active = true;
+              showToast(`Segmented: ${masks[hit].label}`);
+          } else {
+              showToast("No object in box.");
+          }
+          draw();
+      }
+  }
+
+  // --- Global Hooks (exposed to window) ---
+
+  window.selectSamTool = function(tool) {
+      currentTool = tool;
+      
+      // Update UI
+      document.querySelectorAll('.sam-tool-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.sam-tool-btn[data-tool="${tool}"]`).classList.add('active');
+      
+      // Update Input Area
+      inputArea.style.display = (tool === 'text') ? 'flex' : 'none';
+      
+      // Update Instructions
+      const text = {
+          'point': "Click directly on an object (Mug, Toaster, Spoon).",
+          'box': "Click and drag a box around an object.",
+          'text': "Type a description below to find an object."
+      };
+      instruction.textContent = text[tool];
+      
+      if (tool === 'text') {
+           setTimeout(() => textInput.focus(), 100);
+      }
+  };
+
+  window.resetSam = function() {
+      Object.keys(masks).forEach(k => masks[k].active = false);
+      textInput.value = '';
+      showToast("Masks Cleared");
+      draw();
+  };
+
+  window.submitSamText = function() {
+      const val = textInput.value.toLowerCase().trim();
+      let hit = false;
+      
+      if (val.includes('mug') || val.includes('cup') || val.includes('red')) {
+          masks.mug.active = true; hit = true;
+      }
+      if (val.includes('toaster') || val.includes('machine') || val.includes('silver')) {
+          masks.toaster.active = true; hit = true;
+      }
+      if (val.includes('spoon') || val.includes('utensil')) {
+          masks.spoon.active = true; hit = true;
+      }
+
+      if (hit) {
+          showToast("Generating masks from text...");
+          draw();
+      } else {
+          showToast("No object matched that description.");
+      }
+  };
+  
+  // Allow Enter key
+  textInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') window.submitSamText();
+  });
+
+  // Init
+  window.addEventListener('resize', resize);
+
+  // Recompute layout when the section becomes visible or the container is resized
+  const samSection = document.getElementById('section14');
+  if (samSection) {
+      const visibilityObserver = new MutationObserver((mutations, observer) => {
+          if (samSection.classList.contains('visible')) {
+              observer.disconnect();
+              requestAnimationFrame(resize);
+          }
+      });
+      visibilityObserver.observe(samSection, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  if (window.ResizeObserver && canvas.parentElement) {
+      const containerObserver = new ResizeObserver(entries => {
+          entries.forEach(entry => {
+              if (entry.contentRect.width > 0) {
+                  requestAnimationFrame(resize);
+              }
+          });
+      });
+      containerObserver.observe(canvas.parentElement);
+  }
+
+  resize();
+
+})();
+</script>
+
+        <p>Did you notice how fast the mask appeared after you clicked? That's by design.</p>
+        <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+    </section>
+
+    <!-- Section 15: Encoder/Decoder Split -->
+    <section id="section15">
+        <p>The massive <strong>Image Encoder</strong> (a Vision Transformer) runs only once per image to create a mathematical summary called an <strong>embedding</strong>. This part is heavy and slow.</p>
+        <p>However, the <strong>Mask Decoder</strong>—the part that listens to your click—is incredibly lightweight. Once the image is encoded, generating a mask takes milliseconds.</p>
+        
+        <div class="stop-and-think">
+            <h3>Stop and Think</h3>
+            <h4>Why is it so important that the Image Encoder and Mask Decoder are separated? Hint: Think about a user editing a photo in Photoshop using this tool.</h4>
+            <div id="sat-answer" style="display:none; margin-top:1rem;">
+                <strong>Answer:</strong> User Experience! If the heavy Image Encoder had to run every time you clicked a new point, the tool would be agonizingly slow. By separating them, the heavy lifting happens once, and the interaction becomes real-time.
+            </div>
+            <button class="reveal-button" onclick="revealAnswer('sat-answer')">Reveal Answer</button>
+        </div>
+
+        <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+    </section>
+
+    <!-- Section 16: Why It Matters & FAQ -->
+    <section id="section16">
+        <h2>Why It Matters</h2>
+        <p>Foundation models like SAM are democratizing computer vision. You no longer need a PhD and a dataset of 10,000 labeled images to build a segmentation tool for your specific problem.</p>
+        
+        <div class="why-it-matters">
+            <h3>Why It Matters</h3>
+            <p>This lowers the barrier to entry. Biologists, urban planners, and artists can now use state-of-the-art segmentation without writing a single line of training code.</p>
+        </div>
+
+        <p>You can simply take a pre-trained SAM and 'prompt' it to solve your task. This shifts the workflow from 'Training Models' to 'Engineering Prompts'.</p>
+        
+        <div class="check-your-knowledge">
+            <h3>Common Misconception</h3>
+            <h4>Does SAM know what the object 'is'?</h4>
+            <p><strong>Not necessarily.</strong> SAM is trained to separate 'things' from 'background'. If you click on a cat, it knows exactly which pixels belong to that object, but it doesn't inherently output the label 'Cat' unless it is paired with a classification model. It is a master of geometry, not necessarily semantics.</p>
+        </div>
+
+        <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+    </section>
+
+    <!-- Section 17: Quiz -->
+    <section id="section17">
+        <div class="test-your-knowledge">
+            <h3>Test Your Knowledge</h3>
+            <h4>Which of the following is NOT a valid prompt for the Segment Anything Model (SAM)?</h4>
+            <div class="multiple-choice">
+                <div class="choice-option" onclick="selectChoice(this, false, 'This is valid! A click tells SAM \'this pixel is part of the object I want.\'')">A single pixel point (foreground click)</div>
+                <div class="choice-option" onclick="selectChoice(this, false, 'This is valid! A box tells SAM \'the object is somewhere inside this rectangle.\'')">A bounding box</div>
+                <div class="choice-option" onclick="selectChoice(this, false, 'This is valid! SAM can process text prompts like \'the black cat\' to find the object.')">A text description</div>
+                <div class="choice-option" onclick="selectChoice(this, true, 'Correct! A kernel is a weight matrix used inside a network, not a user-provided prompt to guide segmentation.')">A standard Convolutional Kernel</div>
+            </div>
+        </div>
+        <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+    </section>
+
+    <!-- Section 18: Review -->
+    <section id="section18">
+        <h2>Review and Reflect</h2>
+
+        <p>We have traveled a long way in this chapter. We started with <strong>ASPP</strong> helping networks see context. We moved to <strong>Mask R-CNN</strong> to separate individual instances using <strong>RoIAlign</strong>. And finally, we saw how <strong>Foundation Models</strong> like SAM are changing the game with <strong>Zero-Shot Transfer</strong> and <strong>Promptable Segmentation</strong>.</p>
+        <p>You now have a complete view of the advanced segmentation landscape. From manual architectures to AI that you can talk to, you are ready to apply these tools to the real world.</p>
+    </section>
+
+    <!-- Completion Button -->
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 18; // Updated count
+
+updateProgress();
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    
+    if (!nextSectionElement) return;
+    
+    // Hide button used to trigger
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    // Show completion button if at end
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+
+    // Smooth scroll to next section
+    setTimeout(() => { 
+        nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+// Interactive Logic for SAM Simulator
+function simulateSAM(tool, btnElement) {
+    // Reset state
+    document.querySelectorAll('.sam-mask').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.sam-tool').forEach(el => el.classList.remove('active'));
+    const feedback = document.getElementById('sam-feedback');
+
+    if (tool === 'reset') {
+        feedback.innerText = "Select a tool to interact with the scene.";
+        return;
+    }
+
+    // Set active button
+    btnElement.classList.add('active');
+
+    // Simulate functionality based on JSON description
+    if (tool === 'point') {
+        document.getElementById('mask-mug').style.display = 'block';
+        feedback.innerHTML = "User clicked on the coffee mug. <strong>Blue mask</strong> instantly generated.";
+    } else if (tool === 'box') {
+        document.getElementById('mask-toaster').style.display = 'block';
+        feedback.innerHTML = "User dragged box around toaster. <strong>Green mask</strong> instantly generated.";
+    } else if (tool === 'text') {
+        document.getElementById('mask-spoon').style.display = 'block';
+        feedback.innerHTML = "User typed 'The silver spoon'. <strong>Purple mask</strong> generated via text embedding.";
+    }
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.style.animation = "fadeIn 0.5s ease-out";
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+// Completion Logic
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Communicate with parent LMS if available
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Default IDs based on context, can be overridden by URL params
+                let courseId = 'computer-vision'; 
+                let pathId = 'transformers-foundation'; 
+                let moduleId = 'cv-ch19-segmentation'; 
+                let lessonId = 'cv-ch19-l4-modern-era';
+
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch19-l4_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Chapter Completed! Excellent! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { 
+        if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); 
+    }, 2500);
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.innerHTML = '●';
+            confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    
+    setTimeout(() => { 
+        if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); 
+    }, 5000);
+}
+
+// Initialization Check
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (localStorage.getItem('lesson_cv-ch19-l4_completed') === 'true') {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

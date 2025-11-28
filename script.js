@@ -1747,6 +1747,7 @@ function renderHomeDashboard(courses) {
             continueButton.textContent = 'Locked';
         }
         featuredCard.appendChild(continueButton);
+        applyDisabledCardState(featuredCard, { buttonElement: continueButton });
         
         featuredSection.appendChild(featuredCard);
         
@@ -1893,6 +1894,7 @@ function updateFeaturedCard(course, allCourses, courseIndex) {
                     button.style.cursor = 'not-allowed';
                     button.textContent = 'Locked';
                 }
+                applyDisabledCardState(featuredCard, { buttonElement: button });
             }
             
             featuredCard.style.opacity = '1';
@@ -1920,13 +1922,66 @@ function getChapterNumberFromFolder(folderPath) {
     }
 }
 
+const UNLOCKED_LEARNING_PATH_COUNT = 4;
+const unlockedChapterFloorCache = new WeakMap();
+
+function getUnlockedChapterFloor(course) {
+    if (!course || !Array.isArray(course.learningPaths)) return null;
+    
+    if (unlockedChapterFloorCache.has(course)) {
+        return unlockedChapterFloorCache.get(course);
+    }
+    
+    const chapterNumbers = course.learningPaths
+        .map(path => getChapterNumberFromFolder(path.folder || path.id || ''))
+        .filter(number => typeof number === 'number' && !Number.isNaN(number))
+        .sort((a, b) => a - b);
+    
+    if (chapterNumbers.length === 0) {
+        unlockedChapterFloorCache.set(course, null);
+        return null;
+    }
+    
+    const sliceStart = Math.max(chapterNumbers.length - UNLOCKED_LEARNING_PATH_COUNT, 0);
+    const unlockedChapters = chapterNumbers.slice(sliceStart);
+    const unlockFloor = Math.min(...unlockedChapters);
+    unlockedChapterFloorCache.set(course, unlockFloor);
+    return unlockFloor;
+}
+
 function shouldLockLearningPath(course, path) {
-    if (!course || !path) return false;
-    if (course.id !== 'computer-vision') return false;
-    const chapter = getChapterNumberFromFolder(path.folder || '');
-    if (chapter == null) return false;
-    // Lock from Chapter 7 (cv-ch07) onward for alpha
-    return chapter >= 7;
+    try {
+        if (!course || !path) return false;
+        
+        const unlockFloor = getUnlockedChapterFloor(course);
+        if (unlockFloor === null) return false;
+        
+        const chapterNumber = getChapterNumberFromFolder(path.folder || path.id || '');
+        if (chapterNumber === null) return false;
+        
+        return chapterNumber < unlockFloor;
+    } catch (error) {
+        console.warn('Unable to determine lock state for learning path:', error);
+        return false;
+    }
+}
+
+function applyDisabledCardState(cardElement, options = {}) {
+    if (!cardElement) return;
+    
+    const { buttonElement, buttonSelector, lockedLabel = 'Locked' } = options;
+    cardElement.classList.add('card-disabled');
+    cardElement.setAttribute('aria-disabled', 'true');
+    
+    const targetButton = buttonElement || (buttonSelector ? cardElement.querySelector(buttonSelector) : null);
+    if (targetButton) {
+        targetButton.disabled = true;
+        targetButton.textContent = lockedLabel;
+        targetButton.style.cursor = 'not-allowed';
+        if (!targetButton.style.opacity) {
+            targetButton.style.opacity = '0.8';
+        }
+    }
 }
 
 // Determine if a lesson is a primary "L" lesson (clickable)
@@ -2049,9 +2104,8 @@ function renderLearningPathsView(course) {
         const suggestedPath = course.learningPaths.find(p => p.id === suggestedLesson.pathId);
         const suggestedModule = suggestedPath?.modules.find(m => m.id === suggestedLesson.moduleId);
         const suggestedLessonObj = suggestedModule?.lessons.find(l => l.id === suggestedLesson.lessonId);
-        const suggestedLocked = shouldLockLearningPath(course, suggestedPath);
         
-        if (suggestedLessonObj && !suggestedLocked) {
+        if (suggestedLessonObj) {
             continueCard.innerHTML = `
                 <div class="continue-card-content">
                     <div class="continue-lesson-badge">${suggestedPath.title}</div>
@@ -2065,16 +2119,12 @@ function renderLearningPathsView(course) {
                 </button>
             `;
             
-            continueCard.addEventListener('click', () => {
-                navigateToLesson(course.id, suggestedLesson.pathId, suggestedLesson.moduleId, suggestedLesson.lessonId);
-            });
-        } else {
-            // If suggestion points to a locked path, skip rendering the card
-            continueSection.style.display = 'none';
+            const continueButton = continueCard.querySelector('.continue-action-btn');
+            applyDisabledCardState(continueCard, { buttonElement: continueButton });
+            
+            continueSection.appendChild(continueCard);
+            mainElement.appendChild(continueSection);
         }
-        
-        continueSection.appendChild(continueCard);
-        mainElement.appendChild(continueSection);
     }
 
     // Learning Paths Section
@@ -2167,6 +2217,15 @@ function renderLearningPathsView(course) {
                 }
                 
                 moduleCard.appendChild(statusIndicator);
+
+                // Optional module icon in list
+                if (module.icon) {
+                    const moduleListIcon = document.createElement('img');
+                    moduleListIcon.src = module.icon;
+                    moduleListIcon.className = 'module-list-icon';
+                    moduleListIcon.alt = '';
+                    moduleCard.appendChild(moduleListIcon);
+                }
                 
                 // Module content
                 const moduleContent = document.createElement('div');
@@ -2275,13 +2334,16 @@ function renderModuleLessonsView(course, path, module) {
     const moduleCard = document.createElement('div');
     moduleCard.className = 'module-info-card';
 
-    // Module icon
-    if (course.icon) {
-        const moduleIcon = document.createElement('img');
-        moduleIcon.src = course.icon;
-        moduleIcon.className = 'module-info-icon';
-        moduleIcon.alt = '';
-        moduleCard.appendChild(moduleIcon);
+    // Module icon (prefer module.icon, then path.icon, then course.icon)
+    {
+        const iconSrc = (module && module.icon) || (path && path.icon) || (course && course.icon);
+        if (iconSrc) {
+            const moduleIcon = document.createElement('img');
+            moduleIcon.src = iconSrc;
+            moduleIcon.className = 'module-info-icon';
+            moduleIcon.alt = '';
+            moduleCard.appendChild(moduleIcon);
+        }
     }
 
     // Module title
@@ -2340,13 +2402,9 @@ function renderModuleLessonsView(course, path, module) {
     }
 
     // Determine lesson access/lock logic
-    let lastCompletedIndex = -1;
-    module.lessons.forEach((lesson, index) => {
-        const progress = ProgressTracker.getLessonProgress(course.id, path.id, module.id, lesson.id);
-        if (progress.state === ProgressTracker.STATES.COMPLETED) {
-            lastCompletedIndex = index;
-        }
-    });
+    const firstPrimaryLessonIndex = module.lessons.findIndex(isPrimaryLesson);
+    const accessibleLessonIndex = firstPrimaryLessonIndex >= 0 ? firstPrimaryLessonIndex : 0;
+    const restrictAccessToPrimary = firstPrimaryLessonIndex !== -1;
 
     // Level header
     const levelHeader = document.createElement('div');
@@ -2358,17 +2416,13 @@ function renderModuleLessonsView(course, path, module) {
     const lessonsList = document.createElement('div');
     lessonsList.className = 'brilliant-lessons-list';
 
-    let nextLessonToFeature = null;
+    let nextLessonToFeature = module.lessons[accessibleLessonIndex] || null;
 
     module.lessons.forEach((lesson, index) => {
         const progress = ProgressTracker.getLessonProgress(course.id, path.id, module.id, lesson.id);
         const isPrimary = isPrimaryLesson(lesson);
-        const isAccessible = isPrimary && (index <= lastCompletedIndex + 1); // Only primary lessons and sequential gating
-        const isNext = index === lastCompletedIndex + 1 && progress.state === ProgressTracker.STATES.NOT_STARTED;
-
-        if (isNext && !nextLessonToFeature) {
-            nextLessonToFeature = lesson;
-        }
+        const isAccessible = index === accessibleLessonIndex && (!restrictAccessToPrimary || isPrimary);
+        const isNext = index === accessibleLessonIndex;
 
         // Lesson item
         const lessonItem = document.createElement('div');
@@ -2381,6 +2435,7 @@ function renderModuleLessonsView(course, path, module) {
         if (!isAccessible) {
             statusIndicator.innerHTML = '<div class="status-icon locked">🔒</div>';
             lessonItem.classList.add('locked');
+            lessonItem.setAttribute('aria-disabled', 'true');
         } else {
             switch (progress.state) {
                 case ProgressTracker.STATES.COMPLETED:
@@ -2439,13 +2494,6 @@ function renderModuleLessonsView(course, path, module) {
         lessonItem.appendChild(statusIndicator);
         lessonItem.appendChild(lessonContent);
 
-        // If not primary lesson, show lock styling
-        if (!isPrimary) {
-            lessonItem.classList.add('locked');
-            lessonItem.setAttribute('aria-disabled', 'true');
-            statusIndicator.innerHTML = '<div class="status-icon locked">🔒</div>';
-        }
-
         // Click handler (only for accessible primary lessons)
         if (isAccessible) {
             lessonItem.style.cursor = 'pointer';
@@ -2482,21 +2530,10 @@ function renderModuleLessonsView(course, path, module) {
         const featuredButton = document.createElement('button');
         featuredButton.className = 'featured-lesson-start-btn';
         featuredButton.textContent = 'Start';
-        const isPrimaryNext = isPrimaryLesson(nextLessonToFeature);
-        const pathLocked = shouldLockLearningPath(course, path);
-        if (isPrimaryNext && !pathLocked) {
-            featuredButton.addEventListener('click', () => {
-                navigateToLesson(course.id, path.id, module.id, nextLessonToFeature.id);
-            });
-        } else {
-            featuredButton.disabled = true;
-            featuredButton.style.opacity = '0.7';
-            featuredButton.style.cursor = 'not-allowed';
-            featuredButton.textContent = 'Locked';
-        }
         
         featuredLesson.appendChild(featuredTitle);
         featuredLesson.appendChild(featuredButton);
+        applyDisabledCardState(featuredLesson, { buttonElement: featuredButton });
         rightColumn.appendChild(featuredLesson);
     }
 
