@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Transformer Era – DETR</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1 -->
+<section id="section1" class="visible">
+    <figure class="image-placeholder">
+        <img src="images/1.jpg" alt="Side-by-side comparison showing the multi-stage R-CNN pipeline next to DETR's clean end-to-end transformer pipeline" loading="lazy">
+        <figcaption>DETR streamlines detection by replacing the gear-filled R-CNN stack of proposals, SVMs, and post-processing with a single transformer-driven pathway.</figcaption>
+    </figure>
+    <h1>The Transformer Era – DETR</h1>
+    <h2>The Holy Grail of Detection</h2>
+    
+    <p>For the last few lessons, we've been dealing with some necessary evils. To make object detection work, we had to invent 'Anchor Boxes' to guess object shapes and use 'Non-Maximum Suppression' (NMS) to clean up messy duplicate predictions. These are heuristics—hand-crafted engineering tricks that don't actually learn from data.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2 -->
+<section id="section2">
+    <h2>Enter the Transformer</h2>
+    <p>What if we could throw all that away? What if we could just show the network an image and ask: 'Give me the set of objects in this picture,' and it just... did it?</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3 -->
+<section id="section3">
+    <p>This is the promise of <strong>DETR</strong> (DEtection TRansformer). By adapting the Transformer architecture—famous for revolutionizing Natural Language Processing—to computer vision, we can create a truly end-to-end detector.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4 -->
+<section id="section4">
+    <p>Let's look at the pipeline. It's shockingly simple compared to Faster R-CNN or YOLO:</p>
+    <figure class="image-placeholder">
+        <img src="images/2.jpg" alt="Block diagram of the DETR pipeline moving from an input image through a CNN backbone, transformer encoder and decoder, into class and box heads" loading="lazy">
+        <figcaption>Every DETR prediction follows this simple flow: features from the CNN backbone feed the transformer encoder-decoder, where object queries drive the shared heads for class labels and bounding boxes.</figcaption>
+    </figure>
+    <ul>
+        <li><strong>1. CNN Backbone:</strong> Extracts features (just like before).</li>
+        <li><strong>2. Transformer Encoder:</strong> Looks at all features simultaneously (Global Attention).</li>
+        <li><strong>3. Transformer Decoder:</strong> Uses 'Object Queries' to find objects.</li>
+        <li><strong>4. Prediction Heads:</strong> Outputs the final list.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5 -->
+<section id="section5">
+    <p>The key innovation here is <strong>Set Prediction</strong>. Instead of sliding a window or using thousands of grid cells, DETR predicts a fixed set of \(N\) items at once.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Set Prediction</h4>
+        <p>A paradigm where the model outputs a fixed-size collection of predictions (e.g., 100 boxes) in a single pass, without relying on sequential processing or sliding windows.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6 -->
+<section id="section6">
+    <h2>Object Queries: Fill in the Blanks</h2>
+    <p>The most confusing part of DETR for newcomers is usually the <strong>Transformer Decoder</strong> and its <strong>Object Queries</strong>. Let's demystify them.</p>
+    <p>Imagine you have a fixed number of 'slots' to fill—let's say \(N=100\). These slots are the <strong>Object Queries</strong>. They are learned vectors that essentially ask the image: "Is there an object for me here?"</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7 -->
+<section id="section7">
+    <p>Each query attends to the image features coming from the encoder. One query might learn to look for large objects in the center, while another looks for small objects in the corners. They don't have fixed positions like Anchor Boxes; they learn where to look.</p>
+    <p>If there are only 3 objects in the image (a cat, a dog, and a car), 3 queries will output those objects, and the remaining 97 queries will output 'No Object' (\(\emptyset\)).</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- SECTION 8: QUIZ 1 -->
+<section id="section8">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>What is the primary input to the Transformer Decoder in DETR?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. The raw image is processed by the CNN backbone first.')">The raw image pixels</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No! The whole point of DETR is to get rid of Anchor Boxes.')">Anchor Boxes</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! It takes the learned Object Queries (the \'slots\') and the image features from the Encoder.')">Object Queries and Image Features</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'NMS is a post-processing step used in other models, not an input to the decoder.')">Non-Maximum Suppression</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-quiz-1" onclick="showNextSection(9)" style="display: none;">Continue</div>
+</section>
+
+<!-- SECTION 9 -->
+<section id="section9">
+    <h2>The Matching Game</h2>
+    <p>Here is the problem: The model outputs 100 predictions. The ground truth has 2 objects. How do we train the model? Which of the 100 predictions should match with the 'Cat'? Which one should match with the 'Dog'?</p>
+    <p>In YOLO, we matched based on grid position. In R-CNN, we matched based on Anchor overlap (IoU). In DETR, we solve a <strong>Bipartite Matching</strong> problem.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- SECTION 10: Interactive Placeholder -->
+<section id="section10">
+    <p>We need to find the unique one-to-one assignment that minimizes the error. Let's try it.</p>
+    <!-- Interactive Bipartite Matching Module -->
+<div class="interactive-container" id="bipartiteGameContainer">
+  <div class="game-header">
+      <p><strong>Goal:</strong> Connect the Predicted Boxes (Blue) to the Ground Truths (Right) to minimize error.</p>
+      <button class="reset-btn" onclick="bipartiteGame.reset()">Reset</button>
+  </div>
+  <canvas id="bipartiteCanvas"></canvas>
+  <div id="game-feedback" class="game-feedback">Connect all items...</div>
+</div>
+
+<!-- Hidden Success Text that reveals upon completion -->
+<div id="post-game-text">
+  <p><strong>Exactly!</strong> By finding the optimal matching, we ensure that exactly one prediction is responsible for the Cat, exactly one for the Dog, and the rest represent 'No Object'.</p>
+</div>
+
+<script>
+const bipartiteGame = (function() {
+  const canvas = document.getElementById('bipartiteCanvas');
+  const ctx = canvas.getContext('2d');
+  const feedbackEl = document.getElementById('game-feedback');
+  const postGameText = document.getElementById('post-game-text');
+  const container = document.getElementById('bipartiteGameContainer');
+
+  // Configuration
+  const width = 600;
+  const height = 400;
+  
+  // High DPI scaling
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  canvas.style.width = '100%';
+  canvas.style.height = 'auto'; // Aspect ratio handled by CSS max-width
+  ctx.scale(dpr, dpr);
+
+  // State
+  let isDragging = false;
+  let dragStartNode = null;
+  let currentMousePos = { x: 0, y: 0 };
+  let connections = []; // { from: nodeIndex, to: nodeIndex }
+  let solved = false;
+
+  // Define Nodes
+  // Left Nodes: Predictions (Box A, B, C)
+  const leftNodes = [
+      { id: 'A', x: 250, y: 100, label: 'Box A', type: 'pred', target: 'Cat' },
+      { id: 'B', x: 250, y: 220, label: 'Box B', type: 'pred', target: 'Dog' },
+      { id: 'C', x: 250, y: 340, label: 'Box C', type: 'pred', target: 'Null' }
+  ];
+
+  // Right Nodes: Truths
+  const rightNodes = [
+      { id: 'T1', x: 500, y: 100, label: 'Truth: Cat', type: 'truth', value: 'Cat' },
+      { id: 'T2', x: 500, y: 220, label: 'Truth: Dog', type: 'truth', value: 'Dog' },
+      { id: 'T3', x: 500, y: 340, label: 'No Object (∅)', type: 'truth', value: 'Null' }
+  ];
+
+  function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width / dpr; // relationship bitmap vs element for X
+      const scaleY = canvas.height / rect.height / dpr;
+      
+      // Handle touch or mouse
+      const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+      const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+
+      return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+      };
+  }
+
+  function drawScene() {
+      ctx.clearRect(0, 0, width, height);
+
+      // 1. Draw "Image" Context (Left side background)
+      ctx.fillStyle = "#f1f5f9";
+      ctx.fillRect(20, 40, 300, 320);
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(20, 40, 300, 320);
+      
+      // Draw "Cat" (Simplified shape)
+      ctx.fillStyle = "#fdba74"; // Orange-ish
+      ctx.beginPath();
+      ctx.ellipse(100, 100, 40, 30, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#9a3412";
+      ctx.font = "12px sans-serif";
+      ctx.fillText("Cat", 90, 105);
+
+      // Draw "Dog" (Simplified shape)
+      ctx.fillStyle = "#bea6a0"; // Brown-ish
+      ctx.beginPath();
+      ctx.ellipse(180, 220, 50, 40, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#4a2c2a";
+      ctx.fillText("Dog", 170, 225);
+
+      // 2. Draw Prediction Boxes (Dashed)
+      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 2;
+
+      // Box A (Over Cat)
+      ctx.strokeStyle = "#3b82f6"; // Blue
+      ctx.strokeRect(50, 60, 100, 80);
+      
+      // Box B (Over Dog)
+      ctx.strokeRect(120, 170, 120, 100);
+
+      // Box C (Empty space bottom left)
+      ctx.strokeRect(40, 280, 80, 60);
+
+      ctx.setLineDash([]); // Reset dash
+
+      // 3. Draw Connections
+      connections.forEach(conn => {
+          const start = leftNodes.find(n => n.id === conn.from);
+          const end = rightNodes.find(n => n.id === conn.to);
+          drawCurve(start, end, solved ? (isValidConnection(start, end) ? "#10b981" : "#ef4444") : "#6366f1");
+      });
+
+      // 4. Draw Active Drag Line
+      if (isDragging && dragStartNode) {
+          drawCurve(dragStartNode, currentMousePos, "#a5b4fc");
+      }
+
+      // 5. Draw Nodes
+      leftNodes.forEach(node => drawNode(node));
+      rightNodes.forEach(node => drawNode(node));
+  }
+
+  function drawNode(node) {
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = isNodeConnected(node.id) ? "#6366f1" : "#94a3b8"; // Purple if connected
+      if(solved) {
+           // Turn green if correct, red if wrong (simplified logic for visual only)
+           ctx.strokeStyle = "#94a3b8"; 
+      }
+      ctx.stroke();
+
+      // Label
+      ctx.fillStyle = "#475569";
+      ctx.font = "bold 14px sans-serif";
+      ctx.textAlign = node.type === 'pred' ? "right" : "left";
+      ctx.textBaseline = "middle";
+      const offset = node.type === 'pred' ? -15 : 15;
+      ctx.fillText(node.label, node.x + offset, node.y);
+  }
+
+  function drawCurve(start, end, color) {
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      // Bezier curve for smooth connector
+      const cp1x = start.x + (end.x - start.x) / 2;
+      const cp2x = start.x + (end.x - start.x) / 2;
+      ctx.bezierCurveTo(cp1x, start.y, cp2x, end.y, end.x, end.y);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+  }
+
+  function isNodeConnected(id) {
+      return connections.some(c => c.from === id || c.to === id);
+  }
+
+  function isValidConnection(n1, n2) {
+      return n1.target === n2.value;
+  }
+
+  function checkWinCondition() {
+      if (connections.length !== 3) return;
+
+      let correctCount = 0;
+      connections.forEach(conn => {
+          const start = leftNodes.find(n => n.id === conn.from);
+          const end = rightNodes.find(n => n.id === conn.to);
+          if (isValidConnection(start, end)) correctCount++;
+      });
+
+      solved = true;
+      if (correctCount === 3) {
+          feedbackEl.textContent = "Optimal Matching Found! Loss Minimized.";
+          feedbackEl.className = "game-feedback success";
+          postGameText.style.display = "block";
+          postGameText.classList.add("animate-in");
+          // Trigger confetti from parent scope if available
+          if(typeof createConfetti === 'function') createConfetti();
+      } else {
+          feedbackEl.textContent = "High Loss Detected! This isn't the best match.";
+          feedbackEl.className = "game-feedback error";
+      }
+      drawScene();
+  }
+
+  // Interaction Handlers
+  function handleStart(e) {
+      if (solved) return;
+      e.preventDefault(); // Prevent scroll on touch
+      const pos = getMousePos(e);
+      
+      // Check collision with nodes
+      const allNodes = [...leftNodes, ...rightNodes];
+      const hit = allNodes.find(n => Math.hypot(n.x - pos.x, n.y - pos.y) < 20);
+
+      if (hit) {
+          // If clicking a node that is already connected, remove that connection
+          const existingIdx = connections.findIndex(c => c.from === hit.id || c.to === hit.id);
+          if (existingIdx !== -1) {
+              connections.splice(existingIdx, 1);
+          }
+          
+          isDragging = true;
+          dragStartNode = hit;
+          currentMousePos = pos;
+          drawScene();
+      }
+  }
+
+  function handleMove(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      currentMousePos = getMousePos(e);
+      drawScene();
+  }
+
+  function handleEnd(e) {
+      if (!isDragging) return;
+      
+      // Check drop target
+      const pos = getMousePos(e); // Use last known pos or re-calc
+      // Simple hit test on opposite side nodes
+      const targets = dragStartNode.type === 'pred' ? rightNodes : leftNodes;
+      const hit = targets.find(n => Math.hypot(n.x - currentMousePos.x, n.y - currentMousePos.y) < 30);
+
+      if (hit) {
+          // Remove any existing connection to the target
+          const existingIdx = connections.findIndex(c => c.from === hit.id || c.to === hit.id);
+          if (existingIdx !== -1) connections.splice(existingIdx, 1);
+
+          // Store new connection (always Store From -> To)
+          const from = dragStartNode.type === 'pred' ? dragStartNode : hit;
+          const to = dragStartNode.type === 'pred' ? hit : dragStartNode;
+          
+          connections.push({ from: from.id, to: to.id });
+          
+          // Check if game over
+          if (connections.length === 3) {
+              checkWinCondition();
+          } else {
+              feedbackEl.textContent = `${connections.length}/3 connections made.`;
+              feedbackEl.className = "game-feedback";
+          }
+      }
+
+      isDragging = false;
+      dragStartNode = null;
+      drawScene();
+  }
+
+  // Event Listeners
+  canvas.addEventListener('mousedown', handleStart);
+  canvas.addEventListener('mousemove', handleMove);
+  window.addEventListener('mouseup', handleEnd);
+
+  canvas.addEventListener('touchstart', handleStart, {passive: false});
+  canvas.addEventListener('touchmove', handleMove, {passive: false});
+  window.addEventListener('touchend', handleEnd);
+
+  // Initial Draw
+  drawScene();
+
+  return {
+      reset: () => {
+          connections = [];
+          solved = false;
+          feedbackEl.textContent = "Connect all items...";
+          feedbackEl.className = "game-feedback";
+          postGameText.style.display = "none";
+          drawScene();
+      }
+  };
+})();
+</script>
+    <p>Exactly! By finding the optimal matching, we ensure that exactly one prediction is responsible for the Cat, exactly one for the Dog, and the rest represent 'No Object'.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- SECTION 11 -->
+<section id="section11">
+    <p>This matching is done using the <strong>Hungarian Algorithm</strong>. Once we have the pairs, we calculate the loss.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Hungarian Algorithm</h4>
+        <p>An optimization algorithm that solves the assignment problem. In DETR, it finds the optimal pairing between the set of predictions and the set of ground truth objects to minimize the total loss.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- SECTION 12 -->
+<section id="section12">
+    <h2>The Math: Bipartite Matching Loss</h2>
+    <p>Once the Hungarian Algorithm gives us the optimal pairing (permutation \(\hat{\sigma}\)), we compute the loss. It looks scary, but let's break it down.</p>
+    <p>$$ \mathcal{L}_{\text{Hungarian}}(y, \hat{y}) = \sum_{i=1}^{N} \left[ -\log \hat{p}_{\hat{\sigma}(i)}(c_i) + \mathbb{1}_{\{c_i \neq \emptyset\}} \mathcal{L}_{\text{box}}(b_i, \hat{b}_{\hat{\sigma}(i)}) \right] $$</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- SECTION 13 -->
+<section id="section13">
+    <p>Let's translate this into English:</p>
+    <ul>
+        <li><strong>Sum over all queries (\(N\)):</strong> We check every single slot.</li>
+        <li><strong>\(-\log \hat{p}_{...}\):</strong> This is the classification loss. Did you correctly identify the class (or correctly say 'No Object')?</li>
+        <li><strong>\(\mathbb{1}_{\{c_i \neq \emptyset\}}\):</strong> This is the 'Indicator Function'. It asks: <em>Is this a real object?</em>
+            <ul>
+                <li>If <strong>Yes</strong>: We add the box regression loss (\(\mathcal{L}_{\text{box}}\)). We want the box to be tight.</li>
+                <li>If <strong>No</strong> (it's background): This term becomes zero. We <strong>don't care</strong> what shape the box is if the class is 'No Object'.</li>
+            </ul>
+        </li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 14: Stop and Think -->
+<section id="section14">
+    <div class="check-your-knowledge">
+        <h3>Stop And Think</h3>
+        <h4>Standard detectors use Non-Maximum Suppression (NMS) to remove duplicate boxes. Why doesn't DETR need NMS?</h4>
+        <div id="cuy-nms-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> The Hungarian Loss forces a 1-to-1 matching. If two queries try to predict the same 'Cat', one will be matched to the 'Cat' (positive) and the other will be matched to 'No Object' (negative). The second query gets penalized heavily for saying 'Cat', so the network learns to coordinate its queries to avoid duplicates.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-nms-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- SECTION 15 -->
+<section id="section15">
+    <h2>Seeing the Whole Picture</h2>
+    <p>Why go through all this trouble? Because Transformers see differently.</p>
+    <figure class="image-placeholder">
+        <img src="images/3.jpg" alt="Attention visualization showing a cow on the left and a heat map highlighting the entire animal on the right" loading="lazy">
+        <figcaption>Self-attention lights up the entire cow at once, demonstrating how DETR reasons globally instead of piecing together small local patches.</figcaption>
+    </figure>
+    <p>Convolutional networks (CNNs) look at the image through a small sliding window—like looking through a straw. They struggle with long-range dependencies.</p>
+    <p>Transformers use <strong>Self-Attention</strong>. As you can see in the image above, the encoder can attend to the entire shape of the cow at once, separating it from the background and other objects. This global context is why DETR performs so well on large objects and occlusions.</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- SECTION 16 -->
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>We have reached the modern era of object detection. DETR represents a shift from manual engineering to learned representations. In this lesson, you learned:</p>
+    <ul>
+        <li><strong>DETR</strong> removes the need for NMS and Anchor Boxes.</li>
+        <li><strong>Object Queries</strong> act as learnable slots that ask the image for objects.</li>
+        <li><strong>Bipartite Matching</strong> (via the Hungarian Algorithm) ensures a unique one-to-one assignment between predictions and truth.</li>
+        <li><strong>Set Prediction</strong> allows the model to reason about all objects globally.</li>
+    </ul>
+    
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <h4>Is DETR faster than YOLO?</h4>
+        <p>Generally, no. The original DETR takes a long time to converge during training, and the attention mechanism is computationally heavy (quadratic complexity with respect to image size). It is prized for its elegance and accuracy, but YOLO is usually preferred for real-time speed. However, newer variants like Deformable DETR are closing that gap!</p>
+    </div>
+
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- SECTION 17: Final Quiz -->
+<section id="section17">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>In the Hungarian Loss equation, why is the box loss term multiplied by \(\mathbb{1}_{\{c_i \neq \emptyset\}}\)?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, coordinate positivity is usually handled by the activation function (like sigmoid).')">To ensure the box coordinates are always positive.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Spot on! If the ground truth is \'No Object\' (\\(\\emptyset\\)), there is no box to match, so we shouldn\'t penalize the model for drawing a random box, as long as it classifies it as background.')">To ignore the bounding box error for 'background' predictions.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is not related to numerical stability.')">To prevent division by zero.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-quiz-final" onclick="showNextSection(18)" style="display: none;">Continue</div>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 17;
+
+updateProgress();
+if (currentSection >= totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    // If we are moving past the final content section (18 represents end state)
+    if(nextSectionId > totalSections) {
+        currentSection = totalSections;
+        updateProgress();
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+        return;
+    }
+
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    
+    // Hide the button that was clicked
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    if (currentSection === totalSections) {
+        // Wait for the final quiz to be answered before showing completed button
+        // logic is handled in selectChoice for the final quiz
+    }
+    
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after selection
+    const parentSection = element.closest('section');
+    
+    // Specific ID checks for quizzes
+    if (parentSection && parentSection.id === 'section8') {
+        const continueButton = document.getElementById('continue-after-quiz-1');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+    
+    if (parentSection && parentSection.id === 'section17') {
+        // For final section, we show the Mark Completed button instead of continue
+        if (isCorrect) {
+             const completedButton = document.getElementById('markCompletedBtn');
+             if (completedButton) {
+                 setTimeout(() => {
+                     completedButton.classList.add('show');
+                     completedButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                 }, 800);
+             }
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+             // Mock LMS integration
+            if (window.parent && window.parent.ProgressTracker) {
+               // Use appropriate IDs for this specific lesson
+                window.parent.ProgressTracker.markLessonCompleted('computer-vision', 'transformers', 'detr', 'cv-ch22-l1-detr');
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch22-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🤖', '👁️', '📦'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! DETR Mastered! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = localStorage.getItem('lesson_cv-ch22-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

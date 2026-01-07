@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Closing the Loop – Faster R-CNN and the RPN</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Selective Search tortoise passing the baton to a Fast R-CNN cheetah on a racetrack.">
+        <p class="image-caption">Selective Search is the lumbering bottleneck that keeps Fast R-CNN from taking off.</p>
+    </div>
+    <h1>The Need for Speed</h1>
+    <h2>The Bottleneck</h2>
+    <p>Welcome back! In the previous chapter, we looked at Fast R-CNN. It was a huge leap forward because it used a neural network to classify objects. But there was a catch. It was like putting a Ferrari engine in a horse-drawn cart.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Closing the Loop Intro -->
+<section id="section2">
+    <h2>Closing the Loop</h2>
+    <p>Fast R-CNN was fast at <em>classifying</em> regions, but it relied on an external algorithm called 'Selective Search' to <em>propose</em> those regions in the first place.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Selective Search Issues -->
+<section id="section3">
+    <p>Selective Search is a manual, fixed algorithm. It doesn't learn, it's slow, and it sits outside the neural network. This means the whole system couldn't be trained end-to-end. If Selective Search missed a car, the neural network never even got a chance to see it.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: The Question -->
+<section id="section4">
+    <p>To fix this, researchers asked: 'Why can't the network just look at the image and figure out where the interesting stuff is by itself?'</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Faster R-CNN Intro + Quiz 1 -->
+<section id="section5">
+    <p>This question led to <strong>Faster R-CNN</strong>. The solution was to bring the region proposal step <em>inside</em> the neural network, creating a fully learnable, end-to-end system.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Why is relying on an external algorithm like Selective Search considered a problem for object detection?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Actually, Selective Search isn\'t perfect, but accuracy isn\'t the main structural issue here.')">It is too accurate and causes overfitting.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. Because it\'s a fixed algorithm, we can\'t use backpropagation to improve it, and it acts as a computational bottleneck.')">It is non-differentiable, slow, and cannot be trained.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Selective Search actually runs on the CPU, which is part of why it\'s slower than the GPU-accelerated CNN parts.')">It requires GPU acceleration which is expensive.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: RPN Intro + Image -->
+<section id="section6">
+    <h2>The Region Proposal Network (RPN)</h2>
+    <p>The core innovation of Faster R-CNN is the <strong>Region Proposal Network (RPN)</strong>. Instead of using pixel colors or textures to guess where objects are (like Selective Search), the RPN looks directly at the high-level feature maps created by the CNN.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Diagram of the Region Proposal Network sliding a window over a feature map and producing objectness scores plus box deltas.">
+        <p class="image-caption">A sliding window sweeps the feature map, and a lightweight RPN head emits objectness scores and box refinements for each set of anchors.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Sliding Window -->
+<section id="section7">
+    <p>Imagine a small window sliding over the feature map of the image. At every single position this window stops, the network asks: 'Is there an object here?'</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Shapes Problem -->
+<section id="section8">
+    <p>But objects come in different shapes. A standing person is tall and thin; a car is short and wide. A simple square window might miss them or cut them in half.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Anchor Boxes + Interactive -->
+<section id="section9">
+    <p>To solve this, at every sliding window location, the RPN predicts against a set of \(k\) reference boxes called <strong>Anchor Boxes</strong>.</p>
+    <!-- START OF INTERACTIVE MODULE -->
+<div class="interactive-module-container">
+  <h3>Simulating the RPN</h3>
+  <p class="instruction-text" id="instrText">Move your mouse over the feature map grid. <strong>Click</strong> on the grid cell that centers on the Car.</p>
+
+  <div class="canvas-wrapper">
+      <canvas id="rpnCanvas" width="600" height="400"></canvas>
+  </div>
+
+  <!-- Interface for labeling anchors -->
+  <div class="controls-panel" id="controlsPanel">
+      <p style="margin-bottom: 15px; font-size: 0.9rem;"><strong>Task:</strong> Compare each colored anchor box to the car. Does it overlap significantly (IoU > 0.5)?</p>
+      
+      <!-- Tall Anchor -->
+      <div class="anchor-row">
+          <span class="anchor-label"><span class="color-dot" style="background:#ef4444;"></span> Tall Anchor (1:2)</span>
+          <div class="toggle-group" id="group-tall">
+              <button class="toggle-btn" onclick="setLabel('tall', false, this)">Negative</button>
+              <button class="toggle-btn" onclick="setLabel('tall', true, this)">Positive</button>
+          </div>
+      </div>
+
+      <!-- Square Anchor -->
+      <div class="anchor-row">
+          <span class="anchor-label"><span class="color-dot" style="background:#3b82f6;"></span> Square Anchor (1:1)</span>
+          <div class="toggle-group" id="group-square">
+              <button class="toggle-btn" onclick="setLabel('square', false, this)">Negative</button>
+              <button class="toggle-btn" onclick="setLabel('square', true, this)">Positive</button>
+          </div>
+      </div>
+
+      <!-- Wide Anchor -->
+      <div class="anchor-row">
+          <span class="anchor-label"><span class="color-dot" style="background:#10b981;"></span> Wide Anchor (2:1)</span>
+          <div class="toggle-group" id="group-wide">
+              <button class="toggle-btn" onclick="setLabel('wide', false, this)">Negative</button>
+              <button class="toggle-btn" onclick="setLabel('wide', true, this)">Positive</button>
+          </div>
+      </div>
+
+      <button class="check-anchors-btn" onclick="checkAnchors()">Check Labels</button>
+      <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+  
+  <button class="reset-btn" id="resetBtn" onclick="resetInteractive()">Reset Simulation</button>
+
+  <script>
+      (function() {
+          const canvas = document.getElementById('rpnCanvas');
+          const ctx = canvas.getContext('2d');
+          const controls = document.getElementById('controlsPanel');
+          const feedback = document.getElementById('feedbackMsg');
+          const instr = document.getElementById('instrText');
+          const resetBtn = document.getElementById('resetBtn');
+          
+          // Simulation State
+          let state = {
+              phase: 'explore', // explore, labeling, complete
+              mouseX: 0,
+              mouseY: 0,
+              gridSize: 50,
+              selectedCell: null,
+              labels: { tall: null, square: null, wide: null }
+          };
+
+          // Ground Truth Object (The Car)
+          // Centered roughly at grid column 6, row 4 (if grid is 50px)
+          // x: 300, y: 200 is center. 
+          const car = {
+              x: 325,
+              y: 220,
+              w: 120,
+              h: 50,
+              color: '#2d3748'
+          };
+          
+          // Target Cell (Where the car center is)
+          const targetCol = Math.floor((car.x + car.w/2) / state.gridSize);
+          const targetRow = Math.floor((car.y + car.h/2) / state.gridSize);
+
+          // Animation Loop
+          function draw() {
+              // Clear
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+              // 1. Draw Background (Street Scene)
+              drawScene();
+
+              // 2. Draw Object (Car)
+              drawCar();
+
+              // 3. Draw Grid (Feature Map)
+              drawGrid();
+
+              // 4. Draw Interaction
+              if (state.phase === 'explore') {
+                  drawSlidingWindow();
+              } else if (state.phase === 'labeling' || state.phase === 'complete') {
+                  drawAnchors();
+              }
+
+              requestAnimationFrame(draw);
+          }
+
+          function drawScene() {
+              // Sky
+              const grad = ctx.createLinearGradient(0, 0, 0, 250);
+              grad.addColorStop(0, '#e0f2fe');
+              grad.addColorStop(1, '#ffffff');
+              ctx.fillStyle = grad;
+              ctx.fillRect(0, 0, canvas.width, 250);
+
+              // Road
+              ctx.fillStyle = '#94a3b8';
+              ctx.fillRect(0, 250, canvas.width, 150);
+              
+              // Road Markings
+              ctx.strokeStyle = '#e2e8f0';
+              ctx.setLineDash([20, 20]);
+              ctx.lineWidth = 4;
+              ctx.beginPath();
+              ctx.moveTo(0, 325);
+              ctx.lineTo(600, 325);
+              ctx.stroke();
+              ctx.setLineDash([]);
+          }
+
+          function drawCar() {
+              const {x, y, w, h} = car;
+              
+              // Shadow
+              ctx.fillStyle = 'rgba(0,0,0,0.2)';
+              ctx.beginPath();
+              ctx.ellipse(x + w/2, y + h - 5, w/1.8, 10, 0, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Body
+              ctx.fillStyle = '#e53e3e'; // Red car
+              // Main chassis (rounded rect)
+              ctx.beginPath();
+              ctx.roundRect(x, y + h*0.4, w, h*0.6, 8);
+              ctx.fill();
+              
+              // Roof (Trapezoid)
+              ctx.beginPath();
+              ctx.moveTo(x + w*0.2, y + h*0.4);
+              ctx.lineTo(x + w*0.8, y + h*0.4);
+              ctx.lineTo(x + w*0.7, y);
+              ctx.lineTo(x + w*0.3, y);
+              ctx.fill();
+
+              // Windows
+              ctx.fillStyle = '#bfdbfe';
+              ctx.beginPath();
+              ctx.moveTo(x + w*0.25, y + h*0.35);
+              ctx.lineTo(x + w*0.75, y + h*0.35);
+              ctx.lineTo(x + w*0.68, y + 5);
+              ctx.lineTo(x + w*0.32, y + 5);
+              ctx.fill();
+
+              // Wheels
+              ctx.fillStyle = '#1a202c';
+              ctx.beginPath();
+              ctx.arc(x + w*0.2, y + h, 14, 0, Math.PI*2);
+              ctx.arc(x + w*0.8, y + h, 14, 0, Math.PI*2);
+              ctx.fill();
+          }
+
+          function drawGrid() {
+              ctx.strokeStyle = 'rgba(100, 116, 139, 0.3)'; // Slate-500 low opacity
+              ctx.lineWidth = 1;
+              
+              for(let x = 0; x <= canvas.width; x += state.gridSize) {
+                  ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+              }
+              for(let y = 0; y <= canvas.height; y += state.gridSize) {
+                  ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+              }
+          }
+
+          function drawSlidingWindow() {
+              const col = Math.floor(state.mouseX / state.gridSize);
+              const row = Math.floor(state.mouseY / state.gridSize);
+              
+              const rx = col * state.gridSize;
+              const ry = row * state.gridSize;
+
+              // Highlight Box
+              ctx.strokeStyle = '#2d3748';
+              ctx.lineWidth = 3;
+              ctx.strokeRect(rx, ry, state.gridSize, state.gridSize);
+              
+              ctx.fillStyle = 'rgba(102, 126, 234, 0.2)';
+              ctx.fillRect(rx, ry, state.gridSize, state.gridSize);
+
+              // Tooltip
+              ctx.fillStyle = '#2d3748';
+              ctx.font = '12px sans-serif';
+              ctx.fillText("Sliding Window", rx, ry - 5);
+          }
+
+          function drawAnchors() {
+              if (!state.selectedCell) return;
+              
+              const cx = (state.selectedCell.col * state.gridSize) + (state.gridSize/2);
+              const cy = (state.selectedCell.row * state.gridSize) + (state.gridSize/2);
+              
+              ctx.lineWidth = 3;
+              ctx.setLineDash([5, 5]);
+
+              // 1. Tall Anchor (Red) - 1:2 ratio
+              // Lets say base scale is 80x80. Tall = 60x120
+              ctx.strokeStyle = '#ef4444';
+              ctx.strokeRect(cx - 30, cy - 60, 60, 120);
+
+              // 2. Square Anchor (Blue) - 1:1 ratio
+              // 90x90
+              ctx.strokeStyle = '#3b82f6';
+              ctx.strokeRect(cx - 45, cy - 45, 90, 90);
+
+              // 3. Wide Anchor (Green) - 2:1 ratio
+              // 130x65
+              ctx.strokeStyle = '#10b981';
+              ctx.strokeRect(cx - 65, cy - 32.5, 130, 65);
+
+              ctx.setLineDash([]);
+              
+              // Center point
+              ctx.fillStyle = 'white';
+              ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill();
+              ctx.fillStyle = 'black';
+              ctx.beginPath(); ctx.arc(cx, cy, 2, 0, Math.PI*2); ctx.fill();
+          }
+
+          // Interaction Handlers
+          canvas.addEventListener('mousemove', (e) => {
+              const rect = canvas.getBoundingClientRect();
+              state.mouseX = e.clientX - rect.left;
+              state.mouseY = e.clientY - rect.top;
+          });
+
+          canvas.addEventListener('click', (e) => {
+              if (state.phase !== 'explore') return;
+
+              const col = Math.floor(state.mouseX / state.gridSize);
+              const row = Math.floor(state.mouseY / state.gridSize);
+
+              // Check distance to car center
+              // We simplify by checking if they clicked the exact cell or neighbors
+              // Car is at targetCol, targetRow.
+              if (col === targetCol && row === targetRow) {
+                  state.selectedCell = { col, row };
+                  state.phase = 'labeling';
+                  
+                  // UI Updates
+                  controls.classList.add('active');
+                  instr.innerHTML = "<strong>Anchors Generated!</strong> Now, act as the Trainer. Which anchor best fits the car?";
+                  resetBtn.style.display = 'inline-block';
+              } else {
+                  // Feedback for missing
+                  const temp = instr.innerHTML;
+                  instr.innerHTML = "<span style='color:#e53e3e'>No object center here. Try the cell covering the middle of the car.</span>";
+                  setTimeout(() => { if(state.phase === 'explore') instr.innerHTML = temp; }, 2000);
+              }
+          });
+
+          // Global functions for buttons
+          window.setLabel = function(type, isPositive, btn) {
+              state.labels[type] = isPositive;
+              
+              // Visual toggle
+              const group = document.getElementById(`group-${type}`);
+              const buttons = group.querySelectorAll('.toggle-btn');
+              buttons.forEach(b => b.classList.remove('selected-pos', 'selected-neg'));
+              
+              if (isPositive) btn.classList.add('selected-pos');
+              else btn.classList.add('selected-neg');
+          };
+
+          window.checkAnchors = function() {
+              // Correct Logic:
+              // Car is Wide. 
+              // Tall Anchor overlaps poorly. -> Negative
+              // Square Anchor overlaps okay, but mostly empty space or cuts car. Let's say Negative for strictness, or check overlap. 
+              // Visual check: Square (90px) on Car (120px wide). It cuts off the ends. IoU is low. -> Negative.
+              // Wide Anchor (130px) on Car (120px). Great fit. -> Positive.
+              
+              const correct = {
+                  tall: false,
+                  square: false,
+                  wide: true
+              };
+
+              let allCorrect = true;
+              let msg = "";
+
+              if (state.labels.tall === null || state.labels.square === null || state.labels.wide === null) {
+                  feedback.style.color = "#d69e2e"; // yellow-dark
+                  feedback.textContent = "Please label all three anchors first.";
+                  return;
+              }
+
+              // Check Tall
+              if (state.labels.tall !== correct.tall) allCorrect = false;
+              // Check Square
+              if (state.labels.square !== correct.square) allCorrect = false;
+              // Check Wide
+              if (state.labels.wide !== correct.wide) allCorrect = false;
+
+              if (allCorrect) {
+                  feedback.style.color = "#10b981"; // green
+                  feedback.innerHTML = "Correct! The <strong>Wide</strong> anchor has the highest IoU (Intersection over Union). <br>During training, this anchor becomes a 'Positive' sample.";
+                  state.phase = 'complete';
+                  
+                  // Trigger lesson completion celebration if desired or just visual success
+                  const btn = document.querySelector('.check-anchors-btn');
+                  btn.textContent = "Great Job!";
+                  btn.disabled = true;
+              } else {
+                  feedback.style.color = "#e53e3e";
+                  feedback.textContent = "Not quite. Look closely at the overlap. The car is wide and short. Which box matches that shape best?";
+              }
+          };
+
+          window.resetInteractive = function() {
+              state.phase = 'explore';
+              state.selectedCell = null;
+              state.labels = { tall: null, square: null, wide: null };
+              controls.classList.remove('active');
+              resetBtn.style.display = 'none';
+              feedback.textContent = '';
+              instr.innerHTML = "Move your mouse over the feature map grid. <strong>Click</strong> on the grid cell that centers on the Car.";
+              
+              // Reset buttons
+              document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected-pos', 'selected-neg'));
+              document.querySelector('.check-anchors-btn').disabled = false;
+              document.querySelector('.check-anchors-btn').textContent = "Check Labels";
+          };
+
+          // Start loop
+          draw();
+
+      })();
+  </script>
+</div>
+<!-- END OF INTERACTIVE MODULE -->
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Anchor Box Logic + Stop & Think -->
+<section id="section10">
+    <p>As you saw in the interactive, at every single location on the feature map, the network considers \(k\) different potential boxes simultaneously. These anchors act as 'templates' for potential objects.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop And Think</h3>
+        <h4>Why do we need Anchor Boxes of different shapes (aspect ratios)? Why not just use one square box per location and let the network resize it?</h4>
+        <div id="sat-anchor-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> While the network <em>can</em> adjust box sizes, starting with a guess that is close to the real shape makes learning much easier. A tall anchor is already a good approximation for a pedestrian, requiring only small adjustments, whereas reshaping a square into a thin rectangle is a harder regression task.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('sat-anchor-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Math Intro -->
+<section id="section11">
+    <h2>The Math of Proposals</h2>
+    <p>So, what exactly does the RPN output? For every single anchor box at every location, it outputs two types of predictions.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Objectness -->
+<section id="section12">
+    <p>First, it needs to decide if the anchor contains an object or just background. This is the <strong>Objectness Score</strong>.</p>
+    <p>Since it's a binary classification (Object vs. Background), we generate \(2\) scores per anchor (often softmax probabilities).</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Coordinates -->
+<section id="section13">
+    <p>Second, the anchor box might not align perfectly with the object. The network needs to fix this. It predicts <strong>Coordinate Adjustments</strong> (4 values: \(\Delta x, \Delta y, \Delta w, \Delta h\)) to shift and resize the anchor to fit the object better.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Output Vector -->
+<section id="section14">
+    <p>If we have \(k\) anchors at a location, the output vector for that location looks like this:</p>
+    <p>$$ Output = \underbrace{2k}_{\text{Objectness Scores}} + \underbrace{4k}_{\text{Coordinate Regressions}} $$</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Loss Function -->
+<section id="section15">
+    <p>To train this, we use a multi-task loss function. We want the network to be good at classifying <em>and</em> good at drawing boxes at the same time:</p>
+    <p>$$ L_{total} = L_{cls} + \lambda L_{reg} $$</p>
+    <p>Where \(L_{cls}\) penalizes incorrect object/background guesses, and \(L_{reg}\) penalizes inaccurate box coordinates.</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16: Shared Backbone Intro -->
+<section id="section16">
+    <h2>Shared Backbone & End-to-End Training</h2>
+    <p>Here is the genius part of Faster R-CNN. Running a CNN (like ResNet) on an image is expensive. If we ran one CNN for the RPN and a separate CNN for the final classification, it would be too slow.</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- Section 17: Backbone Diagram -->
+<section id="section17">
+    <p>Instead, Faster R-CNN shares the <strong>same convolutional backbone</strong> for both tasks.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Shared backbone diagram showing one CNN feeding both the RPN and the Fast R-CNN head.">
+        <p class="image-caption">One CNN backbone creates a feature map that the RPN and Fast R-CNN head both consume, so the heavy lifting happens only once.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- Section 18: End-to-End + Why It Matters -->
+<section id="section18">
+    <p>The image goes through the CNN once. The resulting feature map is used by the RPN to say "Here are some potential objects," and <em>then</em> the exact same features are used by the second stage to say "This is a Cat."</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>This is <strong>End-to-End Training</strong>. The backbone learns features that are useful for <em>both</em> detection and classification. A visual edge might help the RPN find a box <em>and</em> help the classifier identify a car shape. This sharing makes the system efficient and highly accurate.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<!-- Section 19: Mask R-CNN -->
+<section id="section19">
+    <p>This architecture is so flexible that it was later extended to <strong>Mask R-CNN</strong> by simply adding a third branch that predicts a pixel-perfect mask for the object. We will explore that in the chapter on Segmentation.</p>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<!-- Section 20: Review + Vocab -->
+<section id="section20">
+    <h2>Review and Reflect</h2>
+    <p>You've just learned how we closed the loop on object detection.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Region Proposal Network (RPN)</h4>
+        <p>A fully convolutional network that slides over feature maps to propose regions of interest (RoIs) likely to contain objects. It replaces manual algorithms like Selective Search.</p>
+    </div>
+    <p>We moved from external, slow proposals to an internal, learnable network using Anchor Boxes.</p>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<!-- Section 21: FAQ -->
+<section id="section21">
+    <div class="check-your-knowledge">
+        <h3>Frequently Asked</h3>
+        <h4>How does the RPN know if an anchor contains an object before training?</h4>
+        <div id="faq-rpn-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Great question! We need ground truth to train. During training, we compare every Anchor Box with the real Ground Truth boxes using Intersection over Union (IoU). If an anchor overlaps significantly (e.g., IoU > 0.7) with a ground truth car, we label that anchor as 'Positive'. If the overlap is very low (e.g., IoU < 0.3), we label it 'Negative' (background).
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('faq-rpn-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(22)">Continue</div>
+</section>
+
+<!-- Section 22: Quiz 2 (Shared Backbone) -->
+<section id="section22">
+    <p>Let's check your knowledge before we move on to the next major paradigm shift: Single-Shot Detectors.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following best describes the 'Shared Backbone' concept in Faster R-CNN?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, that would be computationally expensive. They share the actual network weights and layers.')">The RPN and the classifier use two different CNNs but share the same loss function.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! This allows the heavy convolutional computations to happen only once per image.')">The feature map generated by the CNN is used by both the RPN to propose regions and the classifier to identify them.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Remember, the goal was to get rid of Selective Search.')">The RPN shares its output boxes with the Selective Search algorithm.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(23)">Continue</div>
+</section>
+
+<!-- Section 23: Quiz 3 (Anchor Box) -->
+<section id="section23">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>What is an Anchor Box?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Yes! The network predicts how much to stretch or shift this template to fit the object.')">A fixed reference box of a specific scale and aspect ratio used as a template for predictions.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, anchor boxes are the starting candidates, not the final result.')">The final bounding box output by the network after Non-Maximum Suppression.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'A creative guess, but incorrect in this context!')">A heavy weight used to keep the neural network from overfitting.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(24)">Continue</div>
+</section>
+
+<!-- Section 24: Quiz 4 (RPN Output) -->
+<section id="section24">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>For a single anchor box, what does the RPN output?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'It needs to do more than that; it also needs to tell us where the object is exactly.')">Just the probability that it contains an object.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'It also needs to tell us if the box is actually interesting (contains an object) or just empty background.')">4 coordinate values for the box location.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Perfect. It tells us \'how likely is an object here\' and \'how do I fix the box to fit it better\'.')">An objectness score (classification) and coordinate adjustments (regression).</div>
+        </div>
+    </div>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 24;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Logic to track completion in LMS if present
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Default IDs
+                let courseId = 'computer-vision';
+                let pathId = 'object-detection';
+                let moduleId = 'cv-ch21-m2-faster-rcnn';
+                let lessonId = 'cv-ch21-l2-closing-the-loop';
+                
+                // Try to get from URL or parent route
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch21-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '🚗', '🖼️'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch21-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

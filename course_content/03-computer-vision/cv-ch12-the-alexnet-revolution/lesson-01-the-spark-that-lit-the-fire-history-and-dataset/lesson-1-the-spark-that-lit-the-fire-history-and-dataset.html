@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Lesson 1: The Spark That Lit the Fire – History & Dataset</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: Dark Ages -->
+<section id="section1" class="visible">
+    <div class="visual-placeholder">
+        <img src="images/1.jpg" alt="Timeline chart showing slow progress of handcrafted features versus the dramatic rise of deep learning after AlexNet's 2012 victory">
+    </div>
+    <h1>The Spark That Lit the Fire</h1>
+    <h2>The Dark Ages of Computer Vision</h2>
+    <p>The year was 2011. If you wanted a computer to recognize a cat, you couldn't just show it pictures of cats. You had to be a mathematical artisan.</p>
+    
+    <p>For decades, computer vision researchers relied on <strong>"handcrafted features"</strong>. Teams of scientists would spend years designing complex mathematical filters—like SIFT or HOG—to detect edges, corners, and texture patterns. These features were then fed into classical machine learning algorithms like Support Vector Machines (SVMs).</p>
+    <p>Progress was painfully slow, with error rates on major benchmarks improving by only fractions of a percent each year. It felt like the field had hit a ceiling.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: 2012 Revolution -->
+<section id="section2">
+    <h2>The 2012 Revolution</h2>
+    <p>Then came the ImageNet Large Scale Visual Recognition Challenge (ILSVRC) of 2012. An underdog team led by Alex Krizhevsky, Ilya Sutskever, and Geoffrey Hinton entered a model named <strong>AlexNet</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3: Deep Learning Shift -->
+<section id="section3">
+    <p>AlexNet didn't use handcrafted features. It was a <strong>Deep Convolutional Neural Network (CNN)</strong> that <em>learned</em> its own features from data. The result? It didn't just win; it destroyed the competition.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4: The Stats & The Meme -->
+<section id="section4">
+    <p>While the runner-up (using classical methods) achieved a Top-5 error rate of 26.2%, AlexNet achieved <strong>15.3%</strong>. This massive drop of over 10 percentage points was unheard of. It was the spark that lit the deep learning fire.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Distracted Vision meme: Computer Vision Community distracted by Convolutional Neural Networks while Handcrafted Features looks upset">
+        <p class="image-caption">The moment everything changed: CV researchers couldn't resist the allure of learned features.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5: Quiz -->
+<section id="section5">
+    <p>This moment marked the end of the handcrafted era and the beginning of the modern AI boom.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>What was the primary difference between AlexNet and the previous approaches to computer vision?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. AlexNet actually moved away from handcrafted features entirely.')">AlexNet used more handcrafted features.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Instead of humans designing the filters, the network learned them.')">AlexNet learned features directly from data using a CNN.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. AlexNet leveraged the massive ImageNet dataset.')">AlexNet used a smaller dataset.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6: The Arena -->
+<section id="section6">
+    <h2>The Arena: ImageNet</h2>
+    <p>To train a beast like AlexNet, you need more than just a few hundred photos. You need a massive arena. That arena was the <strong>ImageNet</strong> dataset.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7: ImageNet Details -->
+<section id="section7">
+    <p>Derived from the ILSVRC-2010 and 2012 challenges, the dataset used for training AlexNet contained roughly <strong>1.2 million training images</strong> spread across <strong>1000 distinct object categories</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- SECTION 8: Interactive Placeholder -->
+<section id="section8">
+    <p>These weren't just simple categories like 'Dog' or 'Cat'. They were incredibly specific. The dataset distinguished between a 'Siberian Husky' and a 'Malamute', or a 'Maypole' and a 'Totem Pole'.</p>
+    <div class="interactive-placeholder">
+        <!-- Container for styling and aspect ratio -->
+        <div id="imagenet-browser-container" style="position: relative; width: 100%; background: #f8fafc; border-radius: 12px; border: 2px solid #e2e8f0; overflow: hidden; padding: 20px;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: #2d3748;">🔍 The ImageNet Browser</h3>
+                <button onclick="if (window.imageNetBrowser) window.imageNetBrowser.shuffle();" style="padding: 6px 16px; background: white; border: 1px solid #cbd5e0; border-radius: 20px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #4a5568; transition: all 0.2s;">
+                    🔄 Shuffle Data
+                </button>
+            </div>
+    
+            <div style="position: relative; width: 100%; max-width: 600px; margin: 0 auto;">
+                <canvas id="imagenetCanvas" style="width: 100%; height: auto; display: block; border-radius: 8px; cursor: crosshair; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></canvas>
+                
+                <!-- Loading Overlay -->
+                <div id="browserLoader" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; z-index: 10; border-radius: 8px;">
+                    <span style="color: #667eea; font-weight: 600;">Loading Dataset Samples...</span>
+                </div>
+            </div>
+    
+            <p style="text-align: center; font-size: 0.85rem; color: #718096; margin-top: 15px; margin-bottom: 0;">
+                Hover over an image to reveal the specific <strong style="color: #667eea;">Ground Truth</strong> label.
+            </p>
+        </div>
+    
+        <script>
+        class ImageNetBrowser {
+            constructor() {
+                this.canvas = document.getElementById('imagenetCanvas');
+                if (!this.canvas) {
+                    console.error('Canvas element not found');
+                    return;
+                }
+                this.ctx = this.canvas.getContext('2d');
+                if (!this.ctx) {
+                    console.error('Could not get 2D context');
+                    return;
+                }
+                this.loader = document.getElementById('browserLoader');
+                
+                // Grid configuration
+                this.cols = 3;
+                this.rows = 2; // Keep it compact (2x3)
+                this.gap = 10;
+                this.padding = 10;
+                
+                // State
+                this.images = [];
+                this.hoveredIndex = -1;
+                this.isLoaded = false;
+                
+                // Curated list of specific "ImageNet-style" labels mapped to Picsum IDs
+                // These demonstrate granularity (e.g., distinct dog breeds, specific objects)
+                this.dataset = [
+                    { id: 237, label: 'Staffordshire Bullterrier' }, // Dog
+                    { id: 102, label: 'Raspberry' },
+                    { id: 1060, label: 'Espresso Maker' }, // Coffee
+                    { id: 225, label: 'Teapot' },
+                    { id: 1080, label: 'Grocery Store' }, // Strawberries/Fruit
+                    { id: 1062, label: 'Shetland Sheepdog' }, // Dog in blanket
+                    { id: 1069, label: 'Jellyfish' },
+                    { id: 1074, label: 'Lion' },
+                    { id: 111, label: 'Convertible' }, // Old car
+                    { id: 133, label: 'Sports Car' },
+                    { id: 158, label: 'Jazz Band' },
+                    { id: 160, label: 'Cellular Telephone' },
+                    { id: 175, label: 'Wall Clock' },
+                    { id: 191, label: 'Pickup Truck' },
+                    { id: 250, label: 'Digital Camera' }
+                ];
+    
+                this.currentBatch = [];
+                
+                this.init();
+            }
+    
+            init() {
+                if (!this.canvas || !this.ctx) {
+                    console.error('Cannot initialize ImageNetBrowser: canvas or context missing');
+                    return;
+                }
+                
+                // Wait a bit for container to be properly sized
+                setTimeout(() => {
+                    this.resize();
+                    this.shuffle();
+                }, 50);
+                
+                // Event Listeners - store handler reference for cleanup
+                this._resizeHandler = () => this.resize();
+                window.addEventListener('resize', this._resizeHandler);
+                this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                this.canvas.addEventListener('mouseleave', () => {
+                    this.hoveredIndex = -1;
+                    this.draw();
+                });
+            }
+    
+            resize() {
+                if (!this.canvas || !this.ctx || !this.canvas.parentElement) return;
+                
+                // Get container width
+                const containerWidth = this.canvas.parentElement.offsetWidth;
+                if (containerWidth <= 0) {
+                    // Retry if container not ready
+                    setTimeout(() => this.resize(), 100);
+                    return;
+                }
+                
+                // Calculate height based on aspect ratio needed for grid
+                // Let's assume images are roughly square
+                const totalGapWidth = (this.cols - 1) * this.gap + (this.padding * 2);
+                const cellWidth = (containerWidth - totalGapWidth) / this.cols;
+                const totalHeight = (cellWidth * this.rows) + ((this.rows - 1) * this.gap) + (this.padding * 2);
+    
+                // Set canvas resolution (High DPI)
+                const dpr = window.devicePixelRatio || 1;
+                
+                // Store CSS dimensions for drawing calculations
+                this._cssWidth = containerWidth;
+                this._cssHeight = totalHeight;
+                
+                // Setting width/height resets the context, so we need to set it first
+                this.canvas.width = containerWidth * dpr;
+                this.canvas.height = totalHeight * dpr;
+                
+                // Reset transform matrix and scale context (setting width/height resets transform)
+                this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+                this.ctx.scale(dpr, dpr);
+                
+                // Set CSS size
+                this.canvas.style.width = `${containerWidth}px`;
+                this.canvas.style.height = `${totalHeight}px`;
+    
+                this.draw();
+            }
+    
+            shuffle() {
+                if (!this.loader) return;
+                
+                this.isLoaded = false;
+                this.loader.style.display = 'flex';
+                
+                // Pick random items from dataset
+                const shuffled = [...this.dataset].sort(() => Math.random() - 0.5);
+                this.currentBatch = shuffled.slice(0, this.cols * this.rows);
+                this.images = new Array(this.currentBatch.length);
+                
+                // Load images
+                let loadedCount = 0;
+                const totalNeeded = this.currentBatch.length;
+                
+                // Store the current batch index to prevent race conditions
+                const batchIndex = Date.now();
+                this._currentBatchIndex = batchIndex;
+                
+                this.currentBatch.forEach((item, index) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    const imageIndex = index; // Capture index in closure
+                    
+                    img.onload = () => {
+                        // Only update if this is still the current batch
+                        if (this._currentBatchIndex === batchIndex) {
+                            this.images[imageIndex] = img;
+                            loadedCount++;
+                            // Draw immediately when each image loads
+                            this.draw();
+                            if (loadedCount === totalNeeded) {
+                                this.isLoaded = true;
+                                if (this.loader) this.loader.style.display = 'none';
+                                this.draw();
+                            }
+                        }
+                    };
+                    img.onerror = () => {
+                        // Fallback: create a colored placeholder
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 200;
+                        canvas.height = 200;
+                        const ctx = canvas.getContext('2d');
+                        if (ctx) {
+                            ctx.fillStyle = `hsl(${Math.random() * 360}, 70%, 80%)`;
+                            ctx.fillRect(0, 0, 200, 200);
+                            ctx.fillStyle = '#2d3748';
+                            ctx.font = '16px sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(item.label.substring(0, 15), 100, 100);
+                            
+                            const placeholderImg = new Image();
+                            placeholderImg.onload = () => {
+                                if (this._currentBatchIndex === batchIndex) {
+                                    this.images[imageIndex] = placeholderImg;
+                                    loadedCount++;
+                                    // Draw immediately when placeholder loads
+                                    this.draw();
+                                    if (loadedCount === totalNeeded) {
+                                        this.isLoaded = true;
+                                        if (this.loader) this.loader.style.display = 'none';
+                                        this.draw();
+                                    }
+                                }
+                            };
+                            placeholderImg.src = canvas.toDataURL();
+                        } else {
+                            // If canvas context fails, create empty placeholder and increment count
+                            loadedCount++;
+                            // Still draw to show loading state
+                            this.draw();
+                            if (loadedCount === totalNeeded) {
+                                this.isLoaded = true;
+                                if (this.loader) this.loader.style.display = 'none';
+                                this.draw();
+                            }
+                        }
+                    };
+                    // Use Picsum Photos API
+                    img.src = `https://picsum.photos/seed/${item.id}/200/200`;
+                });
+            }
+            
+            handleMouseMove(e) {
+                if (!this.canvas || !this.canvas.parentElement) return;
+                
+                const rect = this.canvas.getBoundingClientRect();
+                // Use CSS pixel coordinates (not scaled canvas coordinates)
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Find which cell is hovered
+                const containerWidth = this.canvas.parentElement.offsetWidth;
+                if (containerWidth <= 0) return;
+                
+                const totalGapWidth = (this.cols - 1) * this.gap + (this.padding * 2);
+                const cellWidth = (containerWidth - totalGapWidth) / this.cols;
+                const cellHeight = cellWidth;
+                
+                const col = Math.floor((x - this.padding) / (cellWidth + this.gap));
+                const row = Math.floor((y - this.padding) / (cellHeight + this.gap));
+                const index = row * this.cols + col;
+                
+                if (index >= 0 && index < this.currentBatch.length && 
+                    col >= 0 && col < this.cols && row >= 0 && row < this.rows &&
+                    x >= this.padding && y >= this.padding) {
+                    this.hoveredIndex = index;
+                } else {
+                    this.hoveredIndex = -1;
+                }
+                
+                this.draw();
+            }
+            
+            draw() {
+                if (!this.ctx || !this.canvas || !this.canvas.parentElement) return;
+                
+                // Use stored CSS dimensions if available, otherwise calculate
+                let containerWidth, totalHeight;
+                if (this._cssWidth && this._cssHeight) {
+                    containerWidth = this._cssWidth;
+                    totalHeight = this._cssHeight;
+                } else {
+                    containerWidth = this.canvas.parentElement.offsetWidth;
+                    if (containerWidth <= 0) return;
+                    const totalGapWidth = (this.cols - 1) * this.gap + (this.padding * 2);
+                    const cellWidth = (containerWidth - totalGapWidth) / this.cols;
+                    totalHeight = (cellWidth * this.rows) + ((this.rows - 1) * this.gap) + (this.padding * 2);
+                }
+                
+                const totalGapWidth = (this.cols - 1) * this.gap + (this.padding * 2);
+                const cellWidth = (containerWidth - totalGapWidth) / this.cols;
+                const cellHeight = cellWidth;
+                
+                // Clear canvas (use CSS pixel dimensions since context is scaled)
+                this.ctx.clearRect(0, 0, containerWidth, totalHeight);
+                
+                // Draw images in grid
+                if (this.currentBatch && this.currentBatch.length > 0) {
+                    this.currentBatch.forEach((item, index) => {
+                        const row = Math.floor(index / this.cols);
+                        const col = index % this.cols;
+                        const x = this.padding + col * (cellWidth + this.gap);
+                        const y = this.padding + row * (cellHeight + this.gap);
+                        
+                        // Draw image if loaded, otherwise draw placeholder
+                        if (this.images[index]) {
+                            this.ctx.drawImage(this.images[index], x, y, cellWidth, cellHeight);
+                        } else {
+                            // Draw loading placeholder
+                            this.ctx.fillStyle = '#e2e8f0';
+                            this.ctx.fillRect(x, y, cellWidth, cellHeight);
+                            this.ctx.fillStyle = '#94a3b8';
+                            this.ctx.font = '12px sans-serif';
+                            this.ctx.textAlign = 'center';
+                            this.ctx.textBaseline = 'middle';
+                            this.ctx.fillText('Loading...', x + cellWidth / 2, y + cellHeight / 2);
+                        }
+                        
+                        // Draw label if hovered
+                        if (this.hoveredIndex === index && this.images[index]) {
+                            // Draw semi-transparent overlay
+                            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                            this.ctx.fillRect(x, y, cellWidth, cellHeight);
+                            
+                            // Draw label text
+                            this.ctx.fillStyle = '#ffffff';
+                            this.ctx.font = 'bold 14px sans-serif';
+                            this.ctx.textAlign = 'center';
+                            this.ctx.textBaseline = 'middle';
+                            const lines = this.wrapText(this.ctx, item.label, cellWidth - 20);
+                            const lineHeight = 18;
+                            const startY = y + cellHeight / 2 - ((lines.length - 1) * lineHeight) / 2;
+                            lines.forEach((line, i) => {
+                                this.ctx.fillText(line, x + cellWidth / 2, startY + i * lineHeight);
+                            });
+                        }
+                    });
+                }
+            }
+            
+            wrapText(ctx, text, maxWidth) {
+                const words = text.split(' ');
+                const lines = [];
+                let currentLine = words[0];
+                
+                for (let i = 1; i < words.length; i++) {
+                    const word = words[i];
+                    const width = ctx.measureText(currentLine + ' ' + word).width;
+                    if (width < maxWidth) {
+                        currentLine += ' ' + word;
+                    } else {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    }
+                }
+                lines.push(currentLine);
+                return lines;
+            }
+        }
+        
+        // Initialize the browser when section is visible
+        let imageNetBrowser;
+        window.initImageNetBrowser = function() {
+            const canvas = document.getElementById('imagenetCanvas');
+            if (!canvas) return;
+            
+            // Check if section 8 is visible before initializing
+            const section8 = document.getElementById('section8');
+            if (!section8 || !section8.classList.contains('visible')) {
+                return;
+            }
+            
+            // Re-initialize if canvas exists but browser doesn't, or if container width is invalid
+            if (!imageNetBrowser || !imageNetBrowser.canvas || !imageNetBrowser.canvas.parentElement) {
+                try {
+                    // Clean up old instance if it exists
+                    if (imageNetBrowser && imageNetBrowser.canvas) {
+                        window.removeEventListener('resize', imageNetBrowser._resizeHandler);
+                    }
+                    
+                    imageNetBrowser = new ImageNetBrowser();
+                    window.imageNetBrowser = imageNetBrowser; // Make globally accessible
+                } catch (error) {
+                    console.error('Error initializing ImageNetBrowser:', error);
+                }
+            } else {
+                // If already initialized, ensure it's properly sized and drawn
+                imageNetBrowser.resize();
+            }
+        };
+        </script>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- SECTION 9: Vocab Ground Truth -->
+<section id="section9">
+    <p>The correct label provided by human annotators is known as the <strong>Ground Truth</strong>. The goal of the AI is to match this ground truth.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Ground Truth</h4>
+        <p>In machine learning, Ground Truth refers to the actual, verified label or value that the model is trying to predict. In ImageNet, this is the category assigned to the image by human annotators.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- SECTION 10: Scoring Intro -->
+<section id="section10">
+    <h2>Scoring the Exam: Top-1 vs. Top-5</h2>
+    <p>With 1000 categories, some of which are very similar, how do we grade the AI? We use two specific error metrics: <strong>Top-1 Error</strong> and <strong>Top-5 Error</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- SECTION 11: Math Setup -->
+<section id="section11">
+    <p>Let's break down the math. When a model looks at an image, it outputs a probability distribution \(P\) over all 1000 classes. For a class \(c\), \(P(c)\) is the confidence that the image belongs to that class.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- SECTION 12: Top-1 Math -->
+<section id="section12">
+    <h3>Top-1 Error</h3>
+    <p>This is the strictest metric. It checks if the single class with the highest probability is the correct one.</p>
+    <p>Mathematically, if \(y_{true}\) is the ground truth label, the error is:</p>
+    <p>$$ \text{Top-1 Error} = \mathbb{I}(\text{argmax}(P) \neq y_{true}) $$</p>
+    <p>Where \(\mathbb{I}\) is an indicator function that returns 1 if the condition is true (an error occurred) and 0 otherwise.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- SECTION 13: Top-5 Math -->
+<section id="section13">
+    <h3>Top-5 Error</h3>
+    <p>This is a more forgiving metric. It checks if the correct label appears anywhere in the model's top 5 distinct guesses.</p>
+    <p>Let \(C_5\) be the set of the 5 classes with the highest probabilities in \(P\). The error is:</p>
+    <p>$$ \text{Top-5 Error} = \mathbb{I}(y_{true} \notin C_5) $$</p>
+    <p>This means if the correct answer is the model's 2nd, 3rd, 4th, or 5th guess, it counts as correct!</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 14: Check Your Understanding Scenario -->
+<section id="section14">
+    <p>Let's check your understanding with a concrete example.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>A model analyzes a picture of a 'Grey Wolf'. Its top predicted probabilities are:</h4>
+        <ol>
+            <li>Malamute (40%)</li>
+            <li>Grey Wolf (30%)</li>
+            <li>Siberian Husky (20%)</li>
+            <li>Coyote (5%)</li>
+            <li>Red Wolf (3%)</li>
+        </ol>
+        <h4>Is this a Top-1 Error? Is it a Top-5 Error?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. The Top-1 prediction was Malamute (Wrong). However, Grey Wolf was in the top 5 (Rank 2), so it is not a Top-5 error.')">It is a Top-1 Error, but NOT a Top-5 Error.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Look closely at the list. Grey Wolf is the 2nd guess. Top-5 allows the correct answer to be anywhere in the top 5.')">It is both a Top-1 Error and a Top-5 Error.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Top-1 requires the #1 guess to be correct. The #1 guess here is Malamute, which is incorrect.')">It is neither.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- SECTION 15: Stop and Think -->
+<section id="section15">
+    <h2>Why Be Forgiving?</h2>
+    <p>You might be wondering: Why do we care about Top-5? Shouldn't the AI just know the answer?</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why might Top-1 be considered 'unfair' for a dataset like ImageNet with 1000 categories?</h4>
+        <p><em>Hint: Think about how similar different breeds of dogs look, or pictures that contain multiple objects.</em></p>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Some categories are visually indistinguishable or ambiguous. For example, an image might contain both a 'Cat' and a 'Dog', but the label is only 'Dog'. Or, the difference between two dog breeds might be invisible due to the camera angle. Top-5 allows the model to say, "I think it's a Malamute, but it could also be a Husky or a Wolf."
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- SECTION 16: Vocab and Why It Matters -->
+<section id="section16">
+    <p>AlexNet's fame came from achieving a <strong>15.3% Top-5 error rate</strong>. This standardized benchmark allowed researchers everywhere to compare their models objectively. Without such a difficult, standardized dataset, we couldn't measure the progress of AI intelligence.</p>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Top-5 Error</h4>
+        <p>The percentage of test images where the correct label is NOT among the model's top five probability predictions.</p>
+    </div>
+
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Standardized benchmarks like ImageNet and metrics like Top-5 Error turn scientific research into a measurable race. They define what "state-of-the-art" means and allow us to quantify exactly how much better Deep Learning is compared to older methods.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- SECTION 17: FAQ -->
+<section id="section17">
+    <h2>Frequently Asked Questions</h2>
+    <p>Here are some common questions students ask about ImageNet and AlexNet's data.</p>
+    
+    <h3>Why were the images resized to 256 pixels?</h3>
+    <p>Real-world images come in all shapes and sizes. Convolutional Neural Networks (at least the early ones like AlexNet) typically require a fixed input size to perform their matrix calculations efficiently. Resizing standardized the data input.</p>
+
+    <h3>Does 15.3% error mean the AI is smarter than a human?</h3>
+    <p>Not necessarily. While 15.3% was a breakthrough, human performance on ImageNet is estimated to be around 5% Top-5 error. (Later models eventually beat this human benchmark!). The metric measures specific visual recognition in this specific dataset, not general intelligence.</p>
+
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- SECTION 18: Review -->
+<section id="section18">
+    <h2>Review and Reflect</h2>
+    <p>In this lesson, we traveled back to 2012 to witness the pivotal moment when Deep Learning took over computer vision.</p>
+    <p>We learned:</p>
+    <ul>
+        <li><strong>The Pivot:</strong> AlexNet moved the field from manual feature engineering to learned features, reducing error rates by over 10%.</li>
+        <li><strong>The Arena:</strong> The model was trained on ImageNet (1.2M images, 1000 classes).</li>
+        <li><strong>The Scoreboard:</strong> We evaluate performance using <strong>Top-1</strong> (strict) and <strong>Top-5</strong> (forgiving) error metrics, crucial for handling fine-grained categories.</li>
+    </ul>
+    <p>In the next lesson, we will see how the AlexNet team managed to train such a huge model without it memorizing the answers—a technique called Data Augmentation.</p>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following best describes "Top-5 Error"?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This describes Top-1 Error.')">The percentage of images where the model's highest probability guess is wrong.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. This is the metric where AlexNet achieved its famous 15.3% score.')">The percentage of images where the correct label is not in the model's top 5 guesses.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, it refers to the predictions of a single model.')">The error rate of the top 5 best models in the competition.</div>
+        </div>
+    </div>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 18;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    // Initialize ImageNet browser when section 8 becomes visible
+    if (nextSectionId === 8 && typeof window.initImageNetBrowser === 'function') {
+        // Wait for section to be visible and container to be sized
+        setTimeout(() => {
+            window.initImageNetBrowser();
+            // Retry if initialization didn't work (container might not be ready)
+            setTimeout(() => {
+                if (window.imageNetBrowser && window.imageNetBrowser.canvas) {
+                    const containerWidth = window.imageNetBrowser.canvas.parentElement?.offsetWidth;
+                    if (!containerWidth || containerWidth <= 0) {
+                        window.imageNetBrowser.resize();
+                    }
+                }
+            }, 200);
+        }, 150);
+    }
+    
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Adjust identifiers for the new lesson
+                let courseId = 'computer-vision';
+                let pathId = 'history-of-deep-learning';
+                let moduleId = 'cv-ch1-m1-intro';
+                let lessonId = 'cv-ch1-l1-history-and-dataset';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch1-m1-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+        // Adjust for LMS logic if present
+        let courseId = 'computer-vision';
+        let pathId = 'history-of-deep-learning';
+        let moduleId = 'cv-ch1-m1-intro';
+        let lessonId = 'cv-ch1-l1-history-and-dataset';
+        
+        if (window.parent.currentRoute) {
+            const route = window.parent.currentRoute;
+            if (route.courseId) courseId = route.courseId;
+            if (route.pathId) pathId = route.pathId;
+            if (route.moduleId) moduleId = route.moduleId;
+            if (route.lessonId) lessonId = route.lessonId;
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('course')) courseId = urlParams.get('course');
+        if (urlParams.get('path')) pathId = urlParams.get('path');
+        if (urlParams.get('module')) moduleId = urlParams.get('module');
+        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+        const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+        if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+            button.classList.add('completed');
+            button.innerHTML = '✅ Completed!';
+            return;
+        }
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch1-m1-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

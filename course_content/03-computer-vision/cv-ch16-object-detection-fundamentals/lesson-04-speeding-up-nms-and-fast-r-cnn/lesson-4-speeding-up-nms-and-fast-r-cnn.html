@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Speeding Up – NMS and Fast R-CNN</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <h1>The Need for Speed</h1>
+    <div class="image-placeholder">
+        <figure>
+            <img src="images/1.jpg" alt="Cartoon sloth waiting on a retro R-CNN computer displaying 47 seconds remaining per image">
+            <figcaption class="image-caption">R-CNN inference times felt like waiting for a sloth to finish one image.</figcaption>
+        </figure>
+    </div>
+    <p>R-CNN was a massive breakthrough. It finally allowed deep learning to tackle object detection effectively. But let's be honest: it was painfully slow. Imagine waiting nearly a minute for a car to detect a pedestrian—that’s not exactly 'autonomous driving' safe.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>Cleaning Up the Mess</h2>
+    <p>Before we speed up the network, we have a mess to clean up. Remember how R-CNN generates around 2,000 region proposals? Many of those will overlap the same object.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>If you have five slightly different boxes all detecting the same cat, you don't want the model to say 'I found 5 cats.' You want it to say 'I found 1 cat, and here is the best box for it.'</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Non-Maximum Suppression (NMS)</h4>
+        <p>A post-processing algorithm used in object detection to filter out overlapping bounding boxes that predict the same object, keeping only the one with the highest confidence score.</p>
+    </div>
+    <p>To solve this, we use an algorithm called <strong>Non-Maximum Suppression (NMS)</strong>. It's a fancy name for a simple concept: Keep the best, suppress the rest.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>The algorithm works in three steps:</p>
+    <ol>
+        <li><strong>Sort:</strong> Order all detection boxes by their confidence score (highest to lowest).</li>
+        <li><strong>Pick:</strong> Select the box with the highest score as a 'keeper'.</li>
+        <li><strong>Suppress:</strong> Compare the 'keeper' to all other boxes. If another box has a high Intersection over Union (IoU) with the keeper (meaning they overlap significantly), delete it.</li>
+    </ol>
+    <p>You repeat this process until no boxes are left to check.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Why do we use IoU in NMS instead of just distance?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Distance is actually very fast to calculate. Try again!')">Because distance calculation is too slow.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! A person can stand right next to a car. Their centers might be close, but their boxes don\'t overlap much. IoU correctly handles this, whereas distance might accidentally suppress the person.')">Because two different objects can be close to each other without overlapping.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'IoU is rarely 1.0 unless the boxes are identical.')">Because IoU is always 1.0.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-nms-quiz" onclick="showNextSection(5)" style="display:none;">Continue</div>
+</section>
+
+<section id="section5">
+    <h2>Interactive: The NMS Sorter</h2>
+    <p>Let's try running the NMS algorithm yourself. Below, you see a cat with 5 overlapping bounding boxes, each with a confidence score.</p>
+    <div class="nms-interactive-container">
+      <div class="nms-header">
+          <h4 id="nms-instruction">Step 1: Click the bounding box with the <strong>Highest Confidence Score</strong>.</h4>
+      </div>
+      
+      <div class="canvas-wrapper">
+          <canvas id="nmsCanvas"></canvas>
+      </div>
+  
+      <div class="nms-controls">
+          <button id="btn-check-iou" class="nms-btn disabled" disabled onclick="nmsInteractive.calculateIoU()">
+              Step 2: Check Overlap (IoU > 0.5)
+          </button>
+          <button id="btn-suppress" class="nms-btn disabled" disabled onclick="nmsInteractive.suppress()">
+              Step 3: Suppress Red Boxes
+          </button>
+          <button id="btn-reset" class="nms-btn secondary" onclick="nmsInteractive.reset()">
+              Reset
+          </button>
+      </div>
+      
+      <div id="nms-feedback" class="nms-feedback"></div>
+  </div>
+  
+  <script>
+  const nmsInteractive = (function() {
+      const canvas = document.getElementById('nmsCanvas');
+      const ctx = canvas.getContext('2d');
+      const feedbackEl = document.getElementById('nms-feedback');
+      const instructionEl = document.getElementById('nms-instruction');
+      const btnCheck = document.getElementById('btn-check-iou');
+      const btnSuppress = document.getElementById('btn-suppress');
+      
+      // Config
+      const width = 600;
+      const height = 400;
+      let scale = 1;
+      
+      // State
+      const STAGE_IDLE = 0;
+      const STAGE_PICKED = 1;
+      const STAGE_CHECKED = 2;
+      const STAGE_FINISHED = 3;
+      let stage = STAGE_IDLE;
+      
+      // Data
+      // Coordinates are relative to 600x400
+      let boxes = [
+          { id: 1, score: 0.9,  x: 250, y: 150, w: 120, h: 120, state: 'neutral', label: '0.9' }, // The Winner
+          { id: 2, score: 0.8,  x: 270, y: 160, w: 110, h: 100, state: 'neutral', label: '0.8' },
+          { id: 3, score: 0.6,  x: 230, y: 140, w: 130, h: 140, state: 'neutral', label: '0.6' },
+          { id: 4, score: 0.55, x: 280, y: 180, w: 100, h: 80,  state: 'neutral', label: '0.55' },
+          { id: 5, score: 0.2,  x: 220, y: 130, w: 160, h: 150, state: 'neutral', label: '0.2' }
+      ];
+  
+      function init() {
+          // High DPI Setup
+          const dpr = window.devicePixelRatio || 1;
+          const rect = canvas.getBoundingClientRect();
+          
+          // We set the display size via CSS, but drawing buffer via JS
+          // For simplicity in this specific iframe context, we'll hardcode the logical size
+          canvas.width = width * dpr;
+          canvas.height = height * dpr;
+          ctx.scale(dpr, dpr);
+          
+          // Handle CSS scaling
+          canvas.style.width = '100%';
+          canvas.style.maxWidth = width + 'px';
+          
+          // Mouse/Touch Events
+          canvas.addEventListener('click', handleClick);
+          
+          render();
+      }
+  
+      function reset() {
+          stage = STAGE_IDLE;
+          boxes.forEach(b => {
+              b.state = 'neutral';
+              b.opacity = 1;
+          });
+          
+          instructionEl.innerHTML = "Step 1: Click the bounding box with the <strong>Highest Confidence Score</strong>.";
+          feedbackEl.textContent = "";
+          btnCheck.classList.add('disabled');
+          btnCheck.disabled = true;
+          btnSuppress.classList.add('disabled');
+          btnSuppress.disabled = true;
+          
+          render();
+      }
+  
+      function drawCat() {
+          ctx.save();
+          ctx.translate(310, 210); // Centerish
+          
+          // Draw Cat Body (Stylized)
+          ctx.fillStyle = '#cbd5e1';
+          ctx.beginPath();
+          ctx.ellipse(0, 20, 50, 40, 0, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Draw Cat Head
+          ctx.fillStyle = '#94a3b8';
+          ctx.beginPath();
+          ctx.arc(0, -30, 35, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Ears
+          ctx.beginPath();
+          ctx.moveTo(-25, -55);
+          ctx.lineTo(-35, -85);
+          ctx.lineTo(-10, -60);
+          ctx.fill();
+          
+          ctx.beginPath();
+          ctx.moveTo(25, -55);
+          ctx.lineTo(35, -85);
+          ctx.lineTo(10, -60);
+          ctx.fill();
+          
+          // Eyes
+          ctx.fillStyle = '#2d3748';
+          ctx.beginPath();
+          ctx.arc(-12, -35, 4, 0, Math.PI * 2);
+          ctx.arc(12, -35, 4, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Nose
+          ctx.fillStyle = '#feb2b2';
+          ctx.beginPath();
+          ctx.moveTo(-4, -25);
+          ctx.lineTo(4, -25);
+          ctx.lineTo(0, -20);
+          ctx.fill();
+  
+          ctx.restore();
+      }
+  
+      function render() {
+          // Clear
+          ctx.clearRect(0, 0, width, height);
+          
+          // Background Grid
+          ctx.strokeStyle = '#f1f5f9';
+          ctx.lineWidth = 1;
+          for(let i=0; i<width; i+=40) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,height); ctx.stroke(); }
+          for(let i=0; i<height; i+=40) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(width,i); ctx.stroke(); }
+          
+          drawCat();
+  
+          // Draw Boxes (Reverse order so smaller/higher scores might be on top if sorted)
+          // Actually, we want selection on top.
+          const sortedForRender = [...boxes].sort((a,b) => {
+              if(a.state === 'winner') return 1;
+              if(b.state === 'winner') return -1;
+              return 0;
+          });
+  
+          sortedForRender.forEach(box => {
+              if (box.state === 'deleted') return;
+  
+              ctx.save();
+              
+              // Styles based on state
+              let strokeColor = '#4299e1'; // Blue
+              let fillColor = 'rgba(66, 153, 225, 0.1)';
+              let lineWidth = 2;
+              let textColor = 'white';
+              let textBg = '#4299e1';
+  
+              if (box.state === 'winner') {
+                  strokeColor = '#48bb78'; // Green
+                  fillColor = 'rgba(72, 187, 120, 0.2)';
+                  lineWidth = 4;
+                  textBg = '#48bb78';
+              } else if (box.state === 'suppress_candidate') {
+                  strokeColor = '#f56565'; // Red
+                  fillColor = 'rgba(245, 101, 101, 0.15)';
+                  lineWidth = 2;
+                  textBg = '#f56565';
+              }
+  
+              // Draw Rect
+              ctx.strokeStyle = strokeColor;
+              ctx.fillStyle = fillColor;
+              ctx.lineWidth = lineWidth;
+              
+              ctx.beginPath();
+              ctx.rect(box.x, box.y, box.w, box.h);
+              ctx.fill();
+              ctx.stroke();
+  
+              // Draw Label
+              ctx.fillStyle = textBg;
+              ctx.fillRect(box.x, box.y - 25, 45, 25);
+              ctx.fillStyle = textColor;
+              ctx.font = 'bold 14px sans-serif';
+              ctx.fillText(box.label, box.x + 8, box.y - 7);
+  
+              ctx.restore();
+          });
+      }
+  
+      function calculateIoU() {
+          if (stage !== STAGE_PICKED) return;
+          
+          const winner = boxes.find(b => b.state === 'winner');
+          if (!winner) return;
+  
+          boxes.forEach(box => {
+              if (box === winner) return;
+  
+              // IoU Math
+              const x1 = Math.max(winner.x, box.x);
+              const y1 = Math.max(winner.y, box.y);
+              const x2 = Math.min(winner.x + winner.w, box.x + box.w);
+              const y2 = Math.min(winner.y + winner.h, box.y + box.h);
+  
+              const intersectionArea = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+              const winnerArea = winner.w * winner.h;
+              const boxArea = box.w * box.h;
+              const unionArea = winnerArea + boxArea - intersectionArea;
+              
+              const iou = intersectionArea / unionArea;
+  
+              if (iou > 0.5) {
+                  box.state = 'suppress_candidate';
+              }
+          });
+  
+          stage = STAGE_CHECKED;
+          
+          // Update UI
+          instructionEl.innerHTML = "Step 2 Complete. <strong style='color:#f56565'>Red boxes</strong> have High IoU (>0.5) with the green box.";
+          btnCheck.classList.add('disabled');
+          btnCheck.disabled = true;
+          
+          btnSuppress.classList.remove('disabled');
+          btnSuppress.disabled = false;
+          
+          render();
+      }
+  
+      function suppress() {
+          if (stage !== STAGE_CHECKED) return;
+  
+          let removedCount = 0;
+          boxes.forEach(box => {
+              if (box.state === 'suppress_candidate') {
+                  box.state = 'deleted';
+                  removedCount++;
+              }
+          });
+  
+          stage = STAGE_FINISHED;
+          
+          instructionEl.innerHTML = "<strong>Success!</strong> All duplicates suppressed. Only the best detection remains.";
+          feedbackEl.style.color = '#48bb78';
+          feedbackEl.textContent = `Removed ${removedCount} overlapping boxes.`;
+          
+          btnSuppress.classList.add('disabled');
+          btnSuppress.disabled = true;
+          
+          render();
+      }
+  
+      function handleClick(e) {
+          if (stage !== STAGE_IDLE) return;
+  
+          // Get coordinates relative to canvas logic
+          const rect = canvas.getBoundingClientRect();
+          // Calculate scale based on displayed size vs logical size
+          const scaleX = width / rect.width;
+          const scaleY = height / rect.height;
+          
+          const mouseX = (e.clientX - rect.left) * scaleX;
+          const mouseY = (e.clientY - rect.top) * scaleY;
+  
+          // Hit test
+          // Check top z-index (visually) first? Or simply check if they clicked the winner.
+          let clickedWinner = false;
+          let clickedAny = false;
+  
+          // Check winner specifically first
+          const winner = boxes.find(b => b.score === 0.9);
+          if (mouseX >= winner.x && mouseX <= winner.x + winner.w &&
+              mouseY >= winner.y && mouseY <= winner.y + winner.h) {
+              clickedWinner = true;
+          } else {
+              // Check if they clicked any other box
+              boxes.forEach(b => {
+                  if (mouseX >= b.x && mouseX <= b.x + b.w &&
+                      mouseY >= b.y && mouseY <= b.y + b.h) {
+                      clickedAny = true;
+                  }
+              });
+          }
+  
+          if (clickedWinner) {
+              // Success
+              boxes.forEach(b => b.state = 'neutral'); // Reset others
+              winner.state = 'winner';
+              stage = STAGE_PICKED;
+              
+              instructionEl.innerHTML = "Excellent. Now check which boxes overlap significantly.";
+              feedbackEl.textContent = "";
+              
+              btnCheck.classList.remove('disabled');
+              btnCheck.disabled = false;
+              
+          } else if (clickedAny) {
+              // Wrong box
+              feedbackEl.style.color = '#e53e3e';
+              feedbackEl.textContent = "That's not the highest score. Look for the 0.9 box!";
+              canvas.classList.add('shake');
+              setTimeout(() => canvas.classList.remove('shake'), 400);
+          }
+  
+          render();
+      }
+  
+      // Initialize on load
+      setTimeout(init, 100);
+  
+      // Public API
+      return {
+          calculateIoU,
+          suppress,
+          reset
+      };
+  })();
+  </script>
+    <p>By aggressively removing overlapping boxes that share the same object space, we are left with the single, most confident detection.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>Fast R-CNN: Sharing the Load</h2>
+    <p>NMS cleans up the output, but it doesn't fix the main problem: R-CNN is slow because it runs the heavy CNN 2,000 times per image.</p>
+    <p>In 2015, Ross Girshick introduced <strong>Fast R-CNN</strong>. The big idea? Don't look at 2,000 crops separately. Look at the whole image once.</p>
+    <div class="image-placeholder">
+        <figure>
+            <img src="images/2.jpg" alt="Side-by-side comparison of R-CNN running 2000 separate CNNs versus Fast R-CNN sharing one feature map with RoI pooling">
+            <figcaption class="image-caption">Fast R-CNN trades thousands of redundant CNN passes for one shared backbone plus RoI pooling.</figcaption>
+        </figure>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>In Fast R-CNN, we feed the entire image into the CNN to create a <strong>Feature Map</strong>. Then, we project our region proposals directly onto this feature map. This is called <strong>Shared Computation</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Shared Computation</h4>
+        <p>The efficiency technique of running the heavy backbone CNN only once on the entire image to generate a feature map, rather than running it repeatedly for every region proposal.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>But wait—regions have different sizes, but the fully connected layers at the end of the network need a fixed input size. In R-CNN, we warped the pixels. In Fast R-CNN, we use <strong>RoI Pooling</strong>.</p>
+    <p>RoI Pooling takes a region of any size on the feature map, divides it into a fixed grid (e.g., \(7 \times 7\)), and applies max pooling to each cell. The result is always a \(7 \times 7\) vector, no matter how big the original object was.</p>
+    <div class="visual-placeholder">
+        <figure>
+            <img src="images/3.jpg" alt="Projected RoI on a feature map being divided into a grid with max pooling to form a fixed length vector">
+            <figcaption class="image-caption">RoI Pooling slices the projected region into a grid and max-pools each cell into a fixed-length descriptor.</figcaption>
+        </figure>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>True or False: In Fast R-CNN, the network takes a warped image crop as input.</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That was the old R-CNN way! Fast R-CNN takes the whole image.')">True</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. Fast R-CNN takes the whole image, generates a feature map, and then pools features from that map.')">False</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-roi-quiz" onclick="showNextSection(10)" style="display:none;">Continue</div>
+</section>
+
+<section id="section10">
+    <h2>The Mathematics of Multi-Tasking</h2>
+    <p>Fast R-CNN also streamlined training. Instead of training a CNN, then SVMs, then Regressors separately, it uses a <strong>Multi-Task Loss</strong> to train everything at once.</p>
+    <p>The model has two jobs: classify the object and tighten the box. The total loss \(L\) is the sum of these two tasks:</p>
+    <p>$$ L(p, u, t^u, v) = L_{cls}(p, u) + \lambda [u \geq 1] L_{loc}(t^u, v) $$</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>Let's break that down:</p>
+    <ol>
+        <li>\(L_{cls}(p, u)\): This is the <strong>Classification Loss</strong> (usually Log Loss). It checks if the predicted class \(p\) matches the true label \(u\).</li>
+        <li>\(L_{loc}(t^u, v)\): This is the <strong>Localization Loss</strong>. It checks if the predicted box coordinates \(t^u\) match the ground truth \(v\).</li>
+    </ol>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>You might notice two extra symbols there: \([u \geq 1]\) and \(\lambda\).</p>
+    
+    <div class="frequently-asked">
+        <h3>Frequently Asked Question</h3>
+        <h4>What is the Lambda (\(\lambda\)) in the loss equation?</h4>
+        <div id="faq-lambda" style="display:none;" class="animate-in">
+            <p>Lambda is a hyperparameter that balances the two tasks. If \(\lambda\) is high, the network cares more about getting the box perfect than getting the class right. If it's low, it prioritizes classification. It's usually set to 1.</p>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('faq-lambda')">Reveal Answer</button>
+    </div>
+
+    <p>And the term \([u \geq 1]\)? That's a logic switch. If \(u=0\), that means the region is 'Background'. We don't care about the bounding box of empty space! So, if \(u < 1\), this term becomes 0, turning off the regression loss for background regions.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which component of the Multi-Task loss is responsible for refining the bounding box coordinates?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is for classification (What is it?).')">\(L_{cls}\)</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Loc stands for Localization.')">\(L_{loc}\)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is just a switch to ignore background regions.')">\([u \geq 1]\)</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-loss-quiz" onclick="showNextSection(14)" style="display:none;">Continue</div>
+</section>
+
+<section id="section14">
+    <p>Because of these changes, Fast R-CNN is fully differentiable and can be trained <strong>End-to-End</strong>. This means we update all weights (Backbone, Classifier, Regressor) in a single pass.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Fast R-CNN introduced the 'Backbone' concept—running a heavy CNN only once to extract features for multiple heads. This pattern is the foundation of almost all modern detectors, including YOLO and SSD.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <div class="check-your-knowledge">
+        <h3>Stop & Think</h3>
+        <h4>Fast R-CNN drastically reduced inference time to about 0.2 seconds per image. But is it truly 'real-time'? What is the remaining bottleneck?</h4>
+        <div id="stop-think-bottleneck" style="display:none;" class="animate-in">
+            <strong>Hint:</strong> Remember where the boxes come from. Fast R-CNN still relies on 'Selective Search' to generate proposals <em>before</em> the network starts. Selective Search is a slow, CPU-based algorithm. This is the final hurdle to real-time detection.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-bottleneck')">Reveal Hint</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>We've made a huge leap from the sluggish R-CNN to the much snappier Fast R-CNN.</p>
+    <p>In this lesson, you learned:</p>
+    <ul>
+        <li><strong>Non-Maximum Suppression (NMS)</strong> helps us filter through hundreds of duplicate detections to find the single best box.</li>
+        <li><strong>Shared Computation</strong> allows us to run the heavy CNN only once per image, saving massive amounts of time.</li>
+        <li><strong>RoI Pooling</strong> allows us to extract fixed-size features from regions of any size without warping the image.</li>
+        <li><strong>Multi-Task Loss</strong> lets us train classification and regression simultaneously.</li>
+    </ul>
+    <p>However, as you noted in the 'Stop & Think', we are still relying on an external, slow algorithm (Selective Search) to find the regions. In the next module, we will see how to fix that final bottleneck.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+
+// Check if already completed on load to show button
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    
+    if (!nextSectionElement) return;
+    
+    // Hide the button that was clicked
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    // Show next section
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    // Check for completion
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    
+    // Scroll to new content
+    setTimeout(() => { 
+        nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    // Reset choices in this container
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    
+    // Set selected state
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    
+    // Add explanation
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to reveal Continue buttons after specific quizzes
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        let continueBtnId = null;
+        if (parentSection.id === 'section4') continueBtnId = 'continue-after-nms-quiz';
+        if (parentSection.id === 'section9') continueBtnId = 'continue-after-roi-quiz';
+        if (parentSection.id === 'section13') continueBtnId = 'continue-after-loss-quiz';
+        
+        if (continueBtnId) {
+            const continueButton = document.getElementById(continueBtnId);
+            if (continueButton && continueButton.style.display === 'none') {
+                setTimeout(() => {
+                    continueButton.style.display = 'block';
+                    continueButton.classList.add('show-with-animation');
+                }, 800);
+            }
+        }
+    }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = button.classList.contains('completed');
+    
+    if (!isCompleted) {
+        // LMS Integration placeholder
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs would need to be dynamic in a real app
+                let courseId = 'computer-vision';
+                let pathId = 'object-detection';
+                let moduleId = 'cv-ch15-fast-rcnn';
+                let lessonId = 'cv-ch15-l2-nms-fast-rcnn';
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch15-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🚀', '🏎️', '⚡', '🤖'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    
+    setTimeout(() => { 
+        if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); 
+    }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Fast work! 🏎️';
+    document.body.appendChild(successMessage);
+    
+    setTimeout(() => { 
+        if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); 
+    }, 2500);
+}
+
+// Check local storage on load
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = localStorage.getItem('lesson_cv-ch15-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

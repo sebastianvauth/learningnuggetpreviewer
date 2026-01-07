@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Power of Simplicity – LeNet & VGGNet</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Timeline graphic: From LeNet (1998) to VGG (2014) - The Race for Depth">
+    </div>
+    <h1>The Power of Simplicity – LeNet & VGGNet</h1>
+    <h2>From Ancestors to Giants</h2>
+    <p>Welcome back! In the previous lesson, we looked at the "vegetables" of deep learning—preprocessing and augmentation. Now, we get to the main course: the architectures themselves.</p>
+    <p>The story of modern computer vision is a story of evolution. To understand where we are today, we have to look at the "Grandfather" of CNNs: LeNet, and the architecture that proved that simpler is often better: VGGNet.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: LeNet Intro -->
+<section id="section2">
+    <h2>LeNet: The Blueprint</h2>
+    <p>Let's travel back to 1998. Yann LeCun introduces <strong>LeNet-5</strong>. At the time, this was revolutionary. It was designed to read handwritten digits on checks (the MNIST dataset).</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3: LeNet Components -->
+<section id="section3">
+    <p>What made LeNet so special? It established the blueprint that almost every network followed for the next two decades:</p>
+    <ol>
+        <li><strong>Convolution:</strong> Extract features.</li>
+        <li><strong>Pooling:</strong> Reduce image size.</li>
+        <li><strong>Fully Connected:</strong> Make the final classification.</li>
+    </ol>
+    <div class="image-placeholder">
+        <div class="placeholder-box" aria-label="LeNet Diagram">
+            Visual Placeholder
+            <span>Diagram of LeNet-5: An input 'A' passes through a cone-shaped network, layers getting smaller in size but deeper in thickness.</span>
+        </div>
+    </div>
+    <p>LeNet worked beautifully for \(32 \times 32\) pixel images. But as we moved to the ImageNet era (2012 onwards), we needed networks that could handle high-resolution color photos. We needed to go deeper. Much deeper.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4: VGG Intro -->
+<section id="section4">
+    <h2>VGGNet: Small is Beautiful</h2>
+    <p>Fast forward to 2014. The Visual Geometry Group (VGG) at Oxford proposed a radical idea. While other researchers were designing complex, custom modules, VGG asked: "What if we just make it really deep using the smallest possible filters?"</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5: VGG Philosophy -->
+<section id="section5">
+    <p>The VGG philosophy was simple: <strong>Uniformity</strong>. Instead of mixing \(5 \times 5\), \(7 \times 7\), or \(11 \times 11\) filters, VGG used exclusively <strong>\(3 \times 3\) convolutions</strong> stacked on top of each other.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6: VGG Intuition (Stop & Think) -->
+<section id="section6">
+    <p>At first glance, this seems counter-intuitive. Doesn't a larger filter (like \(5 \times 5\)) capture more information than a tiny \(3 \times 3\) filter? Why would we want smaller filters?</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Stop & Think</h3>
+        <h4>Intuitively, if you look at a picture through a tiny hole versus a large window, you see less. How can a stack of tiny filters see as much as one large filter?</h4>
+        <div id="stop-think-vgg" style="display:none;" class="animate-in">
+            <p><strong>Answer:</strong> Think about looking through a telescope. One lens magnifies a little bit. But if you stack lenses, you see much further. The stacked filters effectively combine to create a larger field of view.</p>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-vgg')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7: Math of Stacking -->
+<section id="section7">
+    <h2>The Math of Stacking</h2>
+    <p>Let's break down the math to see why VGG's strategy was genius. We need to compare two scenarios: a single large layer versus a stack of small layers.</p>
+    <p>First, let's talk about the <strong>Receptive Field (RF)</strong>. This is the area of the input image that a neuron "sees".</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- SECTION 8: RF Interactive -->
+<section id="section8">
+    <p>If we stack two \(3 \times 3\) convolutions:</p>
+    <ol>
+        <li>The first layer sees a \(3 \times 3\) patch.</li>
+        <li>The second layer sees a \(3 \times 3\) patch of the <em>first layer's features</em>.</li>
+    </ol>
+    <p>Mathematically, this expands the view. Two stacked \(3 \times 3\) layers have an effective receptive field of <strong>\(5 \times 5\)</strong>.</p>
+    
+    <!-- The Interactive Module -->
+    <div class="interactive-container" style="position: relative; margin: 2rem 0; width: 100%; max-width: 800px; background: #f8fafc; border-radius: 12px; overflow: hidden; border: 2px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        
+        <div style="padding: 15px; background: #edf2f7; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="margin: 0; color: #2d3748; font-size: 1rem;">Receptive Field Calculator</h4>
+            <button onclick="rfSim.reset()" style="padding: 6px 12px; background: #cbd5e0; color: #4a5568; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Reset Stack</button>
+        </div>
+
+        <canvas id="rfCanvas" width="800" height="400" style="width: 100%; height: auto; display: block; touch-action: none;"></canvas>
+        
+        <div id="rf-instruction" style="text-align: center; padding: 10px; color: #718096; font-size: 0.9rem; font-style: italic;">
+            Drag the purple 3x3 block onto the stack on the left.
+        </div>
+    </div>
+
+<!-- SCRIPT FOR INTERACTIVE MODULE -->
+<script>
+const rfSim = (function() {
+    const canvas = document.getElementById('rfCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // State
+    let stackCount = 0;
+    const maxStack = 3;
+    let isDragging = false;
+    let dragPos = { x: 0, y: 0 };
+    
+    // Layout Constants
+    const SCALE = 1; 
+    const SOURCE_X = 100;
+    const SOURCE_Y = 320;
+    const STACK_BASE_X = 100;
+    const STACK_BASE_Y = 250;
+    const BLOCK_W = 120;
+    const BLOCK_H = 40;
+    
+    // Grid Constants (Right side)
+    const GRID_CX = 550;
+    const GRID_CY = 200;
+    const CELL_SIZE = 25;
+    const GRID_DIM = 9; // 9x9 grid
+    
+    // Colors
+    const COL_BLOCK = '#667eea';
+    const COL_BLOCK_GRAD = ['#667eea', '#764ba2'];
+    const COL_GRID_OFF = '#e2e8f0';
+    const COL_GRID_ON = '#f687b3'; // Highlight color
+    const COL_GRID_CENTER = '#ed64a6';
+    
+    // Setup Events
+    canvas.addEventListener('mousedown', startDrag);
+    canvas.addEventListener('mousemove', handleDrag);
+    canvas.addEventListener('mouseup', endDrag);
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrag(getTouchPos(e)); });
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleDrag(getTouchPos(e)); });
+    canvas.addEventListener('touchend', endDrag);
+
+    function getTouchPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        return {
+            offsetX: (touch.clientX - rect.left) * (canvas.width / rect.width),
+            offsetY: (touch.clientY - rect.top) * (canvas.height / rect.height)
+        };
+    }
+
+    function startDrag(e) {
+        // Correct for scaling if using mouse
+        let mx = e.offsetX;
+        let my = e.offsetY;
+        if (!e.offsetX && e.x) { mx = e.x; my = e.y; } // touch fallback handled above usually
+
+        // Check if hitting source block
+        if (mx > SOURCE_X - BLOCK_W/2 && mx < SOURCE_X + BLOCK_W/2 &&
+            my > SOURCE_Y - BLOCK_H/2 && my < SOURCE_Y + BLOCK_H/2) {
+            
+            if (stackCount < maxStack) {
+                isDragging = true;
+                dragPos = { x: mx, y: my };
+                draw();
+            }
+        }
+    }
+
+    function handleDrag(e) {
+        if (!isDragging) return;
+        let mx = e.offsetX;
+        let my = e.offsetY;
+        if (!e.offsetX && e.x) { mx = e.x; my = e.y; }
+        dragPos = { x: mx, y: my };
+        draw();
+    }
+
+    function endDrag() {
+        if (!isDragging) return;
+        
+        // Drop logic
+        // If dropped near the stack area
+        const dist = Math.abs(dragPos.x - STACK_BASE_X) + Math.abs(dragPos.y - (STACK_BASE_Y - (stackCount * BLOCK_H)));
+        
+        if (dist < 150) {
+            stackCount++;
+            updateTooltip();
+        }
+        
+        isDragging = false;
+        draw();
+    }
+
+    function updateTooltip() {
+        const el = document.getElementById('rf-instruction');
+        if (stackCount === 0) el.innerText = "Drag the purple 3x3 block onto the stack.";
+        else if (stackCount < maxStack) el.innerText = "Keep stacking to increase the Receptive Field!";
+        else el.innerText = "Maximum stack depth reached for this demo.";
+    }
+
+    function drawRoundedRect(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+    }
+
+    function drawBlock(x, y, label, isGhost = false) {
+        ctx.save();
+        if (isGhost) ctx.globalAlpha = 0.5;
+        
+        // Gradient
+        const grad = ctx.createLinearGradient(x, y, x + BLOCK_W, y + BLOCK_H);
+        grad.addColorStop(0, COL_BLOCK_GRAD[0]);
+        grad.addColorStop(1, COL_BLOCK_GRAD[1]);
+        
+        ctx.fillStyle = grad;
+        // Shadow
+        ctx.shadowColor = 'rgba(0,0,0,0.2)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 4;
+        
+        drawRoundedRect(ctx, x - BLOCK_W/2, y - BLOCK_H/2, BLOCK_W, BLOCK_H, 8);
+        ctx.fill();
+        
+        // Text
+        ctx.shadowColor = 'transparent';
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, x, y);
+        
+        ctx.restore();
+    }
+
+    function drawArrow(fromX, fromY, toX, toY) {
+        ctx.save();
+        ctx.strokeStyle = '#cbd5e0';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.stroke();
+        
+        // Arrowhead
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#cbd5e0';
+        ctx.beginPath();
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(toX - 10, toY - 5);
+        ctx.lineTo(toX - 10, toY + 5);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function drawGrid() {
+        const startX = GRID_CX - (GRID_DIM * CELL_SIZE) / 2;
+        const startY = GRID_CY - (GRID_DIM * CELL_SIZE) / 2;
+        
+        // Calculate RF size
+        // 0 blocks = 1x1 (just the pixel)
+        // 1 block = 3x3
+        // 2 blocks = 5x5
+        // 3 blocks = 7x7
+        let rf = 1;
+        if (stackCount > 0) rf = 1 + (stackCount * 2); 
+        
+        const centerIndex = Math.floor(GRID_DIM / 2); // 4
+        const rfRadius = Math.floor(rf / 2);
+        
+        // Draw title
+        ctx.fillStyle = '#2d3748';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText("Input Image Grid", GRID_CX, startY - 20);
+
+        for (let row = 0; row < GRID_DIM; row++) {
+            for (let col = 0; col < GRID_DIM; col++) {
+                const cx = startX + col * CELL_SIZE;
+                const cy = startY + row * CELL_SIZE;
+                
+                let isRF = false;
+                if (row >= centerIndex - rfRadius && row <= centerIndex + rfRadius &&
+                    col >= centerIndex - rfRadius && col <= centerIndex + rfRadius) {
+                    isRF = true;
+                }
+                
+                ctx.fillStyle = isRF ? (stackCount === 0 ? COL_GRID_OFF : COL_GRID_ON) : '#f7fafc';
+                if (row === centerIndex && col === centerIndex) ctx.fillStyle = COL_GRID_CENTER;
+                
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1;
+                
+                ctx.fillRect(cx, cy, CELL_SIZE, CELL_SIZE);
+                ctx.strokeRect(cx, cy, CELL_SIZE, CELL_SIZE);
+            }
+        }
+        
+        // Draw Stats
+        const statsY = startY + (GRID_DIM * CELL_SIZE) + 30;
+        ctx.textAlign = 'left';
+        
+        // Stat 1: Effective RF
+        ctx.fillStyle = '#4a5568';
+        ctx.font = '14px sans-serif';
+        ctx.fillText("Current Stack Depth:", GRID_CX - 80, statsY);
+        ctx.fillStyle = '#2d3748';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(stackCount + (stackCount === 1 ? " Layer" : " Layers"), GRID_CX + 60, statsY);
+        
+        // Stat 2: Effective RF
+        ctx.fillStyle = '#4a5568';
+        ctx.font = '14px sans-serif';
+        ctx.fillText("Effective RF:", GRID_CX - 80, statsY + 25);
+        ctx.fillStyle = '#667eea'; // Highlight color
+        ctx.font = 'bold 16px sans-serif';
+        let rfText = stackCount === 0 ? "-" : `${rf} x ${rf}`;
+        ctx.fillText(rfText, GRID_CX + 60, statsY + 25);
+        
+        // Stat 3: Equivalent
+        if (stackCount > 0) {
+            ctx.fillStyle = '#4a5568';
+            ctx.font = '14px sans-serif';
+            ctx.fillText("Equiv. Single Layer:", GRID_CX - 80, statsY + 50);
+            ctx.fillStyle = '#2d3748';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText(`${rf} x ${rf}`, GRID_CX + 60, statsY + 50);
+        }
+    }
+
+    function draw() {
+        // Clear
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 1. Draw Static Elements
+        // Stack Base
+        ctx.fillStyle = '#e2e8f0';
+        ctx.beginPath();
+        ctx.ellipse(STACK_BASE_X, STACK_BASE_Y + 20, 50, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#a0aec0';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText("VGG Stack", STACK_BASE_X, STACK_BASE_Y + 40);
+        
+        // Source Base
+        ctx.fillStyle = '#e2e8f0';
+        ctx.beginPath();
+        ctx.ellipse(SOURCE_X, SOURCE_Y + 20, 50, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#a0aec0';
+        ctx.fillText("Conv Filters", SOURCE_X, SOURCE_Y + 40);
+
+        // 2. Draw Stacked Blocks
+        for (let i = 0; i < stackCount; i++) {
+            drawBlock(STACK_BASE_X, STACK_BASE_Y - (i * (BLOCK_H + 2)), "3x3 Conv");
+        }
+        
+        // 3. Draw Source Block (Ghost if max reached)
+        if (stackCount < maxStack) {
+             // Only draw source if not dragging (or draw ghost)
+             if (isDragging) {
+                 drawBlock(SOURCE_X, SOURCE_Y, "3x3 Conv", true);
+             } else {
+                 drawBlock(SOURCE_X, SOURCE_Y, "3x3 Conv");
+             }
+        }
+        
+        // 4. Draw Arrow between Stack and Grid
+        if (stackCount > 0) {
+            drawArrow(STACK_BASE_X + BLOCK_W/2 + 20, STACK_BASE_Y - (stackCount*BLOCK_H)/2, GRID_CX - (GRID_DIM*CELL_SIZE)/2 - 20, GRID_CY);
+        }
+        
+        // 5. Draw Grid
+        drawGrid();
+
+        // 6. Draw Dragging Block
+        if (isDragging) {
+            drawBlock(dragPos.x, dragPos.y, "3x3 Conv");
+        }
+    }
+
+    // Initial Draw
+    draw();
+
+    return {
+        reset: () => {
+            stackCount = 0;
+            updateTooltip();
+            draw();
+        }
+    };
+})();
+</script>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- SECTION 9: Parameter Efficiency Vocab -->
+<section id="section9">
+    <p>So, a stack of two \(3 \times 3\) layers sees the same area as one \(5 \times 5\) layer. Now, let's look at the <strong>Parameter Efficiency</strong> (the number of weights). This is where the magic happens.</p>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Parameter Efficiency</h4>
+        <p>The ratio of performance (or receptive field size) to the number of parameters (weights) used. A model is more efficient if it achieves the same result with fewer calculations.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- SECTION 10: The Calculation -->
+<section id="section10">
+    <p>Let's calculate the weights (assuming input and output channels \(C\) are the same for simplicity, and we ignore \(C\) for the comparison ratio):</p>
+    
+    <p><strong>Scenario A: One large \(5 \times 5\) filter</strong><br>
+    $$Weights = 5 \times 5 = 25$$</p>
+    
+    <p><strong>Scenario B: Two stacked \(3 \times 3\) filters</strong><br>
+    $$Weights = 2 \times (3 \times 3) = 2 \times 9 = 18$$</p>
+    
+    <p>$$18 < 25$$</p>
+    
+    <p>The stack uses <strong>28% fewer parameters</strong> to see the exact same image region! Furthermore, because we have two layers, we get two ReLU activation functions instead of one. This makes the network capable of learning more complex functions.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- SECTION 11: Quiz -->
+<section id="section11">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Let's try a deeper stack. VGG often uses a stack of <strong>three</strong> \(3 \times 3\) convolutions. This creates a \(7 \times 7\) receptive field. How many weights does this stack use compared to a single \(7 \times 7\) filter?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Stack: $3 \\times (3^2) = 27$. Single: $7^2 = 49$. The stack is nearly half the size!')">Stack: 27, Single: 49</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. Remember we have three layers in the stack, so we multiply $3 \\times 3$ by 3.')">Stack: 9, Single: 49</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Check your math. The stack is $3 \\times (3 \\times 3)$, not $(3 \\times 3)^2$.')">Stack: 81, Single: 49</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-quiz" onclick="showNextSection(12)" style="display: none;">Continue</div>
+</section>
+
+<!-- SECTION 12: VGG Funnel Intro -->
+<section id="section12">
+    <h2>The VGG Funnel</h2>
+    <p>Now that we know the building block (stacked \(3 \times 3\) convs), let's look at the whole building. VGG follows a very strict shape, often called a "Funnel".</p>
+    
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="VGG Funnel: Spatial dimensions narrow from 224 to 7 while channels deepen from 64 to 512">
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- SECTION 13: The System & FAQ -->
+<section id="section13">
+    <p>The pattern is systematic:</p>
+    <ol>
+        <li><strong>Convolution Blocks:</strong> Keep the size the same, extract features.</li>
+        <li><strong>Max Pooling:</strong> Cut the width and height in half (e.g., \(224 \to 112\)).</li>
+        <li><strong>Double the Channels:</strong> When size halves, filter count doubles (e.g., \(64 \to 128\)).</li>
+    </ol>
+    
+    <div class="faq-section">
+        <h3>Frequently Asked Question</h3>
+        <p><strong>Why do we double the number of channels after every pooling layer?</strong></p>
+        <p>Great observation! When we pool, we lose spatial information (where things are). To compensate for this loss of data, we increase the number of feature maps (what things are). This ensures the total "information capacity" stays roughly balanced as the signal moves through the network.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 14: VGG Size Stop & Think -->
+<section id="section14">
+    <p>However, there is a price to pay for this depth. VGG networks are huge. VGG-19 has about 144 million parameters.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Stop & Think</h3>
+        <h4>VGG has 144 million parameters. Based on the funnel structure (Spatial dims get small, Channels get deep), where do you think most of these weights live—the early conv layers or the final fully connected layers?</h4>
+        <div id="stop-think-weights" style="display:none;" class="animate-in">
+            <p><strong>The Final Fully Connected Layers.</strong> The transition from the last convolution block (\(7 \times 7 \times 512\)) to the first FC layer (4096 neurons) requires a massive matrix multiplication (\(7 \times 7 \times 512 \times 4096 \approx 102\) million weights!). That's nearly 70% of the network in one connection!</p>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-weights')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- SECTION 15: Review and Reflect -->
+<section id="section15">
+    <p>Despite its heavy size, VGG taught us a lesson that defines deep learning today: <strong>Depth matters, and stacks of small filters are the most efficient way to get there.</strong></p>
+    
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>The principle of using small, fixed-size kernels (like 3x3) became the standard for almost all future architectures, including ResNet and modern mobile networks.</p>
+    </div>
+
+    <h2>Review and Reflect</h2>
+    <p>We've bridged the gap from the 90s to the deep learning boom.</p>
+    <p>In this lesson, you analyzed the evolution from LeNet to VGGNet:</p>
+    <ul>
+        <li><strong>LeNet</strong> set the standard Conv-Pool-FC structure.</li>
+        <li><strong>VGGNet</strong> proved that deep stacks of small \(3 \times 3\) filters are computationally cheaper and more powerful than single large filters.</li>
+        <li>You learned to calculate <strong>Receptive Fields</strong> and <strong>Parameter counts</strong> to justify architectural decisions.</li>
+    </ul>
+    <p>But VGG was heavy and slow. In the next lesson, we'll see how Google solved the efficiency problem by "Going Wide" instead of just deep.</p>
+    
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Comparison: Heavy VGG on a scale next to complex, multi-branched GoogLeNet/Inception">
+    </div>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 15;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    // Small timeout to allow DOM to render before scrolling
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after answering quiz
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section11') {
+        const continueButton = document.getElementById('continue-after-quiz');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+                if(window.MathJax) MathJax.typesetPromise(); // Re-render math in explanation if needed
+            }, 800);
+        }
+    }
+    if(window.MathJax) MathJax.typesetPromise();
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Update specific lesson ID here for the LMS
+                let courseId = 'computer-vision';
+                let pathId = 'cnn-architectures';
+                let moduleId = 'cv-ch02-lenet-vgg';
+                let lessonId = 'cv-ch02-l1-simplicity';
+                
+                // Try to grab from URL if available
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch02-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    // Check completion status on load
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage first
+    const isCompleted = localStorage.getItem('lesson_cv-ch02-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

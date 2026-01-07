@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Living on the Edge (Handling Image Borders)</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <img src="images/1.jpg" alt="Cartoon illustration: Kernel hanging off the edge into a grey void with 'Index Out of Bounds' error message">
+    <h1>The Border Problem</h1>
+    <p>Welcome back! In our previous lesson, we mastered the <strong>Convolution Operation</strong>. We learned how to slide a kernel window over an image, multiply the values, and sum them up to create a new pixel value.</p>
+    <p>But we glossed over a tiny, potentially catastrophic detail. Did you spot it?</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: The Issue -->
+<section id="section2">
+    <h2>Running Out of Pixels</h2>
+    <p>Imagine you are applying a \(3 \times 3\) kernel to an image. To calculate the value for the pixel at coordinates \((x, y)\), you need to look at its neighbors: \((x-1, y-1)\), \((x, y-1)\), \((x+1, y+1)\), and so on.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: The Edge Case -->
+<section id="section3">
+    <p>This works great in the middle of the image. But what happens when you try to calculate the value for the very first pixel at the top-left corner, \((0,0)\)?</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Non-existent pixels -->
+<section id="section4">
+    <p>The kernel asks for the value at \((0-1, 0-1)\), or \((-1, -1)\).<br>The computer looks at the image and says: <strong>"That pixel doesn't exist!"</strong></p>
+    <img src="images/2.jpg" alt="Diagram showing a 3x3 kernel centered at (0,0) with arrows pointing to undefined values outside the image boundary">
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Stop and Think -->
+<section id="section5">
+    <p>This is known as the <strong>Border Problem</strong>. When the kernel is centered near the edge, parts of it hang off the image. We can't multiply undefined numbers.</p>
+    <p>So, what do we do? We have two main choices: give up, or get creative.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If we simply decided NOT to calculate pixels where the kernel hangs off the edge, what would happen to our output image?</h4>
+        <div id="cuy-border-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> The output image would be smaller than the input! If we skip the border pixels, we lose a strip of information around the entire perimeter.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-border-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Strategy 1 -->
+<section id="section6">
+    <h2>Strategy 1: The Shrink (Kernel Crop)</h2>
+    <p>The simplest solution is to just ignore the problem. If the kernel doesn't fit entirely inside the image, we simply don't calculate an output for that pixel.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Vocab - Kernel Crop -->
+<section id="section7">
+    <p>This is called <strong>Skipping Outer Pixels</strong> or <strong>Kernel Crop</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Kernel Crop</h4>
+        <p>A border handling method where output values are only calculated for pixels where the kernel fits entirely within the input image. This results in an output image smaller than the input.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Check Understanding - Crop Math -->
+<section id="section8">
+    <p>If you use a \(3 \times 3\) kernel, you lose a 1-pixel border on all sides. If you use a massive \(11 \times 11\) kernel, you lose a 5-pixel border.</p>
+    <p>While valid, this is often annoying because image sizes change as they flow through a processing pipeline. We usually prefer to keep the image size constant.</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If you apply a \(5 \times 5\) kernel using the 'Kernel Crop' strategy, how many pixels are lost from the left side of the image?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. A 5x5 kernel extends 2 pixels out from the center.')">1 pixel</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The center pixel needs 2 neighbors to its left. Since they don\'t exist at the border, we skip the first 2 columns.')">2 pixels</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That would be the full width of the kernel, but we are looking at the radius from the center.')">5 pixels</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Strategy 2 - Padding -->
+<section id="section9">
+    <h2>Strategy 2: Faking It (Padding)</h2>
+    <p>If we want to maintain the original image size, we need to invent values for those missing pixels. This process is called <strong>Padding</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Padding Types -->
+<section id="section10">
+    <p>There are several ways to "hallucinate" these border pixels. Let's look at the most common ones.</p>
+    <img src="images/3.jpg" alt="Comparison of padding techniques: Zero Padding, Extend/Replicate, Wrap, and Mirror">
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Breakdown -->
+<section id="section11">
+    <p>Let's break them down:</p>
+    <ul>
+        <li><strong>Zero Padding:</strong> We assume everything outside the image is \(0\) (black). It's mathematically simple but creates a dark frame around the image.</li>
+        <li><strong>Extend (Replicate):</strong> We just copy the last valid pixel value outwards. It looks like the image is smeared.</li>
+        <li><strong>Wrap (Tiling):</strong> We treat the image like a Pac-Man level. If you go off the left, you appear on the right. This is great for tiling textures but looks weird on faces.</li>
+        <li><strong>Mirror (Reflection):</strong> We reflect the image at the border. This usually looks the most natural because it maintains continuity.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Padding Playground -->
+<section id="section12">
+    <h2>Padding Playground</h2>
+    <p>Reading about it is one thing, but seeing the artifacts is another. Use the tool below to inspect exactly how the computer generates these "ghost" pixels.</p>
+    <!-- Interactive: Padding Playground -->
+<div id="padding-playground" class="padding-interactive-container">
+    <div class="canvas-wrapper">
+        <!-- Main View -->
+        <div class="main-view-container" id="mainViewContainer">
+            <canvas id="padMainCanvas" width="300" height="300"></canvas>
+            <!-- Boundary box will be sized via JS -->
+            <div id="boundaryBox" class="boundary-overlay"></div>
+        </div>
+
+        <!-- Zoom View -->
+        <div class="zoom-view-container">
+            <canvas id="padZoomCanvas" width="150" height="150"></canvas>
+            <div class="zoom-label">🔍 Hover Edge to Zoom</div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button class="mode-btn active" onclick="setPaddingMode('zero')">Zero Padding</button>
+        <button class="mode-btn" onclick="setPaddingMode('extend')">Extend</button>
+        <button class="mode-btn" onclick="setPaddingMode('wrap')">Wrap</button>
+        <button class="mode-btn" onclick="setPaddingMode('mirror')">Mirror</button>
+    </div>
+
+    <script>
+    (function() {
+        // --- Configuration ---
+        const PADDING_SIZE = 50; // How many pixels of padding to show around image
+        const IMG_SIZE = 120;    // Size of the source image
+        const ZOOM_LEVEL = 10;   // Magnification
+        let currentMode = 'zero';
+
+        // --- Elements ---
+        const mainCanvas = document.getElementById('padMainCanvas');
+        const zoomCanvas = document.getElementById('padZoomCanvas');
+        const mainCtx = mainCanvas.getContext('2d');
+        const zoomCtx = zoomCanvas.getContext('2d');
+        const boundaryBox = document.getElementById('boundaryBox');
+
+        // Set dimensions based on config
+        const totalSize = IMG_SIZE + (PADDING_SIZE * 2);
+        mainCanvas.width = totalSize;
+        mainCanvas.height = totalSize;
+        
+        // Size the boundary box
+        boundaryBox.style.width = IMG_SIZE + 'px';
+        boundaryBox.style.height = IMG_SIZE + 'px';
+
+        // disable image smoothing for pixelated zoom look
+        mainCtx.imageSmoothingEnabled = false;
+        zoomCtx.imageSmoothingEnabled = false;
+
+        // --- Generate Source Image (Offscreen) ---
+        // We create a "face" so directionality (mirror vs wrap) is obvious
+        const sourceCanvas = document.createElement('canvas');
+        sourceCanvas.width = IMG_SIZE;
+        sourceCanvas.height = IMG_SIZE;
+        const srcCtx = sourceCanvas.getContext('2d');
+
+        function drawSourceImage() {
+            // Background
+            const grad = srcCtx.createLinearGradient(0, 0, IMG_SIZE, IMG_SIZE);
+            grad.addColorStop(0, '#e2e8f0');
+            grad.addColorStop(1, '#cbd5e1');
+            srcCtx.fillStyle = grad;
+            srcCtx.fillRect(0, 0, IMG_SIZE, IMG_SIZE);
+
+            // Face Circle
+            srcCtx.fillStyle = '#ffccaa';
+            srcCtx.beginPath();
+            srcCtx.arc(IMG_SIZE/2, IMG_SIZE/2, IMG_SIZE/2 - 10, 0, Math.PI * 2);
+            srcCtx.fill();
+
+            // Eyes (Left Blue, Right Green to distinguish sides)
+            srcCtx.fillStyle = '#3182ce'; // Blue
+            srcCtx.fillRect(35, 45, 15, 15);
+            srcCtx.fillStyle = '#38a169'; // Green
+            srcCtx.fillRect(70, 45, 15, 15);
+
+            // Mouth
+            srcCtx.strokeStyle = '#c53030';
+            srcCtx.lineWidth = 5;
+            srcCtx.beginPath();
+            srcCtx.arc(IMG_SIZE/2, IMG_SIZE/2 + 10, 25, 0.2, Math.PI - 0.2);
+            srcCtx.stroke();
+
+            // Asymmetric Hair/Hat feature (Red triangle top left)
+            srcCtx.fillStyle = '#e53e3e';
+            srcCtx.beginPath();
+            srcCtx.moveTo(20, 20);
+            srcCtx.lineTo(50, 20);
+            srcCtx.lineTo(35, 50);
+            srcCtx.fill();
+        }
+        drawSourceImage();
+
+        // Extract pixel data for fast processing
+        const srcData = srcCtx.getImageData(0, 0, IMG_SIZE, IMG_SIZE);
+        const buffer = new Uint32Array(srcData.data.buffer); // 32-bit view for speed
+
+        // --- Core Logic: The Padding Algorithms ---
+        function getPixel(x, y) {
+            // Convert padded coordinates (0..totalSize) to source coordinates (0..IMG_SIZE)
+            // The "Active" image area starts at PADDING_SIZE
+            let srcX = x - PADDING_SIZE;
+            let srcY = y - PADDING_SIZE;
+
+            // Check if inside real image
+            if (srcX >= 0 && srcX < IMG_SIZE && srcY >= 0 && srcY < IMG_SIZE) {
+                return buffer[srcY * IMG_SIZE + srcX];
+            }
+
+            // Outside: Apply Padding Logic
+            if (currentMode === 'zero') {
+                return 0xFF000000; // Black (ABGR for little-endian)
+            }
+
+            if (currentMode === 'extend') {
+                srcX = Math.max(0, Math.min(IMG_SIZE - 1, srcX));
+                srcY = Math.max(0, Math.min(IMG_SIZE - 1, srcY));
+            } else if (currentMode === 'wrap') {
+                srcX = (srcX % IMG_SIZE + IMG_SIZE) % IMG_SIZE;
+                srcY = (srcY % IMG_SIZE + IMG_SIZE) % IMG_SIZE;
+            } else if (currentMode === 'mirror') {
+                // Reflection logic
+                while (srcX < 0 || srcX >= IMG_SIZE) {
+                    if (srcX < 0) srcX = -srcX - 1; 
+                    else if (srcX >= IMG_SIZE) srcX = 2 * IMG_SIZE - srcX - 1;
+                }
+                while (srcY < 0 || srcY >= IMG_SIZE) {
+                    if (srcY < 0) srcY = -srcY - 1;
+                    else if (srcY >= IMG_SIZE) srcY = 2 * IMG_SIZE - srcY - 1;
+                }
+            }
+            
+            return buffer[srcY * IMG_SIZE + srcX];
+        }
+
+        // --- Rendering ---
+        const mainImgData = mainCtx.createImageData(totalSize, totalSize);
+        const mainBuffer = new Uint32Array(mainImgData.data.buffer);
+
+        function renderMain() {
+            for (let y = 0; y < totalSize; y++) {
+                for (let x = 0; x < totalSize; x++) {
+                    mainBuffer[y * totalSize + x] = getPixel(x, y);
+                }
+            }
+            mainCtx.putImageData(mainImgData, 0, 0);
+        }
+
+        function renderZoom(mx, my) {
+            // Clear zoom canvas
+            zoomCtx.fillStyle = '#fff';
+            zoomCtx.fillRect(0, 0, zoomCanvas.width, zoomCanvas.height);
+
+            // Calculate range to show
+            // The zoom window shows 15x15 pixels (150px / 10 zoom)
+            const range = 15;
+            const halfRange = Math.floor(range / 2);
+            
+            const startX = Math.floor(mx - halfRange);
+            const startY = Math.floor(my - halfRange);
+
+            for (let y = 0; y < range; y++) {
+                for (let x = 0; x < range; x++) {
+                    const sampleX = startX + x;
+                    const sampleY = startY + y;
+
+                    // Get color from logic
+                    let colorInt;
+                    if (sampleX < 0 || sampleX >= totalSize || sampleY < 0 || sampleY >= totalSize) {
+                         colorInt = 0xFFFFFFFF; // White background if out of total bounds
+                    } else {
+                        colorInt = mainBuffer[sampleY * totalSize + sampleX];
+                    }
+
+                    // Convert Int32 to CSS color string (slow but fine for 15x15 grid)
+                    const r = (colorInt) & 0xFF;
+                    const g = (colorInt >> 8) & 0xFF;
+                    const b = (colorInt >> 16) & 0xFF;
+                    // Note: Alpha is ignored for simplicity, assumed full opacity
+                    
+                    zoomCtx.fillStyle = `rgb(${r},${g},${b})`;
+                    zoomCtx.fillRect(x * ZOOM_LEVEL, y * ZOOM_LEVEL, ZOOM_LEVEL, ZOOM_LEVEL);
+                    
+                    // Draw Grid Lines
+                    zoomCtx.strokeStyle = 'rgba(0,0,0,0.1)';
+                    zoomCtx.strokeRect(x * ZOOM_LEVEL, y * ZOOM_LEVEL, ZOOM_LEVEL, ZOOM_LEVEL);
+                }
+            }
+
+            // Draw center crosshair
+            zoomCtx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+            zoomCtx.lineWidth = 2;
+            zoomCtx.strokeRect((range/2 - 0.5) * ZOOM_LEVEL, (range/2 - 0.5) * ZOOM_LEVEL, ZOOM_LEVEL, ZOOM_LEVEL);
+        }
+
+        // --- Interaction Handlers ---
+        window.setPaddingMode = function(mode) {
+            currentMode = mode;
+            // Update buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.innerText.toLowerCase().includes(mode) || 
+                   (mode === 'zero' && btn.innerText.includes('Zero'))) {
+                    btn.classList.add('active');
+                }
+            });
+            renderMain();
+            // Re-render zoom if mouse is active (simulated via last pos)
+            // Or just leave it until mouse moves
+        };
+
+        mainCanvas.addEventListener('mousemove', function(e) {
+            const rect = mainCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Map CSS pixels to Canvas pixels (1:1 in this setup)
+            renderZoom(x, y);
+        });
+        
+        // Touch support
+        mainCanvas.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            const rect = mainCanvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            renderZoom(x, y);
+        }, {passive: false});
+
+        // Initialize
+        renderMain();
+        renderZoom(PADDING_SIZE, PADDING_SIZE); // Init zoom at top-left corner
+    })();
+    </script>
+</div>
+    <p>Notice the differences? 'Zero Padding' creates a sharp edge (strong gradient) which might look like a dark line after blurring. 'Mirror' tends to blend in the best.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Why it Matters + Vocab -->
+<section id="section13">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>You might think, "Who cares about a few pixels at the edge?"</p>
+        <p>In photography, <strong>Mirror</strong> padding is preferred to avoid ugly borders. However, in <strong>Deep Learning</strong> (Convolutional Neural Networks), <strong>Zero Padding</strong> is standard. Why? Because it's computationally efficient and easier to implement, even if it introduces a slight "frame" effect.</p>
+    </div>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Artifacts</h4>
+        <p>Noticeable distortions or errors in an image that result from processing. For example, a dark line appearing around an image after blurring with Zero Padding is an artifact.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Final Test -->
+<section id="section14">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Imagine a single row of pixels: <code>[10, 20, 50, ... ]</code>. The kernel asks for the pixel at position -1 (one step to the left of 10). What is the value of this ghost pixel for the <strong>Mirror</strong> and <strong>Wrap</strong> strategies?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Mirroring 10 would just repeat it, but typically mirror reflects across the boundary line. Wait, looking at indices... Mirror usually reflects the neighbor. Wrap would take the far right pixel.')">Mirror: 10, Wrap: 50</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! <strong>Mirror</strong> reflects the image. The neighbor of 10 is 20, so 20 appears on the other side. <strong>Wrap</strong> would grab the value from the far end of the row.')">Mirror: 20, Wrap: [Last Pixel]</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Mirror: 0 would be Zero Padding. Wrap: 10 would be Extending.')">Mirror: 0, Wrap: 10</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(15)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 15: Review and Reflect -->
+<section id="section15">
+    <h2>Review and Reflect</h2>
+    
+    <p>Handling borders is a necessary evil of neighborhood operations. You can either lose data size (<strong>Crop</strong>) or hallucinate data (<strong>Pad</strong>).</p>
+    <ul>
+        <li><strong>Zero Padding</strong> is easy but creates dark edges.</li>
+        <li><strong>Mirror Padding</strong> is visually superior for photos.</li>
+        <li><strong>Wrap</strong> is great for repeating textures.</li>
+    </ul>
+    <p>Now that we know <em>how</em> to slide the kernel and <em>where</em> to slide it, we are ready to change the numbers <em>inside</em> the kernel. In the next lesson, we will see how changing those numbers can blur an image or sharpen it!</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 15;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Unlock continue button if it's the final test section
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section14') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Update these IDs for the specific course/lesson
+                let courseId = 'computer-vision';
+                let pathId = 'generative-adversarial-networks';
+                let moduleId = 'cv-ch21-m1-foundations';
+                let lessonId = 'cv-ch21-l2-living-on-edge';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch21-m1-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+        let courseId = 'computer-vision';
+        let pathId = 'generative-adversarial-networks';
+        let moduleId = 'cv-ch21-m1-foundations';
+        let lessonId = 'cv-ch21-l2-living-on-edge';
+        
+        if (window.parent.currentRoute) {
+            const route = window.parent.currentRoute;
+            if (route.courseId) courseId = route.courseId;
+            if (route.pathId) pathId = route.pathId;
+            if (route.moduleId) moduleId = route.moduleId;
+            if (route.lessonId) lessonId = route.lessonId;
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('course')) courseId = urlParams.get('course');
+        if (urlParams.get('path')) pathId = urlParams.get('path');
+        if (urlParams.get('module')) moduleId = urlParams.get('module');
+        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+        const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+        if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+            button.classList.add('completed');
+            button.innerHTML = '✅ Completed!';
+            return;
+        }
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch21-m1-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>
+
+

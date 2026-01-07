@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Object Detection Paradox & IoU</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <figure>
+            <img src="images/1.jpg" alt="Split-screen comparison showing a single classification label on the left versus many detection bounding boxes on the right" loading="lazy">
+            <figcaption>Classification (left) summarizes the scene as “traffic,” while detection (right) finds each car and pedestrian with its own box.</figcaption>
+        </figure>
+    </div>
+    <h1>The Object Detection Paradox & IoU</h1>
+    <h2>From Classification to Detection</h2>
+    <p>Welcome to the world of Object Detection! Until now, we've mostly been dealing with <strong>Image Classification</strong>. That's the comfortable, cozy corner of Computer Vision where we show a neural network a picture of a dog, and it happily spits out the label "Dog". Simple, right?</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Chaos of Reality</h2>
+    <p>But the real world isn't composed of single objects centered perfectly on a blank background. Look at the street scene above. If we just classify it as "Traffic," we lose 90% of the useful information. A self-driving car needs to know <em>where</em> the pedestrians are, <em>where</em> the other cars are, and <em>how many</em> of them exist.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>This introduces the <strong>Object Detection Paradox</strong>. We are no longer asking just "What is this?" (Classification). We are now asking "What is this, <strong>and where is it</strong>?" (Localization).</p>
+    <p>To solve this, our model needs to perform two tasks simultaneously:</p>
+    <ol>
+        <li><strong>Classification:</strong> Identify the object (e.g., "Car").</li>
+        <li><strong>Regression:</strong> Predict the coordinates of a <strong>Bounding Box</strong> around the object.</li>
+    </ol>
+    <p>For a single object, the network output changes from a simple class probability vector to something like this:</p>
+    <p>\[ \text{Output} = [ \text{Class}, x_c, y_c, w, h ] \]</p>
+    <p>Where \((x_c, y_c)\) is the center of the box, and \(w, h\) are the width and height.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <div class="stop-and-think">
+        <h3>Stop & Think</h3>
+        <p>If an image has 3 objects, the network needs to output 3 sets of these coordinates. But what if the next image has 10 objects? Or 20? How does a standard Neural Network with a fixed number of output neurons handle this dynamic size?</p>
+        <div id="st-answer" style="display:none;" class="animate-in">
+            <strong>It's a trick question!</strong> Standard dense layers (Fully Connected Layers) <em>cannot</em> handle dynamic output sizes. They have a fixed number of neurons. This "Variable Number of Objects" problem is a massive design challenge that architectures like R-CNN and YOLO had to solve creatively, as we will see in later lessons.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('st-answer')">Reveal Insight</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>Before we solve the architecture problem, we need to speak the language of detection. Let's define our terms.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Localization vs. Detection</h4>
+        <p><strong>Localization</strong> typically refers to finding the position of a single object. <strong>Object Detection</strong> refers to finding and classifying multiple objects in a scene.</p>
+        <h4>Bounding Box</h4>
+        <p>The rectangular box enclosing an object, defined by coordinates.</p>
+        <h4>Regression</h4>
+        <p>In this context, predicting continuous numerical values (coordinates like x, y) rather than categorical labels.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>Measuring Success: Intersection over Union</h2>
+    <p>Okay, so our model predicts a bounding box. But how do we know if it's a "good" box? In classification, if the label is "Dog" and the truth is "Dog", you are 100% correct. But in detection, your predicted box will almost <em>never</em> match the ground truth pixel-for-pixel.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>If the box is shifted one pixel to the right, is it wrong? Probably not. If it's shifted 100 pixels? Probably yes. We need a metric to measure "closeness."</p>
+    <div class="image-placeholder">
+        <figure>
+            <img src="images/2.jpg" alt="Meme contrasting pixel-perfect bounding boxes versus close-enough boxes to illustrate IoU tolerance" loading="lazy">
+            <figcaption>IoU is the judge that decides when a prediction is “close enough” to count as a true detection.</figcaption>
+        </figure>
+    </div>
+    <p>Enter <strong>Intersection over Union (IoU)</strong>, also known as the Jaccard Index. It measures the overlap between two areas. The formula is elegant in its simplicity:</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>\[ \text{IoU} = \frac{\text{Area of Overlap}}{\text{Area of Union}} \]</p>
+    <p>Let's break this down with a step-by-step calculation. Imagine <strong>Box A</strong> (Ground Truth) and <strong>Box B</strong> (Prediction).</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <ul>
+        <li><strong>Area of Box A:</strong> Let's say it is \(4m^2\).</li>
+        <li><strong>Area of Box B:</strong> Let's say it is also \(4m^2\).</li>
+        <li><strong>Overlap (Intersection):</strong> They overlap slightly, by \(1m^2\).</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>To find the <strong>Union</strong>, we add the areas of both boxes and <em>subtract</em> the intersection (because we counted that middle part twice!):</p>
+    <p>\[ \text{Union} = \text{Area}_A + \text{Area}_B - \text{Intersection} \]</p>
+    <p>\[ \text{Union} = 4 + 4 - 1 = 7m^2 \]</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>Now, we calculate the IoU:</p>
+    <p>\[ \text{IoU} = \frac{1}{7} \approx 0.14 \]</p>
+    <p>An IoU of 0.14 is very poor. Usually, we consider a detection "Correct" (a True Positive) if the <strong>IoU > 0.5</strong>.</p>
+    
+    <div class="iou-interactive-wrapper">
+      <!-- Interactive Canvas Area -->
+      <div class="canvas-container">
+          <canvas id="iouCanvas" width="600" height="350"></canvas>
+          <div class="overlay-instruction">Drag the Blue Box!</div>
+      </div>
+  
+      <!-- Dashboard / Stats Area -->
+      <div class="iou-dashboard">
+          
+          <!-- Left Col: The Traffic Light & Score -->
+          <div class="score-panel">
+              <div id="trafficLight" class="traffic-light red"></div>
+              <div class="score-text">
+                  <span class="label">IoU Score</span>
+                  <span id="iouValue" class="value">0.15</span>
+                  <span id="statusText" class="status">Poor Match</span>
+              </div>
+          </div>
+  
+          <!-- Right Col: The Math Bars -->
+          <div class="bars-panel">
+              <!-- Intersection Bar -->
+              <div class="bar-group">
+                  <div class="bar-label">
+                      <span>Intersection Area</span>
+                      <span id="interValue">0 px²</span>
+                  </div>
+                  <div class="bar-track">
+                      <div id="interBar" class="bar-fill purple"></div>
+                  </div>
+              </div>
+  
+              <!-- Union Bar -->
+              <div class="bar-group">
+                  <div class="bar-label">
+                      <span>Union Area</span>
+                      <span id="unionValue">0 px²</span>
+                  </div>
+                  <div class="bar-track">
+                      <div id="unionBar" class="bar-fill orange"></div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+  
+  <script>
+  (function() {
+      const canvas = document.getElementById('iouCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      // UI Elements
+      const iouValueEl = document.getElementById('iouValue');
+      const statusTextEl = document.getElementById('statusText');
+      const trafficLightEl = document.getElementById('trafficLight');
+      const interBarEl = document.getElementById('interBar');
+      const unionBarEl = document.getElementById('unionBar');
+      const interValueEl = document.getElementById('interValue');
+      const unionValueEl = document.getElementById('unionValue');
+  
+      // Box Definitions
+      const boxSize = 120;
+      
+      // Ground Truth (Red) - Fixed in Center
+      const gtBox = {
+          x: (canvas.width / 2) - (boxSize / 2),
+          y: (canvas.height / 2) - (boxSize / 2),
+          w: boxSize,
+          h: boxSize,
+          color: 'rgba(245, 101, 101, 0.3)', // Red 500
+          stroke: '#e53e3e'
+      };
+  
+      // Prediction (Blue) - Draggable, Start Offset
+      const predBox = {
+          x: 50,
+          y: 50,
+          w: boxSize,
+          h: boxSize,
+          color: 'rgba(66, 153, 225, 0.4)', // Blue 500
+          stroke: '#3182ce',
+          isDragging: false,
+          dragOffsetX: 0,
+          dragOffsetY: 0
+      };
+  
+      // Helper: Draw Rounded Rect
+      function drawRoundedRect(x, y, w, h, r) {
+          if (w < 2 * r) r = w / 2;
+          if (h < 2 * r) r = h / 2;
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.arcTo(x + w, y, x + w, y + h, r);
+          ctx.arcTo(x + w, y + h, x, y + h, r);
+          ctx.arcTo(x, y + h, x, y, r);
+          ctx.arcTo(x, y, x + w, y, r);
+          ctx.closePath();
+      }
+  
+      // Helper: Calculate IoU
+      function calculateIoU() {
+          // Intersection coordinates
+          const x1 = Math.max(gtBox.x, predBox.x);
+          const y1 = Math.max(gtBox.y, predBox.y);
+          const x2 = Math.min(gtBox.x + gtBox.w, predBox.x + predBox.w);
+          const y2 = Math.min(gtBox.y + gtBox.h, predBox.y + predBox.h);
+  
+          const width = Math.max(0, x2 - x1);
+          const height = Math.max(0, y2 - y1);
+  
+          const intersectionArea = width * height;
+          const gtArea = gtBox.w * gtBox.h;
+          const predArea = predBox.w * predBox.h;
+          const unionArea = gtArea + predArea - intersectionArea;
+          
+          const iou = intersectionArea / unionArea;
+  
+          return { iou, intersectionArea, unionArea, rect: {x: x1, y: y1, w: width, h: height} };
+      }
+  
+      // Update UI based on stats
+      function updateUI(stats) {
+          // Text
+          iouValueEl.innerText = stats.iou.toFixed(2);
+          interValueEl.innerText = Math.round(stats.intersectionArea) + ' px²';
+          unionValueEl.innerText = Math.round(stats.unionArea) + ' px²';
+  
+          // Bars (normalize roughly for visual effect)
+          const maxArea = (boxSize * boxSize) * 2; // Approx max union
+          const interPct = (stats.intersectionArea / (boxSize*boxSize)) * 100; 
+          const unionPct = (stats.unionArea / maxArea) * 100;
+          
+          interBarEl.style.width = `${interPct}%`;
+          unionBarEl.style.width = `${unionPct}%`;
+  
+          // Traffic Light
+          trafficLightEl.className = 'traffic-light';
+          if (stats.iou >= 0.5) {
+              trafficLightEl.classList.add('green');
+              statusTextEl.innerText = "Match Found!";
+              statusTextEl.style.color = "#48bb78";
+          } else if (stats.iou > 0.1) {
+              trafficLightEl.classList.add('yellow');
+              statusTextEl.innerText = "Close...";
+              statusTextEl.style.color = "#d69e2e";
+          } else {
+              trafficLightEl.classList.add('red');
+              statusTextEl.innerText = "No Match";
+              statusTextEl.style.color = "#e53e3e";
+          }
+      }
+  
+      function draw() {
+          // Clear Canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+          // 1. Draw Ground Truth (Red)
+          ctx.save();
+          ctx.fillStyle = gtBox.color;
+          ctx.strokeStyle = gtBox.stroke;
+          ctx.setLineDash([5, 5]);
+          ctx.lineWidth = 2;
+          drawRoundedRect(gtBox.x, gtBox.y, gtBox.w, gtBox.h, 8);
+          ctx.fill();
+          ctx.stroke();
+          
+          // Label GT
+          ctx.fillStyle = "#e53e3e";
+          ctx.font = "bold 12px sans-serif";
+          ctx.setLineDash([]);
+          ctx.fillText("Ground Truth", gtBox.x, gtBox.y - 8);
+          ctx.restore();
+  
+          // 2. Draw Prediction (Blue)
+          ctx.save();
+          ctx.fillStyle = predBox.color;
+          ctx.strokeStyle = predBox.stroke;
+          ctx.lineWidth = 2;
+          // Add shadow if dragging
+          if (predBox.isDragging) {
+              ctx.shadowColor = "rgba(0,0,0,0.2)";
+              ctx.shadowBlur = 10;
+              ctx.shadowOffsetY = 5;
+          }
+          drawRoundedRect(predBox.x, predBox.y, predBox.w, predBox.h, 8);
+          ctx.fill();
+          ctx.stroke();
+  
+          // Label Prediction
+          ctx.fillStyle = "#3182ce";
+          ctx.font = "bold 12px sans-serif";
+          ctx.shadowColor = "transparent"; // reset shadow
+          ctx.fillText("Prediction", predBox.x, predBox.y - 8);
+          ctx.restore();
+  
+          // 3. Draw Intersection Highlight
+          const stats = calculateIoU();
+          if (stats.intersectionArea > 0) {
+              ctx.save();
+              ctx.fillStyle = "rgba(118, 75, 162, 0.5)"; // Purple blend
+              ctx.globalCompositeOperation = 'source-over';
+              drawRoundedRect(stats.rect.x, stats.rect.y, stats.rect.w, stats.rect.h, 0); // sharp corners for intersection usually look better logic-wise, but rounded matches style
+              ctx.fill();
+              
+              // Intersection Pattern (Diagonal lines)
+              ctx.beginPath();
+              ctx.rect(stats.rect.x, stats.rect.y, stats.rect.w, stats.rect.h);
+              ctx.clip();
+              ctx.strokeStyle = "rgba(255,255,255,0.3)";
+              ctx.lineWidth = 1;
+              for (let i = -stats.rect.h; i < stats.rect.w; i+=10) {
+                  ctx.moveTo(stats.rect.x + i, stats.rect.y);
+                  ctx.lineTo(stats.rect.x + i + stats.rect.h, stats.rect.y + stats.rect.h);
+              }
+              ctx.stroke();
+              ctx.restore();
+          }
+  
+          updateUI(stats);
+      }
+  
+      // Input Handling
+      function getMousePos(evt) {
+          const rect = canvas.getBoundingClientRect();
+          const clientX = evt.clientX || (evt.touches && evt.touches[0].clientX);
+          const clientY = evt.clientY || (evt.touches && evt.touches[0].clientY);
+          return {
+              x: clientX - rect.left,
+              y: clientY - rect.top
+          };
+      }
+  
+      function isHit(pos, box) {
+          return pos.x > box.x && pos.x < box.x + box.w &&
+                 pos.y > box.y && pos.y < box.y + box.h;
+      }
+  
+      function handleStart(e) {
+          const pos = getMousePos(e);
+          if (isHit(pos, predBox)) {
+              e.preventDefault();
+              predBox.isDragging = true;
+              predBox.dragOffsetX = pos.x - predBox.x;
+              predBox.dragOffsetY = pos.y - predBox.y;
+              draw();
+          }
+      }
+  
+      function handleMove(e) {
+          if (predBox.isDragging) {
+              e.preventDefault(); // prevent scrolling while dragging
+              const pos = getMousePos(e);
+              
+              // Update position
+              let newX = pos.x - predBox.dragOffsetX;
+              let newY = pos.y - predBox.dragOffsetY;
+  
+              // Boundaries
+              newX = Math.max(0, Math.min(canvas.width - predBox.w, newX));
+              newY = Math.max(0, Math.min(canvas.height - predBox.h, newY));
+  
+              predBox.x = newX;
+              predBox.y = newY;
+              draw();
+          } else {
+              // Hover cursor effect
+              const pos = getMousePos(e);
+              if (isHit(pos, predBox)) {
+                  canvas.style.cursor = 'move';
+              } else {
+                  canvas.style.cursor = 'default';
+              }
+          }
+      }
+  
+      function handleEnd(e) {
+          if (predBox.isDragging) {
+              predBox.isDragging = false;
+              draw();
+          }
+      }
+  
+      // Event Listeners
+      canvas.addEventListener('mousedown', handleStart);
+      canvas.addEventListener('mousemove', handleMove);
+      window.addEventListener('mouseup', handleEnd);
+  
+      canvas.addEventListener('touchstart', handleStart, {passive: false});
+      canvas.addEventListener('touchmove', handleMove, {passive: false});
+      window.addEventListener('touchend', handleEnd);
+  
+      // Initial Draw
+      draw();
+  
+  })();
+  </script>
+
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Without IoU, we cannot punish a model for finding the right object in the slightly wrong place. It provides a standardized way to convert continuous regression outputs into binary 'Correct' or 'Incorrect' judgments.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>You have trained a model to detect cats. In one image, the model predicts a box for a cat with an IoU of 0.45 against the ground truth. If your evaluation threshold is set to 0.5, how is this prediction classified?</h4>
+        
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. Even though the model might have found the cat, the overlap (0.45) is strictly lower than the required threshold (0.5).')">True Positive</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. Because the IoU (0.45) is below the threshold (0.5), the evaluation metric considers this a &quot;bad&quot; localization, effectively treating it as a false alarm or a hallucination for grading purposes.')">False Positive</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>You might be wondering why we go through all this trouble with areas.</p>
+    <div class="vocab-section">
+        <h4>Frequently Asked Question</h4>
+        <p><strong>Q: Why don't we just calculate the distance between the center points of the boxes?</strong></p>
+        <p><strong>A:</strong> Great question! Center distance can be misleading. Imagine a huge box and a tiny box that share the exact same center point. The distance is zero (perfect!), but the tiny box might not cover the object at all. IoU accounts for both position <em>and</em> size alignment.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If an image contains 5 objects, and each object requires a class label plus 4 coordinate values, how many total values must the network output?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Too low. That would only be 1 value per object.')">5 values</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Close, but you forgot the class labels!')">20 values</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! 5 objects × (4 coordinates + 1 class label) = 25 outputs.')">25 values</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(15)" style="display: none;">Continue</div>
+</section>
+
+<section id="section15">
+    <h2>Review and Reflect</h2>
+    <p>In this lesson, we stepped out of the simple world of classification and into the complex landscape of Object Detection.</p>
+    <p>We learned that:</p>
+    <ul>
+        <li><strong>Detection</strong> is Classification + Localization (Regression).</li>
+        <li><strong>Outputs</strong> must include coordinates (like \(x, y, w, h\)).</li>
+        <li><strong>IoU</strong> is the ruler we use to measure how well those coordinates match reality.</li>
+    </ul>
+    <p>In the next lesson, we will see how to take these IoU scores and turn them into a comprehensive scorecard for our model using <strong>Average Precision (AP)</strong>.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 15;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after answering specific questions
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section14') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs adjusted for this lesson context
+                let courseId = 'computer-vision';
+                let pathId = 'object-detection';
+                let moduleId = 'cv-ch22-m1-foundations';
+                let lessonId = 'cv-ch22-l1-object-detection-paradox';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch22-m1-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+         // LMS check logic here (same as standard)
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch22-m1-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<style>
+    /* Interactive Gamma Modules Styling */
+    .gamma-comic-wrapper, .gamma-graph-wrapper {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 2rem;
+        margin: 2rem 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .gamma-comic-wrapper canvas, .gamma-graph-wrapper canvas {
+        background: white;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 800px;
+        height: auto;
+        display: block;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+
+    .comic-controls, .graph-controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.25rem;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .panel-indicators {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #cbd5e1;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .dot.active {
+        background: #667eea;
+        transform: scale(1.3);
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+    }
+
+    .comic-btn {
+        padding: 0.8rem 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        font-size: 1rem;
+    }
+
+    .comic-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .comic-btn:active {
+        transform: translateY(0);
+    }
+
+    .comic-btn.reset {
+        background: #64748b;
+    }
+
+    .control-header {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .control-header label {
+        font-weight: 700;
+        color: #334155;
+        font-size: 1.1rem;
+    }
+
+    .slider-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 800;
+        color: #667eea;
+        font-size: 1.2rem;
+        background: #eef2ff;
+        padding: 2px 10px;
+        border-radius: 6px;
+    }
+
+    #gammaSlider {
+        width: 100%;
+        height: 8px;
+        accent-color: #667eea;
+        cursor: pointer;
+        background: #e2e8f0;
+        border-radius: 4px;
+        -webkit-appearance: none;
+    }
+
+    #gammaSlider::-webkit-slider-runnable-track {
+        height: 8px;
+        border-radius: 4px;
+    }
+
+    #gammaSlider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 24px;
+        width: 24px;
+        border-radius: 50%;
+        background: #667eea;
+        cursor: pointer;
+        margin-top: -8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        border: 2px solid white;
+    }
+
+    .slider-labels {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        margin-top: 0.5rem;
+    }
+
+    .graph-explanation {
+        margin-top: 2rem;
+        padding: 1.25rem;
+        background: #f0f9ff;
+        border-radius: 12px;
+        border: 1px solid #bae6fd;
+        font-size: 1.1rem;
+        color: #0369a1;
+        text-align: center;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .graph-explanation strong {
+        color: #0284c7;
+        font-size: 1.2rem;
+    }
+
+    /* Fix for existing canvas-container conflicts */
+    .gamma-graph-wrapper .canvas-container {
+        width: 100%;
+        max-width: 600px;
+        height: auto;
+        background: transparent;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+        overflow: visible;
+        cursor: default;
+        margin-bottom: 1.5rem;
+    }
+</style>
+<title>The Human Eye and Gamma Correction</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Side-by-side comparison: Linear Ramp showing jumpy mathematically equal steps vs Perceptually Uniform Ramp showing smooth visually even transition" style="width: 100%; max-width: 800px; height: auto; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+    </div>
+    <h1>The Human Eye and Gamma Correction</h1>
+    <p>In the previous lesson, we used linear math to adjust images. It’s logical, simple, and... often looks wrong to our eyes. That's because human vision isn't linear. If you double the number of photons hitting your eye, it doesn't look "twice as bright" to you. In this lesson, we will explore Non-Linear Transformations, specifically Gamma Correction, to fix this discrepancy.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Perception Problem -->
+<section id="section2">
+    <h2>The Perception Problem</h2>
+    <p>Linear transformations are great for simple tasks, but they have a flaw. If you try to brighten a dark image by simply multiplying every pixel by 2 (Linear Scaling), you might fix the shadows, but you'll likely turn the bright sky into a solid white blob.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Why Linear Fails -->
+<section id="section3">
+    <p>This happens because linear scaling stretches everything equally. However, our eyes—and most display screens—don't perceive light that way. We are much more sensitive to changes in dark tones than in bright tones.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Gamma Defintion -->
+<section id="section4">
+    <p>To manipulate images in a way that feels natural to humans, or to correct for the physics of monitors, we use a power-law transformation. We call this <strong>Gamma Correction</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Gamma Correction</h4>
+        <p>A non-linear operation used to encode and decode luminance or tristimulus values in video or still image systems. It uses a power-law expression to map input values to output values.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Comic Strip -->
+<section id="section5">
+    <p>Unlike the straight line of a linear transformation, Gamma correction uses a curve. This allows us to make specific changes to the dark mid-tones without ruining the bright highlights.</p>
+    <!-- Interactive Comic Module -->
+<div class="gamma-comic-wrapper">
+    <canvas id="comicCanvas" width="800" height="350" aria-label="Comic strip explaining Gamma Correction"></canvas>
+    
+    <div class="comic-controls">
+        <div class="panel-indicators">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+        <button id="comicNextBtn" class="comic-btn">Next Panel ➜</button>
+    </div>
+
+    <script>
+    (function() {
+        const canvas = document.getElementById('comicCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Polyfill for roundRect if not available
+        if (!ctx.roundRect) {
+            ctx.roundRect = function (x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                this.beginPath();
+                this.moveTo(x + r, y);
+                this.arcTo(x + w, y, x + w, y + h, r);
+                this.arcTo(x + w, y + h, x, y + h, r);
+                this.arcTo(x, y + h, x, y, r);
+                this.arcTo(x, y, x + w, y, r);
+                this.closePath();
+                return this;
+            };
+        }
+        
+        const btn = document.getElementById('comicNextBtn');
+        const dots = document.querySelectorAll('.dot');
+        
+        let currentPanel = 0;
+        const totalPanels = 4;
+
+        // Scaling for retina displays or responsive resizing
+        function setupCanvas() {
+            // Internal coordinate system width/height
+            const width = 800;
+            const height = 350;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        // --- Drawing Helpers ---
+
+        function drawMonitor(x, y, colorCode, faceExpression = "neutral") {
+            // Monitor Stand
+            ctx.fillStyle = '#4a5568';
+            ctx.fillRect(x + 60, y + 120, 30, 40);
+            ctx.beginPath();
+            ctx.moveTo(x + 40, y + 160);
+            ctx.lineTo(x + 110, y + 160);
+            ctx.stroke();
+            
+            // Monitor Bezel
+            ctx.fillStyle = '#2d3748';
+            ctx.beginPath();
+            ctx.roundRect(x, y, 150, 120, 10);
+            ctx.fill();
+
+            // Screen Area
+            ctx.fillStyle = colorCode;
+            ctx.fillRect(x + 10, y + 10, 130, 100);
+
+            // Eyes (Anthropomorphic)
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(x + 45, y + 40, 15, 0, Math.PI * 2); // Left Eye
+            ctx.arc(x + 105, y + 40, 15, 0, Math.PI * 2); // Right Eye
+            ctx.fill();
+
+            // Pupils
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            if (faceExpression === "shifty") {
+                ctx.arc(x + 50, y + 40, 5, 0, Math.PI * 2);
+                ctx.arc(x + 110, y + 40, 5, 0, Math.PI * 2);
+            } else if (faceExpression === "happy") {
+                ctx.arc(x + 45, y + 40, 5, 0, Math.PI * 2);
+                ctx.arc(x + 105, y + 40, 5, 0, Math.PI * 2);
+            }
+            ctx.fill();
+
+            // Mouth
+            ctx.beginPath();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            if (faceExpression === "shifty") {
+                ctx.moveTo(x + 60, y + 80);
+                ctx.lineTo(x + 90, y + 75); // Crooked mouth
+            } else if (faceExpression === "happy") {
+                ctx.arc(x + 75, y + 75, 15, 0, Math.PI, false); // Smile
+            }
+            ctx.stroke();
+            ctx.lineWidth = 1;
+        }
+
+        function drawStickFigure(x, y, armAction = "idle") {
+            ctx.strokeStyle = '#2d3748';
+            ctx.lineWidth = 4;
+            
+            // Head
+            ctx.beginPath();
+            ctx.arc(x, y, 25, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Body
+            ctx.beginPath();
+            ctx.moveTo(x, y + 25);
+            ctx.lineTo(x, y + 100);
+            ctx.stroke();
+
+            // Legs
+            ctx.beginPath();
+            ctx.moveTo(x, y + 100);
+            ctx.lineTo(x - 20, y + 150);
+            ctx.moveTo(x, y + 100);
+            ctx.lineTo(x + 20, y + 150);
+            ctx.stroke();
+
+            // Arms
+            ctx.beginPath();
+            if (armAction === "holding") {
+                // Holding cable up
+                ctx.moveTo(x, y + 40);
+                ctx.lineTo(x + 40, y + 30); // Right arm up
+                ctx.moveTo(x, y + 40);
+                ctx.lineTo(x - 30, y + 60); // Left arm down
+            } else {
+                ctx.moveTo(x, y + 40);
+                ctx.lineTo(x + 30, y + 70);
+                ctx.moveTo(x, y + 40);
+                ctx.lineTo(x - 30, y + 70);
+            }
+            ctx.stroke();
+            ctx.lineWidth = 1;
+        }
+
+        function drawCable(startX, startY, endX, endY, color) {
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
+            ctx.moveTo(startX, startY);
+            // Bezier curve for a loose cable look
+            const cp1x = startX + (endX - startX) / 2;
+            const cp1y = startY + 50; 
+            const cp2x = endX - (endX - startX) / 2;
+            const cp2y = endY - 50;
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+            ctx.stroke();
+            ctx.lineWidth = 1;
+        }
+
+        function drawBubble(x, y, text, tailPosition = "left") {
+            ctx.font = "16px sans-serif";
+            const padding = 15;
+            const maxWidth = 250;
+            const lineHeight = 20;
+            
+            // Simple text wrapping logic
+            const words = text.split(' ');
+            let line = '';
+            const lines = [];
+            for(let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                const testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    lines.push(line);
+                    line = words[n] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line);
+
+            const bubbleWidth = Math.min(maxWidth, ctx.measureText(text).width + 40); 
+            // Better width calculation for multiline
+            let maxLineWidth = 0;
+            lines.forEach(l => {
+                const w = ctx.measureText(l).width;
+                if (w > maxLineWidth) maxLineWidth = w;
+            });
+            
+            const finalWidth = maxLineWidth + padding * 2;
+            const finalHeight = (lines.length * lineHeight) + padding * 2;
+
+            // Bubble shape
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = '#2d3748';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(x, y - finalHeight, finalWidth, finalHeight, 10);
+            ctx.fill();
+            ctx.stroke();
+
+            // Tail
+            ctx.beginPath();
+            if (tailPosition === "left") {
+                ctx.moveTo(x + 20, y);
+                ctx.lineTo(x + 10, y + 15);
+                ctx.lineTo(x + 35, y);
+            } else {
+                ctx.moveTo(x + finalWidth - 35, y);
+                ctx.lineTo(x + finalWidth - 10, y + 15);
+                ctx.lineTo(x + finalWidth - 20, y);
+            }
+            ctx.fill();
+            ctx.stroke();
+
+            // Text
+            ctx.fillStyle = '#2d3748';
+            lines.forEach((l, i) => {
+                ctx.fillText(l, x + padding, y - finalHeight + padding + (i * lineHeight) + 5);
+            });
+            ctx.lineWidth = 1;
+        }
+
+        function drawGammaBox(x, y) {
+            // Box
+            const grad = ctx.createLinearGradient(x, y, x + 100, y + 100);
+            grad.addColorStop(0, '#667eea');
+            grad.addColorStop(1, '#764ba2');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.roundRect(x, y, 120, 80, 8);
+            ctx.fill();
+            
+            // Label
+            ctx.fillStyle = 'white';
+            ctx.font = "bold 18px sans-serif";
+            ctx.fillText("GAMMA", x + 25, y + 35);
+            ctx.font = "14px sans-serif";
+            ctx.fillText("Curve = x^2.2", x + 20, y + 60);
+        }
+
+        // --- Render Loop ---
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Common floor
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, 280);
+            ctx.lineTo(750, 280);
+            ctx.stroke();
+            ctx.lineWidth = 1;
+
+            if (currentPanel === 0) {
+                // PANEL 1: Dark Monitor complaining
+                // The color RGB(20,20,20) is physically dark (value 20), 
+                // but represents the 'linear' data which looks too dark on screen.
+                drawMonitor(325, 120, 'rgb(30, 30, 30)', 'shifty');
+                drawBubble(325, 110, "I will show this dark gray data as PURE BLACK because of my physics!", "left");
+            } 
+            else if (currentPanel === 1) {
+                // PANEL 2: User Interrupts
+                drawMonitor(550, 120, 'rgb(30, 30, 30)', 'shifty');
+                drawStickFigure(200, 130, 'holding');
+                
+                // Cable in hand
+                drawCable(240, 160, 550, 200, '#a0aec0');
+                
+                drawBubble(200, 120, "NO! That's detail! I'm applying Gamma Correction!", "left");
+            }
+            else if (currentPanel === 2) {
+                // PANEL 3: The Box
+                // Input Line (Linear Dark)
+                ctx.beginPath();
+                ctx.strokeStyle = '#2d3748';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([10, 5]);
+                ctx.moveTo(100, 160);
+                ctx.lineTo(340, 160);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillText("Input: 30", 150, 150);
+
+                drawGammaBox(340, 120);
+
+                // Output Line (Brightened)
+                ctx.beginPath();
+                ctx.strokeStyle = '#68d391'; // Greenish for correct
+                ctx.lineWidth = 4;
+                ctx.moveTo(460, 160);
+                ctx.lineTo(700, 160);
+                ctx.stroke();
+                ctx.fillStyle = '#2d3748';
+                ctx.fillText("Output: 110", 550, 150);
+
+                // Animating particle
+                const time = Date.now() / 1000;
+                const offset = (time * 100) % 600;
+                ctx.beginPath();
+                ctx.arc(100 + offset, 160, 6, 0, Math.PI*2);
+                ctx.fillStyle = (100 + offset > 340) ? '#68d391' : '#2d3748';
+                ctx.fill();
+
+                requestAnimationFrame(render); // Keep animating in this panel
+            }
+            else if (currentPanel === 3) {
+                // PANEL 4: Happy Monitor
+                // Color is RGB(100,100,100) - visually distinct gray
+                drawMonitor(325, 120, 'rgb(100, 100, 100)', 'happy');
+                drawStickFigure(150, 130, 'idle');
+                drawBubble(370, 110, "Okay, fine. Now it actually LOOKS gray.", "right");
+            }
+        }
+
+        // --- Interaction ---
+
+        btn.addEventListener('click', () => {
+            if (currentPanel < totalPanels - 1) {
+                currentPanel++;
+            } else {
+                currentPanel = 0; // Reset
+            }
+            updateUI();
+            render();
+        });
+
+        function updateUI() {
+            // Dots
+            dots.forEach((dot, idx) => {
+                if (idx === currentPanel) dot.classList.add('active');
+                else dot.classList.remove('active');
+            });
+
+            // Button Text
+            if (currentPanel === totalPanels - 1) {
+                btn.textContent = "Replay Meme ↺";
+                btn.classList.add('reset');
+            } else {
+                btn.textContent = "Next Panel ➜";
+                btn.classList.remove('reset');
+            }
+        }
+
+        // Init
+        setupCanvas();
+        render();
+
+    })();
+    </script>
+</div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: The Math -->
+<section id="section6">
+    <h2>The Math of Gamma</h2>
+    <p>Let's look at the formula. It is slightly more complex than the linear equation because we are dealing with exponents.</p>
+    <p>The Gamma transformation formula is defined as:</p>
+    <p>\[f(g) = 255 \cdot \left( \frac{g}{255} \right)^\gamma\]</p>
+    <p>Here is what is happening step-by-step:</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Math Steps -->
+<section id="section7">
+    <ul>
+        <li><strong>1. Normalize:</strong> We divide the input pixel value \(g\) by 255. This turns the range \([0, 255]\) into \([0, 1]\). This is crucial because raising large numbers to powers results in huge numbers, but raising numbers between 0 and 1 keeps them between 0 and 1.</li>
+        <li><strong>2. Power:</strong> We take that normalized value and raise it to the power of Gamma (\(\gamma\)).</li>
+        <li><strong>3. Scale Back:</strong> We multiply the result by 255 to get back to our standard pixel integer range.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Calculation Examples -->
+<section id="section8">
+    <p>Let's try a real calculation. Imagine a dark gray pixel with a value of <strong>85</strong>. Let's see what happens with two different Gamma values.</p>
+    
+    <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <strong>Case A: Brightening (\(\gamma = 0.3\))</strong><br>
+        1. Normalize: \(85 / 255 = 0.333\)<br>
+        2. Power: \(0.333^{0.3} \approx 0.719\)<br>
+        3. Scale: \(0.719 \cdot 255 \approx 183\)<br>
+        <em>The pixel jumped from 85 (dark) to 183 (bright gray).</em>
+    </div>
+
+    <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <strong>Case B: Darkening (\(\gamma = 3.0\))</strong><br>
+        1. Normalize: \(85 / 255 = 0.333\)<br>
+        2. Power: \(0.333^3 \approx 0.037\)<br>
+        3. Scale: \(0.037 \cdot 255 \approx 9\)<br>
+        <em>The pixel dropped from 85 to 9 (almost black).</em>
+    </div>
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Non-Linear Mapping</h4>
+        <p>A transformation where the ratio between input and output changes across the range. Unlike linear mapping, the 'slope' is different at every point.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Visualizing -->
+<section id="section9">
+    <h2>Visualizing the Curve</h2>
+    <p>The power of Gamma lies in the shape of the curve. By changing \(\gamma\), we bend the line connecting black and white.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Interactive Graph -->
+<section id="section10">
+    <p>Use the interactive graph below to see how the parameter \(\gamma\) affects the pixel mapping.</p>
+    <!-- Interactive Gamma Graph Module -->
+<div class="gamma-graph-wrapper">
+    <div class="canvas-container">
+        <canvas id="gammaGraphCanvas" width="600" height="400" aria-label="Graph of Input vs Output pixel values"></canvas>
+    </div>
+    
+    <div class="graph-controls">
+        <div class="control-header">
+            <label for="gammaSlider">Gamma Parameter (\(\gamma\))</label>
+            <span class="slider-value" id="gammaValueDisplay">1.0</span>
+        </div>
+        <input type="range" id="gammaSlider" min="0.1" max="5.0" step="0.1" value="1.0">
+        <div class="slider-labels">
+            <span>0.1 (Brighten)</span>
+            <span>5.0 (Darken)</span>
+        </div>
+    </div>
+    
+    <div class="graph-explanation" id="graphExplanation">
+        Input 128 (Mid-gray) &rarr; Output <strong id="midToneOutput">128</strong>
+    </div>
+
+    <script>
+    (function() {
+        const canvas = document.getElementById('gammaGraphCanvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('gammaSlider');
+        const valueDisplay = document.getElementById('gammaValueDisplay');
+        const midToneDisplay = document.getElementById('midToneOutput');
+        
+        // Graph Config
+        const margin = { top: 30, right: 30, bottom: 40, left: 60 };
+        const width = canvas.width - margin.left - margin.right;
+        const height = canvas.height - margin.top - margin.bottom;
+
+        function update() {
+            const gamma = parseFloat(slider.value);
+            valueDisplay.textContent = gamma.toFixed(1);
+            
+            // Calc sample point
+            const midInput = 128;
+            const midOutput = Math.round(255 * Math.pow(midInput / 255, gamma));
+            midToneDisplay.textContent = midOutput;
+            
+            draw(gamma, midInput, midOutput);
+        }
+
+        function draw(gamma, midIn, midOut) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.save();
+            ctx.translate(margin.left, margin.top);
+
+            // --- Grid & Axes ---
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            
+            // Vertical Grid lines
+            for (let i = 0; i <= 4; i++) {
+                const x = (width / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+                
+                // X Labels
+                ctx.fillStyle = '#718096';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                const labelVal = Math.round((255/4) * i);
+                ctx.fillText(labelVal, x, height + 20);
+            }
+
+            // Horizontal Grid lines
+            for (let i = 0; i <= 4; i++) {
+                const y = (height / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+
+                // Y Labels
+                ctx.textAlign = 'right';
+                const labelVal = Math.round(255 - (255/4) * i);
+                ctx.fillText(labelVal, -10, y + 4);
+            }
+            
+            // Axis Titles
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillStyle = '#2d3748';
+            ctx.fillText("Input Pixel Value", width / 2, height + 35);
+            
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText("Output Pixel Value", -height / 2, -40);
+            ctx.restore();
+
+
+            // --- Identity Line (Dotted) ---
+            ctx.beginPath();
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 2;
+            ctx.moveTo(0, height); // 0,0
+            ctx.lineTo(width, 0);  // 255,255
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+
+            // --- Gamma Curve ---
+            ctx.beginPath();
+            ctx.strokeStyle = '#667eea'; // Lesson primary color
+            ctx.lineWidth = 4;
+            
+            ctx.moveTo(0, height); // Start at 0,0
+
+            for (let x = 0; x <= width; x++) {
+                // Normalize x to 0-1
+                const inputNorm = x / width;
+                
+                // Gamma Formula: y = x^gamma
+                // If gamma > 1 (darkening), curve bows under identity
+                // But wait, the standard formula is Output = Input^(Gamma) or Output = Input^(1/Gamma)?
+                // Standard Gamma Correction usually implies: V_out = V_in^(gamma)
+                // However, 'Encoding' often uses 1/2.2 (~0.45) and 'Decoding' uses 2.2.
+                // The lesson text says: "When gamma < 1, curve bows upward... When gamma > 1, bows downward".
+                // So we stick to Output = Input^gamma.
+                
+                const outputNorm = Math.pow(inputNorm, gamma);
+                
+                // Map to canvas Y (inverted because 0 is top)
+                const y = height - (outputNorm * height);
+                ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+
+            // --- Interactive Point (Mid-tone) ---
+            const px = (midIn / 255) * width;
+            const py = height - (midOut / 255) * height;
+
+            // Draw drop lines
+            ctx.beginPath();
+            ctx.strokeStyle = '#a0aec0';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            ctx.moveTo(px, height);
+            ctx.lineTo(px, py);
+            ctx.lineTo(0, py);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw point
+            ctx.beginPath();
+            ctx.fillStyle = '#e53e3e'; // Red highlight
+            ctx.arc(px, py, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // --- Annotations ---
+            // Fixed Endpoints
+            ctx.beginPath();
+            ctx.fillStyle = '#2d3748';
+            ctx.arc(0, height, 4, 0, Math.PI * 2); // 0,0
+            ctx.arc(width, 0, 4, 0, Math.PI * 2); // 255,255
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        slider.addEventListener('input', update);
+        
+        // Init
+        update();
+    })();
+    </script>
+</div>
+    <div class="stop-and-think">
+        <h3>Stop and Think</h3>
+        <h4>Look at the endpoints of the curve in the interactive graph above. Why is it important that \(f(0)=0\) and \(f(255)=255\) in Gamma correction, no matter how much we move the slider?</h4>
+        <div id="sat-endpoints-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> If the endpoints moved, pure black (0) would become gray, or pure white (255) would become gray. By keeping the endpoints fixed, Gamma correction preserves the 'Black Point' and 'White Point' of the image, only changing the contrast and brightness of the colors in between.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('sat-endpoints-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Check Understanding -->
+<section id="section11">
+    <p>Notice that when \(\gamma < 1\), the curve rises steeply at the beginning. This expands the dark shadows, making details visible that were previously hidden in the dark, without washing out the bright parts of the image.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>You have a photo of a friend standing in a shadow, but the background is a bright sunny beach. If you use Linear Brightness (adding an offset), the beach becomes pure white. If you use Gamma Correction (\(\gamma < 1\)), the beach stays visible. Why?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Gamma affects all pixels (except 0 and 1), but the curve flattens out near the top, meaning bright pixels change much less than dark ones.')">
+                Because Gamma correction ignores bright pixels.
+            </div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! The curve boosts dark values significantly (steep slope) but merges gently into the top corner, preserving the bright details.')">
+                Because the Gamma curve is steeper for dark values and flatter for bright values.
+            </div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Gamma is explicitly non-linear.')">
+                Because Gamma correction is a linear transformation.
+            </div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Why It Matters -->
+<section id="section12">
+    <h2>Why It Matters</h2>
+    <p>You might be wondering: if linear is easier, why do we complicate things with this math?</p>
+    <p>Historically, this comes from the hardware. Old CRT monitors had a physical quirk: the intensity of light they produced was not proportional to the voltage input. It followed a power law with a gamma of roughly 2.2. If you sent a linear signal, the image looked dark on screen.</p>
+    <div class="why-it-matters">
+        <h3>Hardware History</h3>
+        <p>To fix this, signals were 'Gamma Corrected' before being sent to the screen. Today, even though we use LCD and OLED screens, our image file formats (like JPEG) and operating systems still use Gamma encoding to match human perception and optimize how we store data.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: FAQ and Final Test -->
+<section id="section13">
+    <div class="vocab-section" style="background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%); border-left-color: #627d98; box-shadow: none;">
+        <h4>Frequently Asked: Is Gamma correction the same as HDR?</h4>
+        <p>No, but they are related. Gamma correction is a way to map values within a standard range (like 0-255) to better fit perception. HDR involves capturing and storing a much wider range of light and dark values than standard images can hold.</p>
+    </div>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>You have an image that looks generally okay, but the mid-tones (the faces and clothing) look a bit washed out and too bright. You want to add some 'richness' and contrast to these mid-tones without changing the black or white points. Which Gamma value is appropriate?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'A Gamma of 1.0 is the Identity transformation. It changes nothing.')">
+                \(\gamma = 1.0\)
+            </div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'A Gamma less than 1 will bow the curve upward, making the image even brighter and more washed out.')">
+                \(\gamma = 0.5\)
+            </div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! A Gamma greater than 1 will bow the curve downward. This compresses the darks and mid-tones slightly, making the image appear richer and darker in those areas.')">
+                \(\gamma = 2.2\)
+            </div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(14)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 14: Review -->
+<section id="section14">
+    <h2>Review and Reflect</h2>
+    <p>We have now moved beyond simple lines and entered the world of curves.</p>
+    <p>In this lesson, you learned that human vision is non-linear and that <strong>Gamma Correction</strong> helps us adjust images to match that perception.</p>
+    <ul>
+        <li>We used the formula \(f(g) = 255 \cdot (g/255)^\gamma\).</li>
+        <li>We saw that \(\gamma < 1\) brightens shadows, while \(\gamma > 1\) darkens mid-tones.</li>
+        <li>We verified that the black and white points remain anchored.</li>
+    </ul>
+    <p>Sometimes, however, we don't want to guess a Gamma value. We want the image to tell us what contrast it needs. In the next lesson, we will look at <strong>Histogram Equalization</strong>, an automatic way to maximize contrast based on the image's own data.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 14;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+ const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section13') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Adjust IDs as needed for the specific course structure
+                let courseId = 'computer-vision';
+                let pathId = 'image-modifications';
+                let moduleId = 'cv-ch08-l3-gamma-correction';
+                let lessonId = 'cv-ch08-l3-main';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch08-l3-main_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '💡', '👁️', '🌈'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    // Check local storage or parent tracker
+    if (window.parent && window.parent.ProgressTracker) {
+        // Logic to check parent tracker state
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch08-l3-main_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

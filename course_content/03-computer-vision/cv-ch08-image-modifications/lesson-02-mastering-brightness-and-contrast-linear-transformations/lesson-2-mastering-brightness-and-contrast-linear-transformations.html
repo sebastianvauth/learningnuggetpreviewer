@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Mastering Brightness and Contrast (Linear Transformations)</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Split-screen comparison: Low contrast landscape on the left vs High contrast vibrant landscape on the right" style="width: 100%; max-width: 800px; height: auto; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+    </div>
+    <h1>Mastering Brightness and Contrast (Linear Transformations)</h1>
+    
+    <h2>The Simplest Function</h2>
+    <p>In the last lesson, we established the mathematical ground rules: to change an image, we apply a function \( f(g) \) to every single pixel. But what should that function look like?</p>
+    <p>If you want to simply brighten an image or make it "pop" (increase contrast), you don't need complex algorithms. You just need a straight line.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Math of the Line -->
+<section id="section2">
+    <h2>The Math of the Line</h2>
+    <p>You probably remember the equation for a line from algebra class: \( y = mx + c \). In image processing, we use this exact concept, but we rename the variables to fit our pixel data.</p>
+    <p>Here is the linear transformation formula we use to modify an input pixel \( s_e(x, y) \) to get a new output pixel \( s_a(x, y) \):</p>
+    <p>\[ s_a(x, y) = c_2 \cdot (s_e(x, y) + c_1) \]</p>
+    <p>Let's break down the role of the two constants, \( c_1 \) and \( c_2 \).</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Variables Explained -->
+<section id="section3">
+    <ul>
+        <li><strong>1. The Offset (\( c_1 \)):</strong> This adds or subtracts a base value to your pixels. If you add 50 to every pixel, everything gets brighter. This controls <strong>Brightness</strong>.</li>
+        <li><strong>2. The Scale (\( c_2 \)):</strong> This multiplies the pixel value. If you multiply differences between pixels, you make darks darker and brights brighter. This controls <strong>Contrast</strong>.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Visualizing Variables -->
+<section id="section4">
+    <p>Let's visualize how these two numbers change the relationship between input and output.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Comparison between a Linear Ramp (mathematically equal steps) and a Perceptually Uniform Ramp (visually even transition)" style="width: 100%; max-width: 800px; height: auto; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Running the Numbers -->
+<section id="section5">
+    <h2>Running the Numbers</h2>
+    <p>Let's try a real calculation to see how this works on actual data. Imagine we have a transformation function defined as:</p>
+    <p>\[ f(g) = 1.5 \cdot (g + 50) \]</p>
+    <p>Here, our offset \( c_1 \) is 50, and our contrast scale \( c_2 \) is 1.5.</p>
+    <p>Suppose we have a pixel in our image with a gray value of <strong>85</strong>. Let's calculate the new value:</p>
+    <p>\[ f(85) = 1.5 \cdot (85 + 50) \]</p>
+    <p>\[ f(85) = 1.5 \cdot (135) \]</p>
+    <p>\[ f(85) = 202.5 \approx 203 \]</p>
+    <p>The pixel became significantly brighter.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Clipping Problem -->
+<section id="section6">
+    <p>But wait, there's a catch. What if we apply this to a brighter pixel, say <strong>170</strong>?</p>
+    <p>\[ f(170) = 1.5 \cdot (170 + 50) \]</p>
+    <p>\[ f(170) = 1.5 \cdot (220) \]</p>
+    <p>\[ f(170) = 330 \]</p>
+    <p>Do you see the problem? An 8-bit image can only store values between 0 and 255. We cannot store 330.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If a calculation results in 330, but the maximum allowed value is 255, what value do we actually save in the image?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Wrapping around (modulo arithmetic) would turn bright white into dark gray, creating bizarre artifacts. We don\'t do this.')">0 (We wrap around)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is also wrapping around. It creates unnatural inversions.')">75 (330 minus 255)</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! We simply cap the value at the maximum. This is called Clipping.')">255 (We clip it)</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Clipping Definition -->
+<section id="section7">
+    <p>This process is called <strong>Clipping</strong>. The mathematical rule is:</p>
+    <p>\[ s_a(x, y) = \begin{cases} 0 & \text{if } f(x,y) < 0 \\ 255 & \text{if } f(x,y) > 255 \\ f(x,y) & \text{otherwise} \end{cases} \]</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Limits of Contrast -->
+<section id="section8">
+    <h2>The Limits of Contrast</h2>
+    <p>Clipping handles the math, but it has consequences for the image quality. If we push the contrast too high, we push more and more pixels into the clipping zone.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop And Think</h3>
+        <h4>What happens to the information in the image if you set the contrast Scale (c2) extremely high? Do we gain detail or lose it?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> We lose detail. If distinct gray values (like 240, 245, and 250) are all multiplied to values above 255, they all become 255. The distinction between them is lost forever. This makes the image look 'saturated' or 'blown out'.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Interactive Try It -->
+<section id="section9">
+    <h2>Try It Yourself</h2>
+    <p>Now it's your turn. We have a low-contrast, dark image below. Use the linear controls to fix it.</p>
+    <!-- START INTERACTIVE MODULE -->
+<div class="interactive-module" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; font-family: sans-serif;">
+    
+    <!-- Top Row: Image and Controls -->
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px;">
+        
+        <!-- Canvas Container -->
+        <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; align-items: center;">
+            <div style="font-weight: 600; color: #4a5568; margin-bottom: 8px;">Live Output</div>
+            <canvas id="mainCanvas" width="320" height="200" style="width: 100%; max-width: 320px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: #000;"></canvas>
+            <div id="statusMsg" style="margin-top: 10px; font-size: 0.9rem; font-weight: 600; min-height: 1.5em; color: #718096;">Adjust sliders to improve the image...</div>
+        </div>
+
+        <!-- Controls Container -->
+        <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; justify-content: center;">
+            
+            <!-- Offset Control -->
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <label style="font-weight: 600; color: #2d3748;">Offset (\(c_1\))</label>
+                    <span id="val-c1" style="color: #667eea; font-family: monospace; font-weight: 700;">0</span>
+                </div>
+                <input type="range" id="input-c1" min="-100" max="100" value="0" step="1" 
+                    style="width: 100%; cursor: pointer; accent-color: #667eea;">
+                <div style="font-size: 0.8rem; color: #718096; margin-top: 2px;">Controls Brightness (Shift)</div>
+            </div>
+
+            <!-- Scale Control -->
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <label style="font-weight: 600; color: #2d3748;">Scale (\(c_2\))</label>
+                    <span id="val-c2" style="color: #667eea; font-family: monospace; font-weight: 700;">1.0</span>
+                </div>
+                <input type="range" id="input-c2" min="0" max="3" value="1" step="0.1" 
+                    style="width: 100%; cursor: pointer; accent-color: #667eea;">
+                <div style="font-size: 0.8rem; color: #718096; margin-top: 2px;">Controls Contrast (Slope)</div>
+            </div>
+
+            <button onclick="resetInteractive()" style="align-self: flex-start; padding: 8px 16px; background: #e2e8f0; border: none; border-radius: 4px; color: #4a5568; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Reset Default</button>
+        </div>
+    </div>
+
+    <!-- Bottom Row: Graphs -->
+    <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+        
+        <!-- Transfer Function Graph -->
+        <div style="flex: 1; min-width: 200px;">
+            <div style="font-weight: 600; color: #4a5568; margin-bottom: 8px; font-size: 0.9rem;">Transfer Function</div>
+            <canvas id="tfCanvas" width="255" height="255" style="width: 100%; height: 150px; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px;"></canvas>
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; padding: 0 5px;">
+                <span>In (0)</span>
+                <span>In (255)</span>
+            </div>
+        </div>
+
+        <!-- Histogram -->
+        <div style="flex: 1; min-width: 200px;">
+            <div style="font-weight: 600; color: #4a5568; margin-bottom: 8px; font-size: 0.9rem;">Output Histogram</div>
+            <canvas id="histCanvas" width="256" height="150" style="width: 100%; height: 150px; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px;"></canvas>
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; padding: 0 5px;">
+                <span>Black (0)</span>
+                <span>White (255)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // --- Configuration ---
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const tfCanvas = document.getElementById('tfCanvas');
+    const tfCtx = tfCanvas.getContext('2d');
+    const histCanvas = document.getElementById('histCanvas');
+    const histCtx = histCanvas.getContext('2d');
+    
+    const sliderC1 = document.getElementById('input-c1');
+    const sliderC2 = document.getElementById('input-c2');
+    const labelC1 = document.getElementById('val-c1');
+    const labelC2 = document.getElementById('val-c2');
+    const statusMsg = document.getElementById('statusMsg');
+
+    // State
+    let originalPixels = null;
+    const width = 320;
+    const height = 200;
+
+    // --- Initialization ---
+    // Generate a procedural "bad" image (Low contrast, dark)
+    function generateSourceImage() {
+        // Create an offscreen canvas to draw the source
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width = width;
+        offCanvas.height = height;
+        const oCtx = offCanvas.getContext('2d');
+
+        // Draw Sky (Dark Gray Gradient)
+        const skyGrad = oCtx.createLinearGradient(0, 0, 0, height/2);
+        skyGrad.addColorStop(0, '#2a2a2a'); // Very dark gray
+        skyGrad.addColorStop(1, '#404040'); // Slightly lighter
+        oCtx.fillStyle = skyGrad;
+        oCtx.fillRect(0, 0, width, height);
+
+        // Draw Mountains (Darker shapes)
+        oCtx.fillStyle = '#1a1a1a';
+        oCtx.beginPath();
+        oCtx.moveTo(0, height);
+        oCtx.lineTo(0, height * 0.6);
+        oCtx.lineTo(width * 0.3, height * 0.4);
+        oCtx.lineTo(width * 0.6, height * 0.7);
+        oCtx.lineTo(width * 0.8, height * 0.5);
+        oCtx.lineTo(width, height * 0.8);
+        oCtx.lineTo(width, height);
+        oCtx.fill();
+
+        // Add Noise to make it look like a photo and create a richer histogram
+        const imgData = oCtx.getImageData(0, 0, width, height);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const noise = (Math.random() - 0.5) * 20;
+            // Apply noise but keep it grayscale and dark
+            // The generated image is naturally in range [20, 70] approximately
+            data[i] = Math.max(0, Math.min(255, data[i] + noise));
+            data[i+1] = data[i];
+            data[i+2] = data[i];
+        }
+        
+        originalPixels = new Uint8Array(data); // Store strictly the source data
+    }
+
+    // --- Core Math ---
+    // Formula: sa = c2 * (se + c1)
+    function applyTransform(inputVal, c1, c2) {
+        let val = c2 * (inputVal + c1);
+        if (val < 0) return 0;
+        if (val > 255) return 255;
+        return val;
+    }
+
+    // --- Render Loop ---
+    function update() {
+        const c1 = parseInt(sliderC1.value);
+        const c2 = parseFloat(sliderC2.value);
+
+        // Update Labels
+        labelC1.textContent = (c1 > 0 ? '+' : '') + c1;
+        labelC2.textContent = c2.toFixed(1);
+
+        // Prepare new image data
+        const imgData = ctx.createImageData(width, height);
+        const data = imgData.data;
+        const histCounts = new Array(256).fill(0);
+        
+        let minPixel = 255;
+        let maxPixel = 0;
+        let clippedBlack = 0;
+        let clippedWhite = 0;
+
+        // Pixel Processing
+        for (let i = 0; i < originalPixels.length; i += 4) {
+            // Get original grayscale value (R channel)
+            const inputVal = originalPixels[i];
+            
+            // Calculate transformed value
+            // Using Math.round helps histogram accuracy
+            let outputVal = c2 * (inputVal + c1);
+            
+            // Stats for feedback
+            if (outputVal < 0) clippedBlack++;
+            if (outputVal > 255) clippedWhite++;
+
+            // Clipping logic
+            if (outputVal < 0) outputVal = 0;
+            if (outputVal > 255) outputVal = 255;
+            outputVal = Math.round(outputVal);
+
+            // Set pixel (R, G, B, Alpha)
+            data[i] = outputVal;
+            data[i+1] = outputVal;
+            data[i+2] = outputVal;
+            data[i+3] = 255; // Alpha
+
+            // Add to histogram
+            histCounts[outputVal]++;
+
+            if (outputVal < minPixel) minPixel = outputVal;
+            if (outputVal > maxPixel) maxPixel = outputVal;
+        }
+
+        // 1. Draw Image
+        ctx.putImageData(imgData, 0, 0);
+
+        // 2. Draw Transfer Function Graph
+        drawTransferFunction(c1, c2);
+
+        // 3. Draw Histogram
+        drawHistogram(histCounts);
+
+        // 4. Update Status Feedback
+        evaluateResult(minPixel, maxPixel, clippedBlack, clippedWhite, originalPixels.length / 4);
+    }
+
+    function drawTransferFunction(c1, c2) {
+        tfCtx.clearRect(0, 0, 255, 255);
+        
+        // Grid lines
+        tfCtx.strokeStyle = '#f1f5f9';
+        tfCtx.lineWidth = 1;
+        tfCtx.beginPath();
+        tfCtx.moveTo(0, 128); tfCtx.lineTo(255, 128);
+        tfCtx.moveTo(128, 0); tfCtx.lineTo(128, 255);
+        tfCtx.stroke();
+
+        // Safe Zone Box (0-255)
+        tfCtx.strokeStyle = '#e2e8f0';
+        tfCtx.strokeRect(0, 0, 255, 255);
+
+        // Draw the Line
+        tfCtx.strokeStyle = '#667eea'; // Primary Purple
+        tfCtx.lineWidth = 2;
+        tfCtx.beginPath();
+
+        let started = false;
+        for (let x = 0; x <= 255; x+=5) {
+            let y = applyTransform(x, c1, c2);
+            // Canvas Y is inverted (0 is top)
+            let canvasY = 255 - y; 
+            
+            if (!started) {
+                tfCtx.moveTo(x, canvasY);
+                started = true;
+            } else {
+                tfCtx.lineTo(x, canvasY);
+            }
+        }
+        tfCtx.stroke();
+
+        // Draw Clipping Indicators (Red zones)
+        // If the function produces values > 255 or < 0 within the input range 0-255
+        // We visualize the "clipped" parts flat against the top/bottom
+        tfCtx.fillStyle = 'rgba(248, 113, 113, 0.5)'; // Red
+        
+        // Check start and end points
+        const yStart = c2 * (0 + c1);
+        const yEnd = c2 * (255 + c1);
+        
+        // Simple visual indicator if line goes out of bounds
+        if (yStart < 0 || yEnd < 0) {
+             // Bottom clipping indicator
+             tfCtx.fillRect(0, 250, 255, 5); 
+        }
+        if (yStart > 255 || yEnd > 255) {
+            // Top clipping indicator
+            tfCtx.fillRect(0, 0, 255, 5);
+        }
+    }
+
+    function drawHistogram(counts) {
+        histCtx.clearRect(0, 0, 256, 150);
+        
+        // Find max count to normalize height
+        // Ignore 0 and 255 spikes for scaling to keep the "meat" of the histogram visible
+        let maxCount = 0;
+        for (let i = 1; i < 255; i++) {
+            if (counts[i] > maxCount) maxCount = counts[i];
+        }
+        // Fallback if image is solid black/white
+        if (maxCount === 0) maxCount = Math.max(counts[0], counts[255]); 
+
+        histCtx.fillStyle = '#4a5568'; // Dark Gray bars
+        
+        for (let i = 0; i < 256; i++) {
+            const h = (counts[i] / maxCount) * 140; // Scale to height
+            // Draw bar. Origin is bottom-left.
+            // Highlight clipping walls
+            if (i === 0 && counts[i] > 0) histCtx.fillStyle = '#f56565'; // Red for black clip
+            else if (i === 255 && counts[i] > 0) histCtx.fillStyle = '#f56565'; // Red for white clip
+            else histCtx.fillStyle = '#4a5568';
+            
+            histCtx.fillRect(i, 150 - h, 1, h);
+        }
+    }
+
+    function evaluateResult(min, max, clippedBlack, clippedWhite, totalPixels) {
+        const clipThreshold = totalPixels * 0.05; // 5% tolerance
+        const range = max - min;
+        
+        let msg = "";
+        let color = "#718096"; // Gray
+
+        if (clippedBlack > clipThreshold || clippedWhite > clipThreshold) {
+            msg = "⚠️ Significant Clipping detected. Try reducing Scale or adjusting Offset.";
+            color = "#e53e3e"; // Red
+        } else if (range < 150) {
+            msg = "Image is still too flat (Low Contrast). Increase Scale.";
+            color = "#d69e2e"; // Yellow/Orange
+        } else if (min > 50) {
+            msg = "Image looks washed out (Too bright). Reduce Offset.";
+            color = "#d69e2e";
+        } else if (max < 200) {
+            msg = "Image is too dark. Increase Offset or Scale.";
+            color = "#d69e2e";
+        } else {
+            msg = "✅ Excellent! Full dynamic range utilized.";
+            color = "#38a169"; // Green
+        }
+        statusMsg.style.color = color;
+        statusMsg.textContent = msg;
+    }
+
+    // Initialize
+    window.resetInteractive = function() {
+        sliderC1.value = 0;
+        sliderC2.value = 1;
+        update();
+    };
+
+    generateSourceImage();
+    update();
+
+    // Event Listeners
+    sliderC1.addEventListener('input', update);
+    sliderC2.addEventListener('input', update);
+
+})();
+</script>
+<!-- END INTERACTIVE MODULE -->
+    <p>Did you notice that increasing \( c_1 \) (Offset) shifts the whole histogram right, while increasing \( c_2 \) (Scale) stretches the histogram out?</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If you set the Scale \( c_2 = 1 \) and the Offset \( c_1 = 0 \), what does the output image look like?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This would happen if the scale was 0.')">Completely Black</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. This is the \'Identity\' transformation. Multiplying by 1 and adding 0 changes nothing.')">Identical to the Input</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This would happen with a massive positive offset.')">Completely White</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Why It Matters -->
+<section id="section10">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Linear transformations are the bread and butter of image display. When you adjust the brightness on your phone, you are changing \( c_1 \).</p>
+        <p>In professional settings, like <strong>Medical Imaging</strong>, doctors often receive X-rays or CT scans that have a huge range of data but look gray and muddy on a standard monitor. They use linear transformations (often called 'Window/Level' controls) to focus contrast on specific tissues—like bone vs. soft tissue.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Vocab -->
+<section id="section11">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Linear Transformation</h4>
+        <p>A global image modification where pixel values are scaled by a constant factor (contrast) and shifted by an added constant (brightness).</p>
+        
+        <h4>Clipping</h4>
+        <p>The process of limiting pixel values to the available bit-depth range (e.g., [0, 255]). Values calculated above the maximum are set to the maximum; values below zero are set to zero.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: FAQ -->
+<section id="section12">
+    <div class="faq-section">
+        <h3>Frequently Asked Question</h3>
+        <h4>Why does the image turn completely white if I increase contrast too much?</h4>
+        <p>Great question. When you increase the scale \( c_2 \) significantly, you are multiplying the pixel values. Even a dark gray pixel like 50, if multiplied by 6, becomes 300, which clips to 255 (white). If the scale is high enough, <em>all</em> pixels might get pushed above 255, resulting in a solid white square.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Review & Final Quiz -->
+<section id="section13">
+    <h2>Review and Reflect</h2>
+    <p>We've mastered the line. You now know how to manipulate brightness and contrast using basic algebra and how to handle the limits of digital data through clipping.</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>You have an image that is well-lit (good brightness) but looks 'foggy' or 'flat' (low distinction between colors). Which parameter should you primarily adjust?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This would just make the foggy image brighter, but it would still be foggy.')">Increase the Offset (\( c_1 \))</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The image lacks contrast. Increasing the scale stretches the gray values apart, cutting through the fog.')">Increase the Scale (\( c_2 \))</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Decreasing the scale would compress the range further, making it look even flatter.')">Decrease the Scale (\( c_2 \))</div>
+        </div>
+    </div>
+    
+    <p style="margin-top: 2rem;">Linear transformations are powerful, but they treat dark pixels and bright pixels exactly the same way. But what if we want to brighten the shadows <em>without</em> blowing out the highlights? For that, we need to bend the line. In the next lesson, we'll introduce <strong>Gamma Correction</strong>.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 13;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Here you would typically notify the parent LMS
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Placeholder IDs - these would be dynamic in a real app
+                window.parent.ProgressTracker.markLessonCompleted('computer-vision', 'foundations', 'image-processing', 'linear-transformations');
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch1-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch1-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

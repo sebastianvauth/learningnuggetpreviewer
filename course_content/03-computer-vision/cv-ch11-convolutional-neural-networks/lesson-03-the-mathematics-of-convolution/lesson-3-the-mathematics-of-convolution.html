@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Mathematics of Convolution</title>
+<!-- MathJax Configuration -->
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+
+<div class="lesson-container">
+
+    <!-- Section 1: Opening the Black Box -->
+    <section id="section1" class="visible">
+        <div class="image-placeholder">
+            <img src="images/1.jpg" alt="Magnifying glass examining a pixel grid with mathematical symbols showing computer vision pixel calculations">
+        </div>
+        <h1>The Mathematics of Convolution</h1>
+        <h2>Opening the Black Box</h2>
+        <p>In the previous lesson, we visualized the Convolutional Layer as a 'flashlight' scanning across an image to detect features. But what is actually happening inside that beam of light?</p>
+        
+        
+
+        <p>It's not magic; it's simple arithmetic. In this lesson, we will open the black box and step through the exact mathematical operation performed by a CNN. Don't worry—if you can multiply two numbers and add them up, you have all the skills needed to understand the core engine of computer vision.</p>
+        <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+    </section>
+
+    <!-- Section 2: The Sliding Window -->
+    <section id="section2">
+        <h2>The Sliding Window</h2>
+        <p>The 'flashlight' we talked about is formally called a <strong>Kernel</strong> or <strong>Filter</strong>. It is a small matrix of numbers (weights) that slides over the input image.</p>
+        
+        <div class="interactive-container" style="position: relative; margin: 1.5rem 0; width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #f8fafc;">
+            <canvas id="convolutionCanvas" style="width: 100%; height: auto; display: block;"></canvas>
+            
+            <div style="position: absolute; bottom: 10px; left: 0; width: 100%; display: flex; justify-content: center; gap: 10px;">
+                <button id="convToggleBtn" style="padding: 8px 16px; border-radius: 20px; border: none; background: #2d3748; color: white; font-size: 0.9rem; cursor: pointer; opacity: 0.9;">Pause</button>
+                <button id="convResetBtn" style="padding: 8px 16px; border-radius: 20px; border: none; background: #cbd5e1; color: #2d3748; font-size: 0.9rem; cursor: pointer; opacity: 0.9;">Reset</button>
+            </div>
+        
+        <script>
+        (function() {
+            const canvas = document.getElementById('convolutionCanvas');
+            const ctx = canvas.getContext('2d');
+            const toggleBtn = document.getElementById('convToggleBtn');
+            const resetBtn = document.getElementById('convResetBtn');
+        
+            // --- Configuration ---
+            const CONFIG = {
+                gridSize: 5,
+                kernelSize: 3,
+                cellSize: 40,
+                gap: 5,
+                padding: 30,
+                colors: {
+                    inputBg: '#e6f3ff', // Light blue
+                    inputText: '#2b6cb0',
+                    kernelBg: '#fffaf0', // Light orange
+                    kernelBorder: '#ed8936', // Orange
+                    kernelText: '#c05621',
+                    windowBorder: '#ed8936',
+                    lineColor: '#667eea', // Purple
+                    highlightBg: 'rgba(237, 137, 54, 0.1)'
+                },
+                speed: 0.05 // Movement speed (0 to 1 progress per frame)
+            };
+        
+            // --- State ---
+            let inputGrid = [];
+            let kernelGrid = [
+                [1, 0, 1],
+                [0, 1, 0],
+                [1, 0, 1]
+            ];
+            
+            // Animation State
+            let animState = {
+                col: 0,
+                row: 0,
+                isMoving: false,
+                moveProgress: 0, // 0 to 1
+                pauseTimer: 0,
+                paused: false,
+                phase: 'PAUSE' // 'MOVE', 'PAUSE'
+            };
+        
+            // --- Initialization ---
+            function initGrid() {
+                inputGrid = [];
+                for(let r=0; r<CONFIG.gridSize; r++) {
+                    let row = [];
+                    for(let c=0; c<CONFIG.gridSize; c++) {
+                        // Random integers 0-9 for visual simplicity
+                        row.push(Math.floor(Math.random() * 5));
+                    }
+                    inputGrid.push(row);
+                }
+            }
+        
+            function resizeCanvas() {
+                // Logical size
+                const width = 600; 
+                const height = 320;
+                
+                // High DPI scaling
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                
+                // CSS display size is handled by style="width:100%"
+                
+                // Scale context
+                ctx.scale(dpr, dpr);
+                
+                // Store logical dimensions for drawing
+                canvas.logicalWidth = width;
+                canvas.logicalHeight = height;
+            }
+        
+            // --- Drawing Helpers ---
+            function drawCell(x, y, val, type) {
+                ctx.beginPath();
+                // Rounded rect
+                const r = 4;
+                const s = CONFIG.cellSize;
+                ctx.moveTo(x+r, y);
+                ctx.lineTo(x+s-r, y);
+                ctx.quadraticCurveTo(x+s, y, x+s, y+r);
+                ctx.lineTo(x+s, y+s-r);
+                ctx.quadraticCurveTo(x+s, y+s, x+s-r, y+s);
+                ctx.lineTo(x+r, y+s);
+                ctx.quadraticCurveTo(x, y+s, x, y+s-r);
+                ctx.lineTo(x, y+r);
+                ctx.quadraticCurveTo(x, y, x+r, y);
+                ctx.closePath();
+        
+                if (type === 'input') {
+                    ctx.fillStyle = CONFIG.colors.inputBg;
+                    ctx.fill();
+                    ctx.strokeStyle = '#bee3f8';
+                    ctx.stroke();
+                    ctx.fillStyle = CONFIG.colors.inputText;
+                } else {
+                    ctx.fillStyle = CONFIG.colors.kernelBg;
+                    ctx.fill();
+                    ctx.strokeStyle = '#fbd38d';
+                    ctx.stroke();
+                    ctx.fillStyle = CONFIG.colors.kernelText;
+                }
+        
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(val, x + s/2, y + s/2);
+            }
+        
+            function getGridCoords(col, row, isInput) {
+                const startX = CONFIG.padding;
+                const startY = CONFIG.padding + 30; // Leave room for title
+                const s = CONFIG.cellSize + CONFIG.gap;
+                
+                if (isInput) {
+                    return { x: startX + col * s, y: startY + row * s };
+                } else {
+                    // Kernel drawn to the right
+                    const inputWidth = (CONFIG.gridSize * s);
+                    const kernelStartX = startX + inputWidth + 60; // 60px gap
+                    // Center vertically relative to input
+                    const totalH = (CONFIG.gridSize * s);
+                    const kernelH = (CONFIG.kernelSize * s);
+                    const offsetY = (totalH - kernelH) / 2;
+                    
+                    return { x: kernelStartX + col * s, y: startY + offsetY + row * s };
+                }
+            }
+        
+            // --- Main Loop ---
+            function update() {
+                if (animState.paused) return;
+        
+                if (animState.phase === 'PAUSE') {
+                    animState.pauseTimer++;
+                    if (animState.pauseTimer > 120) { // 2 seconds at 60fps
+                        animState.phase = 'MOVE';
+                        animState.pauseTimer = 0;
+                    }
+                } else if (animState.phase === 'MOVE') {
+                    animState.moveProgress += CONFIG.speed;
+                    if (animState.moveProgress >= 1) {
+                        animState.moveProgress = 0;
+                        animState.phase = 'PAUSE';
+                        
+                        // Advance Position
+                        animState.col++;
+                        // Check bounds (Valid padding only, no padding logic here)
+                        // Max col index for 3x3 kernel on 5x5 grid is 2 (indices 0,1,2)
+                        if (animState.col > CONFIG.gridSize - CONFIG.kernelSize) {
+                            animState.col = 0;
+                            animState.row++;
+                            if (animState.row > CONFIG.gridSize - CONFIG.kernelSize) {
+                                animState.row = 0; // Loop back to start
+                            }
+                        }
+                    }
+                }
+            }
+        
+            function draw() {
+                ctx.clearRect(0, 0, canvas.logicalWidth, canvas.logicalHeight);
+        
+                // Titles
+                ctx.fillStyle = '#4a5568';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText("INPUT IMAGE (5x5)", CONFIG.padding, CONFIG.padding);
+                
+                const kernelStart = getGridCoords(0, 0, false);
+                ctx.fillText("KERNEL (3x3)", kernelStart.x, CONFIG.padding);
+        
+                // 1. Draw Static Input Grid
+                for(let r=0; r<CONFIG.gridSize; r++) {
+                    for(let c=0; c<CONFIG.gridSize; c++) {
+                        const pos = getGridCoords(c, r, true);
+                        drawCell(pos.x, pos.y, inputGrid[r][c], 'input');
+                    }
+                }
+        
+                // 2. Draw Static Kernel Grid (Legend)
+                for(let r=0; r<CONFIG.kernelSize; r++) {
+                    for(let c=0; c<CONFIG.kernelSize; c++) {
+                        const pos = getGridCoords(c, r, false);
+                        drawCell(pos.x, pos.y, kernelGrid[r][c], 'kernel');
+                    }
+                }
+        
+                // Calculate Window Position
+                let curCol = animState.col;
+                let curRow = animState.row;
+                let drawX, drawY;
+        
+                if (animState.phase === 'MOVE') {
+                    // Interpolate towards next column (or next row start)
+                    // Simplified: We only animate Horizontal sliding for this demo to keep it clean, 
+                    // the jump to next row happens instantly or we could animate it too, 
+                    // but sliding X is the main "Convolution" visual.
+                    
+                    // Current pos
+                    const p1 = getGridCoords(curCol, curRow, true);
+                    
+                    // Next pos
+                    let nextCol = curCol + 1;
+                    let nextRow = curRow;
+                    
+                    // If wrapping line
+                    if (nextCol > CONFIG.gridSize - CONFIG.kernelSize) {
+                        // For the "Wrap" animation, let's just fade out/in or snap. 
+                        // To keep code simple, we'll snap on row change, only interpolate X.
+                        drawX = p1.x; // Snap
+                        drawY = p1.y; 
+                    } else {
+                        const p2 = getGridCoords(nextCol, nextRow, true);
+                        // Ease out cubic
+                        const t = animState.moveProgress;
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        
+                        drawX = p1.x + (p2.x - p1.x) * ease;
+                        drawY = p1.y + (p2.y - p1.y) * ease;
+                    }
+                } else {
+                    const p = getGridCoords(curCol, curRow, true);
+                    drawX = p.x;
+                    drawY = p.y;
+                }
+        
+                // 3. Draw Sliding Window (The Orange Box)
+                const winW = (CONFIG.cellSize + CONFIG.gap) * CONFIG.kernelSize - CONFIG.gap;
+                const winH = winW;
+                
+                ctx.shadowColor = 'rgba(0,0,0,0.1)';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = CONFIG.colors.highlightBg;
+                ctx.fillRect(drawX - 2, drawY - 2, winW + 4, winH + 4);
+                ctx.shadowBlur = 0;
+                
+                ctx.strokeStyle = CONFIG.colors.windowBorder;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(drawX - 2, drawY - 2, winW + 4, winH + 4);
+                ctx.lineWidth = 1;
+        
+                // 4. Draw Connecting Lines (Only in PAUSE phase)
+                if (animState.phase === 'PAUSE') {
+                    // Fade in lines
+                    let alpha = Math.min(1, animState.pauseTimer / 20);
+                    ctx.globalAlpha = alpha;
+                    ctx.strokeStyle = CONFIG.colors.lineColor;
+                    ctx.lineWidth = 2;
+                    
+                    // Draw lines from Input Patch cells to Kernel Legend cells
+                    for(let kr=0; kr<CONFIG.kernelSize; kr++) {
+                        for(let kc=0; kc<CONFIG.kernelSize; kc++) {
+                            // Input Coord (relative to current window position)
+                            const cellOffset = (CONFIG.cellSize + CONFIG.gap);
+                            const inX = drawX + (kc * cellOffset) + CONFIG.cellSize/2;
+                            const inY = drawY + (kr * cellOffset) + CONFIG.cellSize/2;
+                            
+                            // Kernel Coord
+                            const kPos = getGridCoords(kc, kr, false);
+                            const kX = kPos.x + CONFIG.cellSize/2;
+                            const kY = kPos.y + CONFIG.cellSize/2;
+        
+                            ctx.beginPath();
+                            ctx.moveTo(inX, inY);
+                            // Curvy line
+                            ctx.bezierCurveTo(inX + 50, inY, kX - 50, kY, kX, kY);
+                            ctx.stroke();
+                            
+                            // Draw little dots at ends
+                            ctx.fillStyle = CONFIG.colors.lineColor;
+                            ctx.beginPath(); ctx.arc(inX, inY, 3, 0, Math.PI*2); ctx.fill();
+                            ctx.beginPath(); ctx.arc(kX, kY, 3, 0, Math.PI*2); ctx.fill();
+                        }
+                    }
+                    ctx.globalAlpha = 1.0;
+                }
+        
+                requestAnimationFrame(() => {
+                    update();
+                    draw();
+                });
+            }
+        
+            // --- Controls ---
+            toggleBtn.addEventListener('click', () => {
+                animState.paused = !animState.paused;
+                toggleBtn.textContent = animState.paused ? "Play" : "Pause";
+                if(!animState.paused) draw(); // Kickstart loop if needed
+            });
+        
+            resetBtn.addEventListener('click', () => {
+                animState.col = 0;
+                animState.row = 0;
+                animState.phase = 'PAUSE';
+                animState.pauseTimer = 0;
+                animState.moveProgress = 0;
+                initGrid(); // New random numbers
+            });
+        
+            // --- Boot ---
+            initGrid();
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            draw(); // Start loop
+        
+        })();
+        </script>
+        </div>
+
+        <p>Imagine laying a small \(3 \times 3\) grid of numbers on top of a larger photo. The process is simple:</p>
+        <ul>
+            <li><strong>Multiply:</strong> We take every number in the kernel and multiply it by the pixel value directly underneath it.</li>
+            <li><strong>Sum:</strong> We add up all those products to get a single number.</li>
+            <li><strong>Slide:</strong> We move the kernel over by one step (stride) and repeat.</li>
+        </ul>
+        <p>This operation transforms a grid of input pixels into a grid of output activations, called the <strong>Feature Map</strong>.</p>
+        <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+    </section>
+
+    <!-- Section 3: The Formula -->
+    <section id="section3">
+        <h2>The Mathematical Formula</h2>
+        <p>Let's formalize this. For an input image patch \(S_e\) and a kernel with weights \(W\), the output value \(z\) at position \((x,y)\) is calculated as:</p>
+        <p>$$ z(x,y) = \sum_{u=0}^{m-1} \sum_{v=0}^{m-1} S_e(x+u, y+v) \cdot W(u,v) + b $$</p>
+        <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+    </section>
+
+    <!-- Section 4: Breakdown -->
+    <section id="section4">
+        <p>This looks intimidating, but let's break it down:</p>
+        <ul>
+            <li>The <strong>double sum</strong> (\(\sum \sum\)) just means "add up everything in the grid".</li>
+            <li>\(S_e(x+u, y+v)\) is the <strong>pixel value</strong> at a specific spot inside the current window.</li>
+            <li>\(W(u,v)\) is the <strong>weight</strong> in the kernel at that same spot.</li>
+            <li>\(b\) is the <strong>Bias</strong>, a single learnable number added to the final sum.</li>
+        </ul>
+        <div class="vocab-section">
+            <h3>Build Your Vocab</h3>
+            <h4>Dot Product</h4>
+            <p>The operation of multiplying matching elements in two lists (or matrices) and summing the results. The convolution operation is essentially a 'sliding dot product' between the kernel and the image patches.</p>
+        </div>
+        <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+    </section>
+
+    <!-- Section 5: Example Setup -->
+    <section id="section5">
+        <h2>Step-by-Step Example</h2>
+        <p>Let's verify this with real numbers. Imagine we have a small \(3 \times 3\) patch of an image where <strong>all the pixels have a value of 2</strong>.</p>
+        <p>And let's say our kernel is a <strong>Diagonal Detector</strong> with these weights:</p>
+        <p>$$ \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix} $$</p>
+        <p>To calculate the output for this patch, we perform element-wise multiplication. Let's do it row by row.</p>
+        <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+    </section>
+
+    <!-- Section 6: Calculation Walkthrough -->
+    <section id="section6">
+        <p><strong>Top Row:</strong><br>
+        \((2 \cdot 1) + (2 \cdot 0) + (2 \cdot 0) = 2 + 0 + 0 = 2\)</p>
+        
+        <p><strong>Middle Row:</strong><br>
+        \((2 \cdot 0) + (2 \cdot 1) + (2 \cdot 0) = 0 + 2 + 0 = 2\)</p>
+        
+        <p><strong>Bottom Row:</strong><br>
+        \((2 \cdot 0) + (2 \cdot 0) + (2 \cdot 1) = 0 + 0 + 2 = 2\)</p>
+        
+        <p><strong>Summing it all up:</strong><br>
+        \(2 + 2 + 2 = 6\)</p>
+        
+        <p>Finally, we add the bias. If our bias \(b = 1\), the final result is:<br>
+        \(6 + 1 = \mathbf{7}\)</p>
+        <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+    </section>
+
+    <!-- Section 7: Interactive Calculator -->
+    <section id="section7">
+        <h2>Your Turn: Do the Math</h2>
+        <p>Now it's your turn to be the computer. Calculate the output for the simplified patch below (Bias is 0).</p>
+        
+        <div class="calc-wrapper">
+            <div class="calc-group">
+                <span class="calc-label">Input Patch</span>
+                <div class="calc-grid">
+                    <div class="calc-cell">1</div><div class="calc-cell">2</div><div class="calc-cell">0</div>
+                    <div class="calc-cell">0</div><div class="calc-cell">1</div><div class="calc-cell">2</div>
+                    <div class="calc-cell">1</div><div class="calc-cell">0</div><div class="calc-cell">1</div>
+                </div>
+            </div>
+            
+            <div class="calc-op">×</div>
+            
+            <div class="calc-group">
+                <span class="calc-label">Kernel</span>
+                <div class="calc-grid">
+                    <div class="calc-cell">1</div><div class="calc-cell">0</div><div class="calc-cell">-1</div>
+                    <div class="calc-cell">0</div><div class="calc-cell">2</div><div class="calc-cell">0</div>
+                    <div class="calc-cell">-1</div><div class="calc-cell">0</div><div class="calc-cell">1</div>
+                </div>
+            </div>
+            
+            <div class="calc-op">=</div>
+            
+            <div class="calc-group">
+                <span class="calc-label">Result</span>
+                <div class="calc-input-wrapper">
+                    <input type="number" id="userCalcInput" placeholder="?">
+                </div>
+            </div>
+        </div>
+        
+        <div class="calc-btn-container">
+            <button class="check-button" onclick="checkCalculation()">Check Answer</button>
+        </div>
+        <div id="calc-feedback" class="calc-feedback"></div>
+
+        <div id="after-calc-content" style="display:none; margin-top: 2rem;">
+            <p>Great job! You just performed a forward pass of a convolutional layer manually.</p>
+            
+            <div class="test-your-knowledge">
+                <h3>Test Your Knowledge</h3>
+                <h4>If you have a 3x3 kernel full of zeros, what will the output feature map look like (assuming bias is 0)?</h4>
+                <div class="multiple-choice">
+                    <div class="choice-option" onclick="selectChoice(this, false, 'Multiplying by zero destroys the information. The output would not be the input image.')">It will be a copy of the input image.</div>
+                    <div class="choice-option" onclick="selectChoice(this, true, 'Correct! Since every pixel is multiplied by a weight of 0, the sum is always 0.')">It will be all zeros (black).</div>
+                    <div class="choice-option" onclick="selectChoice(this, false, 'To invert an image, you would need negative weights, not zeros.')">It will be a negative version of the image.</div>
+                </div>
+            </div>
+            <div class="continue-button" id="cont-after-quiz" style="display:none;" onclick="showNextSection(8)">Continue</div>
+        </div>
+    </section>
+
+    <!-- Section 8: Convolution vs Correlation -->
+    <section id="section8">
+        <h2>Convolution vs. Cross-Correlation</h2>
+        <p>There is a small technical detail that often confuses beginners. The math we just did—sliding a window and doing a dot product—is technically called <strong>Cross-Correlation</strong>.</p>
+        <p>A strict mathematical <strong>Convolution</strong> requires <strong>flipping</strong> the kernel both horizontally and vertically before multiplying.</p>
+        <p>$$ z(x,y) = \sum \sum S_e(m,n) \cdot W(x-m, y-n) $$</p>
+        
+        <div class="vocab-section">
+            <h3>Build Your Vocab</h3>
+            <h4>Cross-Correlation</h4>
+            <p>The operation of sliding a kernel over an input and calculating the dot product at each step, without flipping the kernel. This is what 'Convolutional' Neural Networks actually do.</p>
+        </div>
+        <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+    </section>
+
+    <!-- Section 9: FAQ -->
+    <section id="section9">
+        <div class="why-it-matters">
+            <h3>Why the name confusion?</h3>
+            <p>Deep Learning libraries (like PyTorch and TensorFlow) implement Cross-Correlation but call it Convolution. Why? Because the weights \(W\) are <strong>learned</strong>.</p>
+            <p>If the math required the kernel to be flipped to detect a feature, the network would simply learn a 'pre-flipped' version of the weights. Since the result is the same, we skip the flipping step to save computation.</p>
+        </div>
+        <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+    </section>
+
+    <!-- Section 10: Stop & Think -->
+    <section id="section10">
+        <h2>Stop & Think: Backpropagation</h2>
+        <p>We know that during training, we update weights based on the error (gradient). In a Fully Connected layer, one weight affects one output. But in a Convolutional layer, <strong>Shared Weights</strong> mean one weight affects the entire image.</p>
+        
+        <div class="stop-and-think">
+            <h3>Stop & Think</h3>
+            <h4>In the math formula, we sum up gradients from different positions during backpropagation. Why?</h4>
+            <p><em>Hint: Remember Shared Weights. If one weight is used 100 times in the forward pass to calculate 100 different pixels, how many error signals does it receive in the backward pass?</em></p>
+            
+            <div id="st-answer" style="display:none;" class="animate-in">
+                <p><strong>Answer:</strong> Since the same weight contributes to the calculation of every single pixel in the output feature map, it contributes to the error at every single location. To find the total gradient for that weight, we must <strong>sum</strong> the gradients from all the locations \((i,j)\) where it was applied.</p>
+                <div class="why-it-matters" style="margin-top: 15px; border-left-color: #68d391; background: rgba(255,255,255,0.5);">
+                    <strong>Why It Matters:</strong> This summation is why CNNs learn so efficiently. Every single pixel in the image provides a piece of evidence to update the kernel. A visual pattern that appears anywhere in the image helps train the filter.
+                </div>
+            </div>
+            <button class="reveal-button" onclick="revealAnswer('st-answer')">Reveal Answer</button>
+        </div>
+        <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+    </section>
+
+    <!-- Section 11: Review -->
+    <section id="section11">
+        <h2>Review and Reflect</h2>
+        <p>You have successfully looked inside the black box of the Convolutional Layer.</p>
+        
+
+        <p>We discovered that:</p>
+        <ul>
+            <li>The 'sliding window' is a sequence of <strong>Dot Products</strong> followed by a sum.</li>
+            <li>The mathematical formula involves multiplying the input patch by the kernel weights and adding a <strong>Bias</strong>.</li>
+            <li>While mathematically it is <strong>Cross-Correlation</strong>, we call it Convolution in Deep Learning.</li>
+            <li>Because weights are shared, their gradients are the <strong>sum</strong> of errors from across the entire image.</li>
+        </ul>
+
+        <div class="test-your-knowledge">
+            <h3>Final Check</h3>
+            <h4>Which component of the convolution equation allows the activation to be shifted, ensuring that even if the dot product is zero, the neuron can still output a value?</h4>
+            <div class="multiple-choice">
+                <div class="choice-option" onclick="selectChoice(this, false, 'Weights scale the input, but if the input is 0, the product is 0.')">The Kernel Weights</div>
+                <div class="choice-option" onclick="selectChoice(this, true, 'Correct! The bias is added to the sum, allowing the activation to be shifted independently of the input strength.')">The Bias term (b)</div>
+                <div class="choice-option" onclick="selectChoice(this, false, 'Stride controls the movement step size, not the value calculation.')">The Stride</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Completion Button -->
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+</div>
+
+<script>
+/* --- CORE LOGIC --- */
+let currentSection = 1;
+const totalSections = 11;
+
+updateProgress();
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    
+    if (!nextSectionElement) return;
+    
+    // Hide button if it's a continue button
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    
+    setTimeout(() => { 
+        nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    // Deselect siblings
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    
+    // Select clicked
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    
+    // Show explanation
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // If specific sections need post-quiz reveal
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section7' && isCorrect) {
+         const contBtn = document.getElementById('cont-after-quiz');
+         if(contBtn) {
+             contBtn.style.display = 'inline-block';
+             contBtn.classList.add('show-with-animation');
+         }
+    }
+}
+
+/* --- CALCULATOR WIDGET LOGIC --- */
+function checkCalculation() {
+    const input = document.getElementById('userCalcInput');
+    const feedback = document.getElementById('calc-feedback');
+    const afterContent = document.getElementById('after-calc-content');
+    
+    if (!input) return;
+    
+    // Calculation:
+    // Input: 1, 2, 0 | 0, 1, 2 | 1, 0, 1
+    // Kernel: 1, 0, -1 | 0, 2, 0 | -1, 0, 1
+    // Matches:
+    // (1*1) + (2*0) + (0*-1) = 1
+    // (0*0) + (1*2) + (2*0) = 2
+    // (1*-1) + (0*0) + (1*1) = 0
+    // Sum: 1 + 2 + 0 = 3
+    
+    const correctVal = 3;
+    const userVal = parseInt(input.value);
+    
+    if (userVal === correctVal) {
+        feedback.style.color = '#38a169';
+        feedback.innerHTML = "✅ Correct! (1+2+0 = 3)";
+        input.style.borderColor = '#38a169';
+        input.style.background = '#f0fff4';
+        
+        // Disable interaction
+        input.disabled = true;
+        event.target.style.display = 'none'; // hide check button
+        
+        // Show next part
+        if (afterContent) {
+            afterContent.style.display = 'block';
+            afterContent.classList.add('animate-in');
+        }
+    } else {
+        feedback.style.color = '#e53e3e';
+        feedback.innerHTML = "❌ Not quite. Remember: Multiply matching cells, then sum them up.";
+        input.style.borderColor = '#e53e3e';
+        input.style.background = '#fff5f5';
+    }
+}
+
+/* --- COMPLETION & CONFETTI LOGIC --- */
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_convolution_math_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    
+    const emojis = ['➕', '✖️', '🧮', '📐', '✨', '🧠'];
+    const colors = ['#667eea', '#764ba2', '#4facfe', '#00f2fe'];
+    
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.5) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { 
+        if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); 
+    }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Calculation Mastered! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { 
+        if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); 
+    }, 2500);
+}
+
+// Check local storage on load
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    const isCompleted = localStorage.getItem('lesson_convolution_math_completed') === 'true';
+    if (isCompleted && button) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const visibleSection = document.getElementById(`section${currentSection}`);
+        if(visibleSection) {
+            const btn = visibleSection.querySelector('.continue-button');
+            if (btn && btn.style.display !== 'none' && btn.offsetParent !== null) {
+                e.preventDefault();
+                btn.click();
+            }
+        }
+    }
+});
+</script>
+</body>
+</html>

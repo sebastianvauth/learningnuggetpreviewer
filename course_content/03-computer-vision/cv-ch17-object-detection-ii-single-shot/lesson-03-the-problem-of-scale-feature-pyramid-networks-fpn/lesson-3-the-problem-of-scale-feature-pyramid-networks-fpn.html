@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Problem of Scale – Feature Pyramid Networks</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/1.jpg" alt="Split-panel comparison showing a close-up cat on the left and the same cat barely visible in a wide landscape on the right." loading="lazy">
+            <figcaption>The cat-finding challenge: nearby objects dominate the frame, while distant ones nearly disappear.</figcaption>
+        </figure>
+    </div>
+    <h1>The Problem of Scale – Feature Pyramid Networks (FPN)</h1>
+
+    <h2>The Small Cat Problem</h2>
+    <p>Imagine you are building a robot to find your cat. If the cat is sitting right in front of the camera, filling the frame, it's easy. But what if the cat is sitting three blocks away, appearing as just a few pixels in the distance? This is the <strong>Problem of Scale</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>In the previous lessons on R-CNN and YOLO, we mostly assumed objects were reasonably sized. But in the real world, objects can be massive or tiny. Standard Convolutional Neural Networks (CNNs) have a built-in trade-off that makes this difficult.</p>
+    <p>As an image passes through a CNN (like ResNet or VGG), it goes through pooling layers. This makes the feature map smaller and smaller. We call this <strong>downsampling</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>For example, if you input a \( 224 \times 224 \) pixel image, by the time you reach the deepest layer, the feature map might only be \( 7 \times 7 \).</p>
+    <p>This is great for efficiency and understanding "what" is in the image (semantics), but it is terrible for knowing "where" a tiny object is. If a small cat occupied only \( 16 \times 16 \) pixels in the original image, by the end of the network, it might be smaller than a single pixel! It essentially disappears.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If deep layers are bad for small objects because of low resolution, why don't we just use the shallow layers (the early ones) to detect them?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <p><strong>Answer:</strong> Shallow layers have high resolution (lots of pixels), but they are 'dumb'. They only recognize edges and curves, not complex concepts like 'cat' or 'car'. We need a way to get high resolution AND high intelligence.</p>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <h2>The Semantic Gap</h2>
+    <p>To solve this, we need to understand the hierarchy of the network. We often visualize a CNN as a pyramid on its side.</p>
+    <div class="visual-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/2.jpg" alt="Diagram of a standard CNN pyramid with a wide high-resolution base on the left that narrows to a low-resolution, high-semantic tip on the right." loading="lazy">
+            <figcaption>Standard CNN pyramids trade spatial detail for semantic understanding as we move deeper.</figcaption>
+        </figure>
+    </div>
+    <p>Let's break down the two main pathways in a network:</p>
+    <ul>
+        <li><strong>Bottom-Up Pathway:</strong> This is the standard feed-forward CNN. As we go up, the spatial resolution decreases (the map gets smaller), but the <strong>semantic value</strong> increases (the features get smarter).</li>
+        <li><strong>Top-Down Pathway:</strong> This is where we try to recover resolution. We can <strong>upsample</strong> the small, smart feature maps to make them bigger again.</li>
+    </ul>
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Upsampling</h4>
+        <p>The process of increasing the spatial size of a feature map (e.g., from 7x7 to 14x14), often using nearest-neighbor interpolation or learnable transposed convolutions.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>In a traditional setup, there is a <strong>Semantic Gap</strong>. The high-resolution layers don't know what they are looking at, and the smart layers are too blurry to see small details. We need to bridge this gap.</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which layer in a standard CNN would be best suited for detecting a large object that fills the entire image?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The first layer has high resolution, but it hasn\'t processed enough context to understand what the object is.')">The very first layer (Input)</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Deep layers have a large \'Receptive Field\' and high semantic understanding, making them perfect for large objects.')">The deepest layer (Final Feature Map)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'It matters significantly. The scale of the object should roughly match the receptive field of the layer.')">It doesn't matter.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>Enter the Feature Pyramid Network</h2>
+    <p>The <strong>Feature Pyramid Network (FPN)</strong> was introduced to get the best of both worlds: high resolution from the early layers and high semantic value from the deep layers.</p>
+    <div class="visual-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/3.jpg" alt="Feature Pyramid Network schematic showing bottom-up and top-down pathways connected with lateral links across the pyramid." loading="lazy">
+            <figcaption>Feature Pyramid Networks blend bottom-up detail with top-down semantics using lateral connections.</figcaption>
+        </figure>
+    </div>
+    <p>The FPN architecture introduces a clever mechanism called <strong>Lateral Connections</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>Here is how it works step-by-step:</p>
+    <ol style="margin-left: 1.5rem; margin-bottom: 1.5rem;">
+        <li><strong>Top-Down:</strong> We take the semantically strong feature map from the top and upsample it (make it 2x bigger).</li>
+        <li><strong>Lateral:</strong> We take the feature map from the corresponding level of the bottom-up pathway (which has the same size).</li>
+        <li><strong>Merge:</strong> We add them together!</li>
+    </ol>
+    <p>Mathematically, if \( M_{top} \) is the upsampled map and \( M_{bottom} \) is the lateral map, the new fused feature map \( P \) is:</p>
+    <p>\[ P = \text{Upsample}(M_{top}) + \text{Conv}_{1\times1}(M_{bottom}) \]</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>The \( 1\times1 \) convolution is used to align the number of channels. The result? A feature map that has the <strong>precise location details</strong> from the bottom-up pathway and the <strong>rich context</strong> from the top-down pathway.</p>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Lateral Connection</h4>
+        <p>A connection in a neural network that merges features from different pathways at the same spatial resolution, allowing the network to combine high-level semantic information with low-level spatial details.</p>
+    </div>
+
+    <p>Crucially, unlike standard classifiers that just look at the final output, FPNs make independent object detections at <strong>every level</strong> of the pyramid.</p>
+
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>True or False: In an FPN, we only make predictions at the very last (deepest) layer.</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. The whole point of FPN is to predict at multiple scales.')">True</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! We predict at every level (P3, P4, P5, etc.) to catch objects of all sizes.')">False</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <h2>Putting Objects in their Place</h2>
+    <p>Now that we have a pyramid of features, how do we use it? The strategy is simple: assign objects to pyramid levels based on their size.</p>
+    <p>We define levels like \( P_3, P_4, P_5 \), where \( P_3 \) is a large, high-resolution map, and \( P_5 \) is a small, low-resolution map.</p>
+    <p>Let's try assigning objects yourself.</p>
+    
+    <!-- START: Pyramid Selector Interactive -->
+<div id="fpn-interactive-container">
+  <canvas id="fpnCanvas"></canvas>
+  <div id="fpn-feedback-overlay" class="feedback-hidden">
+      <div id="fpn-feedback-text"></div>
+      <button id="fpn-reset-btn" onclick="resetFPN()">Try Again</button>
+  </div>
+  <div class="instruction-overlay">Drag the bounding boxes to the correct Feature Map (P3, P4, or P5)</div>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('fpnCanvas');
+  const ctx = canvas.getContext('2d');
+  const feedbackOverlay = document.getElementById('fpn-feedback-overlay');
+  const feedbackText = document.getElementById('fpn-feedback-text');
+  let width, height, scale;
+
+  // Game State
+  const items = [
+      { 
+          id: 'car', 
+          name: 'Tiny Car', 
+          type: 'small',
+          x: 0, y: 0, w: 0, h: 0, // dynamic based on resize
+          color: '#3182ce', 
+          solved: false,
+          originalX: 0, originalY: 0
+      },
+      { 
+          id: 'truck', 
+          name: 'Large Truck', 
+          type: 'large',
+          x: 0, y: 0, w: 0, h: 0, 
+          color: '#e53e3e', 
+          solved: false,
+          originalX: 0, originalY: 0
+      }
+  ];
+
+  const slots = [
+      { id: 'p3', label: 'P3', sub: 'High Res', desc: 'Fine Details', y: 0, h: 0, ideal: 'small' },
+      { id: 'p4', label: 'P4', sub: 'Medium', desc: 'Mid-Range', y: 0, h: 0, ideal: 'medium' },
+      { id: 'p5', label: 'P5', sub: 'Low Res', desc: 'Global Context', y: 0, h: 0, ideal: 'large' }
+  ];
+
+  let dragItem = null;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+
+  // Initialization
+  function resize() {
+      // Set canvas resolution for High DPI
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      
+      // Logical size
+      width = rect.width;
+      height = 400; // Fixed aspect height
+      
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      
+      ctx.scale(dpr, dpr);
+      canvas.style.height = height + 'px';
+
+      // Calculate layout
+      const laneCenter = width * 0.35;
+      
+      // Define Slots (Right side)
+      const slotX = width * 0.7;
+      const slotW = width * 0.25;
+      const slotH = (height - 60) / 3;
+      
+      slots.forEach((slot, i) => {
+          slot.x = slotX;
+          slot.y = 20 + i * (slotH + 10);
+          slot.w = slotW;
+          slot.h = slotH;
+      });
+
+      // Define Items (Scene)
+      // Truck (Foreground)
+      if (!items[1].solved && dragItem !== items[1]) {
+          items[1].w = 120;
+          items[1].h = 90;
+          items[1].x = laneCenter - 20;
+          items[1].y = height - 120;
+          items[1].originalX = items[1].x;
+          items[1].originalY = items[1].y;
+      }
+
+      // Car (Background)
+      if (!items[0].solved && dragItem !== items[0]) {
+          items[0].w = 30;
+          items[0].h = 20;
+          items[0].x = laneCenter + 30;
+          items[0].y = height * 0.48; // Near horizon
+          items[0].originalX = items[0].x;
+          items[0].originalY = items[0].y;
+      }
+
+      draw();
+  }
+
+  // Drawing Functions
+  function draw() {
+      ctx.clearRect(0, 0, width, height);
+      
+      drawScene();
+      drawSlots();
+      drawItems();
+  }
+
+  function drawScene() {
+      // Sky
+      const gradient = ctx.createLinearGradient(0, 0, 0, height);
+      gradient.addColorStop(0, '#ebf8ff');
+      gradient.addColorStop(0.5, '#bee3f8');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width * 0.65, height);
+
+      // Ground
+      ctx.fillStyle = '#68d391';
+      ctx.fillRect(0, height * 0.5, width * 0.65, height * 0.5);
+
+      // Road (Perspective Triangle)
+      ctx.fillStyle = '#718096';
+      ctx.beginPath();
+      const vanishX = width * 0.35;
+      const vanishY = height * 0.45;
+      ctx.moveTo(vanishX, vanishY);
+      ctx.lineTo(width * 0.05, height);
+      ctx.lineTo(width * 0.65, height);
+      ctx.fill();
+
+      // Lane markings
+      ctx.strokeStyle = '#fff';
+      ctx.setLineDash([20, 15]);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(vanishX, vanishY + 10);
+      ctx.lineTo(width * 0.35, height);
+      ctx.stroke();
+      ctx.setLineDash([]);
+  }
+
+  function drawSlots() {
+      // Divider line
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(width * 0.65, 10);
+      ctx.lineTo(width * 0.65, height - 10);
+      ctx.stroke();
+
+      slots.forEach(slot => {
+          // Box
+          ctx.fillStyle = '#fff';
+          ctx.strokeStyle = '#a0aec0';
+          ctx.lineWidth = 2;
+          ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
+          ctx.strokeRect(slot.x, slot.y, slot.w, slot.h);
+
+          // Grid Pattern (Visualizing Resolution)
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(slot.x, slot.y, slot.w, slot.h);
+          ctx.clip();
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 1;
+          
+          const gridSize = slot.id === 'p3' ? 10 : (slot.id === 'p4' ? 25 : 50);
+          
+          for(let gx = slot.x; gx < slot.x + slot.w; gx += gridSize) {
+              ctx.moveTo(gx, slot.y);
+              ctx.lineTo(gx, slot.y + slot.h);
+          }
+          for(let gy = slot.y; gy < slot.y + slot.h; gy += gridSize) {
+              ctx.moveTo(slot.x, gy);
+              ctx.lineTo(slot.x + slot.w, gy);
+          }
+          ctx.stroke();
+          ctx.restore();
+
+          // Text
+          ctx.fillStyle = '#2d3748';
+          ctx.font = 'bold 18px sans-serif';
+          ctx.fillText(slot.label, slot.x + 10, slot.y + 25);
+          
+          ctx.font = '12px sans-serif';
+          ctx.fillStyle = '#4a5568';
+          ctx.fillText(slot.sub, slot.x + 10, slot.y + 45);
+          
+          ctx.fillStyle = '#718096';
+          ctx.fillText(slot.desc, slot.x + 10, slot.y + 60);
+      });
+  }
+
+  function drawItems() {
+      items.forEach(item => {
+          if (item.solved) return; // Don't draw if already placed correctly (or draw inside slot)
+
+          const isDragging = dragItem === item;
+          
+          // Draw visual representation (Box + Label)
+          ctx.fillStyle = isDragging ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.2)';
+          ctx.strokeStyle = item.color;
+          ctx.lineWidth = isDragging ? 4 : 3;
+          
+          // If truck, draw a simple truck shape
+          if(item.type === 'large') {
+              ctx.strokeRect(item.x, item.y, item.w, item.h);
+              // Cab
+              ctx.strokeRect(item.x + item.w, item.y + item.h - 40, 30, 40);
+          } else {
+              // Car
+              ctx.strokeRect(item.x, item.y, item.w, item.h);
+          }
+
+          // Glow effect
+          if (!isDragging) {
+              ctx.shadowColor = item.color;
+              ctx.shadowBlur = 10;
+              ctx.strokeRect(item.x, item.y, item.w, item.h);
+              ctx.shadowBlur = 0;
+          }
+
+          // Label
+          if (isDragging) {
+              ctx.fillStyle = '#2d3748';
+              ctx.font = 'bold 12px sans-serif';
+              ctx.fillText(item.name, item.x, item.y - 10);
+          }
+      });
+  }
+
+  // Interaction Logic
+  function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+          x: (evt.clientX - rect.left) * (canvas.width / rect.width / window.devicePixelRatio), // Adjust for scaling
+          y: (evt.clientY - rect.top) * (canvas.height / rect.height / window.devicePixelRatio)
+      };
+  }
+
+  function onDown(e) {
+      e.preventDefault();
+      const pos = getMousePos(e.touches ? e.touches[0] : e);
+      
+      // Reverse check to grab top items first
+      for (let i = items.length - 1; i >= 0; i--) {
+          const item = items[i];
+          if (item.solved) continue;
+
+          if (pos.x > item.x && pos.x < item.x + item.w + (item.type==='large'?30:0) && 
+              pos.y > item.y && pos.y < item.y + item.h) {
+              dragItem = item;
+              dragOffsetX = pos.x - item.x;
+              dragOffsetY = pos.y - item.y;
+              canvas.style.cursor = 'grabbing';
+              draw();
+              return;
+          }
+      }
+  }
+
+  function onMove(e) {
+      if (!dragItem) return;
+      e.preventDefault();
+      const pos = getMousePos(e.touches ? e.touches[0] : e);
+      
+      dragItem.x = pos.x - dragOffsetX;
+      dragItem.y = pos.y - dragOffsetY;
+      draw();
+  }
+
+  function onUp(e) {
+      if (!dragItem) return;
+      e.preventDefault();
+
+      // Check Collision with slots
+      const center = {
+          x: dragItem.x + dragItem.w / 2,
+          y: dragItem.y + dragItem.h / 2
+      };
+
+      let droppedSlot = null;
+      slots.forEach(slot => {
+          if (center.x > slot.x && center.x < slot.x + slot.w &&
+              center.y > slot.y && center.y < slot.y + slot.h) {
+              droppedSlot = slot;
+          }
+      });
+
+      if (droppedSlot) {
+          evaluateDrop(dragItem, droppedSlot);
+      } else {
+          // Snap back
+          snapBack(dragItem);
+      }
+
+      dragItem = null;
+      canvas.style.cursor = 'grab';
+  }
+
+  function snapBack(item) {
+      // Simple animation logic could go here, for now just teleport
+      item.x = item.originalX;
+      item.y = item.originalY;
+      draw();
+  }
+
+  function evaluateDrop(item, slot) {
+      feedbackOverlay.classList.remove('feedback-hidden', 'feedback-success', 'feedback-error');
+      
+      // Logic Table
+      let isCorrect = false;
+      let msg = "";
+
+      if (item.type === 'small') { // Tiny Car
+          if (slot.id === 'p3') {
+              isCorrect = true;
+              msg = "Correct! High resolution (P3) captures the small details of the distant car.";
+          } else if (slot.id === 'p5') {
+              msg = "Too blurry! The car disappears into a single pixel on this coarse map.";
+          } else {
+              msg = "Close, but P3 is better. P4 is still a bit too coarse for such a tiny object.";
+          }
+      } else { // Large Truck
+          if (slot.id === 'p5') {
+              isCorrect = true;
+              msg = "Correct! The deep layer (P5) captures the global context of the large truck.";
+          } else if (slot.id === 'p3') {
+              msg = "Inefficient! This feature map is too zoomed in. The truck is bigger than the receptive field!";
+          } else {
+              msg = "Acceptable, but P5 is more efficient for objects this large.";
+          }
+      }
+
+      if (isCorrect) {
+          feedbackOverlay.classList.add('feedback-success');
+          feedbackText.textContent = "✅ " + msg;
+          item.solved = true;
+          item.x = slot.x + slot.w/2 - item.w/2;
+          item.y = slot.y + slot.h/2 - item.h/2;
+      } else {
+          feedbackOverlay.classList.add('feedback-error');
+          feedbackText.textContent = "❌ " + msg;
+          snapBack(item);
+      }
+      
+      draw();
+  }
+
+  window.resetFPN = function() {
+      items.forEach(item => {
+          item.solved = false;
+          item.x = item.originalX;
+          item.y = item.originalY;
+      });
+      feedbackOverlay.classList.add('feedback-hidden');
+      draw();
+  };
+
+  // Listeners
+  canvas.addEventListener('mousedown', onDown);
+  canvas.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  
+  canvas.addEventListener('touchstart', onDown, {passive: false});
+  canvas.addEventListener('touchmove', onMove, {passive: false});
+  window.addEventListener('touchend', onUp);
+
+  // Initial Load
+  setTimeout(resize, 100);
+  window.addEventListener('resize', resize);
+})();
+</script>
+<!-- END: Pyramid Selector Interactive -->
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>As you saw, small objects need the fine detail of lower levels (like \( P_3 \)). Large objects don't need that detail; they need the global context found at higher levels (like \( P_5 \)).</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>FPNs have become a standard "Neck" component in almost all modern detectors, including YOLOv3, YOLOv4, and RetinaNet. They allow models to detect objects across a massive range of scales without slowing down the training process.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <h2>Frequently Asked Questions</h2>
+    <p>You might be wondering about other ways to solve this problem.</p>
+    
+    <div class="faq-section">
+        <h3>Why not just resize the input image 5 times (Image Pyramid)?</h3>
+        <p>That is the old-school computer vision approach! It works, but it is incredibly slow. If you resize the image 5 times, you have to run the heavy CNN backbone 5 separate times. With FPN, you run the backbone only once. The pyramid is built 'inside' the network using the features you already calculated. It is nearly free in terms of computation compared to an Image Pyramid.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <div class="faq-section">
+        <h3>Do lateral connections add parameters to the model?</h3>
+        <p>Yes, but very few. The lateral connections typically use a small \( 1\times1 \) convolution to match the number of feature channels (depth) between layers. Compared to the massive backbone, these extra parameters are negligible.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <h2>Review and Reflect</h2>
+    
+    <p>In this lesson, we tackled the <strong>Semantic Gap</strong>—the trade-off between resolution and intelligence in neural networks.</p>
+    <ul>
+        <li><strong>The Problem:</strong> Deep layers are smart but blurry; shallow layers are sharp but dumb.</li>
+        <li><strong>The Solution:</strong> Feature Pyramid Networks (FPN).</li>
+        <li><strong>The Mechanism:</strong> Use <strong>Lateral Connections</strong> to merge upsampled deep features with shallow features.</li>
+    </ul>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>What is the primary purpose of the 'Lateral Connection' in an FPN?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, lateral connections actually add a small number of parameters.')">To reduce the number of parameters in the network.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. It combines the \'what\' (semantics) from the top with the \'where\' (resolution) from the bottom.')">To merge high semantic info with high spatial resolution.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Definitely not.')">To make the image black and white.</div>
+        </div>
+    </div>
+
+    <p>Now that we've solved speed (YOLO) and scale (FPN), we are ready for the final frontier: removing the manual heuristics entirely. In the next lesson, we will meet the Transformer.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 13;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    // Fire a resize event once the section becomes visible so hidden canvas-based
+    // interactives (like the FPN drag-and-drop) can measure themselves correctly.
+    if (typeof window !== 'undefined') {
+        requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    }
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-scale-fpn_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-scale-fpn_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

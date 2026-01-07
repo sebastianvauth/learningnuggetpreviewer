@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Region-Based Revolution (R-CNN)</title>
+<script>
+window.MathJax = {
+tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro / 2014 -->
+
+<section id="section1" class="visible">
+<h1>The Region-Based Revolution</h1>
+<h2>The Year is 2014</h2>
+<div class="image-placeholder">
+<img src="images/1.jpg" alt="Split screen comparing AlexNet classifying a single cat in 2012 versus a busy 2014 street scene that needs multiple detections.">
+<p>AlexNet nailed single-label classification in 2012, but the 2014 world demanded localization for every object in a scene.</p>
+</div>
+<p>Let's travel back in time to 2014. Deep Learning is the new cool kid on the block. AlexNet has just crushed the ImageNet competition, proving that Convolutional Neural Networks (CNNs) are the future of image classification.</p>
+<p>But there is a problem. Classification is easy—you take one image and spit out one label. But look at the real world. A self-driving car doesn't just need to know if there is a 'car' in the picture; it needs to know <em>where</em> it is, and it needs to do this for every single car, pedestrian, and traffic light.</p>
+<div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Recognition Using Regions Intro -->
+
+<section id="section2">
+<h2>Recognition Using Regions</h2>
+<p>So, how do we bridge the gap? We have a powerful classifier (AlexNet), but it expects a single, centered object. We can't simply run the CNN on every single pixel combination—that would take forever.</p>
+<div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Enter R-CNN -->
+
+<section id="section3">
+<p>Enter Ross Girshick and the <strong>R-CNN</strong> (Regions with CNN features). His team proposed a paradigm shift: instead of looking everywhere, let's only look in 'likely' places.</p>
+<div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Proposals Concept -->
+
+<section id="section4">
+<p>This method, known as <strong>Recognition using Regions</strong>, breaks the problem down into a manageable pipeline. Instead of millions of possible windows, we generate a few thousand 'proposals' and check those.</p>
+<div class="vocab-section">
+<h3>Build Your Vocab</h3>
+<h4>Region Proposal</h4>
+<p>A candidate region in an image (a bounding box) that is likely to contain an object. These are identified by algorithms before being fed into a classifier.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: The Pipeline Diagram -->
+
+<section id="section5">
+<p>Here is what the <strong>R-CNN Pipeline</strong> looks like. It is a four-step process:</p>
+<div class="image-placeholder">
+<img src="images/2.jpg" alt="Five-step R-CNN pipeline diagram from input image through proposals, warping, CNN features, and SVM plus bounding box regression.">
+<p>The full R-CNN pipeline: propose regions, warp them, extract CNN features, then classify and fine-tune boxes.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Pipeline Steps -->
+
+<section id="section6">
+<ul>
+<li><strong>1. Input Image:</strong> We start with the raw photo.</li>
+<li><strong>2. Extract Region Proposals:</strong> We generate ~2,000 candidate boxes.</li>
+<li><strong>3. Compute CNN Features:</strong> We run a CNN on each proposal.</li>
+<li><strong>4. Classify Regions:</strong> We use SVMs to decide what is in the box.</li>
+</ul>
+<div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Pipeline Logic Check -->
+
+<section id="section7">
+<p>It sounds simple, but the magic lies in <em>how</em> we generate those proposals.</p>
+<div class="test-your-knowledge">
+<h3>Test Your Knowledge</h3>
+<h4>The R-CNN pipeline separates the 'looking' from the 'classifying'. What is the primary benefit of this approach compared to a sliding window that checks every pixel?</h4>
+<div class="multiple-choice">
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No model guarantees 100% accuracy. The benefit is about efficiency.')">It guarantees 100% accuracy.</div>
+<div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. Instead of millions of sliding windows, we only check about 2,000 promising regions.')">It drastically reduces the number of areas the heavy CNN needs to process.</div>
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The CNN is still the core engine for feature extraction.')">It removes the need for a CNN entirely.</div>
+</div>
+</div>
+<div class="continue-button" id="continue-after-test-knowledge-1" onclick="showNextSection(8)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 8: Selective Search Intro -->
+
+<section id="section8">
+<h2>Where to Look? Selective Search</h2>
+<p>To generate these 2,000 proposals, R-CNN uses an algorithm called <strong>Selective Search</strong>. It is important to note: this part is <em>not</em> deep learning! It is a classical computer vision algorithm.</p>
+<div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: How SS Works (1) -->
+
+<section id="section9">
+<p>Selective Search works by looking for similarities in texture, color, and intensity. It starts by over-segmenting the image into many tiny pieces.</p>
+<div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: How SS Works (2) Interactive -->
+
+<section id="section10">
+<p>Then, it effectively says, 'Hey, these two tiny blobs have the same green texture; they are probably part of the same object.' It merges them. Then it repeats this process hierarchically.</p>
+<!-- Interactive Selective Search Module -->
+<div class="ss-interactive-container">
+  <canvas id="ssCanvas" width="600" height="400" aria-label="Animation of image segmentation merging into a cow shape"></canvas>
+  
+  <div class="ss-controls">
+      <span class="ss-label" style="text-align: right;">Early</span>
+      <input type="range" min="0" max="100" value="0" class="ss-slider" id="ssSlider">
+      <span class="ss-label">Late</span>
+  </div>
+
+  <script>
+  (function() {
+      const canvas = document.getElementById('ssCanvas');
+      const ctx = canvas.getContext('2d');
+      const slider = document.getElementById('ssSlider');
+      
+      // Configuration
+      const COLS = 25;
+      const ROWS = 20;
+      const CELL_W = canvas.width / COLS;
+      const CELL_H = canvas.height / ROWS;
+      const JITTER = 0.4; // How much vertices distort to look like random polygons
+      
+      let vertices = [];
+      let triangles = [];
+
+      // 1. Define the "Ground Truth" Scene (The Cow)
+      function getPixelType(x, y) {
+          // Normalize coords
+          const cx = 300, cy = 230; // Cow Body center
+          
+          // Head
+          const hx = 180, hy = 180;
+          const headDist = Math.pow(x - hx, 2)/1600 + Math.pow(y - hy, 2)/1200;
+          
+          // Body
+          const bodyDist = Math.pow(x - cx, 2)/5000 + Math.pow(y - cy, 2)/2500;
+          
+          // Legs
+          const leg1 = x > 230 && x < 250 && y > 250 && y < 330;
+          const leg2 = x > 350 && x < 370 && y > 250 && y < 330;
+          const leg3 = x > 190 && x < 210 && y > 220 && y < 320;
+
+          if (headDist <= 1 || bodyDist <= 1 || leg1 || leg2 || leg3) {
+              // It's cow. Is it a spot?
+              // Simple Perlin-ish noise function for spots
+              const spotNoise = Math.sin(x * 0.05) + Math.cos(y * 0.05);
+              return spotNoise > 0.5 ? 'cow-black' : 'cow-white';
+          }
+          return 'grass';
+      }
+
+      // 2. Generate Mesh
+      function initMesh() {
+          vertices = [];
+          triangles = [];
+          
+          // Create Vertices
+          for (let r = 0; r <= ROWS; r++) {
+              for (let c = 0; c <= COLS; c++) {
+                  let x = c * CELL_W;
+                  let y = r * CELL_H;
+                  
+                  // Add randomness (except borders)
+                  if (c > 0 && c < COLS) x += (Math.random() - 0.5) * CELL_W * JITTER * 2;
+                  if (r > 0 && r < ROWS) y += (Math.random() - 0.5) * CELL_H * JITTER * 2;
+                  
+                  vertices.push({x, y});
+              }
+          }
+
+          // Create Triangles
+          for (let r = 0; r < ROWS; r++) {
+              for (let c = 0; c < COLS; c++) {
+                  const i = r * (COLS + 1) + c;
+                  // Two triangles per grid square
+                  // Tri 1: Top-Left, Top-Right, Bottom-Left
+                  addTriangle(i, i + 1, i + (COLS + 1));
+                  // Tri 2: Top-Right, Bottom-Right, Bottom-Left
+                  addTriangle(i + 1, i + (COLS + 1) + 1, i + (COLS + 1));
+              }
+          }
+      }
+
+      function addTriangle(i1, i2, i3) {
+          const v1 = vertices[i1];
+          const v2 = vertices[i2];
+          const v3 = vertices[i3];
+          
+          // Centroid
+          const cx = (v1.x + v2.x + v3.x) / 3;
+          const cy = (v1.y + v2.y + v3.y) / 3;
+          
+          const type = getPixelType(cx, cy);
+          
+          // Base Color Calculation
+          let baseColor, r, g, b;
+          
+          if (type === 'grass') {
+              // Varied greens
+              const noise = Math.random() * 60 - 30;
+              r = 60 + noise; g = 160 + noise; b = 60 + noise;
+          } else if (type === 'cow-black') {
+              const noise = Math.random() * 40 - 20;
+              r = 40 + noise; g = 40 + noise; b = 40 + noise;
+          } else {
+              const noise = Math.random() * 30 - 15;
+              r = 240 + noise; g = 240 + noise; b = 240 + noise;
+          }
+          
+          // Final averaged colors for "Late" stage
+          // We simplify: Grass becomes one color, Cow becomes one color
+          let targetR, targetG, targetB;
+          if (type === 'grass') {
+              targetR = 60; targetG = 160; targetB = 60;
+          } else {
+              // The cow merges into a single blob color (e.g., a "detected" color or just averaged texture)
+              // Let's make the "Cow Blob" a distinct pinkish hue to show detection, 
+              // OR keep it natural but unified. Let's go with unified "Cow Average".
+              targetR = 200; targetG = 200; targetB = 200; 
+          }
+
+          triangles.push({
+              v1, v2, v3,
+              type,
+              base: {r, g, b},
+              target: {r: targetR, g: targetG, b: targetB}
+          });
+      }
+
+      // 3. Render Loop
+      function draw() {
+          const t = slider.value / 100; // 0.0 to 1.0
+          
+          // Clear
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // Draw Triangles
+          triangles.forEach(tri => {
+              ctx.beginPath();
+              ctx.moveTo(tri.v1.x, tri.v1.y);
+              ctx.lineTo(tri.v2.x, tri.v2.y);
+              ctx.lineTo(tri.v3.x, tri.v3.y);
+              ctx.closePath();
+              
+              // Color Interpolation
+              // Early: Use base (noisy) color
+              // Late: Interpolate towards target (unified) color
+              // Use ease-in-out for smoother feel
+              const ease = t * t * (3 - 2 * t); 
+              
+              const r = tri.base.r + (tri.target.r - tri.base.r) * ease;
+              const g = tri.base.g + (tri.target.g - tri.base.g) * ease;
+              const b = tri.base.b + (tri.target.b - tri.base.b) * ease;
+              
+              ctx.fillStyle = `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+              ctx.fill();
+              
+              // Border Logic
+              // Early: Visible borders (simulating segmentation)
+              // Late: Borders disappear
+              if (t < 0.95) {
+                  ctx.strokeStyle = `rgba(255, 255, 255, ${1 - ease})`;
+                  ctx.lineWidth = 1;
+                  ctx.stroke();
+              }
+          });
+          
+          // Optional: Draw a "Bounding Box" outline appearing at the end
+          if (t > 0.8) {
+              const alpha = (t - 0.8) * 5; // 0 to 1
+              ctx.strokeStyle = `rgba(255, 0, 0, ${alpha})`;
+              ctx.lineWidth = 3;
+              ctx.setLineDash([10, 5]);
+              // Approx bbox for cow
+              ctx.strokeRect(130, 110, 260, 230);
+              ctx.setLineDash([]);
+              
+              if (t > 0.9) {
+                  ctx.fillStyle = `rgba(255, 0, 0, ${alpha})`;
+                  ctx.font = 'bold 20px sans-serif';
+                  ctx.fillText("Region Proposal", 130, 100);
+              }
+          }
+      }
+
+      // Init
+      initMesh();
+      draw();
+      
+      // Listeners
+      slider.addEventListener('input', draw);
+      
+      // Resize handling (simple regen)
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
+              initMesh();
+              draw();
+          }, 200);
+      });
+
+  })();
+  </script>
+</div>
+<div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Category Agnostic -->
+
+<section id="section11">
+<p>By the end of this process, we have boxes of various sizes that likely contain objects. These are our <strong>Region Proposals</strong>.</p>
+<div class="vocab-section">
+<h3>Build Your Vocab</h3>
+<h4>Category-Agnostic</h4>
+<p>A process that does not care 'what' the object is, only that 'something' is there. Selective Search is category-agnostic; it finds blobs, not specifically 'cars' or 'cats'.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: FAQ -->
+
+<section id="section12">
+<p>Because Selective Search doesn't know what a 'car' is, it just looks for coherent blobs. This makes it <strong>Category-Agnostic</strong>.</p>
+<div class="faq-section">
+<h4>Frequently Asked Question</h4>
+<p><strong>Is Selective Search a Neural Network?</strong></p>
+<p>No, it is not! Selective Search is a fixed algorithm based on graph theory and pixel similarity (color, texture). It does not 'learn' from data. This means we cannot train it to get better, which becomes a bottleneck later on.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: The Size Problem -->
+
+<section id="section13">
+<h2>Square Pegs in Round Holes</h2>
+<p>We now have 2,000 region proposals. Some are tall and thin (like a pedestrian), some are wide (like a car), and some are huge. But here is the problem: The CNN (AlexNet) was designed to take a fixed input size of $227 \times 227$ pixels.</p>
+<div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Warping Interactive -->
+
+<section id="section14">
+<p>How do you fit a tall, rectangular region into a perfect square input? You use <strong>Warping</strong>.</p>
+<!-- Interactive Warping Module -->
+<div class="warp-interactive-container">
+  <canvas id="warpCanvas" width="600" height="350" aria-label="Interactive warping tool: Drag varying shapes into a fixed square"></canvas>
+  
+  <div class="warp-controls">
+      <div class="warp-feedback" id="warpFeedback">Drag a blue box into the gray square...</div>
+      <button class="warp-btn" onclick="window.resetWarp()">Reset</button>
+  </div>
+
+  <script>
+  (function() {
+      const canvas = document.getElementById('warpCanvas');
+      const ctx = canvas.getContext('2d');
+      const feedback = document.getElementById('warpFeedback');
+
+      // --- Configuration ---
+      const TARGET_SIZE = 200; // Visual size of the 227x227 box
+      const TARGET_X = 360;
+      const TARGET_Y = 75;
+
+      // Items definition
+      const ITEMS_INIT = [
+          { 
+              id: 'pedestrian', 
+              label: 'Pedestrian',
+              x: 30, y: 50, w: 70, h: 200, 
+              color: '#4299e1',
+              type: 'tall' 
+          },
+          { 
+              id: 'car', 
+              label: 'Car',
+              x: 20, y: 270, w: 200, h: 60, 
+              color: '#48bb78',
+              type: 'wide' 
+          },
+          { 
+              id: 'sign', 
+              label: 'Sign',
+              x: 240, y: 270, w: 60, h: 60, 
+              color: '#ed8936',
+              type: 'square' 
+          }
+      ];
+
+      // State
+      let items = JSON.parse(JSON.stringify(ITEMS_INIT)); // Deep copy
+      let dragItem = null;
+      let dragOffsetX = 0;
+      let dragOffsetY = 0;
+      let animationFrame;
+
+      // --- Drawing Helpers ---
+
+      function drawDashedBox(x, y, size, label) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([10, 10]);
+          ctx.strokeStyle = '#cbd5e0';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(x, y, size, size);
+          
+          // Label
+          ctx.fillStyle = '#a0aec0';
+          ctx.font = 'bold 16px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText("CNN Input", x + size/2, y + size/2 - 10);
+          ctx.font = '14px sans-serif';
+          ctx.fillText("(227 x 227)", x + size/2, y + size/2 + 15);
+          ctx.restore();
+      }
+
+      function drawItem(item) {
+          ctx.save();
+          // Shadow
+          ctx.shadowColor = 'rgba(0,0,0,0.2)';
+          ctx.shadowBlur = 10;
+          ctx.shadowOffsetY = 5;
+
+          // Box Background
+          ctx.fillStyle = item.color;
+          ctx.beginPath();
+          ctx.roundRect(item.x, item.y, item.w, item.h, 8);
+          ctx.fill();
+          ctx.shadowColor = 'transparent'; // Reset shadow for internal details
+
+          // Internal Details (Procedural Drawing for distortion effect)
+          ctx.strokeStyle = 'white';
+          ctx.fillStyle = 'white';
+          ctx.lineWidth = 3;
+
+          const cx = item.x + item.w/2;
+          const cy = item.y + item.h/2;
+
+          if (item.type === 'tall') {
+              // Stick Figure
+              // We use percentages of width/height so it stretches
+              const headSize = Math.min(item.w, item.h) * 0.15;
+              // Head
+              ctx.beginPath();
+              ctx.arc(cx, item.y + item.h * 0.2, headSize, 0, Math.PI * 2);
+              ctx.stroke();
+              // Body
+              ctx.beginPath();
+              ctx.moveTo(cx, item.y + item.h * 0.2 + headSize);
+              ctx.lineTo(cx, item.y + item.h * 0.6);
+              // Arms
+              ctx.moveTo(cx - item.w * 0.3, item.y + item.h * 0.4);
+              ctx.lineTo(cx + item.w * 0.3, item.y + item.h * 0.4);
+              // Legs
+              ctx.moveTo(cx, item.y + item.h * 0.6);
+              ctx.lineTo(cx - item.w * 0.2, item.y + item.h * 0.9);
+              ctx.moveTo(cx, item.y + item.h * 0.6);
+              ctx.lineTo(cx + item.w * 0.2, item.y + item.h * 0.9);
+              ctx.stroke();
+
+          } else if (item.type === 'wide') {
+              // Car
+              const carW = item.w * 0.8;
+              const carH = item.h * 0.5;
+              // Body
+              ctx.fillRect(cx - carW/2, cy, carW, carH/2);
+              // Roof
+              ctx.beginPath();
+              ctx.moveTo(cx - carW/2 + 10, cy);
+              ctx.lineTo(cx + carW/2 - 10, cy);
+              ctx.lineTo(cx + carW/4, cy - carH/2);
+              ctx.lineTo(cx - carW/4, cy - carH/2);
+              ctx.closePath();
+              ctx.stroke();
+              // Wheels
+              const wheelSize = Math.min(item.w, item.h) * 0.15;
+              ctx.beginPath();
+              ctx.arc(cx - carW/3, cy + carH/2, wheelSize, 0, Math.PI*2);
+              ctx.arc(cx + carW/3, cy + carH/2, wheelSize, 0, Math.PI*2);
+              ctx.fill();
+
+          } else {
+              // Sign/Square
+              const r = Math.min(item.w, item.h) * 0.35;
+              ctx.beginPath();
+              ctx.arc(cx, cy, r, 0, Math.PI * 2);
+              ctx.stroke();
+              ctx.beginPath();
+              ctx.moveTo(cx - r*0.5, cy);
+              ctx.lineTo(cx + r*0.5, cy);
+              ctx.stroke();
+          }
+
+          ctx.restore();
+      }
+
+      function draw() {
+          // Clear
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          // Labels
+          ctx.fillStyle = '#718096';
+          ctx.font = '14px sans-serif';
+          ctx.fillText("Region Proposals", 80, 30);
+
+          // Draw Target
+          drawDashedBox(TARGET_X, TARGET_Y, TARGET_SIZE);
+
+          // Draw Items (Draw dragged item last so it's on top)
+          items.forEach(item => {
+              if (item !== dragItem) drawItem(item);
+          });
+          if (dragItem) drawItem(dragItem);
+      }
+
+      // --- Interaction Logic ---
+
+      function getMousePos(e) {
+          const rect = canvas.getBoundingClientRect();
+          // Scale handles if canvas is resized by CSS
+          const scaleX = canvas.width / rect.width;
+          const scaleY = canvas.height / rect.height;
+          
+          const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+          const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+          
+          return {
+              x: (clientX - rect.left) * scaleX,
+              y: (clientY - rect.top) * scaleY
+          };
+      }
+
+      function isHit(pos, item) {
+          return pos.x > item.x && pos.x < item.x + item.w &&
+                 pos.y > item.y && pos.y < item.y + item.h;
+      }
+
+      function handleStart(e) {
+          e.preventDefault();
+          const pos = getMousePos(e);
+          
+          // Iterate in reverse to grab top items first
+          for (let i = items.length - 1; i >= 0; i--) {
+              if (isHit(pos, items[i])) {
+                  dragItem = items[i];
+                  dragOffsetX = pos.x - dragItem.x;
+                  dragOffsetY = pos.y - dragItem.y;
+                  feedback.textContent = `Dragging ${dragItem.label}...`;
+                  draw();
+                  return;
+              }
+          }
+      }
+
+      function handleMove(e) {
+          if (!dragItem) return;
+          e.preventDefault();
+          const pos = getMousePos(e);
+          dragItem.x = pos.x - dragOffsetX;
+          dragItem.y = pos.y - dragOffsetY;
+          draw();
+      }
+
+      function handleEnd(e) {
+          if (!dragItem) return;
+          e.preventDefault();
+
+          // Check collision with target
+          const itemCx = dragItem.x + dragItem.w/2;
+          const itemCy = dragItem.y + dragItem.h/2;
+          const targetCx = TARGET_X + TARGET_SIZE/2;
+          const targetCy = TARGET_Y + TARGET_SIZE/2;
+
+          // Simple distance check
+          const dist = Math.hypot(itemCx - targetCx, itemCy - targetCy);
+
+          if (dist < 100) {
+              // SNAP & WARP
+              animateWarp(dragItem);
+          } else {
+              feedback.textContent = "Missed the target. Try again.";
+          }
+
+          dragItem = null;
+      }
+
+      function animateWarp(item) {
+          const startX = item.x;
+          const startY = item.y;
+          const startW = item.w;
+          const startH = item.h;
+
+          const startTime = performance.now();
+          const duration = 400;
+
+          function step(currentTime) {
+              const elapsed = currentTime - startTime;
+              const progress = Math.min(elapsed / duration, 1);
+              
+              // Ease out cubic
+              const ease = 1 - Math.pow(1 - progress, 3);
+
+              item.x = startX + (TARGET_X - startX) * ease;
+              item.y = startY + (TARGET_Y - startY) * ease;
+              item.w = startW + (TARGET_SIZE - startW) * ease;
+              item.h = startH + (TARGET_SIZE - startH) * ease;
+
+              draw();
+
+              if (progress < 1) {
+                  requestAnimationFrame(step);
+              } else {
+                  // Finished
+                  if (item.type === 'tall') {
+                      feedback.innerHTML = "Result: <strong>Crushed Vertically!</strong> The person is now short and wide.";
+                  } else if (item.type === 'wide') {
+                      feedback.innerHTML = "Result: <strong>Squeezed Horizontally!</strong> The car is now a square.";
+                  } else {
+                      feedback.innerHTML = "Result: Scaled up, but aspect ratio was preserved.";
+                  }
+              }
+          }
+          requestAnimationFrame(step);
+      }
+
+      window.resetWarp = function() {
+          items = JSON.parse(JSON.stringify(ITEMS_INIT));
+          dragItem = null;
+          feedback.textContent = "Drag a blue box into the gray square...";
+          draw();
+      };
+
+      // Listeners
+      canvas.addEventListener('mousedown', handleStart);
+      canvas.addEventListener('mousemove', handleMove);
+      window.addEventListener('mouseup', handleEnd);
+      
+      canvas.addEventListener('touchstart', handleStart, {passive: false});
+      canvas.addEventListener('touchmove', handleMove, {passive: false});
+      window.addEventListener('touchend', handleEnd);
+
+      // Init
+      draw();
+
+  })();
+  </script>
+</div>
+<p>Notice how the image gets distorted? The tall person looks crushed vertically; the wide car looks squeezed horizontally. The CNN has to learn to recognize objects even when they are squashed like this!</p>
+<div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Warping Vocab -->
+
+<section id="section15">
+<p>This warping step is crucial. Without it, we couldn't feed these variable-sized regions into the fully connected layers of the network, which demand fixed dimensions.</p>
+<div class="vocab-section">
+<h3>Build Your Vocab</h3>
+<h4>Warping</h4>
+<p>The process of resizing an image region to fixed dimensions (e.g., 227x227), often ignoring the original aspect ratio, which results in a distorted image.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16: Warping Check -->
+
+<section id="section16">
+<p>Let's check if you're following the data flow.</p>
+<div class="test-your-knowledge">
+<h3>Test Your Knowledge</h3>
+<h4>The original AlexNet requires an input of size $227 \times 227$. If Selective Search finds a region of size $100 \times 400$, what happens?</h4>
+<div class="multiple-choice">
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'We do not discard it; it might contain a valid object!')">The region is discarded.</div>
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Padding maintains aspect ratio, but R-CNN specifically used warping (stretching) in its original implementation.')">The region is padded with black pixels to match $227 \times 227$.</div>
+<div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. The image is warped to fit the required input dimensions of the CNN.')">The pixels are stretched and resized to exactly $227 \times 227$, distorting the image.</div>
+</div>
+</div>
+<div class="continue-button" id="continue-after-test-knowledge-2" onclick="showNextSection(17)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 17: Classification & Refinement -->
+
+<section id="section17">
+<h2>Classification and Refinement</h2>
+<p>Now that we have our warped $227 \times 227$ image, we feed it through the CNN. The CNN acts as a <strong>Feature Extractor</strong>. It doesn't tell us 'Cat' or 'Dog' directly; instead, it outputs a feature vector (a list of 4,096 numbers) representing the content of that region.</p>
+<div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- Section 18: SVM Stop and Think -->
+
+<section id="section18">
+<p>These 4,096 numbers are then fed into a <strong>Support Vector Machine (SVM)</strong> to classify the object. We train one SVM for every class (one for cats, one for dogs, etc.).</p>
+<div class="check-your-knowledge">
+<h3>Stop and Think</h3>
+<h4>Why did they use SVMs instead of just using a Softmax layer at the end of the neural network?</h4>
+<div id="stop-think-svm" style="display:none;" class="animate-in">
+<p>It was largely due to historical context and training data limitations. At the time (2014), they found that training the SVMs on the extracted features gave slightly better performance than trying to fine-tune the whole deep network end-to-end with Softmax, particularly because labeled detection data was scarce.</p>
+</div>
+<button class="reveal-button" onclick="revealAnswer('stop-think-svm')">Reveal Answer</button>
+</div>
+<div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<!-- Section 19: Bounding Box Regressor -->
+
+<section id="section19">
+<p>Finally, we have one last problem. Selective Search gives us a box, but it might be slightly off. It might cover only 90% of the car.</p>
+<p>To fix this, R-CNN adds a <strong>Bounding Box Regressor</strong>. This is a simple linear model that looks at the features and says, 'Okay, I see a car, but the box is a bit too far left. Let's shift the center $(x,y)$ by 2 pixels and widen the width $(w)$ by 5%.'</p>
+<div class="why-it-matters">
+<h3>Why It Matters</h3>
+<p>This combination of deep features (CNN) with classical machine learning (SVM + Regression) was the bridge that allowed computer vision to leap from simple classification to complex detection.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<!-- Section 20: Success -->
+
+<section id="section20">
+<h2>Great Results, Terrible Speed</h2>
+<p>R-CNN was a massive success in terms of accuracy. It improved the mean Average Precision (mAP) on the Pascal VOC dataset by over 20% compared to previous methods. That is a huge leap!</p>
+<div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<!-- Section 21: The Catch (Sloth) -->
+
+<section id="section21">
+<p>But... there was a catch. A big one.</p>
+<div class="image-placeholder">
+<img src="images/3.jpg" alt="Cartoon sloth waiting at a computer with caption estimating 47 seconds per R-CNN image.">
+<p>R-CNN’s accuracy came with sloth-like latency: roughly 47 seconds per image on the original hardware.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(22)">Continue</div>
+</section>
+
+<!-- Section 22: The Math of Slowness -->
+
+<section id="section22">
+<p>Think about the math. We have 2,000 proposals per image. We run the CNN separately for <em>each</em> proposal.</p>
+<p>$$ 2000 \text{ regions} \times 1 \text{ heavy CNN pass} = \text{Extremely Slow} $$</p>
+<div class="continue-button" onclick="showNextSection(23)">Continue</div>
+</section>
+
+<!-- Section 23: Final Knowledge Check -->
+
+<section id="section23">
+<p>It took about <strong>47 seconds</strong> to process a single image. This made it useless for real-time applications like autonomous driving. You can't wait 47 seconds to decide if that blob is a pedestrian!</p>
+<div class="test-your-knowledge">
+<h3>Test Your Knowledge</h3>
+<h4>Arrange the steps of the R-CNN pipeline in the correct order:</h4>
+<div class="multiple-choice">
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'You can\'t run the CNN before you have the regions!')">CNN &rarr; Warping &rarr; Selective Search &rarr; SVM</div>
+<div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Propose regions, warp them to fit, extract features with CNN, then classify with SVM.')">Selective Search &rarr; Warping &rarr; CNN &rarr; SVM</div>
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The CNN requires a fixed input size, so Warping must happen before the CNN.')">Selective Search &rarr; CNN &rarr; Warping &rarr; SVM</div>
+</div>
+</div>
+<div class="continue-button" id="continue-after-test-knowledge-3" onclick="showNextSection(24)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 24: Review -->
+
+<section id="section24">
+<h2>Review and Reflect</h2>
+<p>You have just learned how R-CNN changed the game by introducing <strong>Recognition using Regions</strong>.</p>
+<p>We moved from sliding windows to <strong>Selective Search proposals</strong>, used <strong>Warping</strong> to fit them into a CNN, and classified them with <strong>SVMs</strong>.</p>
+<p>While accurate, the method was incredibly slow because it treated every region as a separate image. In the next lesson, we will see how <strong>Fast R-CNN</strong> solved this speed limit by sharing the computation!</p>
+</section>
+
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 24;
+
+updateProgress();
+if (currentSection === totalSections) {
+const completedButton = document.getElementById('markCompletedBtn');
+if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+const currentButton = event && event.target;
+if (!nextSectionElement) return;
+if (currentButton && currentButton.classList.contains('continue-button')) {
+currentButton.style.display = 'none';
+}
+nextSectionElement.classList.add('visible');
+currentSection = nextSectionId;
+updateProgress();
+if (currentSection === totalSections) {
+const completedButton = document.getElementById('markCompletedBtn');
+if (completedButton) completedButton.classList.add('show');
+}
+setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+const progressBar = document.getElementById('progressBar');
+const progress = (currentSection / totalSections) * 100;
+progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+const revealText = document.getElementById(id);
+const revealButton = event && event.target;
+if (revealText) {
+revealText.style.display = "block";
+revealText.classList.add('animate-in');
+}
+if (revealButton) {
+revealButton.style.display = "none";
+}
+}
+
+function selectChoice(element, isCorrect, explanation) {
+const choices = element.parentNode.querySelectorAll('.choice-option');
+choices.forEach(choice => {
+choice.classList.remove('selected', 'correct', 'incorrect');
+const existing = choice.querySelector('.choice-explanation');
+if (existing) existing.remove();
+});
+element.classList.add('selected');
+element.classList.add(isCorrect ? 'correct' : 'incorrect');
+const explanationDiv = document.createElement('div');
+explanationDiv.className = 'choice-explanation';
+explanationDiv.style.display = 'block';
+explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show hidden continue button after answering
+const parentSection = element.closest('section');
+if (parentSection) {
+const continueButton = parentSection.querySelector('.continue-button[id^="continue-after-test-knowledge"]');
+if (continueButton && continueButton.style.display === 'none') {
+setTimeout(() => {
+continueButton.style.display = 'block';
+continueButton.classList.add('show-with-animation');
+}, 800);
+}
+}
+}
+
+document.addEventListener('keydown', function(e) {
+if (e.key === 'ArrowRight' || e.key === ' ') {
+const btn = document.querySelector(`#section${currentSection} .continue-button`);
+if (btn && btn.style.display !== 'none') {
+e.preventDefault();
+btn.click();
+}
+}
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+const button = document.getElementById('markCompletedBtn');
+if (!button) return;
+const isCompleted = button.classList.contains('completed');
+if (!isCompleted) {
+try {
+if (window.parent && window.parent.ProgressTracker) {
+// Default placeholders for R-CNN lesson
+let courseId = 'computer-vision';
+let pathId = 'object-detection';
+let moduleId = 'cv-ch22-m1-region-based';
+let lessonId = 'cv-ch22-l1-rcnn';
+
+if (window.parent.currentRoute) {
+const route = window.parent.currentRoute;
+if (route.courseId) courseId = route.courseId;
+if (route.pathId) pathId = route.pathId;
+if (route.moduleId) moduleId = route.moduleId;
+if (route.lessonId) lessonId = route.lessonId;
+}
+// Allow overriding via URL params
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('course')) courseId = urlParams.get('course');
+if (urlParams.get('path')) pathId = urlParams.get('path');
+if (urlParams.get('module')) moduleId = urlParams.get('module');
+if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+
+window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+}
+} catch (error) {
+console.error('Error with ProgressTracker:', error);
+}
+button.classList.add('completed');
+button.innerHTML = '✅ Completed!';
+triggerCelebration();
+localStorage.setItem('lesson_cv-ch22-m1-l1_completed', 'true');
+}
+}
+
+function triggerCelebration() {
+createConfetti();
+showSuccessMessage();
+}
+
+function createConfetti() {
+const confettiContainer = document.createElement('div');
+confettiContainer.className = 'confetti-container';
+document.body.appendChild(confettiContainer);
+const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '🚗', '🔍']; // Added car and search glass
+const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+for (let i = 0; i < 40; i++) {
+setTimeout(() => {
+const confetti = document.createElement('div');
+confetti.className = 'confetti';
+if (Math.random() > 0.6) {
+confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+} else {
+confetti.innerHTML = '●';
+confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+}
+confetti.style.left = Math.random() * 100 + '%';
+confetti.style.animationDelay = Math.random() * 2 + 's';
+document.querySelector('.confetti-container').appendChild(confetti);
+}, i * 50);
+}
+setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+const successMessage = document.createElement('div');
+successMessage.className = 'success-message';
+successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+document.body.appendChild(successMessage);
+setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+const button = document.getElementById('markCompletedBtn');
+if (!button) return;
+// Check LMS status
+if (window.parent && window.parent.ProgressTracker) {
+let courseId = 'computer-vision';
+let pathId = 'object-detection';
+let moduleId = 'cv-ch22-m1-region-based';
+let lessonId = 'cv-ch22-l1-rcnn';
+if (window.parent.currentRoute) {
+const route = window.parent.currentRoute;
+if (route.courseId) courseId = route.courseId;
+if (route.pathId) pathId = route.pathId;
+if (route.moduleId) moduleId = route.moduleId;
+if (route.lessonId) lessonId = route.lessonId;
+}
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('course')) courseId = urlParams.get('course');
+if (urlParams.get('path')) pathId = urlParams.get('path');
+if (urlParams.get('module')) moduleId = urlParams.get('module');
+if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+
+const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+button.classList.add('completed');
+button.innerHTML = '✅ Completed!';
+return;
+}
+}
+// Check local storage
+const isCompleted = localStorage.getItem('lesson_cv-ch22-m1-l1_completed') === 'true';
+if (isCompleted) {
+button.classList.add('completed');
+button.innerHTML = '✅ Completed!';
+}
+});
+</script>
+
+</body>
+</html>

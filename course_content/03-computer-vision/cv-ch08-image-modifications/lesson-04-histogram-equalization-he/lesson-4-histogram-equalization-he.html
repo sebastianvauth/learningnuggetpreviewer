@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Histogram Equalization (HE)</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="A weary photo editor with hundreds of files versus a calm robot processing images efficiently" style="width: 100%; max-width: 800px; height: auto; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+    </div>
+    <h1>Histogram Equalization (HE)</h1>
+    <h2>Automating Contrast</h2>
+    
+    <p>So far, you've been the one doing all the hard work. You've adjusted the brightness offset (\(c_1\)), tweaked the contrast scale (\(c_2\)), and played with Gamma curves (\(\gamma\)). But what if you have a thousand images to process? You can't sit there adjusting sliders for every single one.</p>
+    <p>Sometimes, we don't want to guess parameters. We want the <em>math</em> to decide the best contrast for us. In this lesson, we will look at how to read an image's 'vital signs' and use an algorithm called <strong>Histogram Equalization (HE)</strong> to automatically fix contrast issues.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Diagnosis Intro -->
+<section id="section2">
+    <h2>The Histogram Diagnosis</h2>
+    <p>Before we can treat the patient, we need a diagnosis. In image processing, the histogram is our X-ray. It tells us exactly how pixel intensities are distributed.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Visual Aid -->
+<section id="section3">
+    <p>Imagine three different photos. Without even looking at the pixels, the histograms tell us the whole story.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Three images with histograms showing underexposed (bunched left), low contrast (bunched middle), and high contrast (full width spread)" style="width: 100%; max-width: 800px; height: auto; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Diagnosis Quiz -->
+<section id="section4">
+    <p>Our goal is usually the third case: we want to use the full available range of gray values [0, 255] to maximize detail. When the histogram is bunched up, we are wasting potential visual information.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If you look at a histogram and see a tall, narrow spike right in the center of the graph, with empty space on the left and right, what does the image likely look like?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'If it were dark, the spike would be on the far left (near 0).')">It is extremely dark (underexposed).</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. The pixels are all clustered around middle gray, meaning there are no deep blacks or bright whites.')">It is washed out and gray (low contrast).</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'High contrast requires the histogram to be spread out, using both dark and light values.')">It has high contrast and vivid details.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-quiz-1" onclick="showNextSection(5)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 5: The Algorithm Intro -->
+<section id="section5">
+    <h2>The Algorithm: How it Works</h2>
+    <p>Histogram Equalization is an algorithm that automatically stretches out that bunched-up histogram so it looks more like a uniform distribution (flat).</p>
+    <p>It sounds complex, but it boils down to three mathematical steps. Let's say we have an image \(S_e\).</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Step 1 -->
+<section id="section6">
+    <h3>Step 1: Calculate the Normalized Histogram (Probability)</h3>
+    <p>First, we count how often each gray value appears and divide by the total number of pixels. This gives us the probability \(p_s(g)\) of finding a pixel with intensity \(g\).</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Step 2 & Vocab -->
+<section id="section7">
+    <h3>Step 2: Calculate the Cumulative Distribution Function (CDF)</h3>
+    <p>This is the secret sauce. We walk from 0 to 255, adding up the probabilities as we go. The CDF \(h(g)\) tells us: "What percentage of pixels have a value less than or equal to \(g\)?"</p>
+    <p>$$h(g) = \sum_{k=0}^{g} p_s(k)$$</p>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Cumulative Distribution Function (CDF)</h4>
+        <p>A function that calculates the cumulative probability of a value. In image processing, for a specific gray level 'g', the CDF tells you the fraction of pixels in the image that have an intensity less than or equal to 'g'. It is strictly increasing from 0 to 1.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Step 3 -->
+<section id="section8">
+    <h3>Step 3: Remap the Pixels</h3>
+    <p>We use the CDF as our transformation function. Since the CDF goes from 0 to 1, we scale it back up to our pixel range (0 to 255).</p>
+    <p>$$Output = \text{round}(255 \cdot h(Input))$$</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Interactive -->
+<section id="section9">
+    <p>Let's see this in action with the <strong>Equalizer Dashboard</strong>.</p>
+    <!-- START OF INTERACTIVE MODULE -->
+<div class="he-dashboard-container">
+    <div class="he-grid">
+        <!-- Input Column -->
+        <div class="he-column">
+            <div class="he-label">1. Input Image</div>
+            <canvas id="heInputImg" class="canvas-wrapper img-canvas"></canvas>
+            <canvas id="heInputHist" class="canvas-wrapper graph-canvas"></canvas>
+            <div style="font-size: 0.75rem; color: #a0aec0; margin-top: 4px;">Narrow Histogram</div>
+        </div>
+
+        <!-- Transformation Column -->
+        <div class="he-column">
+            <div class="he-label">2. Transformation (CDF)</div>
+            <div style="height: 120px; display: flex; align-items: center; justify-content: center; color: #cbd5e1; font-size: 2rem;">
+                ➔
+            </div>
+            <canvas id="heCDF" class="canvas-wrapper graph-canvas"></canvas>
+            <div style="font-size: 0.75rem; color: #a0aec0; margin-top: 4px;">Mapping Curve</div>
+        </div>
+
+        <!-- Output Column -->
+        <div class="he-column">
+            <div class="he-label">3. Output Image</div>
+            <canvas id="heOutputImg" class="canvas-wrapper img-canvas"></canvas>
+            <canvas id="heOutputHist" class="canvas-wrapper graph-canvas"></canvas>
+            <div style="font-size: 0.75rem; color: #a0aec0; margin-top: 4px;">Equalized Histogram</div>
+        </div>
+    </div>
+
+    <div class="he-explanation" id="heExplanation">
+        Press <strong>Step 1</strong> to analyze the input image.
+    </div>
+
+    <div class="he-controls">
+        <button class="step-btn" id="btnStep1" onclick="HE_Dashboard.runStep1()">
+            <span>1️⃣</span> Calculate Prob
+        </button>
+        <button class="step-btn" id="btnStep2" onclick="HE_Dashboard.runStep2()" disabled>
+            <span>2️⃣</span> Accumulate CDF
+        </button>
+        <button class="step-btn" id="btnStep3" onclick="HE_Dashboard.runStep3()" disabled>
+            <span>3️⃣</span> Remap Pixels
+        </button>
+        <button class="step-btn" onclick="HE_Dashboard.reset()" style="margin-left: auto; border-color: #fc8181; color: #c53030;">
+            ↺ Reset
+        </button>
+    </div>
+
+    <script>
+    const HE_Dashboard = (function() {
+        // Configuration
+        const width = 200;
+        const height = 150;
+        const bins = 256;
+        
+        // DOM Elements
+        let cvsIn, ctxIn, cvsInHist, ctxInHist;
+        let cvsCDF, ctxCDF;
+        let cvsOut, ctxOut, cvsOutHist, ctxOutHist;
+        let txtExpl;
+        
+        // Data State
+        let inputHistogram = new Array(bins).fill(0);
+        let cdf = new Array(bins).fill(0);
+        let imageDataOriginal;
+        
+        function init() {
+            // Get Contexts
+            cvsIn = document.getElementById('heInputImg');
+            cvsIn.width = width; cvsIn.height = height;
+            ctxIn = cvsIn.getContext('2d');
+
+            cvsInHist = document.getElementById('heInputHist');
+            cvsInHist.width = width; cvsInHist.height = 100;
+            ctxInHist = cvsInHist.getContext('2d');
+
+            cvsCDF = document.getElementById('heCDF');
+            cvsCDF.width = width; cvsCDF.height = 100;
+            ctxCDF = cvsCDF.getContext('2d');
+
+            cvsOut = document.getElementById('heOutputImg');
+            cvsOut.width = width; cvsOut.height = height;
+            ctxOut = cvsOut.getContext('2d');
+
+            cvsOutHist = document.getElementById('heOutputHist');
+            cvsOutHist.width = width; cvsOutHist.height = 100;
+            ctxOutHist = cvsOutHist.getContext('2d');
+
+            txtExpl = document.getElementById('heExplanation');
+
+            reset();
+        }
+
+        function generateLowContrastImage() {
+            // Create a "foggy" landscape
+            // Background
+            const grad = ctxIn.createLinearGradient(0, 0, 0, height);
+            grad.addColorStop(0, '#7a7a7a'); // Middle gray
+            grad.addColorStop(1, '#999999'); // Slightly lighter gray
+            ctxIn.fillStyle = grad;
+            ctxIn.fillRect(0, 0, width, height);
+
+            // Hills (Low contrast silhouettes)
+            ctxIn.fillStyle = '#6e6e6e';
+            ctxIn.beginPath();
+            ctxIn.moveTo(0, height);
+            ctxIn.lineTo(0, height - 40);
+            ctxIn.bezierCurveTo(50, height-60, 100, height-20, width, height-50);
+            ctxIn.lineTo(width, height);
+            ctxIn.fill();
+
+            // A tree shape
+            ctxIn.fillStyle = '#606060';
+            ctxIn.fillRect(140, height-70, 10, 30); // Trunk
+            ctxIn.beginPath();
+            ctxIn.arc(145, height-80, 20, 0, Math.PI*2); // Leaves
+            ctxIn.fill();
+
+            // Add Noise to make histogram interesting
+            const imgData = ctxIn.getImageData(0, 0, width, height);
+            const data = imgData.data;
+            for(let i=0; i < data.length; i+=4) {
+                const noise = (Math.random() - 0.5) * 20;
+                // Clamp to a narrow range (e.g., 80-160) to simulate low contrast
+                let val = data[i]; 
+                // Force low contrast by squashing range
+                val = 100 + (val - 128) * 0.4 + noise;
+                
+                data[i] = val;
+                data[i+1] = val;
+                data[i+2] = val;
+            }
+            ctxIn.putImageData(imgData, 0, 0);
+            
+            // Store original data
+            imageDataOriginal = imgData;
+            
+            // Initial Output is same as Input
+            ctxOut.putImageData(imgData, 0, 0);
+        }
+
+        function drawHistogram(ctx, hist, color, highlightRange = null) {
+            const w = ctx.canvas.width;
+            const h = ctx.canvas.height;
+            ctx.clearRect(0, 0, w, h);
+            
+            const maxVal = Math.max(...hist);
+            const barW = w / bins;
+
+            // Draw baseline
+            ctx.beginPath();
+            ctx.moveTo(0, h);
+            
+            for(let i=0; i<bins; i++) {
+                const barH = (hist[i] / maxVal) * (h - 5);
+                const x = i * barW;
+                const y = h - barH;
+                
+                ctx.fillStyle = color;
+                if(highlightRange && i >= highlightRange[0] && i <= highlightRange[1]) {
+                    ctx.fillStyle = '#4facfe'; // Highlight color
+                }
+                ctx.fillRect(x, y, Math.ceil(barW), barH);
+            }
+        }
+
+        function calculateHistogram(data) {
+            const hist = new Array(bins).fill(0);
+            for(let i=0; i<data.length; i+=4) {
+                hist[data[i]]++; // Use Red channel (grayscale)
+            }
+            return hist;
+        }
+
+        function reset() {
+            generateLowContrastImage();
+            
+            // Compute Hist
+            inputHistogram = calculateHistogram(imageDataOriginal.data);
+            
+            // Draw Initial Graphs
+            drawHistogram(ctxInHist, inputHistogram, '#cbd5e1'); // Gray bars
+            
+            // Clear others
+            ctxCDF.clearRect(0,0, width, 100);
+            ctxOutHist.clearRect(0,0, width, 100);
+            
+            // Reset Buttons
+            document.getElementById('btnStep1').disabled = false;
+            document.getElementById('btnStep1').className = 'step-btn';
+            document.getElementById('btnStep2').disabled = true;
+            document.getElementById('btnStep2').className = 'step-btn';
+            document.getElementById('btnStep3').disabled = true;
+            document.getElementById('btnStep3').className = 'step-btn';
+            
+            txtExpl.innerHTML = "Press <strong>Step 1</strong> to analyze the input image.";
+            txtExpl.style.borderLeftColor = "#cbd5e1";
+        }
+
+        function runStep1() {
+            // Calculate Probabilities (just visual highlight of hist)
+            drawHistogram(ctxInHist, inputHistogram, '#cbd5e1', [80, 180]); // Highlight the bunch
+            
+            txtExpl.innerHTML = "<strong>Step 1:</strong> We count the pixels. Notice how they are bunched in the middle (gray). This is our Probability Distribution Function (PDF).";
+            txtExpl.style.borderLeftColor = "#4facfe";
+            
+            document.getElementById('btnStep1').classList.add('completed');
+            document.getElementById('btnStep2').disabled = false;
+            document.getElementById('btnStep2').classList.add('active');
+        }
+
+        function runStep2() {
+            // Compute CDF
+            let sum = 0;
+            const totalPixels = width * height;
+            for(let i=0; i<bins; i++) {
+                sum += inputHistogram[i];
+                cdf[i] = sum / totalPixels;
+            }
+
+            // Animate CDF Drawing
+            let i = 0;
+            function animateCDF() {
+                if(i >= bins) {
+                    document.getElementById('btnStep2').classList.remove('active');
+                    document.getElementById('btnStep2').classList.add('completed');
+                    document.getElementById('btnStep3').disabled = false;
+                    document.getElementById('btnStep3').classList.add('active');
+                    return;
+                }
+
+                // Draw up to i
+                const w = ctxCDF.canvas.width;
+                const h = ctxCDF.canvas.height;
+                // Fade effect slightly
+                ctxCDF.fillStyle = 'rgba(247, 250, 252, 0.3)';
+                ctxCDF.fillRect(0,0,w,h);
+                
+                ctxCDF.beginPath();
+                ctxCDF.moveTo(0, h);
+                for(let x=0; x<=i; x++) {
+                    ctxCDF.lineTo((x/bins)*w, h - (cdf[x]*h));
+                }
+                ctxCDF.strokeStyle = '#764ba2';
+                ctxCDF.lineWidth = 3;
+                ctxCDF.stroke();
+                
+                i += 5; // Speed
+                requestAnimationFrame(animateCDF);
+            }
+            
+            animateCDF();
+            
+            txtExpl.innerHTML = "<strong>Step 2:</strong> We accumulate the probabilities. See how the line shoots up where the histogram spike is? This S-curve is our mapping function.";
+            txtExpl.style.borderLeftColor = "#764ba2";
+        }
+
+        function runStep3() {
+            // Remap Pixels
+            const newImgData = ctxOut.createImageData(width, height);
+            const oldData = imageDataOriginal.data;
+            const newData = newImgData.data;
+            
+            for(let i=0; i<oldData.length; i+=4) {
+                const oldVal = oldData[i];
+                const newVal = Math.floor(cdf[oldVal] * 255);
+                
+                newData[i] = newVal;
+                newData[i+1] = newVal;
+                newData[i+2] = newVal;
+                newData[i+3] = 255; // Alpha
+            }
+            
+            // Fade in result
+            ctxOut.putImageData(newImgData, 0, 0);
+            
+            // Calculate new Histogram
+            const newHist = calculateHistogram(newData);
+            drawHistogram(ctxOutHist, newHist, '#48bb78'); // Green
+            
+            txtExpl.innerHTML = "<strong>Step 3:</strong> Success! The pixels are remapped. The histogram now spans the full range, revealing details in the hills and fog.";
+            txtExpl.style.borderLeftColor = "#48bb78";
+            
+            document.getElementById('btnStep3').classList.remove('active');
+            document.getElementById('btnStep3').classList.add('completed');
+        }
+
+        // Initialize on load
+        setTimeout(init, 500);
+
+        return {
+            init: init,
+            reset: reset,
+            runStep1: runStep1,
+            runStep2: runStep2,
+            runStep3: runStep3
+        };
+    })();
+    </script>
+</div>
+<!-- END OF INTERACTIVE MODULE -->
+    <p>Notice how the CDF curve starts flat, shoots up where the pixel cluster was, and flattens out again? That shape effectively spreads the clustered pixels apart.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Why It Matters -->
+<section id="section10">
+    <h2>Why It Matters & Limitations</h2>
+    <p>Why go through this trouble? Why not just use the linear slider from the last lesson?</p>
+    <p>Linear scaling requires you to pick parameters. Histogram Equalization adapts to the data. This is standard practice in <strong>medical imaging</strong> (like X-rays) to make bone structures visible against soft tissue without manual tweaking, and in <strong>satellite imagery</strong> to see features in dark terrain.</p>
+    
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>In automated pipelines (like a factory robot looking for defects), lighting conditions change. Histogram Equalization standardizes the contrast so the robot's computer vision algorithms receive consistent input data every time.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Stop and Think (Reveal) -->
+<section id="section11">
+    <p>However, it's not magic. It can sometimes be too aggressive.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Histogram Equalization flattens the histogram to maximize contrast. But look at a result with a noisy gray patch. Can this technique ever make an image look <em>worse</em>?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Yes! In areas that are supposed to be smooth and uniform (like a clear sky), there might be tiny random variations (sensor noise). HE tries to maximize contrast <em>everywhere</em>, so it will take that tiny noise and stretch it out, making the image look grainy and unnatural.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: FAQ -->
+<section id="section12">
+    <p>Also, a common question arises regarding color:</p>
+    <div class="vocab-section" style="background: linear-gradient(135deg, #fff5e6 0%, #fffbf0 100%); border-left-color: #f6ad55; box-shadow: 0 10px 30px rgba(246, 173, 85, 0.1);">
+        <h3>Frequently Asked</h3>
+        <h4>Can I do this on a color image?</h4>
+        <p>Yes, but be careful! If you apply HE to the Red, Green, and Blue channels separately, you will warp the color balance (a red apple might turn purple). It is best practice to convert the image to a format that separates Lightness from Color (like HSV or Lab), apply HE only to the Lightness channel, and then convert it back.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Review and Quiz -->
+<section id="section13">
+    <h2>Review and Reflect</h2>
+    <p>We've moved from manual adjustments to automatic, data-driven enhancement.</p>
+    <p>In this lesson, you learned:</p>
+    <ul>
+        <li><strong>The Diagnosis:</strong> A bunched-up histogram means low contrast.</li>
+        <li><strong>The Cure:</strong> Histogram Equalization (HE) spreads pixel values out to use the full range.</li>
+        <li><strong>The Tool:</strong> The Cumulative Distribution Function (CDF) acts as the mapping curve to achieve this spread.</li>
+    </ul>
+    <p>While powerful for X-rays and scientific imaging, we must be careful of noise amplification. Next, we will leave global modifications behind and start looking at local neighborhoods of pixels with <strong>Filtering</strong>.</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following graphs represents the Cumulative Distribution Function (CDF) of a perfectly uniform (equalized) image?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That would be the <em>histogram</em> of a uniform image, not the cumulative distribution.')">A horizontal flat line.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! If every pixel value has equal probability, the running total (cumulative sum) grows at a constant rate, creating a straight diagonal line.')">A diagonal straight line rising from bottom-left to top-right.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'An S-curve usually represents the CDF of a normal distribution (Gaussian), not a uniform one.')">An S-shaped curve.</div>
+        </div>
+    </div>
+    
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 13;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button if it exists and is hidden
+    const parentSection = element.closest('section');
+    const continueBtn = parentSection.querySelector('.continue-button');
+    if (continueBtn && continueBtn.style.display === 'none') {
+        setTimeout(() => {
+            continueBtn.style.display = 'block';
+            continueBtn.classList.add('show-with-animation');
+        }, 800);
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Update these IDs to match the specific curriculum path
+                let courseId = 'computer-vision';
+                let pathId = 'image-processing';
+                let moduleId = 'cv-ch2-histograms';
+                let lessonId = 'cv-ch2-l2-hist-eq';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch2-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+        // LMS Integration check
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch2-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

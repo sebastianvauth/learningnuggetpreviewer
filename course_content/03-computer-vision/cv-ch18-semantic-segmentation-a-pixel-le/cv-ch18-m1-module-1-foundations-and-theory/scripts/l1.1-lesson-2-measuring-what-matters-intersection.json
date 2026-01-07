@@ -1,0 +1,150 @@
+{
+    "lesson": {
+      "title": "Measuring What Matters: Intersection over Union (IoU)",
+      "sections": [
+        {
+          "title": "Is Our Model Any Good?",
+          "content": "# Measuring What Matters: Intersection over Union (IoU)",
+          "image": "Description: An image of a measuring tape being held up against a blurry, poorly-segmented image of a cat. The person holding the tape has a confused look on their face. The image humorously captures the idea of needing the right tool to measure something complex.",
+          "text": "Okay, so we've built a segmentation model. We feed it an image, and it spits out a beautiful, colorful mask. But... is it any good? How do we put a number on its performance? To improve our model, we first need to measure it accurately. In this lesson, we'll explore why the most obvious metric is a trap, and we'll learn about the industry standard that scientists and engineers use to build truly effective models."
+        },
+        {
+          "title": "The Pixel Accuracy Trap",
+          "content": "Our first instinct might be to use a simple metric: **Pixel Accuracy (PA)**. It's just the percentage of pixels that our model classified correctly. Seems logical, right?",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "title": "The Math Behind Pixel Accuracy",
+              "text": "The formula is as straightforward as it gets:",
+              "math": "$$ \\text{PA} = \\frac{\\text{Number of Correctly Classified Pixels}}{\\text{Total Number of Pixels}} $$",
+              "stepByStep": [
+                {
+                  "step": "Step 1: Count every pixel the model got right, regardless of its class.",
+                  "explanation": "If a pixel was supposed to be 'road' and the model said 'road', that's one point. If it was 'sky' and the model said 'sky', that's another point."
+                },
+                {
+                  "step": "Step 2: Count the total number of pixels in the image.",
+                  "explanation": "This is just the image's height multiplied by its width."
+                },
+                {
+                  "step": "Step 3: Divide the first number by the second.",
+                  "explanation": "The result is your Pixel Accuracy."
+                }
+              ],
+              "continueButton": true
+            },
+            {
+              "text": "But here's the catch. This metric is deeply flawed because of a problem called **class imbalance**.",
+              "buildYourVocab": {
+                "term": "Class Imbalance",
+                "definition": "A common situation in datasets where some classes have far more pixels than others. For example, in a driving scene, 'road' and 'sky' might make up 95% of the image, while 'pedestrians' make up less than 1%."
+              },
+              "continueButton": true
+            },
+            {
+              "text": "Imagine a self-driving car's view. Most of the image is 'road' and 'sky'. A lazy model could just learn to predict *everything* as 'road' or 'sky'. It would get a 95% PA score! Sounds great, but it would have completely missed the one pedestrian stepping into the street. That's a catastrophic failure that PA would not have caught.",
+              "image": "Description: A comic strip in two panels. Panel 1: A robot looks at a street scene and confidently says, '95% Sky and Road! I'm a genius!'. Panel 2: A human supervisor facepalms, pointing to a tiny, un-segmented pedestrian in the image that the robot completely ignored. Caption: 'The Perils of Pixel Accuracy'.",
+              "whyItMatters": {
+                "text": "Using the wrong metric can be dangerous. It can make you think your model is performing well when it's actually failing at the most critical parts of the task. We need a metric that doesn't get fooled by big, easy classes."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "The Hero Metric: Intersection over Union (IoU)",
+          "content": "To solve this problem, we turn to the gold standard for segmentation: **Intersection over Union (IoU)**, also known as the Jaccard Index. Instead of looking at the whole image at once, IoU evaluates the model's performance on a per-class basis.",
+          "visualAid": {
+            "description": "A clear, simple diagram showing two overlapping shapes. One is a solid blue square labeled 'Ground Truth'. The other is a semi-transparent red circle labeled 'Prediction'. The overlapping area is colored purple and labeled 'Intersection (TP)'. The combined area of both shapes is lightly shaded and labeled 'Union (TP + FP + FN)'."
+          },
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "title": "The Math Behind IoU",
+              "text": "The name says it all. For a single class, we calculate the area of the **intersection** (the overlap between our prediction and the actual answer) and divide it by the area of the **union** (the total area covered by both our prediction and the actual answer).",
+              "math": "$$ \\text{IoU} = \\frac{\\text{Area of Overlap}}{\\text{Area of Union}} = \\frac{\\text{Intersection}}{\\text{Union}} $$",
+              "textAfterMath": "In terms of pixel counts, we use True Positives (TP), False Positives (FP), and False Negatives (FN):",
+              "math_2": "$$ \\text{IoU} = \\frac{\\text{TP}}{\\text{TP} + \\text{FP} + \\text{FN}} $$",
+              "stepByStep": [
+                {
+                  "step": "True Positives (TP): The Good Stuff.",
+                  "explanation": "These are the pixels our model correctly labeled as the target class. (The purple overlap area)."
+                },
+                {
+                  "step": "False Positives (FP): The Overeager Mistakes.",
+                  "explanation": "These are pixels our model labeled as the target class, but they were actually something else. (The part of the red circle that doesn't overlap)."
+                },
+                {
+                  "step": "False Negatives (FN): The Misses.",
+                  "explanation": "These are pixels that were the target class, but our model missed them and called them something else. (The part of the blue square that isn't covered)."
+                }
+              ],
+              "continueButton": true
+            },
+            {
+              "title": "Let's Calculate!",
+              "text": "Let's go back to our pedestrian example. The ground truth says there are 100 pixels belonging to the 'pedestrian' class.\n\nOur model correctly identifies 80 of them. So, **TP = 80**.\nIt misses the other 20 pedestrian pixels, labeling them as 'road'. So, **FN = 20**.\nIt also gets a bit confused and incorrectly labels 10 pixels of the road as 'pedestrian'. So, **FP = 10**.",
+              "math": "$$ \\text{IoU}_{\\text{pedestrian}} = \\frac{80}{80 + 10 + 20} = \\frac{80}{110} \\approx 0.727 $$",
+              "textAfterMath": "A score of 72.7% for the pedestrian class! This is a much more honest reflection of our model's performance than the 95% PA we saw earlier.",
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "From IoU to mIoU",
+          "content": "This is great for one class, but how do we get a single score for the whole model? We simply calculate the IoU for *every* class (pedestrian, car, road, sky...) and then take the average. This is the **Mean Intersection over Union (mIoU)**.",
+          "buildYourVocab": {
+            "term": "mIoU (Mean IoU)",
+            "definition": "The average IoU score across all classes in a dataset. It is the standard metric for semantic segmentation because it treats all classes, big or small, with equal importance."
+          },
+          "interactive": {
+            "description": "An interactive element called 'The IoU Calculator'. A canvas displays a fixed blue rectangle ('Ground Truth'). The student can drag and resize a semi-transparent red rectangle ('Prediction') to overlap it. As the student adjusts the red rectangle, the display dynamically updates: the overlapping area (Intersection/TP) is highlighted in purple; text boxes for TP, FP, and FN update in real-time; and a large dial-style gauge shows the calculated IoU score changing instantly from 0.0 to 1.0. This builds an intuitive feel for how spatial accuracy affects the score."
+          },
+          "textAfterInteractive": "By averaging the IoU scores, we ensure our model gets credit for correctly identifying the tiny but critical classes, not just for coloring in the huge background areas.",
+          "checkYourUnderstanding": {
+            "text": "Let's revisit our 'lazy' model that only predicted 'sky'. What would its IoU score be for the 'pedestrian' class?",
+            "answer": "The IoU would be 0. Since it never predicts 'pedestrian', the number of True Positives (TP) is 0. The formula becomes 0 / (0 + FP + FN), which is always 0. The mIoU metric would severely penalize this model, as it should!"
+          },
+          "continueButton": true
+        },
+        {
+          "title": "A Close Cousin: The Dice Coefficient",
+          "content": "You might also see another metric called the **Dice Coefficient** (or F1 Score), especially in medical imaging. It's very similar to IoU but gives a little more weight to True Positives.",
+          "math": "$$ \\text{Dice} = \\frac{2 \\times \\text{TP}}{(2 \\times \\text{TP}) + \\text{FP} + \\text{FN}} $$",
+          "textAfterMath": "You don't need to memorize it, but it's good to recognize it. For most purposes, you can think of Dice and IoU as serving the same goal: providing a robust measure of segmentation quality.",
+          "testYourKnowledge": {
+            "question": "A model is evaluated on the 'car' class. The results are: TP = 150, FP = 50, FN = 50. What is the IoU score?",
+            "options": [
+              {
+                "option": "0.50",
+                "explanation": "Not quite. Remember the formula is TP / (TP + FP + FN). Recalculate the denominator.",
+                "correct": false
+              },
+              {
+                "option": "0.60",
+                "explanation": "Perfect! 150 / (150 + 50 + 50) = 150 / 250 = 0.6.",
+                "correct": true
+              },
+              {
+                "option": "0.75",
+                "explanation": "This would be the result if the denominator was 200. Double-check your addition!",
+                "correct": false
+              },
+              {
+                "option": "1.00",
+                "explanation": "A score of 1.0 would mean there were no False Positives or False Negatives, a perfect prediction!",
+                "correct": false
+              }
+            ]
+          },
+          "continueButton": true
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "Excellent! You now know how to properly measure the quality of a segmentation model and why it's so important.",
+          "image": "Description: An image showing a balanced scale. On one side is a huge pile of 'road' and 'sky' pixels with a '95% PA' label. On the other side is a tiny but heavy 'pedestrian' pixel with a '0.72 IoU' label, perfectly balancing the scale. This visually represents how mIoU gives proper weight to small but important classes.",
+          "text": "Let's recap what we learned:\n- **Pixel Accuracy (PA)** is a simple but flawed metric due to the **class imbalance** problem.\n- **Intersection over Union (IoU)** is a robust metric that measures the spatial overlap between prediction and ground truth for a single class.\n- **mIoU** is the average of IoU scores across all classes, making it the fair and standard metric for evaluating segmentation models.\n\nNow that we know how to build a segmentation model and how to measure it, we're ready to look under the hood at the architectures that make it all possible. In the next lesson, we'll discover the elegant 'encoder-decoder' blueprint."
+        }
+      ]
+    }
+  }

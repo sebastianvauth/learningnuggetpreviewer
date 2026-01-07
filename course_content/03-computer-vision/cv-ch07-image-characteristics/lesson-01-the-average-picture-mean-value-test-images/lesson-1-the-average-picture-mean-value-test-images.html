@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Average Picture – Mean Value & Test Images</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Camera lens transitioning into binary numbers and math symbols" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    </div>
+    <h1>The Average Picture – Mean Value & Test Images</h1>
+    <h2>From Pixels to Numbers</h2>
+    
+    <p>Welcome to the Analysis Phase. Up until now, we've looked at how cameras capture light and how formats like JPEG store it. Now, we stop looking <em>at</em> the camera and start calculating numbers <em>from</em> the pixels.</p>
+    <p>The simplest way to start analyzing an image is to look for a single number that describes it. Is it bright? Is it dark? To answer these questions, we need to turn our grid of colors into meaningful statistics.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: Test Images -->
+<section id="section2">
+    <h2>The Face of Research</h2>
+    <p>Before we start crunching numbers, we need an image to test on. In Computer Vision research, we use 'Standard Test Images' so researchers can compare their algorithms fairly.</p>
+    <p>Historically, the field used an image known as 'Lena' (from a 1972 Playboy magazine). However, due to its sexist origins and ethical concerns, modern research is moving away from it.</p>
+    
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Comparison of Lena and Thomas Müller test images" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    </div>
+    
+    <p>In this course, we use a picture of footballer Thomas Müller. But we didn't just pick him because we like football. We chose this image because it is technically difficult. To test an algorithm, you need variety. The Müller image offers a perfect mix:</p>
+    <ul>
+        <li><strong>Texture (High Frequency):</strong> His hair tests how well we handle fine details.</li>
+        <li><strong>Reflections:</strong> The sweat on his forehead creates 'specular reflections' (bright white spots) that are hard to process.</li>
+        <li><strong>Smooth Areas:</strong> His face allows us to test how we handle flat regions.</li>
+    </ul>
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Test Image</h4>
+        <p>A standardized image used widely in research to benchmark and compare the performance of different image processing algorithms.</p>
+    </div>
+
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3: Calculating Brightness -->
+<section id="section3">
+    <h2>Calculating Brightness</h2>
+    <p>Let's calculate our first metric: The Mean Value ($m_s$). This represents the average brightness of the image.</p>
+    <p>Imagine a grayscale image where every pixel is a value between 0 (black) and 255 (white). To find the mean, we sum up every pixel and divide by the total number of pixels.</p>
+    
+    <p>Mathematically, if we have an image $s(x,y)$ with $M$ total pixels, the formula looks like this:</p>
+    <p>$$ m_s = \frac{1}{M} \sum_{x=0}^{L-1} \sum_{y=0}^{R-1} s(x, y) $$</p>
+    
+    <p>That looks intimidating, but it's just a summation. Let's try it on a tiny $2 \times 2$ image patch.</p>
+    
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="2x2 image grid with pixel values" style="width: 100%; max-width: 400px; display: block; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    </div>
+        
+    <p>First, we sum the pixels:<br>
+    $$ Sum = 10 + 50 + 30 + 10 = 100 $$</p>
+    <p>Since it is a $2 \times 2$ image, there are $M=4$ pixels total.</p>
+    <p>$$ Mean = \frac{100}{4} = 25 $$</p>
+    <p>So, the mean brightness of this patch is 25.</p>
+
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If you have an 8-bit image (values 0-255) that is pitch black, what is the mean value? What if it is pure white?</h4>
+        <div id="cuy-mean-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Pitch black means all pixels are 0, so the mean is 0. Pure white means all pixels are 255, so the mean is 255.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-mean-answer')">Reveal Answer</button>
+    </div>
+
+    <p>Let's see this in action. Below is the Thomas Müller image. Use the slider to add an 'offset' to every pixel value.</p>
+    
+    <div class="interactive-module-container" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: center;">
+            
+            <!-- Left: The Image -->
+            <div style="position: relative;">
+                <canvas id="mullerCanvas" width="250" height="250" style="border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #000;"></canvas>
+                <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Grayscale Input</div>
+            </div>
+    
+            <!-- Right: Controls & Readout -->
+            <div style="flex: 1; min-width: 250px; text-align: center;">
+                
+                <!-- Readout -->
+                <div style="margin-bottom: 25px;">
+                    <h4 style="color: #64748b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Mean Value ($m_s$)</h4>
+                    <div id="meanValueDisplay" style="font-size: 3.5rem; font-weight: 700; line-height: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-variant-numeric: tabular-nums;">
+                        0.00
+                    </div>
+                </div>
+    
+                <!-- Slider Control -->
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 600; color: #4a5568;">
+                        <label for="offsetSlider">Pixel Offset</label>
+                        <span id="offsetValueDisplay" style="color: #667eea;">+0</span>
+                    </div>
+                    <input type="range" id="offsetSlider" min="-150" max="150" value="0" step="1" 
+                        style="width: 100%; cursor: pointer; height: 6px; background: #cbd5e1; border-radius: 5px; outline: none; -webkit-appearance: none; appearance: none;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; margin-top: 5px;">
+                        <span>Darker (-150)</span>
+                        <span>Brighter (+150)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    (function() {
+        const canvas = document.getElementById('mullerCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const slider = document.getElementById('offsetSlider');
+        const meanDisplay = document.getElementById('meanValueDisplay');
+        const offsetDisplay = document.getElementById('offsetValueDisplay');
+        
+        // Internal state
+        let width = canvas.width;
+        let height = canvas.height;
+        let originalPixels = null; // Will hold the baseline Int16 array
+    
+        // 1. Generate a synthetic "Thomas Müller" style image
+        // (We use drawing primitives to ensure this works without external assets)
+        function generateBaseImage() {
+            // Background
+            ctx.fillStyle = '#1a202c';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Face Shape
+            ctx.fillStyle = '#6d6d6d'; // Mid-gray skin tone base
+            ctx.beginPath();
+            ctx.ellipse(width/2, height/2 + 20, 70, 90, 0, 0, Math.PI * 2);
+            ctx.fill();
+    
+            // "Smooth Area" (Cheeks/Forehead) - Lighter gradient
+            let grd = ctx.createRadialGradient(width/2 - 20, height/2, 10, width/2, height/2, 60);
+            grd.addColorStop(0, '#a0a0a0');
+            grd.addColorStop(1, 'rgba(100,100,100,0)');
+            ctx.fillStyle = grd;
+            ctx.fill();
+    
+            // "Specular Reflection" (Sweat on forehead) - Mentioned in lesson
+            ctx.fillStyle = '#e0e0e0'; 
+            ctx.beginPath();
+            ctx.ellipse(width/2 - 15, height/2 - 40, 12, 6, -0.2, 0, Math.PI * 2);
+            ctx.fill();
+    
+            // "High Frequency" (Hair) - Noise texture
+            // We draw many small lines to simulate texture
+            ctx.strokeStyle = '#2d2d2d';
+            ctx.lineWidth = 2;
+            for(let i=0; i<400; i++) {
+                let x = (width/2 - 70) + Math.random() * 140;
+                let y = (height/2 - 100) + Math.random() * 60;
+                // Only draw if inside a "hair" region roughly
+                if (y < height/2 - 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x + (Math.random()*10 - 5), y + (Math.random()*10 - 5));
+                    ctx.stroke();
+                }
+            }
+    
+            // Capture the original image data
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            
+            // Store as regular array for easier calculation, keeping only one channel (Grayscale)
+            // Since we drew in color/gray, R=G=B. We only need one.
+            originalPixels = new Int16Array(width * height);
+            for (let i = 0; i < width * height; i++) {
+                originalPixels[i] = data[i * 4]; // Store Red channel as brightness
+            }
+    
+            // Perform initial calculation
+            updateImage(0);
+        }
+    
+        // 2. Update Function
+        function updateImage(offset) {
+            // Create new ImageData buffer
+            const imageData = ctx.createImageData(width, height);
+            const data = imageData.data;
+            let sum = 0;
+            const totalPixels = width * height;
+    
+            // Loop through all pixels
+            for (let i = 0; i < totalPixels; i++) {
+                let originalVal = originalPixels[i];
+                let newVal = originalVal + offset;
+    
+                // CLAMPING: This is the physics of 8-bit images
+                // Values cannot go below 0 or above 255
+                if (newVal > 255) newVal = 255;
+                if (newVal < 0) newVal = 0;
+    
+                // Update stats
+                sum += newVal;
+    
+                // Update Canvas Pixel Data (R, G, B, A)
+                const index = i * 4;
+                data[index] = newVal;     // R
+                data[index + 1] = newVal; // G
+                data[index + 2] = newVal; // B
+                data[index + 3] = 255;    // Alpha (Opaque)
+            }
+    
+            // Put data back on canvas
+            ctx.putImageData(imageData, 0, 0);
+    
+            // Update Mean Value Display
+            // mean = sum / M
+            const mean = sum / totalPixels;
+            meanDisplay.textContent = mean.toFixed(2);
+            
+            // Update Offset Text
+            offsetDisplay.textContent = (offset > 0 ? "+" : "") + offset;
+        }
+    
+        // 3. Event Listeners
+        slider.addEventListener('input', (e) => {
+            updateImage(parseInt(e.target.value));
+        });
+    
+        // Initialize
+        // Wait for fonts/layout to settle slightly
+        setTimeout(generateBaseImage, 100);
+    })();
+    </script>
+
+    <p>As you increased the pixel values, the image got brighter, and the mean value went up. A low mean indicates a dark image, while a high mean indicates a bright image.</p>
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Mean Value</h4>
+        <p>A global metric representing the average intensity of all pixels in an image. It provides a measure of overall brightness.</p>
+    </div>
+
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4: The Blind Spot -->
+<section id="section4">
+    <h2>The Blind Spot</h2>
+    <p>The mean is useful, but it has a major weakness. It is a 'global' metric, meaning it smashes all the information into one number.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Can two images look completely different but have the exact same Mean Value?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Yes!</strong> Think about a solid gray wall versus a black-and-white checkerboard. If the average of the black and white equals the gray, the mean values are identical.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+
+    <div class="image-placeholder">
+        <div class="placeholder-box" aria-label="Mean Value Limitation">
+            (Visual: Left: Solid gray square (Mean=128). Right: B&W Checkerboard (Mean=128). Caption: 'The Mean Value can't tell the difference.')
+        </div>
+    </div>
+
+    <p>Even though one image is flat and the other has sharp edges and high contrast, their average brightness is exactly the same. The mean tells us <em>how much</em> light there is, but not <em>how it is distributed</em>.</p>
+
+    <div class="vocab-section">
+        <h3>Frequently Asked</h3>
+        <h4>Why is the mean result often a decimal (e.g., 74.3) if pixel values are integers?</h4>
+        <p>Great observation. While pixels are integers (you can't have pixel value 10.5), the average is a statistical calculation. Just like the average family might have 2.4 children, the average pixel value doesn't have to be a whole number. In math terms, we usually treat the result as a floating-point number to maintain precision.</p>
+    </div>
+
+    <p>Despite this limitation, the mean is crucial. In Machine Learning, we often need to 'center' our data around zero. Calculating the mean is the first step in that process.</p>
+
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Calculating the mean is the first step in 'Centering' or 'Standardizing' data. Neural networks train much faster when the input data has a mean of 0. We achieve this by calculating the mean of our dataset and subtracting it from every image.</p>
+    </div>
+
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5: Review -->
+<section id="section5">
+    <h2>Review and Reflect</h2>
+    <p>We've started our journey into image analysis by boiling an image down to a single number.</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>You have a row of 3 pixels with values [0, 50, 100]. What is the Mean Value ($m_s$)?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That is the sum, not the mean. Don\'t forget to divide by the number of pixels!')">150</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The sum is $0+50+100=150$. Dividing by 3 pixels gives 50.')">50</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Check your addition. $0+50+100 = 150$.')">75</div>
+        </div>
+    </div>
+
+    <div id="conclusion-content" style="display:none;" class="animate-in">
+        <p>In this lesson, you learned:</p>
+        <ul>
+            <li><strong>Test Images:</strong> Why we use standard images like Thomas Müller to test algorithms.</li>
+            <li><strong>Mean Value:</strong> How to calculate the average brightness using $m_s = \frac{1}{M} \sum s(x,y)$.</li>
+            <li><strong>The Limitation:</strong> That the mean tells us about brightness, but misses details like contrast.</li>
+        </ul>
+        <p>Since the Mean Value couldn't tell the difference between the gray wall and the checkerboard, we need a better tool to measure that difference. That tool is called <strong>Variance</strong>, and we will cover it in the next lesson.</p>
+    </div>
+
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 5;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Specifically for this lesson: Show conclusion content after answering
+    const conclusion = document.getElementById('conclusion-content');
+    if (conclusion && conclusion.style.display === 'none') {
+        setTimeout(() => {
+            conclusion.style.display = 'block';
+            conclusion.classList.add('animate-in');
+            // Re-trigger mathjax if needed (though content is static)
+        }, 800);
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs would need to be dynamic in a real app, keeping generic for now
+                window.parent.ProgressTracker.markLessonCompleted('computer-vision', 'image-characteristics', 'cv-ch07-l1-mean-value', 'cv-ch07-l1-main');
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch07-l1-main_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch07-l1-main_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>
+
+
+
+
+

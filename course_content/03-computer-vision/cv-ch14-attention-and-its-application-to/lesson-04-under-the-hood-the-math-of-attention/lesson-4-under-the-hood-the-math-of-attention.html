@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Under the Hood - The Math of Attention</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/1.jpg" alt="Scaled dot-product attention formula with color-coded Query, Key, and Value components">
+            <figcaption>Scaled dot-product attention equation with Q (red), K (blue), and V (green) callouts.</figcaption>
+        </figure>
+    </div>
+    <h1>The Math of Attention</h1>
+    <p>In the last lesson, we looked at the 'Library' analogy for Self-Attention: You (the Query) look at labels on shelves (the Keys) to find the content you need (the Values). That gives us the intuition, but how does a computer actually do this? It's time to open the black box.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: The Formula Overview -->
+<section id="section2">
+    <h2>The Formula</h2>
+    <p>At the heart of the Transformer revolution is a single, elegant equation. It might look intimidating at first glance, but we are going to break it down piece by piece.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3: The Equation -->
+<section id="section3">
+    <p>Here is the full equation for Scaled Dot-Product Attention:</p>
+    <p>$$ \text{Attention}(Q, K, V) = \text{softmax}\left( \frac{QK^T}{\sqrt{d_k}} \right) V $$</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4: Breakdown -->
+<section id="section4">
+    <p>It looks like a lot, but it is really just four specific steps happening in order:</p>
+    <ol>
+        <li><strong>Similarity:</strong> Compare Queries and Keys ($QK^T$).</li>
+        <li><strong>Scaling:</strong> Keep the numbers manageable ($\sqrt{d_k}$).</li>
+        <li><strong>Probability:</strong> Turn scores into percentages (Softmax).</li>
+        <li><strong>Output:</strong> Construct the result using Values ($V$).</li>
+    </ol>
+    <p>Let's start at the very beginning: getting our Q, K, and V.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5: Step 0 (Projections) -->
+<section id="section5">
+    <h2>Step 0: From Embeddings to Q, K, V</h2>
+    <p>Before we can do any attention magic, we need our three components. The computer starts with the input embedding matrix $X$ (which represents our words/pixels).</p>
+    <p>We don't use $X$ directly. Instead, we project it into three different 'subspaces' by multiplying it with learned weight matrices: $W_Q$, $W_K$, and $W_V$.</p>
+    <p>$$ Q = X \cdot W_Q $$</p>
+    <p>$$ K = X \cdot W_K $$</p>
+    <p>$$ V = X \cdot W_V $$</p>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Learned Projections</h4>
+        <p>The linear transformations (multiplications by weight matrices) applied to the input to create Queries, Keys, and Values. These weights are learned during training to translate the raw word into a 'Question' format, a 'Label' format, and a 'Content' format.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6: Step 1 (Dot Product Intro) -->
+<section id="section6">
+    <h2>Step 1: The Dot Product (Similarity)</h2>
+    <p>Now we have our Queries and Keys. We need to answer: "How relevant is Key $K$ to Query $Q$?" In vector math, the standard way to measure similarity is the <strong>Dot Product</strong>.</p>
+    <p>If two vectors point in the same direction, their dot product is large and positive. If they point in opposite directions, it is negative. If they are perpendicular (unrelated), it is zero.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7: Dot Product Interactive & Quiz -->
+<section id="section7">
+    <p>We compute the dot product for every Query against every Key. In matrix notation, we do this by multiplying $Q$ by the transpose of $K$ ($K^T$).</p>
+   <!-- Interactive Dot Product Visualizer -->
+<div class="interactive-module-container" id="dotProductInteractive">
+  <div class="canvas-wrapper" style="height: 300px; position: relative;">
+      <canvas id="vectorCanvas"></canvas>
+      <div id="dragInstruction" class="instruction-overlay">🖐 Drag the Blue Arrow (Key)</div>
+  </div>
+
+  <div class="feedback-panel neutral">
+      <div class="feedback-content" style="text-align: center;">
+          <div style="margin-bottom: 10px;">
+              <span style="background: #fef2f2; padding: 4px 12px; border-radius: 20px; color: #ef4444; font-weight: 600;">Q: (<span id="qx-val">0</span>, <span id="qy-val">0</span>)</span>
+              <span style="margin: 0 10px;">·</span>
+              <span style="background: #eff6ff; padding: 4px 12px; border-radius: 20px; color: #3b82f6; font-weight: 600;">K: (<span id="kx-val">0</span>, <span id="ky-val">0</span>)</span>
+          </div>
+          <div>
+              <span style="font-weight: 600;">Score = </span>
+              <span id="dot-score" style="background: #94a3b8; color: white; padding: 4px 16px; border-radius: 20px; font-weight: 700; font-size: 1.1rem;">0</span>
+          </div>
+          <p class="feedback-text" style="margin-top: 10px; font-size: 0.85rem;">(Positive = Similar, 0 = Unrelated, Negative = Opposite)</p>
+      </div>
+  </div>
+
+  <script>
+  (function() {
+      const canvas = document.getElementById('vectorCanvas');
+      const ctx = canvas.getContext('2d');
+      const scoreEl = document.getElementById('dot-score');
+      const qxEl = document.getElementById('qx-val');
+      const qyEl = document.getElementById('qy-val');
+      const kxEl = document.getElementById('kx-val');
+      const kyEl = document.getElementById('ky-val');
+      const instructEl = document.getElementById('dragInstruction');
+
+      // State
+      let width, height, centerX, centerY;
+      let scale = 40; // Pixels per unit
+      
+      // Vectors (in Grid Units)
+      // Q is fixed (Red)
+      const vecQ = { x: 2, y: 2 }; 
+      // K is draggable (Blue) - Start it perpendicular-ish
+      const vecK = { x: 2, y: -1 }; 
+      
+      let isDragging = false;
+      
+      function resize() {
+          // Get actual display size
+          const rect = canvas.getBoundingClientRect();
+          canvas.width = rect.width * 2; // Retina sharpness
+          canvas.height = rect.height * 2;
+          ctx.scale(2, 2);
+          
+          width = rect.width;
+          height = rect.height;
+          centerX = width / 2;
+          centerY = height / 2;
+          draw();
+      }
+
+      function drawGrid() {
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 1;
+          
+          // Vertical lines
+          for (let x = centerX % scale; x < width; x += scale) {
+              ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+          }
+          // Horizontal lines
+          for (let y = centerY % scale; y < height; y += scale) {
+              ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+          }
+
+          // Axes
+          ctx.strokeStyle = '#cbd5e1';
+          ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(centerX, 0); ctx.lineTo(centerX, height); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(width, centerY); ctx.stroke();
+      }
+
+      function drawArrow(fromX, fromY, toX, toY, color, label) {
+          const headlen = 15;
+          const angle = Math.atan2(toY - fromY, toX - fromX);
+          
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = 4;
+          
+          // Line
+          ctx.beginPath();
+          ctx.moveTo(fromX, fromY);
+          ctx.lineTo(toX, toY);
+          ctx.stroke();
+          
+          // Head
+          ctx.beginPath();
+          ctx.moveTo(toX, toY);
+          ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+          ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+          ctx.fill();
+
+          // Label
+          ctx.fillStyle = color;
+          ctx.font = "bold 16px sans-serif";
+          ctx.fillText(label, toX + 10, toY - 10);
+      }
+
+      function drawProjection() {
+          // Project K onto Q
+          // Formula: proj = ( (Q . K) / (Q . Q) ) * Q
+          const dot = vecQ.x * vecK.x + vecQ.y * vecK.y;
+          const magQSq = vecQ.x * vecQ.x + vecQ.y * vecQ.y;
+          const scalar = dot / magQSq;
+          
+          const projX = vecQ.x * scalar;
+          const projY = vecQ.y * scalar;
+
+          // Convert to screen pixels
+          const px = centerX + projX * scale;
+          const py = centerY - projY * scale; // Y inverted
+          const kx = centerX + vecK.x * scale;
+          const ky = centerY - vecK.y * scale;
+
+          ctx.setLineDash([5, 5]);
+          ctx.strokeStyle = '#94a3b8';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(kx, ky);
+          ctx.lineTo(px, py);
+          ctx.stroke();
+          ctx.setLineDash([]);
+      }
+
+      function updateStats() {
+          const dotProduct = (vecQ.x * vecK.x) + (vecQ.y * vecK.y);
+          
+          qxEl.textContent = vecQ.x.toFixed(1);
+          qyEl.textContent = vecQ.y.toFixed(1);
+          kxEl.textContent = vecK.x.toFixed(1);
+          kyEl.textContent = vecK.y.toFixed(1);
+          
+          scoreEl.textContent = dotProduct.toFixed(1);
+
+          // Color logic
+          if (Math.abs(dotProduct) < 0.1) {
+              scoreEl.style.background = '#94a3b8'; // Grey for roughly 0
+          } else if (dotProduct > 0) {
+              // Green intensity
+              scoreEl.style.background = '#10b981'; 
+          } else {
+              // Red intensity
+              scoreEl.style.background = '#ef4444';
+          }
+      }
+
+      function draw() {
+          ctx.clearRect(0, 0, width, height);
+          drawGrid();
+
+          // Screen coords for tips
+          const qTipX = centerX + vecQ.x * scale;
+          const qTipY = centerY - vecQ.y * scale;
+          const kTipX = centerX + vecK.x * scale;
+          const kTipY = centerY - vecK.y * scale;
+
+          // Draw Projection Line (helper to understand math)
+          drawProjection();
+
+          // Draw Q (Red, Fixed)
+          drawArrow(centerX, centerY, qTipX, qTipY, '#ef4444', 'Q');
+
+          // Draw K (Blue, Draggable)
+          drawArrow(centerX, centerY, kTipX, kTipY, '#3b82f6', 'K');
+          
+          // Draw drag handle on K
+          ctx.beginPath();
+          ctx.arc(kTipX, kTipY, 15, 0, 2 * Math.PI);
+          ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
+          ctx.fill();
+          ctx.strokeStyle = '#2563eb';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          updateStats();
+      }
+
+      // Interaction Handling
+      function getMousePos(evt) {
+          const rect = canvas.getBoundingClientRect();
+          const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+          const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+          return {
+              x: clientX - rect.left,
+              y: clientY - rect.top
+          };
+      }
+
+      function onDown(e) {
+          const pos = getMousePos(e);
+          const kTipX = centerX + vecK.x * scale;
+          const kTipY = centerY - vecK.y * scale;
+          
+          // Check distance to K tip
+          const dist = Math.hypot(pos.x - kTipX, pos.y - kTipY);
+          
+          if (dist < 30) {
+              isDragging = true;
+              instructEl.style.opacity = '0'; // Hide text once interacted
+          }
+      }
+
+      function onMove(e) {
+          if (!isDragging) return;
+          e.preventDefault(); // Stop scrolling
+          const pos = getMousePos(e);
+          
+          // Convert back to grid units
+          vecK.x = (pos.x - centerX) / scale;
+          vecK.y = (centerY - pos.y) / scale; // Y inverted
+          
+          draw();
+      }
+
+      function onUp() {
+          isDragging = false;
+      }
+
+      canvas.addEventListener('mousedown', onDown);
+      canvas.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      
+      canvas.addEventListener('touchstart', onDown, {passive: false});
+      canvas.addEventListener('touchmove', onMove, {passive: false});
+      window.addEventListener('touchend', onUp);
+
+      // Init
+      window.addEventListener('resize', resize);
+      // Small delay to ensure container exists
+      setTimeout(resize, 100);
+  })();
+  </script>
+</div>
+    <p>$$ \text{Score} = Q \cdot K^T $$</p>
+    <p>The result is a matrix of raw scores. A high score means the model thinks these two words are strongly related.</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If a Query vector $Q = [0, 1]$ and a Key vector $K = [1, 0]$, what is their dot product (attention score before scaling)?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Recall the formula for dot product: $(x_1*x_2) + (y_1*y_2)$. Here it is $(0*1) + (1*0)$.')">1</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! These vectors are orthogonal (perpendicular), meaning they have zero similarity.')">0</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Recall the formula for dot product: $(x_1*x_2) + (y_1*y_2)$. Here it is $(0*1) + (1*0)$.')">0.5</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-q1" onclick="showNextSection(8)" style="display: none;">Continue</div>
+</section>
+
+<!-- SECTION 8: Step 2 Scaling -->
+<section id="section8">
+    <h2>Step 2 & 3: Scaling and Softmax</h2>
+    <p>The raw dot products can get very large, especially if the vectors have long dimensions. Huge numbers cause problems for the next step, so we shrink them.</p>
+    <p>We divide the scores by $\sqrt{d_k}$, where $d_k$ is the dimension of the key vectors. This is the <strong>Scaling</strong> step.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Scaling Factor</h4>
+        <p>The term $\frac{1}{\sqrt{d_k}}$ used to divide the dot products. It ensures numerical stability by preventing the values from becoming too large before entering the Softmax function.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- SECTION 9: Softmax -->
+<section id="section9">
+    <p>Next, we apply the <strong>Softmax</strong> function. This takes our scaled scores and turns them into probabilities that sum up to 1.</p>
+    <p>$$ \text{Attention Weights} = \text{softmax}\left( \frac{\text{Score}}{\sqrt{d_k}} \right) $$</p>
+    <p>Softmax makes the high scores stand out (close to 1) and pushes low scores to near zero. It effectively forces the model to decide where to focus its attention.</p>
+    
+    <!-- Softmax Calculator Interactive -->
+<div class="interactive-module-container" id="softmaxInteractive">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px;">
+      <!-- Input Sliders -->
+      <div class="controls-area" style="background: transparent; border-top: none; padding: 0;">
+          <h4 style="margin-bottom: 15px; color: #2d3748;">Adjust Raw Scores</h4>
+          
+          <!-- Slider 1 -->
+          <div class="slider-group">
+              <div class="slider-label">
+                  <span style="color: #667eea;">Score 1 (Purple)</span>
+                  <span id="val-1" class="slider-value">2.0</span>
+              </div>
+              <input type="range" id="input-1" min="-3" max="7" step="0.1" value="2.0" class="harmonic-slider" style="accent-color: #667eea;">
+          </div>
+
+          <!-- Slider 2 -->
+          <div class="slider-group">
+              <div class="slider-label">
+                  <span style="color: #f093fb;">Score 2 (Pink)</span>
+                  <span id="val-2" class="slider-value">1.0</span>
+              </div>
+              <input type="range" id="input-2" min="-3" max="7" step="0.1" value="1.0" class="harmonic-slider" style="accent-color: #f093fb;">
+          </div>
+
+          <!-- Slider 3 -->
+          <div class="slider-group">
+              <div class="slider-label">
+                  <span style="color: #4facfe;">Score 3 (Blue)</span>
+                  <span id="val-3" class="slider-value">0.0</span>
+              </div>
+              <input type="range" id="input-3" min="-3" max="7" step="0.1" value="0.0" class="harmonic-slider" style="accent-color: #4facfe;">
+          </div>
+      </div>
+
+      <!-- Output Canvas -->
+      <div>
+          <h4 style="margin-bottom: 15px; color: #2d3748; text-align: center;">Softmax Probabilities (Sum = 100%)</h4>
+          <div class="canvas-wrapper" style="height: 200px; background: #f8fafc; border-radius: 8px;">
+              <canvas id="softmaxCanvas"></canvas>
+          </div>
+      </div>
+  </div>
+
+  <div class="feedback-panel neutral">
+      <p class="feedback-text" style="text-align: center;">
+          Notice: Increasing one score forces the others to shrink. 
+          <strong>Softmax turns scores into a competition.</strong>
+      </p>
+  </div>
+
+  <script>
+  (function() {
+      const canvas = document.getElementById('softmaxCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Inputs
+      const inputs = [
+          document.getElementById('input-1'),
+          document.getElementById('input-2'),
+          document.getElementById('input-3')
+      ];
+      
+      // Value Labels
+      const valLabels = [
+          document.getElementById('val-1'),
+          document.getElementById('val-2'),
+          document.getElementById('val-3')
+      ];
+
+      // Colors corresponding to the lesson theme
+      const colors = ['#667eea', '#f093fb', '#4facfe'];
+      const fillColors = [
+          'rgba(102, 126, 234, 0.8)', // Purple
+          'rgba(240, 147, 251, 0.8)', // Pink
+          'rgba(79, 172, 254, 0.8)'   // Blue
+      ];
+
+      let width, height;
+
+      function resize() {
+          const rect = canvas.getBoundingClientRect();
+          canvas.width = rect.width * 2; // Retina scaling
+          canvas.height = rect.height * 2;
+          ctx.scale(2, 2);
+          width = rect.width;
+          height = rect.height;
+          draw();
+      }
+
+      function calculateSoftmax(scores) {
+          // Math.exp(x)
+          const exps = scores.map(s => Math.exp(s));
+          // Sum of exps
+          const sumExps = exps.reduce((a, b) => a + b, 0);
+          // Probability = exp(x) / sum
+          return exps.map(e => e / sumExps);
+      }
+
+      function draw() {
+          ctx.clearRect(0, 0, width, height);
+          
+          // Get current raw values
+          const rawScores = inputs.map(input => parseFloat(input.value));
+          
+          // Update Text Labels
+          rawScores.forEach((val, i) => {
+              valLabels[i].textContent = val.toFixed(1);
+          });
+
+          // Calculate Softmax
+          const probabilities = calculateSoftmax(rawScores);
+
+          // Drawing Config
+          const barWidth = width / 5; // Width of a bar
+          const spacing = width / 5;  // Space between bars
+          const bottomY = height - 40; // Leave room for labels
+          const maxBarHeight = height - 80; // Leave room for top labels
+
+          // Draw Bars
+          probabilities.forEach((prob, i) => {
+              const barH = prob * maxBarHeight;
+              // Center the bars: (Space + Bar) * index + InitialOffset
+              const x = (spacing * 0.5) + (i * (barWidth + (spacing * 0.5)));
+              const y = bottomY - barH;
+
+              // 1. Draw Bar
+              ctx.fillStyle = fillColors[i];
+              ctx.fillRect(x, y, barWidth, barH);
+              
+              // 2. Draw Border
+              ctx.strokeStyle = colors[i];
+              ctx.lineWidth = 2;
+              ctx.strokeRect(x, y, barWidth, barH);
+
+              // 3. Draw Percentage Text (Top)
+              ctx.fillStyle = '#2d3748';
+              ctx.font = "bold 16px -apple-system, sans-serif";
+              ctx.textAlign = 'center';
+              const percent = (prob * 100).toFixed(1) + "%";
+              ctx.fillText(percent, x + barWidth/2, y - 10);
+
+              // 4. Draw Label (Bottom)
+              ctx.fillStyle = '#64748b';
+              ctx.font = "12px -apple-system, sans-serif";
+              ctx.fillText(`Item ${i+1}`, x + barWidth/2, bottomY + 20);
+          });
+
+          // Draw Base Line
+          ctx.beginPath();
+          ctx.moveTo(0, bottomY);
+          ctx.lineTo(width, bottomY);
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+      }
+
+      // Event Listeners
+      inputs.forEach(input => {
+          input.addEventListener('input', draw);
+      });
+
+      // Init
+      window.addEventListener('resize', resize);
+      // Delay to ensure DOM is ready
+      setTimeout(resize, 100);
+  })();
+  </script>
+</div>
+
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>What happens to the Softmax output if we skip the scaling step and feed in huge numbers (like 1000)?</h4>
+        <div id="cuy-softmax-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> The Softmax function would output a 1 for the largest number and 0s for everything else, and the gradients (mathematical signals used for learning) would vanish, making it impossible to train the network. This is why we scale!</div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-softmax-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- SECTION 10: Attention Matrix Visual -->
+<section id="section10">
+    <h2>The Attention Matrix</h2>
+    <p>If we visualize the output of the Softmax step, we get an <strong>Attention Matrix</strong>.</p>
+    <div class="image-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/2.jpg" alt="Attention heatmap showing bright diagonals where queries focus on themselves">
+            <figcaption>Attention heatmap where each row is a query, each column is a key, and bright cells highlight strong focus.</figcaption>
+        </figure>
+    </div>
+    <p>This map tells us exactly where the model is looking. In the image above, the brightness tells us how much of the Value ($V$) from the column word will be mixed into the row word.</p>
+
+    <div class="stop-and-think">
+        <h3>Stop and Think</h3>
+        <h4>Looking at the Attention Matrix, the diagonal is often very bright. Why do you think a word would attend strongly to itself?</h4>
+        <div id="sat-diagonal-answer" style="display:none;" class="animate-in"><strong>Insight:</strong> A word usually contains the most important information about itself! To understand 'apple', knowing it is an 'apple' is step one. Attention mixes in <em>context</em>, but the word's own identity remains crucial.</div>
+        <button class="reveal-button" onclick="revealAnswer('sat-diagonal-answer')">Reveal Insight</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- SECTION 11: Step 4 Weighted Sum -->
+<section id="section11">
+    <h2>Step 4: The Weighted Sum</h2>
+    <p>We are almost there. We have our probabilities (Attention Weights). The final step is to actually retrieve the information.</p>
+    <p>We multiply the attention weights by the <strong>Value ($V$)</strong> matrix.</p>
+    <p>$$ \text{Output} = \text{Attention Weights} \cdot V $$</p>
+    <p>Think of this as a weighted blend. If the word 'Bank' attends 80% to 'River' and 20% to 'Money', the final representation of 'Bank' will be a mixture: 80% of the mathematical meaning of 'River' + 20% of the meaning of 'Money'.</p>
+    
+    <div class="why-it-matters">
+        <h3>Frequently Asked Question</h3>
+        <p><strong>Why do we multiply by V at the end? Why not just use the scores?</strong></p>
+        <p>The scores are just probabilities—they are unitless numbers between 0 and 1. They tell us <em>how much</em> information to take, but they aren't the information itself. The <strong>Value ($V$)</strong> vector contains the actual semantic meaning (content) of the word. We need to transport that content to the output.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- SECTION 12: Review and Reflect -->
+<section id="section12">
+    <h2>Review and Reflect</h2>
+    <p>You have just walked through the engine room of modern AI. Let's recap the flow.</p>
+    <ol>
+        <li><strong>Project:</strong> Create Q, K, V from inputs.</li>
+        <li><strong>Compare:</strong> Dot product of Q and K to get similarity scores.</li>
+        <li><strong>Scale & Normalize:</strong> Divide by $\sqrt{d_k}$ and apply Softmax to get probabilities.</li>
+        <li><strong>Aggregate:</strong> Multiply probabilities by V to get the new, context-aware representation.</li>
+    </ol>
+    <p>This output vector is now 'smarter' than the input—it knows about its context. However, there is one flaw in this math: it has no idea about the <em>order</em> of the words. We will fix that in the next lesson!</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Final Check</h3>
+        <h4>In the equation $Attention(Q, K, V) = \text{softmax}(\frac{QK^T}{\sqrt{d_k}})V$, which part corresponds to the 'Query' asking 'Who is relevant to me'?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'V is the content (Value) that gets retrieved, not the question being asked.')">$V$</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The dot product of Q and K is the query checking against all keys to measure relevance.')">$QK^T$</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Softmax just turns the scores into probabilities; it does not perform the comparison itself.')">$\text{softmax}$</div>
+        </div>
+    </div>
+
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 12;
+
+updateProgress();
+// Check if user has already completed and we are returning (optional logic, mostly for reload)
+if (localStorage.getItem('lesson_attention_math_completed') === 'true') {
+   // Logic to potentially show everything could go here, 
+   // but primarily we just ensure the button shows correctly at the end.
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    
+    // Hide the button that was clicked
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    // When a new section becomes visible, trigger a resize so hidden canvases
+    // (e.g., interactives in sections 7 and 9) can measure their width/height.
+    setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 120);
+    
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    
+    // Smooth scroll to the new section
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    // Reset siblings
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    
+    // Set current choice
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    
+    // Add explanation
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Show continue button if this is a blocking quiz
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        // Look for a hidden continue button in this specific section
+        const continueButton = parentSection.querySelector('.continue-button[style*="display: none"]');
+        // Only reveal if it's the specific "continue-after-..." logic
+        if (continueButton && continueButton.id.startsWith('continue-after')) {
+             setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    
+    if (!isCompleted) {
+        // Attempt LMS integration
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // These IDs should be dynamic based on the actual course structure
+                let courseId = 'nlp-transformers';
+                let pathId = 'mechanics-of-attention';
+                let moduleId = 'attention-math';
+                let lessonId = 'math-of-attention';
+                
+                // Try to grab from URL or parent route if available
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_attention_math_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    
+    const emojis = ['🎉', '🎊', '✨', '🧠', '📐', '🔢', '🚀', '🤖'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Math Mastered! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+// Initialization check
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = localStorage.getItem('lesson_attention_math_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

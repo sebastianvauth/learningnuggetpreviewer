@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Modern Era – Width, Attention, & Scaling</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: Intro -->
+<section id="section1" class="visible">
+  <div class="image-placeholder">
+    <img src="images/1.jpg" alt="Timeline graphic showing CNN architecture evolution from AlexNet to ResNet to ResNeXt, SE-Net, and EfficientNet">
+</div>
+    <h1>The Modern Era – Width, Attention, & Scaling</h1>
+    <h2>Beyond Depth</h2>
+    <p>In the last lesson, we saw how ResNet solved the degradation problem, effectively allowing us to build networks of infinite depth. But once the door to depth was kicked open, researchers started asking a new question: "Is depth the <em>only</em> lever we can pull?"</p>
+    
+    <p>It turns out, simply stacking more layers isn't always the most efficient way to improve performance. In this lesson, we will look at the post-ResNet era, where the focus shifted to three new dimensions: the width of the transformations, the ability to focus 'attention' on specific features, and the art of balancing every aspect of the network simultaneously.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: ResNeXt Intro & Vocab -->
+<section id="section2">
+    <h2>ResNeXt: The Power of Cardinality</h2>
+    <p>In 2017, a variation of ResNet called <strong>ResNeXt</strong> proposed a simple but powerful idea. Instead of just making the network deeper (more layers) or wider (more channels per layer), they introduced a new dimension called <strong>Cardinality</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Cardinality</h4>
+        <p>In the context of CNNs (specifically ResNeXt), cardinality refers to the number of parallel paths or 'branches' within a single transformation block.</p>
+    </div>
+    <p>Think of a ResNet block as a single, heavy-duty highway lane. All the traffic (data) flows through this one thick bottleneck. ResNeXt asks: what if, instead of one giant lane, we split the traffic into 32 smaller, parallel roads?</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3: ResNeXt Math & Visual -->
+<section id="section3">
+    <p>Mathematically, this means splitting the convolution operation into groups. Instead of one large convolution with 64 channels, we might perform 32 separate convolutions with 4 channels each, and then merge them back together.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Split-screen diagram comparing ResNet single path vs ResNeXt 32 parallel paths">
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4: ResNeXt Logic & Stop and Think -->
+<section id="section4">
+    <p>Crucially, ResNeXt showed that increasing cardinality (the number of paths) is more effective at reducing error than simply adding more depth or width. It forces the network to learn a more diverse set of features because each parallel path can specialize in recognizing different patterns.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If we split a large convolution into many smaller parallel ones, what happens to the total number of parameters?</h4>
+        <div id="stop-think-resnext" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Ideally, it stays roughly the same or even decreases! By using Grouped Convolutions, we can increase the structural complexity (cardinality) without exploding the computational cost.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-resnext')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5: SE-Net Intro -->
+<section id="section5">
+    <h2>SE-Net: Learning to Pay Attention</h2>
+    <p>While ResNeXt tweaked the structure, <strong>Squeeze-and-Excitation Networks (SE-Net)</strong> introduced a radically new concept: <strong>Channel Attention</strong>.</p>
+    <p>Up until now, our networks treated every channel in a feature map equally. If a layer outputted 256 feature maps—some containing edge detectors, some containing color blobs—the next layer looked at all of them with equal interest.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6: SE-Net Analogy -->
+<section id="section6">
+    <p>But what if the image contains a cat? The 'fur texture' channel is very important, but the 'metallic shine' channel is useless noise. SE-Net gives the network a way to turn up the volume on useful channels and mute the irrelevant ones.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Analogy illustration: Sound mixing board with faders for 'Fur', 'Eyes', 'Metal', etc. - representing channel attention">
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7: SE-Net Math & Vocab -->
+<section id="section7">
+    <p>This process happens in two steps, giving the architecture its name:</p>
+    <p>1. <strong>Squeeze:</strong> The network looks at the global information of each channel. It crunches the entire spatial dimension (\(H \times W\)) into a single number per channel using Global Average Pooling.</p>
+    <p>$$z_c = \frac{1}{H \times W} \sum_{i} \sum_{j} x_c(i,j)$$</p>
+    <p>2. <strong>Excite:</strong> A small neural network (a mini-MLP) looks at these summary statistics and outputs a weight between 0 and 1 for each channel.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Squeeze-and-Excitation</h4>
+        <p>A mechanism that allows a network to perform feature recalibration. It 'squeezes' global spatial information into a channel descriptor and then 'excites' (re-weights) the feature maps based on their importance.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- SECTION 8: SE-Net Quiz -->
+<section id="section8">
+    <p>Finally, the original feature maps are multiplied by these learned weights. The network has effectively learned to say, "Pay attention to Channel 5, ignore Channel 12."</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following best describes the purpose of the 'Squeeze' operation in SE-Net?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. The Squeeze operation reduces the *spatial* dimensions (Height and Width) to 1, but keeps the channel count the same to analyze them.')">To reduce the number of channels to save memory.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! By averaging the entire feature map into one number, the network gets a global summary of that channel\'s activity.')">To capture a global summary of what each channel represents.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. Squeeze refers to global average pooling, not activation.')">To apply a ReLU activation function.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- SECTION 9: EfficientNet Intro -->
+<section id="section9">
+    <h2>EfficientNet: The Art of Compound Scaling</h2>
+    <p>By 2019, we had deep networks (ResNet), wide networks (WideResNet), and high-cardinality networks (ResNeXt). But if you wanted to make a network better, which knob should you turn?</p>
+    <p>Should you make it deeper? Wider? Or should you use higher-resolution input images?</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- SECTION 10: EfficientNet Coupling -->
+<section id="section10">
+    <p>The creators of <strong>EfficientNet</strong> discovered that these dimensions are coupled. You can't just scale one up and ignore the others:</p>
+    <ul>
+        <li>If you increase <strong>Resolution</strong> (bigger images), you need more <strong>Depth</strong> (layers) to get a receptive field large enough to see the whole object.</li>
+        <li>If you increase <strong>Depth</strong>, you need more <strong>Width</strong> (channels) to capture enough fine-grained patterns to pass through the layers.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- SECTION 11: EfficientNet Vocab & Interactive -->
+<section id="section11">
+    <p>EfficientNet introduced <strong>Compound Scaling</strong>. Instead of arbitrarily choosing values, they found a mathematical relationship that scales all three dimensions (depth, width, resolution) together using a single coefficient, \(\phi\).</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Compound Scaling</h4>
+        <p>A method proposed by EfficientNet that uniformly scales network depth, width, and resolution using a set of fixed scaling coefficients, rather than scaling a single dimension arbitrarily.</p>
+    </div>
+    <p>Let's visualize this relationship.</p>
+    <!-- START INTERACTIVE MODULE: SCALING CUBE -->
+<div id="scaling-interactive-container">
+    <div class="instruction-hint">👆 Click on the axis labels (Width, Depth, Resolution) or the lines to explore.</div>
+    
+    <div class="canvas-wrapper">
+      <canvas id="scalingCanvas" width="600" height="500"></canvas>
+    </div>
+  
+    <div id="feedbackBox" class="interactive-feedback">
+      <h4>Compound Scaling Explorer</h4>
+      <p>Hover and click the graph elements to understand how different scaling methods affect the network architecture.</p>
+    </div>
+  </div>
+  
+  <script>
+  (function() {
+    const canvas = document.getElementById('scalingCanvas');
+    const ctx = canvas.getContext('2d');
+    const feedbackBox = document.getElementById('feedbackBox');
+    const feedbackTitle = feedbackBox.querySelector('h4');
+    const feedbackText = feedbackBox.querySelector('p');
+  
+    // Configuration
+    const origin = { x: 100, y: 400 }; // Bottom-left of graph
+    const axisLength = 300;
+    const scale = 2.5; // Visual scale modifier
+    
+    // Vectors for 3D -> 2D projection
+    // X: Width (Right)
+    // Y: Depth (Up)
+    // Z: Resolution (Into screen/Diagonal Right-Up)
+    const vecX = { x: 1, y: 0 }; 
+    const vecY = { x: 0, y: -1 };
+    const vecZ = { x: 0.6, y: -0.5 }; // Projection angle
+  
+    // Application State
+    let currentState = 'idle'; // idle, width, depth, compound
+    let hoverState = null;
+    let animationProgress = 0;
+  
+    // Data Points representing the "Tip" of the scaling vector
+    // Values are relative 0-100
+    const targets = {
+      depth: { w: 20, d: 90, r: 20 },      // Tall, Thin
+      width: { w: 90, d: 20, r: 20 },      // Short, Fat
+      compound: { w: 85, d: 85, r: 85 }    // Balanced
+    };
+  
+    // Helper: Project 3D coordinate to 2D canvas space
+    function project(w, d, r) {
+      const px = origin.x + (w * vecX.x * scale) + (d * vecY.x * scale) + (r * vecZ.x * scale);
+      const py = origin.y + (w * vecX.y * scale) + (d * vecY.y * scale) + (r * vecZ.y * scale);
+      return { x: px, y: py };
+    }
+  
+    // Hit Zones storage
+    let hitZones = [];
+  
+    function addHitZone(id, x, y, r) {
+      hitZones.push({ id, x, y, r });
+    }
+  
+    function checkHit(mx, my) {
+      // Adjust mouse coordinates for canvas scaling
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (mx - rect.left) * scaleX;
+      const y = (my - rect.top) * scaleY;
+  
+      for (let zone of hitZones) {
+        const dist = Math.sqrt((x - zone.x) ** 2 + (y - zone.y) ** 2);
+        if (dist < zone.r) return zone.id;
+      }
+      return null;
+    }
+  
+    // Animation Loop
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hitZones = []; // Reset hit zones
+  
+      // 1. Draw Cube Backframe (Ghost Box)
+      // To show the "Space", we draw a cube at max capacity (100,100,100)
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.setLineDash([5, 5]);
+      
+      const pOrigin = project(0,0,0);
+      const pMaxW = project(100,0,0);
+      const pMaxD = project(0,100,0);
+      const pMaxR = project(0,0,100);
+      const pFar = project(100,100,100);
+      const pTopW = project(100,100,0); // Top of width plane
+      const pTopR = project(0,100,100); // Top of res plane
+      const pFarW = project(100,0,100); // Far corner on floor
+  
+      ctx.beginPath();
+      ctx.moveTo(pMaxD.x, pMaxD.y); ctx.lineTo(pTopW.x, pTopW.y); ctx.lineTo(pFar.x, pFar.y); ctx.lineTo(pTopR.x, pTopR.y); ctx.lineTo(pMaxD.x, pMaxD.y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(pMaxW.x, pMaxW.y); ctx.lineTo(pFarW.x, pFarW.y); ctx.lineTo(pMaxR.x, pMaxR.y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(pTopW.x, pTopW.y); ctx.lineTo(pMaxW.x, pMaxW.y);
+      ctx.moveTo(pTopR.x, pTopR.y); ctx.lineTo(pMaxR.x, pMaxR.y);
+      ctx.moveTo(pFar.x, pFar.y); ctx.lineTo(pFarW.x, pFarW.y);
+      ctx.stroke();
+      ctx.setLineDash([]); // Reset dash
+  
+      // 2. Draw Axes Lines
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#4a5568';
+      
+      // Y-Axis (Depth)
+      ctx.beginPath(); ctx.moveTo(pOrigin.x, pOrigin.y); ctx.lineTo(pMaxD.x, pMaxD.y); ctx.stroke();
+      // X-Axis (Width)
+      ctx.beginPath(); ctx.moveTo(pOrigin.x, pOrigin.y); ctx.lineTo(pMaxW.x, pMaxW.y); ctx.stroke();
+      // Z-Axis (Resolution)
+      ctx.beginPath(); ctx.moveTo(pOrigin.x, pOrigin.y); ctx.lineTo(pMaxR.x, pMaxR.y); ctx.stroke();
+  
+      // 3. Draw Axis Labels (Interactive)
+      drawLabel("Depth (Layers)", pMaxD.x, pMaxD.y - 20, 'depth');
+      drawLabel("Width (Channels)", pMaxW.x + 60, pMaxW.y, 'width');
+      drawLabel("Resolution", pMaxR.x + 40, pMaxR.y - 10, 'compound'); // Z-axis usually implies res
+  
+      // 4. Draw Paths
+      // We define opacity based on state
+      const baseAlpha = 0.2;
+      
+      // Path 1: Depth Scaling
+      let alphaD = (currentState === 'depth' || hoverState === 'depth') ? 1 : baseAlpha;
+      if(currentState === 'idle' && !hoverState) alphaD = 0.6;
+      drawDataVector(targets.depth, '#f56565', alphaD, 'depth');
+  
+      // Path 2: Width Scaling
+      let alphaW = (currentState === 'width' || hoverState === 'width') ? 1 : baseAlpha;
+      if(currentState === 'idle' && !hoverState) alphaW = 0.6;
+      drawDataVector(targets.width, '#ed8936', alphaW, 'width');
+  
+      // Path 3: EfficientNet (Compound)
+      let alphaC = (currentState === 'compound' || hoverState === 'compound') ? 1 : baseAlpha;
+      if(currentState === 'idle' && !hoverState) alphaC = 1; // Default highlight
+      drawDataVector(targets.compound, '#48bb78', alphaC, 'compound', true);
+  
+      // Animation ticker
+      animationProgress += 0.05;
+      requestAnimationFrame(draw);
+    }
+  
+    function drawLabel(text, x, y, id) {
+      ctx.font = (hoverState === id || currentState === id) ? "bold 14px system-ui" : "14px system-ui";
+      ctx.fillStyle = (hoverState === id || currentState === id) ? "#2d3748" : "#718096";
+      ctx.fillText(text, x - 30, y);
+      // Add clickable area
+      addHitZone(id, x - 10, y - 5, 40);
+    }
+  
+    function drawDataVector(data, color, alpha, id, isDiagonal = false) {
+      const end = project(data.w, data.d, data.r);
+      
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = (alpha === 1) ? 5 : 2;
+      ctx.strokeStyle = color;
+      ctx.lineCap = 'round';
+  
+      ctx.beginPath();
+      ctx.moveTo(origin.x, origin.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+  
+      // Draw Point
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      let radius = (alpha === 1) ? 8 : 5;
+      if (alpha === 1) {
+          // Pulse effect
+          radius += Math.sin(animationProgress) * 1.5;
+      }
+      ctx.arc(end.x, end.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+  
+      // Draw Label if active
+      if (alpha === 1) {
+          ctx.fillStyle = "#2d3748";
+          ctx.font = "bold 12px system-ui";
+          ctx.globalAlpha = 1;
+          // Background for text
+          let label = id === 'compound' ? "EfficientNet" : id.charAt(0).toUpperCase() + id.slice(1) + " Scaling";
+          ctx.fillText(label, end.x + 15, end.y);
+      }
+      
+      // Add line hit zone (approximate midpoint)
+      const midX = (origin.x + end.x) / 2;
+      const midY = (origin.y + end.y) / 2;
+      addHitZone(id, midX, midY, 60); // Generous hit zone
+      addHitZone(id, end.x, end.y, 20); // Tip hit zone
+  
+      ctx.globalAlpha = 1;
+    }
+  
+    function updateFeedback() {
+      feedbackBox.className = 'interactive-feedback'; // Reset
+      
+      if (currentState === 'depth') {
+          feedbackBox.classList.add('state-depth');
+          feedbackTitle.innerText = "Depth Scaling (ResNet style)";
+          feedbackText.innerText = "Adding more layers allows for complex features, but eventually hits diminishing returns. A very deep, thin network is hard to parallelize and misses fine-grained details.";
+      } else if (currentState === 'width') {
+          feedbackBox.classList.add('state-width');
+          feedbackTitle.innerText = "Width Scaling (WideResNet style)";
+          feedbackText.innerText = "Adding more channels allows the network to capture fine-grained patterns, but wide, shallow networks struggle to capture high-level, complex abstractions.";
+      } else if (currentState === 'compound') {
+          feedbackBox.classList.add('state-compound');
+          feedbackTitle.innerText = "Compound Scaling (EfficientNet)";
+          feedbackText.innerText = "✨ Optimal! By uniformly scaling Width, Depth, and Resolution together, we maximize accuracy for a given computational budget. The dimensions support each other.";
+      } else {
+          feedbackTitle.innerText = "Compound Scaling Explorer";
+          feedbackText.innerText = "Hover and click the graph elements to understand how different scaling methods affect the network architecture.";
+      }
+    }
+  
+    // Event Listeners
+    canvas.addEventListener('mousemove', (e) => {
+      const hit = checkHit(e.clientX, e.clientY);
+      hoverState = hit;
+      canvas.style.cursor = hit ? 'pointer' : 'default';
+    });
+  
+    canvas.addEventListener('click', (e) => {
+      const hit = checkHit(e.clientX, e.clientY);
+      if (hit) {
+          currentState = hit;
+          updateFeedback();
+      } else {
+          currentState = 'idle';
+          updateFeedback();
+      }
+    });
+  
+    // Init
+    draw();
+  
+  })();
+  </script>
+  <!-- END INTERACTIVE MODULE -->
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- SECTION 12: EfficientNet Why it Matters -->
+<section id="section12">
+    <p>By following this principled balance, EfficientNet achieved state-of-the-art accuracy while being significantly smaller and faster than previous models. It showed us that bigger isn't always better—<em>balanced</em> is better.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>EfficientNet's principles are crucial for Mobile AI. When running models on phones with limited battery and chips, you cannot afford to waste computation on a network that is too deep but not wide enough.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- SECTION 13: Interactive Tuner -->
+<section id="section13">
+    <h2>Interactive: The Network Tuner</h2>
+    <p>Let's see if you can beat the intuition of EfficientNet's designers. You have a fixed computational budget. How will you spend it to get the highest accuracy?</p>
+    <!-- START INTERACTIVE MODULE: NETWORK TUNER -->
+<div id="tuner-container">
+    <div class="tuner-header">
+      <div class="flops-counter">BUDGET USAGE</div>
+      <div class="flops-bar-bg">
+          <div id="flopsBar" class="flops-bar-fill"></div>
+      </div>
+      <div id="flopsText">0%</div>
+    </div>
+  
+    <div class="tuner-dashboard">
+      <!-- Sliders -->
+      <div class="sliders-area">
+        <div class="slider-group">
+          <div class="slider-wrapper">
+            <input type="range" min="1" max="100" value="10" id="sliderDepth">
+          </div>
+          <div class="slider-label">Depth</div>
+          <div class="slider-val" id="valDepth">10</div>
+        </div>
+        
+        <div class="slider-group">
+          <div class="slider-wrapper">
+            <input type="range" min="1" max="100" value="10" id="sliderWidth">
+          </div>
+          <div class="slider-label">Width</div>
+          <div class="slider-val" id="valWidth">10</div>
+        </div>
+        
+        <div class="slider-group">
+          <div class="slider-wrapper">
+            <input type="range" min="1" max="100" value="10" id="sliderRes">
+          </div>
+          <div class="slider-label">Res</div>
+          <div class="slider-val" id="valRes">10</div>
+        </div>
+      </div>
+  
+      <!-- Gauge -->
+      <div class="gauge-area">
+        <canvas id="accuracyGauge" width="300" height="200"></canvas>
+        <div class="accuracy-label" id="accLabel">0%</div>
+        <div style="font-size: 0.8rem; color: #a0aec0; margin-top: 5px;">MODEL ACCURACY</div>
+      </div>
+    </div>
+  
+    <div id="tunerFeedback" class="tuner-feedback">
+      <h4>System Initializing...</h4>
+      <p>Adjust the sliders to utilize the compute budget.</p>
+    </div>
+  </div>
+  
+  <script>
+  (function() {
+    // Elements
+    const sDepth = document.getElementById('sliderDepth');
+    const sWidth = document.getElementById('sliderWidth');
+    const sRes = document.getElementById('sliderRes');
+    
+    const vDepth = document.getElementById('valDepth');
+    const vWidth = document.getElementById('valWidth');
+    const vRes = document.getElementById('valRes');
+    
+    const flopsBar = document.getElementById('flopsBar');
+    const flopsText = document.getElementById('flopsText');
+    
+    const accLabel = document.getElementById('accLabel');
+    const feedbackBox = document.getElementById('tunerFeedback');
+    const feedbackTitle = feedbackBox.querySelector('h4');
+    const feedbackText = feedbackBox.querySelector('p');
+  
+    const canvas = document.getElementById('accuracyGauge');
+    const ctx = canvas.getContext('2d');
+  
+    // Logic Constants
+    const TARGET_BUDGET = 180; // The sweet spot sum
+    const MAX_BUDGET = 300; 
+    
+    // State
+    let currentAcc = 0;
+    let targetAcc = 0;
+  
+    function update() {
+      // 1. Get Values
+      const d = parseInt(sDepth.value);
+      const w = parseInt(sWidth.value);
+      const r = parseInt(sRes.value);
+      
+      // Update Text UI
+      vDepth.innerText = d;
+      vWidth.innerText = w;
+      vRes.innerText = r;
+  
+      // 2. Calculate Budget Usage
+      const sum = d + w + r;
+      const usagePercent = Math.min((sum / TARGET_BUDGET) * 100, 100);
+      const overflow = sum > TARGET_BUDGET;
+      
+      flopsBar.style.width = `${Math.min((sum/MAX_BUDGET)*100, 100)}%`;
+      flopsText.innerText = `${sum} FLOPS`;
+      
+      if (sum > TARGET_BUDGET + 20) {
+          flopsBar.style.backgroundColor = '#f56565'; // Red (Overheating/Too slow)
+      } else if (sum > TARGET_BUDGET - 20) {
+          flopsBar.style.backgroundColor = '#48bb78'; // Green (Optimal)
+      } else {
+          flopsBar.style.backgroundColor = '#ecc94b'; // Yellow (Underutilized)
+      }
+  
+      // 3. Calculate Accuracy
+      // Factors:
+      // A. Utilization: Closer to TARGET_BUDGET is better. 
+      // B. Balance: Lower Standard Deviation is better.
+      
+      // Utilization Score (Parabolic curve peaking at TARGET_BUDGET)
+      // If sum is 0 -> 0. If sum is Target -> 1. If sum is Max -> 0.5 (diminishing returns/overfitting/speed penalty)
+      let utilScore = 0;
+      if (sum <= TARGET_BUDGET) {
+          utilScore = sum / TARGET_BUDGET;
+      } else {
+          // Penalty for going over budget (latency too high)
+          utilScore = 1 - ((sum - TARGET_BUDGET) / (MAX_BUDGET - TARGET_BUDGET)) * 0.5;
+      }
+  
+      // Balance Score
+      const mean = sum / 3;
+      const variance = (Math.pow(d - mean, 2) + Math.pow(w - mean, 2) + Math.pow(r - mean, 2)) / 3;
+      const stdDev = Math.sqrt(variance);
+      // Normalize deviation: Max possible deviation is roughly 47 (if 100, 0, 0).
+      const maxDev = 47; 
+      const balanceScore = Math.max(0, 1 - (stdDev / maxDev));
+  
+      // Combined Accuracy
+      // We weight Balance heavily to enforce the lesson
+      let rawAcc = (utilScore * 0.4 + balanceScore * 0.6) * 100;
+      
+      // Clamp
+      rawAcc = Math.min(99.9, Math.max(0, rawAcc));
+      targetAcc = rawAcc;
+  
+      // 4. Scenarios & Feedback
+      let fTitle = "Tuning Network...";
+      let fText = "Adjust sliders to balance the architecture.";
+      let fColor = "#4299e1"; // Blue default
+      let fBg = "#ebf8ff";
+  
+      // Scenario 1: Max Depth
+      if (d > w + 30 && d > r + 30) {
+          fTitle = "Warning: Receptive Field Limit";
+          fText = "The network is very deep but lacks width. It can see large objects but misses fine details. Gradients may vanish.";
+          fColor = "#ed8936"; // Orange
+          fBg = "#fffaf0";
+          targetAcc = Math.min(targetAcc, 75); // Cap per prompt
+      } 
+      // Scenario 2: Max Width
+      else if (w > d + 30 && w > r + 30) {
+          fTitle = "Warning: Generic Features";
+          fText = "The network is wide but shallow. It captures many low-level patterns but fails to combine them into complex concepts.";
+          fColor = "#ed8936";
+          fBg = "#fffaf0";
+          targetAcc = Math.min(targetAcc, 76); // Cap per prompt
+      }
+      // Scenario 3: Balanced & High Budget
+      else if (sum > TARGET_BUDGET - 30 && sum < TARGET_BUDGET + 30 && stdDev < 15) {
+          fTitle = "Success: Compound Scaling!";
+          fText = "Excellent! By balancing Depth, Width, and Resolution, you've achieved maximum accuracy for your compute budget.";
+          fColor = "#48bb78"; // Green
+          fBg = "#f0fff4";
+          targetAcc = Math.max(95, targetAcc); // Boost per prompt
+      }
+      else if (sum < 50) {
+          fTitle = "Underutilized";
+          fText = "You have plenty of compute budget left. Scale up!";
+      }
+      else if (sum > TARGET_BUDGET + 30) {
+          fTitle = "Warning: Over Budget";
+          fText = "Model is too heavy. Latency will be high on mobile devices.";
+          fColor = "#f56565";
+          fBg = "#fff5f5";
+      }
+  
+      // Apply Feedback Styles
+      feedbackTitle.innerText = fTitle;
+      feedbackTitle.style.color = fColor;
+      feedbackText.innerText = fText;
+      feedbackBox.style.borderLeftColor = fColor;
+      feedbackBox.style.backgroundColor = fBg;
+    }
+  
+    // Animation Loop for Gauge
+    function drawGauge() {
+      // Lerp current value
+      currentAcc += (targetAcc - currentAcc) * 0.1;
+      accLabel.innerText = currentAcc.toFixed(1) + "%";
+  
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const cx = canvas.width / 2;
+      const cy = canvas.height - 20;
+      const radius = 80;
+  
+      // Draw Background Arc
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, Math.PI, 0);
+      ctx.lineWidth = 20;
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.stroke();
+  
+      // Draw Value Arc
+      const percent = currentAcc / 100;
+      const endAngle = Math.PI + (Math.PI * percent);
+      
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, Math.PI, endAngle);
+      
+      // Dynamic Color
+      let color = "#f56565"; // Red
+      if (currentAcc > 70) color = "#ecc94b"; // Yellow
+      if (currentAcc > 90) color = "#48bb78"; // Green
+      
+      ctx.strokeStyle = color;
+      ctx.stroke();
+      accLabel.style.color = color;
+  
+      requestAnimationFrame(drawGauge);
+    }
+  
+    // Listeners
+    [sDepth, sWidth, sRes].forEach(s => s.addEventListener('input', update));
+  
+    // Init
+    update();
+    drawGauge();
+  
+  })();
+  </script>
+  <!-- END INTERACTIVE MODULE -->
+    <p>Did you notice how the accuracy spiked when you balanced the sliders? That is the essence of Compound Scaling.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 14: Review, FAQ, Final Quiz -->
+<section id="section14">
+    <h2>Review and Reflect</h2>
+    
+    <p>In this lesson, we moved beyond simple depth to explore the sophisticated architecture design of the modern era:</p>
+    <ul>
+        <li><strong>ResNeXt</strong> taught us that splitting paths (<strong>Cardinality</strong>) is a powerful scaling dimension.</li>
+        <li><strong>SE-Net</strong> introduced <strong>Channel Attention</strong>, allowing networks to dynamically weigh the importance of features.</li>
+        <li><strong>EfficientNet</strong> demonstrated that the key to performance is <strong>Compound Scaling</strong>—balancing depth, width, and resolution simultaneously.</li>
+    </ul>
+    <p>These innovations form the backbone of the computer vision models used today in everything from self-driving cars to the camera on your smartphone.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Frequently Asked Questions</h3>
+        <h4>Is EfficientNet always better than ResNet?</h4>
+        <div id="faq-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Not necessarily 'better' for every single use case. EfficientNet provides better accuracy for fewer parameters (it's more efficient). However, ResNet is structurally simpler and is still widely used as a standard 'workhorse' backbone because it is very well understood and supported by every hardware accelerator.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('faq-answer')">Reveal Answer</button>
+    </div>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Match the architecture to its key innovation:</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. Mix-up!')">ResNeXt -> Attention; SE-Net -> Compound Scaling; EfficientNet -> Cardinality</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. EfficientNet is not primarily about attention.')">ResNeXt -> Cardinality; SE-Net -> Compound Scaling; EfficientNet -> Attention</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! ResNeXt splits paths (Cardinality), SE-Net reweights channels (Attention), and EfficientNet balances dimensions (Compound Scaling).')">ResNeXt -> Cardinality; SE-Net -> Channel Attention; EfficientNet -> Compound Scaling</div>
+        </div>
+    </div>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 14; // Updated total sections
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Mock integration for completion tracking
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Adjust IDs as necessary for the new lesson
+                let courseId = 'computer-vision';
+                let pathId = 'generative-adversarial-networks';
+                let moduleId = 'cv-ch21-m1-foundations';
+                let lessonId = 'cv-ch21-l2-modern-era'; // Updated Lesson ID
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        // Updated localStorage key for this specific lesson
+        localStorage.setItem('lesson_cv-ch21-m1-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch21-m1-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Shape of the Image – Histograms</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Silhouette of a person with height/weight stats vs detailed portrait">
+    </div>
+    <h1>The Shape of the Image – Histograms</h1>
+    
+    <p>In the previous lessons, we boiled entire images down to single numbers: the Mean (brightness) and the Variance (contrast). But relying on just two numbers is a bit like trying to describe a person by only listing their height and weight.</p>
+    <p>You might know someone is heavy and tall, but do they have a beard? Are they wearing glasses? Are they Thomas Müller?</p>
+    <p>To really understand an image, we need to stop looking at averages and start looking at distributions. In this lesson, we will map out the 'fingerprint' of an image using the Histogram.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Full Story</h2>
+    <p>Imagine you have two images. One is a smooth, gray gradient. The other is a sharp black-and-white checkerboard. As we discovered, they can have the exact same Mean and the exact same Variance.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>If you were a computer algorithm, you'd be confused. You need a tool that tells you <em>how many</em> pixels are dark, <em>how many</em> are bright, and <em>how many</em> are in between.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>This tool is the <strong>Histogram</strong>. Instead of giving you one number, it gives you a map of the entire pixel population.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Landscape photo connected to Histogram">
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <h2>Core Concept: Relative Frequency</h2>
+    <p>A histogram is essentially a bar chart. On the horizontal axis (x-axis), we have every possible gray level, usually from 0 (black) to 255 (white). On the vertical axis (y-axis), we count how many pixels share that specific gray level.</p>
+    <p>To make this comparison fair across images of different sizes (like a 4K photo vs. a thumbnail), we don't just use the raw count. We convert it to a <strong>Relative Frequency</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>Let's do the math. Suppose we have an image with a total of \(M\) pixels. Let \(a_g\) be the absolute count of pixels with intensity \(g\). The relative frequency \(p_s(g)\) is calculated as:</p>
+    <p>$$ p_s(g) = \frac{a_g}{M} $$</p>
+    <p>This effectively treats the image as a probability distribution. The sum of all relative frequencies must always equal 1 (or 100%).</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Imagine a tiny 4x4 image (16 pixels total). If 4 pixels are pure black (intensity 0) and the rest are various grays, what is the relative frequency \(p_s(0)\) for black?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! \\(a_0 = 4\\) and \\(M = 16\\). So, \\(4 / 16 = 0.25\\).')">0.25</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. That is the absolute count (\\(a_g\\)), not the relative frequency.')">4</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. Check the division: 4 divided by 16.')">0.4</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(8)" style="display: none;">Continue</div>
+</section>
+
+<section id="section8">
+    <h2>Interactive: The Dynamic Histogram</h2>
+    <p>Let's see this in action. The best way to understand a histogram is to manipulate pixels and watch the graph change.</p>
+    <!-- START INTERACTIVE MODULE -->
+<div class="histogram-interactive-wrapper">
+  <div class="canvas-row">
+      <!-- Left Side: Drawing -->
+      <div class="hist-canvas-container">
+          <div class="canvas-label">The Image</div>
+          <canvas id="paintCanvas" width="250" height="250"></canvas>
+          <div class="toolbar">
+              <button class="tool-btn active" onclick="setBrush('black', this)">
+                  <div class="color-dot" style="background: black;"></div> Black
+              </button>
+              <button class="tool-btn" onclick="setBrush('gray', this)">
+                  <div class="color-dot" style="background: gray;"></div> Gray
+              </button>
+              <button class="tool-btn" onclick="setBrush('white', this)">
+                  <div class="color-dot" style="background: white;"></div> White
+              </button>
+              <button class="tool-btn reset-btn" onclick="resetCanvas()">
+                  Reset
+              </button>
+          </div>
+      </div>
+
+      <!-- Right Side: Histogram -->
+      <div class="hist-canvas-container">
+          <div class="canvas-label">The Histogram</div>
+          <canvas id="histCanvas" width="260" height="250"></canvas>
+          <div class="axis-labels">
+              <span>0 (Black)</span>
+              <span>128</span>
+              <span>255 (White)</span>
+          </div>
+      </div>
+  </div>
+</div>
+
+<style>
+  /* Local overrides to avoid global .canvas-container clash */
+  .hist-canvas-container {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  #paintCanvas {
+      cursor: crosshair;
+      border: 1px solid #edf2f7;
+      background: #ffffff;
+      display: block;
+  }
+  #histCanvas {
+      background: #ffffff;
+      display: block;
+  }
+</style>
+
+<script>
+  // Module Scoping to avoid global namespace pollution
+  (function() {
+      const paintCanvas = document.getElementById('paintCanvas');
+      const histCanvas = document.getElementById('histCanvas');
+      const pCtx = paintCanvas.getContext('2d', { willReadFrequently: true });
+      const hCtx = histCanvas.getContext('2d');
+      
+      let isDrawing = false;
+      let brushColor = '#000000';
+      let brushSize = 25; // Large brush for easier painting
+
+      // Initialize Canvases
+      function init() {
+          // Fill paint canvas with white initially
+          pCtx.fillStyle = '#ffffff';
+          pCtx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+          updateHistogram();
+      }
+
+      // --- Drawing Logic ---
+      function startDraw(e) {
+          isDrawing = true;
+          const pos = getPos(e);
+          pCtx.beginPath();
+          pCtx.moveTo(pos.x, pos.y);
+          draw(e);
+      }
+      
+      function endDraw() {
+          isDrawing = false;
+      }
+
+      function getPos(e) {
+          const rect = paintCanvas.getBoundingClientRect();
+          // Handle both mouse and touch events
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          
+          // Calculate scale factor in case the canvas is resized by CSS
+          const scaleX = paintCanvas.width / rect.width;
+          const scaleY = paintCanvas.height / rect.height;
+          
+          return {
+              x: (clientX - rect.left) * scaleX,
+              y: (clientY - rect.top) * scaleY
+          };
+      }
+
+      function draw(e) {
+          if (!isDrawing) return;
+          e.preventDefault(); // Stop scrolling on touch
+          
+          const pos = getPos(e);
+
+          pCtx.lineWidth = brushSize;
+          pCtx.lineCap = 'round';
+          pCtx.strokeStyle = brushColor;
+          
+          pCtx.lineTo(pos.x, pos.y);
+          pCtx.stroke();
+          
+          // Start a new path from the current position for the next segment
+          pCtx.beginPath();
+          pCtx.moveTo(pos.x, pos.y);
+
+          // Trigger Histogram Update
+          requestAnimationFrame(updateHistogram);
+      }
+
+      // Event Listeners
+      paintCanvas.addEventListener('mousedown', startDraw);
+      paintCanvas.addEventListener('mouseup', endDraw);
+      paintCanvas.addEventListener('mousemove', draw);
+      paintCanvas.addEventListener('mouseout', endDraw);
+      
+      // Touch support
+      paintCanvas.addEventListener('touchstart', startDraw);
+      paintCanvas.addEventListener('touchend', endDraw);
+      paintCanvas.addEventListener('touchmove', draw);
+
+      // --- Histogram Logic ---
+      function updateHistogram() {
+          const w = paintCanvas.width;
+          const h = paintCanvas.height;
+          const imageData = pCtx.getImageData(0, 0, w, h);
+          const data = imageData.data;
+          const totalPixels = w * h;
+          
+          // Initialize 256 bins
+          const histogram = new Array(256).fill(0);
+
+          // Iterate pixels (stride of 4: r, g, b, a)
+          for (let i = 0; i < data.length; i += 4) {
+              // Since we paint in grayscale, r=g=b. Just take r.
+              const brightness = data[i]; 
+              histogram[brightness]++;
+          }
+
+          // Draw Histogram
+          hCtx.clearRect(0, 0, histCanvas.width, histCanvas.height);
+          
+          // Style setup
+          const barWidth = histCanvas.width / 256;
+          
+          // To make bars visible, we scale relative to Total Pixels.
+          // However, linear scaling makes small details invisible if one bar is 100%.
+          // We use a scaling factor to make it look good, but capped at height.
+          
+          hCtx.fillStyle = '#667eea'; // Purple/Blue standard
+          
+          // Find max value for normalization if we want it to fill height,
+          // but for "Relative Frequency" lesson, it should probably stay relative.
+          // Let's stick to the original plan but ensure tiny values are visible.
+          
+          for (let i = 0; i < 256; i++) {
+              const count = histogram[i];
+              if (count > 0) {
+                  // Calculate height: (count / total) * canvasHeight
+                  let barHeight = (count / totalPixels) * histCanvas.height;
+                  
+                  // Ensure even a single pixel is visible
+                  if (barHeight > 0 && barHeight < 1) barHeight = 1;
+
+                  // X position
+                  const x = i * barWidth;
+                  // Y position (canvas 0 is top)
+                  const y = histCanvas.height - barHeight;
+
+                  hCtx.fillRect(x, y, Math.max(barWidth, 1), barHeight);
+              }
+          }
+      }
+
+      // --- Controls Exposed to Global Scope ---
+      window.setBrush = function(color, btn) {
+          // Update Visuals
+          document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          // Update Logic
+          if (color === 'black') brushColor = '#000000';
+          if (color === 'gray') brushColor = '#808080'; // ~128
+          if (color === 'white') brushColor = '#ffffff';
+      };
+
+      window.resetCanvas = function() {
+          pCtx.fillStyle = '#ffffff';
+          pCtx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+          updateHistogram();
+      };
+
+      // Run Init
+      init();
+  })();
+</script>
+<!-- END INTERACTIVE MODULE -->
+    <p>Notice how spatial information is lost? You can paint a smiley face or a random scribble—if the amount of black and white ink is the same, the histogram looks identical.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>Try to create a <strong>bimodal</strong> histogram using the tool above. That means a graph with two distinct peaks (mountains) and a valley in between.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>How did you have to paint the canvas to get two distinct peaks?</h4>
+        <div id="cuy-peaks-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> You likely had to paint a large area with a dark color (peak 1) and another large area with a bright color (peak 2), leaving very few mid-tone grays. This represents a high-contrast image with distinct foreground and background.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-peaks-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <h2>Reading the Peaks</h2>
+    <p>Once you know how to read them, a histogram tells you the 'mood' of an image instantly, without even looking at the pixels.</p>
+    <div class="visual-placeholder">
+        <img src="images/3.jpg" alt="4 Histograms: Dark, Bright, Flat, High Contrast">
+    </div>
+    <p>Take a look at the diagrams above. Graph A implies a night scene or underexposed photo. Graph B might be a snow scene. Graph C is foggy or 'flat'. Graph D is punchy and stark.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the histograms described above would likely belong to a picture of a zebra standing in bright sunlight?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'A zebra has black stripes and white stripes. That means wide variety of values, not low contrast.')">Graph C (Low Contrast)</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! You would have a peak at black (stripes) and a peak at white (stripes/background), creating a bimodal or high-contrast distribution.')">Graph D (High Contrast)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Unless it\'s a zebra at night, we expect plenty of white values too.')">Graph A (Dark Image)</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-zebra" onclick="showNextSection(12)" style="display: none;">Continue</div>
+</section>
+
+<section id="section12">
+    <h2>Application: Thresholding</h2>
+    <p>Why do we care about these bumps and peaks? Because they allow us to perform <strong>segmentation</strong>—separating the object we want from the background.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>If we look at the histogram of Thomas Müller, we might see a peak for the dark background and a peak for his lighter face. We can pick a number in the valley between them (say, intensity 200) and say: 'Everything above 200 is Face. Everything below is Background.'</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Thresholding</h4>
+        <p>A basic image segmentation method where pixels are classified based on whether their intensity is above or below a certain value (the threshold).</p>
+    </div>
+    <p>This is called <strong>Thresholding</strong>. But be careful—it's naive.</p>
+    <div class="image-placeholder">
+        <img src="images/4.jpg" alt="Thresholding result showing holes in face">
+    </div>
+    <p>As you can see, simply cutting the histogram at 200 created holes in the face where specular reflections (sweat) were brighter than the skin. We need smarter techniques for perfect segmentation, but the histogram gives us a starting point.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Here is a thought experiment: In the last lesson, we calculated the Mean (\(m_s\)) by summing every single pixel and dividing by the total count. If we instead used the Histogram formula: \(\sum_{g=0}^{255} g \cdot p_s(g)\), would we get a different result?</h4>
+        <div id="cuy-mean-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> No, you would get the exact same number! Summing every pixel individually is the same as grouping them by value first and then summing the groups. For huge images (millions of pixels), calculating from the Histogram (looping only 256 times) is much faster!
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-mean-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <h2>Review and Reflect</h2>
+    <p>We've moved from looking at single pixels to understanding the statistical distribution of the image.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Histograms are the 'fingerprints' of images. They allow us to compare the content of two photos quickly (Image Matching) and calculate statistics efficiently without looping through millions of pixels.</p>
+    </div>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Bimodal</h4>
+        <p>A distribution (histogram) with two distinct peaks, often indicating two dominant intensity levels (like a foreground object and a background).</p>
+    </div>
+
+    <div class="check-your-knowledge" style="background: linear-gradient(135deg, #f0f4f8 0%, #f7fafc 100%); border-left-color: #a0aec0; box-shadow: none;">
+        <h3 style="color: #4a5568;">Frequently Asked</h3>
+        <h4>Does the histogram tell us <em>where</em> the pixels are located?</h4>
+        <p><strong>Answer:</strong> No. The histogram discards all spatial information. If you took a photo of a chessboard and shuffled all the pixels randomly to create static noise, the histogram would remain exactly the same, because the count of black and white pixels hasn't changed.</p>
+    </div>
+
+    <p>We can now describe brightness (Mean), contrast (Variance), and distribution (Histogram). But there is one more characteristic we need to measure: <strong>Complexity</strong>. How much 'information' or 'chaos' is in the image?</p>
+    <p>In the next lesson, we will learn about <strong>Entropy</strong> and how to finally prepare our images for Artificial Intelligence.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 15;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Auto-advance logic for specific sections
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        let continueBtnId = null;
+        if (parentSection.id === 'section7') continueBtnId = 'continue-after-test-knowledge';
+        if (parentSection.id === 'section11') continueBtnId = 'continue-after-zebra';
+        
+        if (continueBtnId) {
+            const continueButton = document.getElementById(continueBtnId);
+            if (continueButton && continueButton.style.display === 'none') {
+                setTimeout(() => {
+                    continueButton.style.display = 'block';
+                    continueButton.classList.add('show-with-animation');
+                }, 800);
+            }
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Placeholder IDs - these would be dynamic in a real app
+                let courseId = 'computer-vision';
+                let pathId = 'image-processing-foundations';
+                let moduleId = 'cv-ch02-m2-histograms';
+                let lessonId = 'cv-ch02-l2-shape-of-image';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch02-m2-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage for completion
+    const isCompleted = localStorage.getItem('lesson_cv-ch02-m2-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

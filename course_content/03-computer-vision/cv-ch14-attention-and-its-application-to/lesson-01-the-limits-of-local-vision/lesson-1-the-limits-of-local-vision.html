@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Limits of Local Vision</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <figure class="image-placeholder">
+        <img src="images/1.jpg" alt="Person peering through a paper towel tube at a painting, emphasizing tunnel vision" loading="lazy">
+        <figcaption>The tunnel-vision meme highlights how focusing on a tiny patch can hide the bigger story—exactly what happens when CNNs only look locally.</figcaption>
+    </figure>
+    <h1>The Limits of Local Vision</h1>
+    <h2>Introduction: The Tunnel Vision of CNNs</h2>
+    <p>Welcome back! In our exploration of computer vision so far, we have sung the praises of the Convolutional Neural Network (CNN). And for good reason—they are powerful, efficient, and have been the gold standard for image recognition for over a decade.</p>
+    
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: The Problem -->
+<section id="section2">
+    <p>But it's time to address the elephant in the room. Or rather, the fact that a CNN might stare at the elephant's trunk and have no idea it's attached to an elephant. Despite their success, CNNs have a fundamental limitation: they suffer from a form of tunnel vision.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Inductive Bias -->
+<section id="section3">
+    <p>To understand why, we need to talk about <strong>assumptions</strong>. Every model makes them. In the world of AI, we call these assumptions <em>Inductive Biases</em>.</p>
+    <p>The CNN was built on a very specific Inductive Bias: <strong>Locality</strong>. It assumes that pixels close to each other are more important than pixels far apart. A pixel at position \((0,0)\) cares deeply about \((0,1)\), but it effectively ignores pixel \((500,500)\).</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Quiz on Bias -->
+<section id="section4">
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Based on what you just read, how would you define 'Inductive Bias' in the context of Neural Networks?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. That refers to variance or overfitting. Inductive bias is about the architectural assumptions made before training.')">The tendency of a network to overfit on training data.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! It is the \'prior knowledge\' we bake into the math, like assuming that neighboring pixels form meaningful shapes.')">The set of assumptions built into a model architecture about the data it will process.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'A common confusion! The bias term \(b\) is a learnable parameter. Inductive Bias is a conceptual design choice.')">The bias value \(b\) added to the weights \(Wx\).</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-section4" onclick="showNextSection(5)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 5: Receptive Field Math -->
+<section id="section5">
+    <h2>The Receptive Field Problem</h2>
+    <p>Let's look at how this 'Locality' plays out mathematically. A standard convolutional layer uses a kernel, typically \(3 \times 3\) pixels. This means any given neuron in the next layer only 'sees' a tiny \(3 \times 3\) window of the previous layer.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Interactive Expansion -->
+<section id="section6">
+    <p>As we stack more layers, this window—called the <strong>Receptive Field</strong>—grows. A neuron in layer 2 sees a bit more of the original image than a neuron in layer 1. But does it ever see the <em>whole</em> image?</p>
+    <div class="interactive-module-container">
+        <div class="legend">
+            <div class="legend-item"><div class="dot" style="background: #e2e8f0; border: 1px solid #94a3b8"></div>Input Image</div>
+            <div class="legend-item"><div class="dot" style="background: rgba(248, 113, 113, 0.6)"></div>Receptive Field</div>
+            <div class="legend-item"><div class="dot" style="background: #667eea"></div>Network Layers</div>
+        </div>
+    
+        <canvas id="rfCanvas" width="800" height="300"></canvas>
+    
+        <div class="controls-wrapper">
+            <div class="slider-label">
+                <span>Shallow Network</span>
+                <span>Depth: <span id="depthDisplay" class="slider-val">3</span> Layers</span>
+                <span>Deep Network</span>
+            </div>
+            <input type="range" id="depthSlider" min="1" max="12" value="3" step="1">
+            <p class="caption">
+                Drag the slider to make the network deeper. Notice how the Receptive Field (Red Box) grows, but still fails to see the corners of the image even at maximum depth.
+            </p>
+        </div>
+    
+        <script>
+            (function() {
+                const canvas = document.getElementById('rfCanvas');
+                const ctx = canvas.getContext('2d');
+                const slider = document.getElementById('depthSlider');
+                const display = document.getElementById('depthDisplay');
+    
+                // Config
+                const inputSize = 160; // Size of input image square
+                const inputX = 60;
+                const inputY = (canvas.height - inputSize) / 2;
+                const outputX = canvas.width - 60;
+                const outputY = canvas.height / 2;
+                
+                // Animation loop not strictly needed for static drawing, but useful for smoothness
+                let currentDepth = 3;
+    
+                function draw() {
+                    // Clear
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+                    // 1. Draw Input Image (Left)
+                    ctx.fillStyle = '#f1f5f9';
+                    ctx.strokeStyle = '#94a3b8';
+                    ctx.lineWidth = 2;
+                    ctx.fillRect(inputX, inputY, inputSize, inputSize);
+                    ctx.strokeRect(inputX, inputY, inputSize, inputSize);
+    
+                    // Grid on input
+                    ctx.strokeStyle = '#cbd5e1';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    for(let i=1; i<8; i++) {
+                        // Vertical
+                        ctx.moveTo(inputX + (inputSize/8)*i, inputY);
+                        ctx.lineTo(inputX + (inputSize/8)*i, inputY + inputSize);
+                        // Horizontal
+                        ctx.moveTo(inputX, inputY + (inputSize/8)*i);
+                        ctx.lineTo(inputX + inputSize, inputY + (inputSize/8)*i);
+                    }
+                    ctx.stroke();
+    
+                    // 2. Calculate Receptive Field
+                    // Math: RF starts at 1. Each layer adds 2 pixels of visibility (assuming 3x3 kernel).
+                    // Visual Scale: Let's scale it so max depth doesn't quite cover 100%.
+                    // Base visualization size = 10px. Growth = 10px per layer.
+                    const rfBaseSize = 20; 
+                    const rfGrowthPerLayer = 10;
+                    let rfCurrentSize = rfBaseSize + (currentDepth * rfGrowthPerLayer);
+                    
+                    // Cap RF size visually so it doesn't exceed input (or just let it clip to show full coverage if desired, but we want to show limitation)
+                    // Constraint: Max RF should be about 80% of input size to prove the point
+                    const maxVisualRF = inputSize * 0.85; 
+                    
+                    // Map logical depth to visual size using a sigmoid or linear clamp
+                    // Let's use linear for clarity
+                    let visualRFSize = Math.min(rfCurrentSize, maxVisualRF);
+    
+                    const rfX = inputX + (inputSize - visualRFSize) / 2;
+                    const rfY = inputY + (inputSize - visualRFSize) / 2;
+    
+                    // 3. Draw The "Beam" (Frustum) behind layers
+                    ctx.save();
+                    const gradient = ctx.createLinearGradient(inputX + inputSize, 0, outputX, 0);
+                    gradient.addColorStop(0, 'rgba(248, 113, 113, 0.1)'); // Reddish at input
+                    gradient.addColorStop(1, 'rgba(102, 126, 234, 0.1)'); // Blueish at output
+                    ctx.fillStyle = gradient;
+                    
+                    ctx.beginPath();
+                    // Top Left of RF
+                    ctx.moveTo(rfX + visualRFSize, rfY); 
+                    // Top Right (Output)
+                    ctx.lineTo(outputX, outputY);
+                    // Bottom Right (Output)
+                    ctx.lineTo(outputX, outputY);
+                    // Bottom Left of RF
+                    ctx.lineTo(rfX + visualRFSize, rfY + visualRFSize);
+                    ctx.fill();
+                    ctx.restore();
+    
+                    // 4. Draw Receptive Field Highlight on Input
+                    ctx.fillStyle = 'rgba(248, 113, 113, 0.4)';
+                    ctx.strokeStyle = '#e53e3e';
+                    ctx.lineWidth = 2;
+                    ctx.fillRect(rfX, rfY, visualRFSize, visualRFSize);
+                    ctx.strokeRect(rfX, rfY, visualRFSize, visualRFSize);
+    
+                    // Label "RF"
+                    ctx.fillStyle = '#c53030';
+                    ctx.font = 'bold 12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('RF', inputX + inputSize/2, rfY - 8);
+    
+                    // 5. Draw Layers
+                    const startLayerX = inputX + inputSize + 40;
+                    const endLayerX = outputX - 40;
+                    const availableWidth = endLayerX - startLayerX;
+                    
+                    for (let i = 0; i < currentDepth; i++) {
+                        const progress = i / (currentDepth > 1 ? currentDepth - 1 : 1);
+                        const lx = startLayerX + (availableWidth * progress);
+                        
+                        // Layer height gets smaller as we go deeper (pyramid structure)
+                        // Input height relative, narrowing down to a point
+                        const layerHeight = inputSize * (1 - (0.8 * (i+1)/(currentDepth+2)));
+                        const ly = outputY - layerHeight/2;
+    
+                        // Draw Layer Bar
+                        ctx.fillStyle = '#667eea';
+                        ctx.beginPath();
+                        ctx.roundRect(lx - 4, ly, 8, layerHeight, 4);
+                        ctx.fill();
+                    }
+    
+                    // 6. Draw Output Neuron
+                    ctx.beginPath();
+                    ctx.arc(outputX, outputY, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = '#764ba2';
+                    ctx.fill();
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+    
+                    // Label "Output"
+                    ctx.fillStyle = '#2d3748';
+                    ctx.font = '12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Neuron', outputX, outputY + 25);
+                }
+    
+                // Event Listeners
+                slider.addEventListener('input', (e) => {
+                    currentDepth = parseInt(e.target.value);
+                    display.innerText = currentDepth;
+                    requestAnimationFrame(draw);
+                });
+    
+                // Init
+                draw();
+            })();
+        </script>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Global Context -->
+<section id="section7">
+    <p>In many architectures, even deep neurons struggle to connect information from the top-left pixel to the bottom-right pixel. They lack <strong>Global Context</strong>.</p>
+    <p>Why does this matter? Imagine you see a blurry shape. It could be a car, or it could be a boat.</p>
+    <figure class="image-placeholder">
+        <img src="images/2.jpg" alt="Split panel showing the same ambiguous object on a road and on water to illustrate context" loading="lazy">
+        <figcaption>The same fuzzy silhouette becomes a car on asphalt and a boat on water—context determines everything.</figcaption>
+    </figure>
+    <p>If a CNN is focusing intently on the shape (local features) but its receptive field doesn't extend far enough to see the water or the road (global context), it might misclassify the boat as a car.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Global Context</h4>
+        <p>The ability to understand the relationship between distant parts of an input (like an image or sentence) to derive meaning. For example, knowing that 'blue' at the bottom of an image (water) changes the probability of an object in the center being a 'boat'.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Human vs Machine -->
+<section id="section8">
+    <h2>Human Vision vs. Machine Vision</h2>
+    <p>We are now realizing that while the <em>Inductive Bias of Locality</em> is efficient (it saves computation), it is also restrictive. It forces the network to process information like a puzzle, piece by piece, hoping the full picture emerges at the end.</p>
+    <p>Contrast this with how you see. You don't scan a room pixel-by-pixel. You take in the whole scene instantly to orient yourself, then focus on details.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Stop and Think -->
+<section id="section9">
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If you were identifying a tiny object in a massive high-resolution photo, do you look at the object pixel-by-pixel first, or do you scan the whole scene? How does this differ from a convolution?</h4>
+        <div id="cuy-human-vision-answer" style="display:none;" class="animate-in">
+            <strong>Insight:</strong> Humans use peripheral vision to get a 'gist' of the scene immediately (Global) before zooming in (Local). A Convolution does the opposite: it starts purely Local and struggles to become Global.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-human-vision-answer')">Reveal Insight</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: The Solution Tease -->
+<section id="section10">
+    <p>To solve complex visual tasks—and to understand language, which we will look at next—we need a mechanism that doesn't care about distance. We need a way for pixel \((0,0)\) to talk directly to pixel \((500,500)\) from the very first layer.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>This limitation is the driving force behind the invention of the <strong>Transformer</strong>. By discarding the assumption of locality, Transformers allow for 'Global Attention', enabling the model to connect any two pieces of information regardless of distance.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Review -->
+<section id="section11">
+    <h2>Review and Reflect</h2>
+    <p>We've established that while CNNs are powerful, their reliance on local neighborhoods (Locality) restricts their ability to see the 'big picture' (Global Context).</p>
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Receptive Field</h4>
+        <p>The specific area of the input image that a particular neuron 'looks at' or is affected by. In CNNs, this starts small and grows larger with depth, but often fails to capture the entire image.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Final Quiz -->
+<section id="section12">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following best describes the 'Receptive Field' of a neuron in the first layer of a standard CNN?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. A standard convolution only looks at a small patch (e.g., \(3 \\times 3\)) at a time.')">It covers the entire input image.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The neuron only processes information from this tiny window.')">It is a small, local patch of pixels (e.g., \(3 \times 3\)).</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, the kernel size (and thus the receptive field of the first layer) is fixed by the architecture, not the image size.')">It depends on the image resolution.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-section12" onclick="showNextSection(13)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 13: Conclusion -->
+<section id="section13">
+    <p>In the next lesson, we will take a detour into Natural Language Processing to see how this same problem of 'locality' caused major headaches for text translation, and how a mechanism called <strong>Attention</strong> solved it.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 13;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after selection
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        const continueButton = parentSection.querySelector('.continue-button');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // LMS Integration mock
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Adjust IDs for this specific lesson
+                let courseId = 'computer-vision';
+                let pathId = 'transformers-vision'; // Updated path
+                let moduleId = 'cv-ch22-m1-limitations'; // Updated module
+                let lessonId = 'cv-ch22-l1-limits-local-vision';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch22-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch22-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

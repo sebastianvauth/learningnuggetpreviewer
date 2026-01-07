@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Tuning the Engine – Stride and Padding</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Diagram showing a large 10x10 input grid with a 3x3 kernel producing a significantly smaller 8x8 output grid, illustrating the shrinking effect of valid convolution without padding">
+    </div>
+    <h1>Tuning the Engine – Stride and Padding</h1>
+    <h2>The Case of the Shrinking Image</h2>
+    <p>We know how to calculate <em>one</em> pixel using a convolution, but how do we control the size of the whole picture?</p>
+    
+    <p>Imagine you are sliding a 3x3 window (kernel) over a 5x5 image. You can't center the window on the very first pixel at the top-left, because half of your window would hang off the edge of the image. You have to start where the window fits entirely inside.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Border Eating -->
+<section id="section2">
+    <p>Because of this geometric constraint, a standard convolution naturally eats away at the borders of your image. A 5x5 input becomes a 3x3 output. A 100x100 input becomes 98x98.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Deep Networks Problem & Vocab -->
+<section id="section3">
+    <p>If you have a deep network with 50 layers, and each layer shrinks the image by a few pixels, your image might disappear completely before it reaches the end of the network! We need a way to control this.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Spatial Dimensions</h4>
+        <p>The height and width (H x W) of an image or feature map. Maintaining these dimensions is often crucial in deep networks.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Padding Intro -->
+<section id="section4">
+    <h2>Padding: Saving the Edges</h2>
+    <p>To prevent our image from shrinking, we can use a trick called <strong>Padding</strong>.</p>
+    <p>Think of padding like putting a frame around a picture. We add a border of extra pixels around our input image. Usually, we just fill these extra pixels with the value 0.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Comparison diagram showing Valid convolution where image shrinks versus Same convolution with zero padding where image size stays the same">
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Zero Padding Interactive -->
+<section id="section5">
+    <p>This is called <strong>Zero Padding</strong>. By adding a border of zeros, we allow the kernel's center to reach the very edge of the original image without 'falling off'.</p>
+    <div class="interactive-container" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; margin: 1.5rem 0;">
+        <canvas id="paddingCanvas" width="600" height="360" style="max-width: 100%; height: auto; display: block; margin: 0 auto;"></canvas>
+        
+        <div style="margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 15px;">
+            <span style="font-weight: 600; color: #4a5568; font-size: 0.9rem;">PADDING MODE:</span>
+            <button id="paddingToggleBtn" onclick="togglePadding()" style="
+                background: #cbd5e0; 
+                border: none; 
+                padding: 8px 24px; 
+                border-radius: 20px; 
+                color: #4a5568; 
+                font-weight: 700; 
+                cursor: pointer; 
+                transition: all 0.3s ease;
+                outline: none;
+                font-family: inherit;
+            ">OFF</button>
+        </div>
+        
+        <p id="paddingStatusText" style="margin-top: 15px; font-weight: 600; color: #e53e3e; font-size: 1rem;">
+            ⚠️ Kernel cannot center on edge pixel!
+        </p>
+    
+        <script>
+            (function() {
+                const canvas = document.getElementById('paddingCanvas');
+                const ctx = canvas.getContext('2d');
+                const btn = document.getElementById('paddingToggleBtn');
+                const statusText = document.getElementById('paddingStatusText');
+    
+                // Config
+                let isPaddingEnabled = false;
+                const cellSize = 45;
+                const gap = 4;
+                const gridSize = 5; // 5x5 image
+                const kernelSize = 3;
+                
+                // Colors matching lesson theme
+                const colorImage = '#e6f3ff'; // Light blue
+                const colorImageBorder = '#90cdf4';
+                const colorPadding = '#e2e8f0'; // Grey
+                const colorPaddingBorder = '#cbd5e0';
+                const colorKernel = 'rgba(118, 75, 162, 0.2)'; // Purple transparent
+                const colorKernelBorder = '#764ba2';
+                const colorError = 'rgba(245, 101, 101, 0.1)';
+                const colorErrorBorder = '#fc8181';
+    
+                function draw() {
+                    // Clear canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+                    // Calculate centering
+                    // The logical grid is 5x5. If padded, it visually looks like 7x7.
+                    // We want the 'Image' to stay relatively centered.
+                    
+                    const totalGridWidth = (gridSize * cellSize) + ((gridSize - 1) * gap);
+                    const totalGridHeight = (gridSize * cellSize) + ((gridSize - 1) * gap);
+                    
+                    const startX = (canvas.width - totalGridWidth) / 2;
+                    const startY = (canvas.height - totalGridHeight) / 2;
+    
+                    // 1. Draw Padding (if enabled) OR Error Placeholders (if disabled)
+                    // The kernel is centered on the top-left pixel of the IMAGE (0,0).
+                    // This corresponds to grid index (0,0).
+                    // The kernel extends from -1 to +1 in both x and y relative to that pixel.
+    
+                    // Loop for the border area (essentially a 7x7 grid around the 5x5)
+                    for (let y = -1; y < gridSize + 1; y++) {
+                        for (let x = -1; x < gridSize + 1; x++) {
+                            
+                            // Check if this is part of the actual image
+                            const isImage = (x >= 0 && x < gridSize && y >= 0 && y < gridSize);
+                            
+                            // Calculate pixel position
+                            const px = startX + (x * (cellSize + gap));
+                            const py = startY + (y * (cellSize + gap));
+    
+                            if (isImage) {
+                                // Draw Image Pixel
+                                ctx.fillStyle = colorImage;
+                                ctx.strokeStyle = colorImageBorder;
+                                ctx.lineWidth = 2;
+                                drawRoundedRect(ctx, px, py, cellSize, cellSize, 6);
+                                ctx.fill();
+                                ctx.stroke();
+                                
+                                // Text
+                                ctx.fillStyle = '#4a5568';
+                                ctx.font = '12px sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                // ctx.fillText(`px`, px + cellSize/2, py + cellSize/2);
+                            } else {
+                                // This is the "Padding Zone"
+                                if (isPaddingEnabled) {
+                                    // Draw Padding Pixel
+                                    ctx.fillStyle = colorPadding;
+                                    ctx.strokeStyle = colorPaddingBorder;
+                                    ctx.lineWidth = 2;
+                                    drawRoundedRect(ctx, px, py, cellSize, cellSize, 6);
+                                    ctx.fill();
+                                    ctx.stroke();
+    
+                                    // Draw "0"
+                                    ctx.fillStyle = '#a0aec0';
+                                    ctx.font = 'bold 16px sans-serif';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.fillText('0', px + cellSize/2, py + cellSize/2);
+                                } else {
+                                    // Draw nothing, but if it's under the kernel, we might want to highlight the void
+                                    // We'll handle void highlighting in the kernel step
+                                }
+                            }
+                        }
+                    }
+    
+                    // 2. Draw Kernel
+                    // We are convolving the top-left pixel of the IMAGE (0,0).
+                    // So kernel center is at grid(0,0).
+                    // Kernel TopLeft is at grid(-1, -1).
+                    
+                    const kernelGridX = -1;
+                    const kernelGridY = -1;
+                    
+                    const kPx = startX + (kernelGridX * (cellSize + gap)) - 5; // -5 for padding around the visual
+                    const kPy = startY + (kernelGridY * (cellSize + gap)) - 5;
+                    const kSize = (3 * cellSize) + (2 * gap) + 10;
+    
+                    // Check validity
+                    if (!isPaddingEnabled) {
+                        // Draw "Void" boxes for the missing padding
+                        for (let ky = -1; ky <= 1; ky++) {
+                            for (let kx = -1; kx <= 1; kx++) {
+                                // If it's outside the image
+                                if (kx < 0 || ky < 0) {
+                                    const voidX = startX + (kx * (cellSize + gap));
+                                    const voidY = startY + (ky * (cellSize + gap));
+                                    
+                                    ctx.fillStyle = colorError;
+                                    ctx.strokeStyle = colorErrorBorder;
+                                    ctx.setLineDash([4, 4]);
+                                    ctx.lineWidth = 1;
+                                    drawRoundedRect(ctx, voidX, voidY, cellSize, cellSize, 6);
+                                    ctx.fill();
+                                    ctx.stroke();
+                                    ctx.setLineDash([]);
+    
+                                    // Draw X
+                                    ctx.beginPath();
+                                    ctx.moveTo(voidX + 10, voidY + 10);
+                                    ctx.lineTo(voidX + cellSize - 10, voidY + cellSize - 10);
+                                    ctx.moveTo(voidX + cellSize - 10, voidY + 10);
+                                    ctx.lineTo(voidX + 10, voidY + cellSize - 10);
+                                    ctx.strokeStyle = '#f56565';
+                                    ctx.lineWidth = 2;
+                                    ctx.stroke();
+                                }
+                            }
+                        }
+                    }
+    
+                    // Draw the Kernel Box
+                    ctx.fillStyle = colorKernel;
+                    ctx.strokeStyle = isPaddingEnabled ? '#48bb78' : '#e53e3e'; // Green if good, Red if bad
+                    ctx.lineWidth = 3;
+                    drawRoundedRect(ctx, kPx, kPy, kSize, kSize, 10);
+                    ctx.fill();
+                    ctx.stroke();
+    
+                    // Label the kernel
+                    ctx.fillStyle = isPaddingEnabled ? '#2f855a' : '#c53030';
+                    ctx.font = 'bold 14px sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(isPaddingEnabled ? "Kernel (Valid)" : "Kernel (Invalid)", kPx, kPy - 10);
+                }
+    
+                // Helper for rounded rectangles
+                function drawRoundedRect(ctx, x, y, w, h, r) {
+                    if (w < 2 * r) r = w / 2;
+                    if (h < 2 * r) r = h / 2;
+                    ctx.beginPath();
+                    ctx.moveTo(x + r, y);
+                    ctx.arcTo(x + w, y, x + w, y + h, r);
+                    ctx.arcTo(x + w, y + h, x, y + h, r);
+                    ctx.arcTo(x, y + h, x, y, r);
+                    ctx.arcTo(x, y, x + w, y, r);
+                    ctx.closePath();
+                }
+    
+                // Global toggle function
+                window.togglePadding = function() {
+                    isPaddingEnabled = !isPaddingEnabled;
+                    
+                    if (isPaddingEnabled) {
+                        btn.innerText = "ON (Zero Padding)";
+                        btn.style.background = "linear-gradient(135deg, #48bb78 0%, #38a169 100%)";
+                        btn.style.color = "white";
+                        btn.style.boxShadow = "0 4px 12px rgba(72, 187, 120, 0.3)";
+                        
+                        statusText.innerHTML = "✅ Valid! The zero border supports the kernel.";
+                        statusText.style.color = "#38a169";
+                    } else {
+                        btn.innerText = "OFF";
+                        btn.style.background = "#cbd5e0";
+                        btn.style.color = "#4a5568";
+                        btn.style.boxShadow = "none";
+                        
+                        statusText.innerHTML = "⚠️ Kernel falls off the edge! Calculation impossible.";
+                        statusText.style.color = "#e53e3e";
+                    }
+    
+                    draw();
+                };
+    
+                // Initial Draw
+                draw();
+    
+            })();
+        </script>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Same Padding & Meme -->
+<section id="section6">
+    <p>Usually, we want the output size to be exactly the same as the input size. This configuration is often called <strong>Same Padding</strong>.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Meme showing a kernel falling off the edge of an image matrix cliff with text 'When you forget Zero Padding' - CV MEME: THE EDGE CASE">
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: FAQ -->
+<section id="section7">
+    <div class="faq-section">
+        <h3>Frequently Asked Question</h3>
+        <h4>Does padding with zeros distort the image information at the edges?</h4>
+        <p>That's a sharp observation! Yes, introducing zeros does create a slight artificial 'edge' around the picture. However, in practice, the most important objects are usually centered in the image, so this border artifact is negligible compared to the benefit of keeping the spatial dimensions constant.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Stride Intro -->
+<section id="section8">
+    <h2>Stride: Moving Faster</h2>
+    <p>Sometimes, we <em>don't</em> want to keep the image the same size. Sometimes, we want to shrink it on purpose to reduce the amount of data.</p>
+    <p>Instead of sliding the kernel one pixel at a time (step... step... step...), we can take bigger jumps. This parameter is called <strong>Stride</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Downsampling -->
+<section id="section9">
+    <p>If we use a Stride of 2, the kernel skips every other pixel. This effectively cuts the height and width of the output feature map in half.</p>
+    <div class="interactive-container" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; margin: 1.5rem 0;">
+        <canvas id="strideCanvas" width="700" height="320" style="max-width: 100%; height: auto; display: block; margin: 0 auto;"></canvas>
+        
+        <div style="margin-top: 15px; color: #718096; font-size: 0.9rem; font-style: italic;">
+            Top: Stride 1 (High detail, slow) &nbsp;|&nbsp; Bottom: Stride 2 (Downsampling, fast)
+        </div>
+    
+        <script>
+            (function() {
+                const canvas = document.getElementById('strideCanvas');
+                const ctx = canvas.getContext('2d');
+    
+                // --- Configuration ---
+                const config = {
+                    cellSize: 35,
+                    gap: 4,
+                    inputSize: 9, // width in cells
+                    kernelSize: 3,
+                    cycleSpeed: 0.015, // speed of animation
+                    colors: {
+                        input: '#e6f3ff',
+                        inputBorder: '#90cdf4',
+                        kernel: 'rgba(118, 75, 162, 0.3)',
+                        kernelBorder: '#764ba2',
+                        output: '#c6f6d5', // Green
+                        outputBorder: '#68d391',
+                        outputActive: '#48bb78',
+                        text: '#4a5568'
+                    }
+                };
+    
+                // Calculate grid dimensions
+                const cellFull = config.cellSize + config.gap;
+                const inputWidthPx = (config.inputSize * cellFull) - config.gap;
+    
+                // State for the two simulations
+                // progress goes from 0 to TotalSteps
+                let sim1 = { stride: 1, progress: 0, maxSteps: 0 };
+                let sim2 = { stride: 2, progress: 0, maxSteps: 0 };
+    
+                function init() {
+                    // Calculate max steps for each stride
+                    // Formula: (Input - Kernel) / Stride + 1
+                    sim1.maxSteps = Math.floor((config.inputSize - config.kernelSize) / 1) + 1;
+                    sim2.maxSteps = Math.floor((config.inputSize - config.kernelSize) / 2) + 1;
+                    
+                    requestAnimationFrame(loop);
+                }
+    
+                function loop() {
+                    update();
+                    draw();
+                    requestAnimationFrame(loop);
+                }
+    
+                function update() {
+                    // Increment progress
+                    // We add a pause at the end before resetting
+                    const pauseTime = 1.5; 
+                    
+                    sim1.progress += config.cycleSpeed;
+                    if (sim1.progress > sim1.maxSteps + pauseTime) sim1.progress = 0;
+    
+                    // Make sim2 slightly faster relative to steps to emphasize speed? 
+                    // No, keep same time-scale to show it finishes fewer steps.
+                    sim2.progress += config.cycleSpeed;
+                    if (sim2.progress > sim2.maxSteps + pauseTime) sim2.progress = 0;
+                }
+    
+                function draw() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+                    // Draw Lane 1 (Top)
+                    drawLane(sim1, 50, "Stride = 1 (Standard)");
+    
+                    // Draw Lane 2 (Bottom)
+                    drawLane(sim2, 190, "Stride = 2 (Downsampling)");
+                }
+    
+                function drawLane(sim, startY, label) {
+                    const startX = (canvas.width - inputWidthPx) / 2;
+                    
+                    // 1. Draw Label
+                    ctx.fillStyle = config.colors.text;
+                    ctx.font = "bold 14px sans-serif";
+                    ctx.textAlign = "left";
+                    ctx.fillText(label, startX, startY - 15);
+    
+                    // 2. Draw Input Grid
+                    for (let i = 0; i < config.inputSize; i++) {
+                        const x = startX + (i * cellFull);
+                        const y = startY;
+                        
+                        drawRoundedRect(ctx, x, y, config.cellSize, config.cellSize, 4, 
+                            config.colors.input, config.colors.inputBorder);
+                            
+                        // Small index number
+                        ctx.fillStyle = "#cbd5e0";
+                        ctx.font = "10px sans-serif";
+                        ctx.textAlign = "center";
+                        ctx.fillText(i, x + config.cellSize/2, y + config.cellSize - 5);
+                    }
+    
+                    // 3. Calculate Kernel Position
+                    // We want discrete steps with a slide between them.
+                    // floor(progress) = current step index
+                    // progress % 1 = percent transition to next step
+                    
+                    let currentStepIndex = Math.floor(sim.progress);
+                    let slide = sim.progress % 1;
+                    
+                    // Ease the slide: wait for 0.6, then slide in last 0.4
+                    // This makes the kernel "stop" at each spot
+                    let visualSlide = 0;
+                    if (slide > 0.6) {
+                        visualSlide = (slide - 0.6) / 0.4; 
+                        // simple ease out
+                        visualSlide = visualSlide * (2 - visualSlide);
+                    }
+    
+                    // If we are in the "reset pause" phase
+                    if (currentStepIndex >= sim.maxSteps) {
+                        currentStepIndex = sim.maxSteps - 1;
+                        visualSlide = 0; // Stop moving
+                    }
+    
+                    // The visual position in pixels relative to startX
+                    const currentPosPx = ((currentStepIndex + visualSlide) * sim.stride * cellFull);
+                    
+                    // 4. Draw Output Grid (Below Input)
+                    const outputStartY = startY + config.cellSize + 30;
+                    
+                    for (let i = 0; i < sim.maxSteps; i++) {
+                        const ox = startX + (i * cellFull); // Draw them tightly packed
+                        const oy = outputStartY;
+                        
+                        // Logic: has this output been calculated yet?
+                        if (i < currentStepIndex || (i === currentStepIndex && slide > 0.1)) {
+                            
+                            // Is this the one currently being created?
+                            const isJustCreated = (i === currentStepIndex);
+                            
+                            const fill = isJustCreated && slide < 0.6 ? config.colors.outputActive : config.colors.output;
+                            const stroke = config.colors.outputBorder;
+    
+                            drawRoundedRect(ctx, ox, oy, config.cellSize, config.cellSize, 4, fill, stroke);
+                            
+                            // Draw Connection Line if active
+                            if (isJustCreated && slide < 0.6) {
+                                const kernelCenter = startX + currentPosPx + (config.kernelSize * cellFull / 2) - (config.gap/2);
+                                const outputCenter = ox + config.cellSize/2;
+                                
+                                ctx.beginPath();
+                                ctx.moveTo(kernelCenter, startY + config.cellSize);
+                                ctx.lineTo(outputCenter, oy);
+                                ctx.strokeStyle = config.colors.kernelBorder;
+                                ctx.setLineDash([4, 4]);
+                                ctx.lineWidth = 2;
+                                ctx.stroke();
+                                ctx.setLineDash([]);
+                            }
+                        } else {
+                            // Empty placeholder
+                            ctx.strokeStyle = "#edf2f7";
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(ox, oy, config.cellSize, config.cellSize);
+                        }
+                    }
+                    
+                    // Label Output
+                    ctx.fillStyle = "#a0aec0";
+                    ctx.font = "12px sans-serif";
+                    ctx.textAlign = "left";
+                    ctx.fillText("Feature Map:", startX - 85, outputStartY + 22);
+    
+    
+                    // 5. Draw Kernel (On top)
+                    // Only draw if we haven't finished the animation cycle
+                    if (sim.progress < sim.maxSteps + 0.5) {
+                        const kx = startX + currentPosPx - 3; // -3 padding
+                        const ky = startY - 3;
+                        const kw = (config.kernelSize * cellFull) - config.gap + 6;
+                        const kh = config.cellSize + 6;
+    
+                        ctx.fillStyle = config.colors.kernel;
+                        ctx.strokeStyle = config.colors.kernelBorder;
+                        ctx.lineWidth = 2;
+                        
+                        // Rounded rect for kernel
+                        ctx.beginPath();
+                        ctx.roundRect(kx, ky, kw, kh, 8);
+                        ctx.fill();
+                        ctx.stroke();
+                    }
+                }
+    
+                function drawRoundedRect(ctx, x, y, w, h, r, fill, stroke) {
+                    ctx.beginPath();
+                    ctx.moveTo(x + r, y);
+                    ctx.arcTo(x + w, y, x + w, y + h, r);
+                    ctx.arcTo(x + w, y + h, x, y + h, r);
+                    ctx.arcTo(x, y + h, x, y, r);
+                    ctx.arcTo(x, y, x + w, y, r);
+                    ctx.closePath();
+                    if (fill) {
+                        ctx.fillStyle = fill;
+                        ctx.fill();
+                    }
+                    if (stroke) {
+                        ctx.strokeStyle = stroke;
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                }
+    
+                // Start
+                init();
+    
+            })();
+        </script>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Check Understanding & Vocab -->
+<section id="section10">
+    <p>This process is known as <strong>Downsampling</strong>. It is crucial for making the network more efficient and condensing information.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If I want my output feature map to be exactly half the width and height of my input, what Stride should I likely use?</h4>
+        <div id="cuy-stride-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Stride 2. By skipping every other pixel, you process half as many locations in each dimension.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-stride-answer')">Reveal Answer</button>
+    </div>
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Stride</h4>
+        <p>The number of pixels the kernel shifts at each step. Stride 1 is standard; Stride 2 results in downsampling.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: The Formula -->
+<section id="section11">
+    <h2>The Mathematics of Dimensions</h2>
+    <p>We don't have to guess the output size. There is a precise formula to calculate the dimensions of your feature map.</p>
+    <p>Let's break it down. The output height ($H_{out}$) depends on the Input height ($H_{in}$), the Kernel size ($K$), the Padding ($P$), and the Stride ($S$).</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Formula Breakdown -->
+<section id="section12">
+    <p>Here is the formula:</p>
+    <p>$$ H_{out} = \frac{H_{in} - K + 2P}{S} + 1 $$</p>
+    <p>Let's walk through why this works:</p>
+    <ul>
+        <li><strong>$H_{in} + 2P$</strong>: This is the total size of the image including the new zero-borders.</li>
+        <li><strong>$- K$</strong>: We subtract the kernel size because the kernel needs space to sit.</li>
+        <li><strong>$/ S$</strong>: We divide by the stride because that determines how many steps we take.</li>
+        <li><strong>$+ 1$</strong>: We add one to account for the starting position.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: AlexNet Example -->
+<section id="section13">
+    <p>Let's try a real-world challenge. The very first layer of the famous <strong>AlexNet</strong> architecture used these parameters:</p>
+    <ul>
+        <li>Input Size: $224 \times 224$</li>
+        <li>Kernel Size: $11 \times 11$</li>
+        <li>Stride: $4$</li>
+        <li>Padding: $2$</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Calculation -->
+<section id="section14">
+    <p>Let's plug it in:</p>
+    <p>$$ \text{Numerator} = 224 - 11 + (2 \times 2) = 224 - 11 + 4 = 217 $$</p>
+    <p>$$ \text{Divide by Stride} = \frac{217}{4} = 54.25 $$</p>
+    <p>$$ \text{Add 1} = 54.25 + 1 = 55.25 $$</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Flooring & Interactive -->
+<section id="section15">
+    <p>Wait, we can't have 0.25 of a pixel! In Deep Learning libraries like PyTorch, we typically round down (floor) the result. So the output size is <strong>55 x 55</strong>.</p>
+    <p>Now it's your turn to experiment. See what happens when the numbers don't match up.</p>
+    <div class="interactive-container" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    
+        <!-- Canvas Area -->
+        <canvas id="dimCalcCanvas" width="700" height="280" style="width: 100%; height: auto; display: block; margin-bottom: 20px;"></canvas>
+    
+        <!-- Formula Display -->
+        <div id="formulaDisplay" style="background: #f7fafc; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 25px; font-family: monospace; font-size: 1.1rem; border: 1px solid #cbd5e0;">
+            Loading formula...
+        </div>
+    
+        <!-- Controls Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 10px;">
+            
+            <!-- Input Size Control -->
+            <div class="control-group">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <label style="font-weight: 600; color: #4a5568;">Input Size ($H_{in}$)</label>
+                    <span id="val-hin" style="color: #4facfe; font-weight: bold;">10</span>
+                </div>
+                <input type="range" id="slider-hin" min="5" max="16" value="10" style="width: 100%; accent-color: #4facfe;">
+            </div>
+    
+            <!-- Kernel Size Control -->
+            <div class="control-group">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <label style="font-weight: 600; color: #4a5568;">Kernel Size ($K$)</label>
+                    <span id="val-k" style="color: #667eea; font-weight: bold;">3</span>
+                </div>
+                <input type="range" id="slider-k" min="1" max="7" value="3" style="width: 100%; accent-color: #667eea;">
+            </div>
+    
+            <!-- Padding Control -->
+            <div class="control-group">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <label style="font-weight: 600; color: #4a5568;">Padding ($P$)</label>
+                    <span id="val-p" style="color: #a0aec0; font-weight: bold;">0</span>
+                </div>
+                <input type="range" id="slider-p" min="0" max="5" value="0" style="width: 100%; accent-color: #a0aec0;">
+            </div>
+    
+            <!-- Stride Control -->
+            <div class="control-group">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <label style="font-weight: 600; color: #4a5568;">Stride ($S$)</label>
+                    <span id="val-s" style="color: #ed8936; font-weight: bold;">1</span>
+                </div>
+                <input type="range" id="slider-s" min="1" max="5" value="1" style="width: 100%; accent-color: #ed8936;">
+            </div>
+        </div>
+    
+        <script>
+            (function() {
+                // Setup
+                const canvas = document.getElementById('dimCalcCanvas');
+                const ctx = canvas.getContext('2d');
+                const formulaDiv = document.getElementById('formulaDisplay');
+    
+                // Sliders & Labels
+                const inputs = {
+                    hin: document.getElementById('slider-hin'),
+                    k: document.getElementById('slider-k'),
+                    p: document.getElementById('slider-p'),
+                    s: document.getElementById('slider-s')
+                };
+                const labels = {
+                    hin: document.getElementById('val-hin'),
+                    k: document.getElementById('val-k'),
+                    p: document.getElementById('val-p'),
+                    s: document.getElementById('val-s')
+                };
+    
+                // State
+                let state = { hin: 10, k: 3, p: 0, s: 1 };
+    
+                // Drawing Config
+                const colors = {
+                    input: '#4facfe',
+                    inputBorder: '#00f2fe',
+                    padding: '#cbd5e0',
+                    paddingBorder: '#a0aec0',
+                    output: '#9f7aea', // Purple
+                    outputBorder: '#805ad5',
+                    error: '#feb2b2', // Red
+                    errorBorder: '#fc8181'
+                };
+    
+                function update() {
+                    // Read values
+                    state.hin = parseInt(inputs.hin.value);
+                    state.k = parseInt(inputs.k.value);
+                    state.p = parseInt(inputs.p.value);
+                    state.s = parseInt(inputs.s.value);
+    
+                    // Update Labels
+                    labels.hin.textContent = state.hin;
+                    labels.k.textContent = state.k;
+                    labels.p.textContent = state.p;
+                    labels.s.textContent = state.s;
+    
+                    // Calculate Math
+                    // Formula: (Hin - K + 2P) / S + 1
+                    const numerator = state.hin - state.k + (2 * state.p);
+                    const division = numerator / state.s;
+                    const result = division + 1;
+                    
+                    const isValid = Number.isInteger(result) && result > 0;
+                    
+                    // Update Text Display
+                    let formulaHTML = `
+                        <span style="color:#4a5568">H<sub>out</sub> = </span> 
+                        ( <span style="color:#4facfe">${state.hin}</span> - 
+                        <span style="color:#667eea">${state.k}</span> + 
+                        2×<span style="color:#a0aec0">${state.p}</span> ) 
+                        / <span style="color:#ed8936">${state.s}</span> + 1 
+                        = `;
+                    
+                    if (isValid) {
+                        formulaHTML += `<strong style="color: #38a169; font-size: 1.2em;">${result}</strong>`;
+                    } else {
+                        formulaHTML += `<strong style="color: #e53e3e; font-size: 1.2em;">${result.toFixed(2)}</strong> <span style="color:#e53e3e; font-size:0.8em;">(Invalid Shape!)</span>`;
+                    }
+                    formulaDiv.innerHTML = formulaHTML;
+    
+                    draw(result, isValid);
+                }
+    
+                function draw(resultSize, isValid) {
+                    // Clear
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+                    // --- 1. Draw Input Side (Left) ---
+                    // We need to fit (Hin + 2P) squares
+                    const inputGridSize = state.hin + (2 * state.p);
+                    const maxInputHeight = 220;
+                    // Calculate cell size based on available height
+                    let cellSize = Math.floor(maxInputHeight / inputGridSize);
+                    // Clamp cell size to look good
+                    if (cellSize > 40) cellSize = 40;
+                    if (cellSize < 10) cellSize = 10;
+    
+                    const inputTotalSize = cellSize * inputGridSize;
+                    const startX_Input = 50; // Left margin
+                    const startY_Input = (canvas.height - inputTotalSize) / 2;
+    
+                    // Draw Grid
+                    for(let y = 0; y < inputGridSize; y++) {
+                        for(let x = 0; x < inputGridSize; x++) {
+                            const px = startX_Input + (x * cellSize);
+                            const py = startY_Input + (y * cellSize);
+    
+                            // Determine if this is Padding or Data
+                            // Padding exists if x < P, x >= P + Hin, etc.
+                            const isPadding = (x < state.p) || (x >= state.p + state.hin) || 
+                                              (y < state.p) || (y >= state.p + state.hin);
+    
+                            ctx.beginPath();
+                            ctx.rect(px, py, cellSize, cellSize);
+                            
+                            if (isPadding) {
+                                ctx.fillStyle = colors.padding;
+                                ctx.strokeStyle = colors.paddingBorder;
+                            } else {
+                                ctx.fillStyle = colors.input;
+                                ctx.strokeStyle = colors.inputBorder;
+                            }
+                            
+                            ctx.fill();
+                            ctx.stroke();
+                        }
+                    }
+                    
+                    // Label Input
+                    ctx.fillStyle = "#4a5568";
+                    ctx.font = "bold 14px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText(`Input: ${state.hin}×${state.hin}`, startX_Input + (inputTotalSize/2), startY_Input - 15);
+                    if (state.p > 0) {
+                         ctx.fillStyle = "#a0aec0";
+                         ctx.font = "12px sans-serif";
+                         ctx.fillText(`(Total: ${inputGridSize}×${inputGridSize})`, startX_Input + (inputTotalSize/2), startY_Input + inputTotalSize + 20);
+                    }
+    
+                    // --- 2. Draw Arrow (Middle) ---
+                    const midX = canvas.width / 2;
+                    const midY = canvas.height / 2;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(midX - 30, midY);
+                    ctx.lineTo(midX + 10, midY);
+                    ctx.lineTo(midX + 5, midY - 5);
+                    ctx.moveTo(midX + 10, midY);
+                    ctx.lineTo(midX + 5, midY + 5);
+                    ctx.strokeStyle = "#cbd5e0";
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = "#718096";
+                    ctx.font = "12px sans-serif";
+                    ctx.fillText(`Kernel ${state.k} | Stride ${state.s}`, midX - 10, midY - 15);
+    
+    
+                    // --- 3. Draw Output Side (Right) ---
+                    // If invalid, floor the result for drawing purposes, but make it red
+                    let outputGridSize = Math.floor(resultSize);
+                    if (outputGridSize < 1) outputGridSize = 1; // Prevent crash on negs
+    
+                    // Use SAME cell size scale if possible to show shrinkage,
+                    // but if output is huge (rare with these sliders), cap it.
+                    // Actually, let's keep cell size strictly linked to input to show relative scale.
+                    
+                    const outputTotalSize = cellSize * outputGridSize;
+                    const startX_Output = canvas.width - 50 - outputTotalSize; 
+                    // Center vertically
+                    const startY_Output = (canvas.height - outputTotalSize) / 2;
+    
+                    if (startX_Output < midX + 40) {
+                       // If output overlaps middle, just don't draw or shift (handling edge case)
+                       // With max sliders, this shouldn't happen often.
+                    }
+    
+                    for(let y = 0; y < outputGridSize; y++) {
+                        for(let x = 0; x < outputGridSize; x++) {
+                            const px = startX_Output + (x * cellSize);
+                            const py = startY_Output + (y * cellSize);
+    
+                            ctx.beginPath();
+                            ctx.rect(px, py, cellSize, cellSize);
+    
+                            if (isValid) {
+                                ctx.fillStyle = colors.output;
+                                ctx.strokeStyle = colors.outputBorder;
+                            } else {
+                                // Invalid Pattern
+                                ctx.fillStyle = colors.error;
+                                ctx.strokeStyle = colors.errorBorder;
+                            }
+                            
+                            ctx.fill();
+                            ctx.stroke();
+    
+                            // If invalid, draw little X inside? 
+                            if (!isValid) {
+                                ctx.beginPath();
+                                ctx.moveTo(px, py);
+                                ctx.lineTo(px+cellSize, py+cellSize);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+    
+                    // Label Output
+                    ctx.fillStyle = isValid ? "#6b46c1" : "#e53e3e";
+                    ctx.font = "bold 14px sans-serif";
+                    ctx.textAlign = "center";
+                    let outText = isValid ? `Output: ${outputGridSize}×${outputGridSize}` : "Invalid Shape!";
+                    ctx.fillText(outText, startX_Output + (outputTotalSize/2), startY_Output - 15);
+                }
+    
+                // Listeners
+                Object.values(inputs).forEach(input => {
+                    input.addEventListener('input', update);
+                });
+    
+                // Init
+                update();
+    
+            })();
+        </script>
+    </div>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Understanding these hyperparameters allows you to design custom networks. You control exactly how much the data shrinks at each step, balancing detail against computational speed. Getting these numbers wrong is the #1 source of 'Shape Mismatch' error messages.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16: Review and Test -->
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>You have now mastered the controls of the convolutional engine.</p>
+    <p>We moved from calculating single pixels to controlling the entire spatial flow of the network.</p>
+    <ul>
+        <li><strong>Padding</strong> allows us to maintain the spatial size of the image so we can go deep without the image disappearing.</li>
+        <li><strong>Stride</strong> allows us to aggressively downsample the image to reduce computation.</li>
+        <li>The <strong>Formula</strong> lets us predict exactly how the data shape changes layer by layer.</li>
+    </ul>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>You have a 32x32 input image. You apply a 5x5 kernel with a stride of 1 and NO padding. What is the output size?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. Without padding, the kernel cannot center on the edge pixels, so the output must be smaller.')">32x32</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Let\'s check the math: (32 - 5 + 0) / 1 + 1 = 27 + 1 = 28.')">28x28</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. This sounds like you used a stride of 2.')">16x16</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. A 5x5 kernel eats 2 pixels from each side (total 4), not just 1.')">30x30</div>
+        </div>
+    </div>
+    <p>In the next lesson, we will look at another way to shrink images that doesn't involve parameters at all: Pooling.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Placeholder IDs - these would be dynamic in a real app
+                let courseId = 'computer-vision';
+                let pathId = 'convolutional-neural-networks';
+                let moduleId = 'cv-ch02-foundations';
+                let lessonId = 'cv-ch02-l2-stride-padding';
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch02-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch02-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

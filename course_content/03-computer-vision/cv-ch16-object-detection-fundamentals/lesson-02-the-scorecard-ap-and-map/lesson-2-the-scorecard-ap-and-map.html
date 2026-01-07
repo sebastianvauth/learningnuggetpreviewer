@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Scorecard – AP and mAP</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <h1>The Scorecard – AP and mAP</h1>
+    <h2>The Precision-Recall Trade-off</h2>
+    <p>Welcome back! In the last lesson, we learned how to judge a single prediction using Intersection over Union (IoU). If the IoU is high enough, we pat the model on the back. But here is the problem: a model rarely makes just one prediction.</p>
+    <figure class="lesson-figure">
+        <img src="images/1.jpg" alt="Two robots comparing precision and recall strategies" loading="lazy">
+        <figcaption>Two robots embody the trade-off: one only celebrates perfect boxes (Precision) while the other casts a wide net to catch every car (Recall).</figcaption>
+    </figure>
+    <p>Imagine you have a dataset with 100 cars. You need to grade your model on how well it finds them. This introduces a fundamental tension in object detection: the battle between <strong>Precision</strong> and <strong>Recall</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: The Trade-off Examples -->
+<section id="section2">
+    <p>If your model is too conservative, it might only find the 5 easiest cars and ignore the rest. It will have 100% Precision (it didn't make any mistakes), but terrible Recall (it missed 95 cars).</p>
+    <p>On the other hand, if your model is trigger-happy, it might draw boxes around every shadow and bush. It will catch all 100 cars (100% Recall), but it will also detect 500 trees as cars (terrible Precision).</p>
+    <figure class="lesson-figure">
+        <img src="images/2.jpg" alt="Comic strip showing cautious vs trigger-happy detector behavior" loading="lazy">
+        <figcaption>High-precision models pass on hard cases, while high-recall models flag everything in sight—this comic highlights both extremes.</figcaption>
+    </figure>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: P-R Curve and Quiz -->
+<section id="section3">
+    <p>To visualize this performance, we use a <strong>Precision-Recall Curve</strong>. We plot Precision on the y-axis and Recall on the x-axis. Ideally, we want a curve that stays high up in the top-right corner (1.0 Precision, 1.0 Recall).</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Most detection models output a 'confidence score' for every box. If you lower the required confidence threshold (e.g., from 90% to 10%), what usually happens to the Recall?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. If you lower the bar, you let more predictions through. You are less likely to miss objects, so Recall shouldn\'t go down.')">Recall decreases</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. Lowering the threshold usually allows previously rejected weak detections to be accepted.')">Recall stays the same</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! By lowering the threshold, you accept more bounding boxes. This means you catch more ground-truth objects, increasing Recall (though likely lowering Precision).')">Recall increases</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Calculating AP Intro -->
+<section id="section4">
+    <h2>Calculating Average Precision (AP)</h2>
+    <p>In a perfect world, the Precision-Recall curve would be a smooth line. In reality, it looks like a erratic zigzag.</p>
+    <p>As you lower the confidence threshold to gain Recall, Precision usually drops, but sometimes it might spike up briefly if you get lucky with a batch of correct detections. This 'wiggly' curve makes it hard to compare models.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Interpolation -->
+<section id="section5">
+    <p>To solve this, we calculate the <strong>Average Precision (AP)</strong>. Think of AP as the area under the Precision-Recall curve. To make the math stable, we first smooth the curve using <strong>Interpolation</strong>.</p>
+    <div class="interactive-container" id="curveSmootherModule">
+      <div class="canvas-wrapper">
+          <canvas id="prCurveCanvas"></canvas>
+      </div>
+  
+      <div class="controls-area">
+          <div class="legend">
+              <div class="legend-item">
+                  <span class="dot blue"></span> Raw Precision
+              </div>
+              <div class="legend-item" id="orangeLegend" style="opacity: 0.3; transition: opacity 0.3s;">
+                  <span class="dot orange"></span> Interpolated
+              </div>
+          </div>
+          <button class="action-btn" id="interpolateBtn" onclick="toggleInterpolation()">Interpolate Curve</button>
+      </div>
+  
+      <script>
+          (function() {
+              const canvas = document.getElementById('prCurveCanvas');
+              const ctx = canvas.getContext('2d');
+              let isInterpolated = false;
+              let width, height;
+  
+              // 1. Data Generation (Hardcoded to ensure good "wiggles")
+              // Recall (x) goes 0 to 1. Precision (y) goes 0 to 1.
+              const rawData = [
+                  {r: 0.00, p: 1.00},
+                  {r: 0.10, p: 0.90},
+                  {r: 0.20, p: 0.55}, // Big Drop
+                  {r: 0.30, p: 0.50},
+                  {r: 0.40, p: 0.85}, // Spike 1
+                  {r: 0.50, p: 0.60},
+                  {r: 0.60, p: 0.50},
+                  {r: 0.70, p: 0.75}, // Spike 2
+                  {r: 0.80, p: 0.30},
+                  {r: 0.90, p: 0.20},
+                  {r: 1.00, p: 0.10}
+              ];
+  
+              // 2. Calculate Interpolated Data (Max to the right logic)
+              // We iterate backwards. The smoothed value is max(current_p, max_p_to_right)
+              const interpolatedData = [];
+              let maxP = 0;
+              for (let i = rawData.length - 1; i >= 0; i--) {
+                  maxP = Math.max(maxP, rawData[i].p);
+                  interpolatedData.unshift({ r: rawData[i].r, p: maxP });
+              }
+  
+              // 3. Setup Canvas
+              function resize() {
+                  const parent = canvas.parentElement;
+                  canvas.width = parent.clientWidth * 2; // Retina scaling
+                  canvas.height = parent.clientHeight * 2;
+                  width = canvas.width;
+                  height = canvas.height;
+                  draw();
+              }
+              window.addEventListener('resize', resize);
+              // Expose a redraw hook so we can resize after the section becomes visible
+              window.prCurveRedraw = () => resize();
+  
+              // Helper to map graph coordinates (0..1) to canvas coordinates
+              function mapX(val) {
+                  const padding = 50;
+                  return padding + val * (width - padding * 2);
+              }
+              function mapY(val) {
+                  const padding = 50;
+                  // Invert Y because canvas 0 is top
+                  return (height - padding) - val * (height - padding * 2);
+              }
+  
+              // 4. Drawing Logic
+              function draw() {
+                  ctx.clearRect(0, 0, width, height);
+                  
+                  // Define drawing area
+                  const padding = 50;
+                  
+                  // --- Draw Grid & Axes ---
+                  ctx.beginPath();
+                  ctx.strokeStyle = '#e2e8f0';
+                  ctx.lineWidth = 2;
+                  // Grid lines
+                  for(let i=0; i<=10; i+=2) {
+                      const val = i/10;
+                      // Vertical
+                      ctx.moveTo(mapX(val), mapY(0));
+                      ctx.lineTo(mapX(val), mapY(1));
+                      // Horizontal
+                      ctx.moveTo(mapX(0), mapY(val));
+                      ctx.lineTo(mapX(1), mapY(val));
+                  }
+                  ctx.stroke();
+  
+                  // Draw Axis Lines (Darker)
+                  ctx.beginPath();
+                  ctx.strokeStyle = '#cbd5e1';
+                  ctx.lineWidth = 4;
+                  ctx.moveTo(mapX(0), mapY(1)); // Y axis top
+                  ctx.moveTo(mapX(0), mapY(0)); // Origin
+                  ctx.lineTo(mapX(1), mapY(0)); // X axis end
+                  ctx.stroke();
+  
+                  // Axis Labels
+                  ctx.fillStyle = '#718096';
+                  ctx.font = 'bold 24px sans-serif';
+                  ctx.textAlign = 'center';
+                  ctx.fillText('Recall', width/2, height - 10);
+                  
+                  ctx.save();
+                  ctx.translate(20, height/2);
+                  ctx.rotate(-Math.PI/2);
+                  ctx.fillText('Precision', 0, 0);
+                  ctx.restore();
+  
+                  // --- Draw Raw Data (Blue) ---
+                  ctx.beginPath();
+                  ctx.strokeStyle = '#4facfe';
+                  ctx.lineWidth = 6;
+                  ctx.lineJoin = 'round';
+                  
+                  ctx.moveTo(mapX(rawData[0].r), mapY(rawData[0].p));
+                  for(let i=1; i<rawData.length; i++) {
+                      ctx.lineTo(mapX(rawData[i].r), mapY(rawData[i].p));
+                  }
+                  ctx.stroke();
+  
+                  // Draw Dots for Raw
+                  rawData.forEach(pt => {
+                      ctx.beginPath();
+                      ctx.fillStyle = '#ffffff';
+                      ctx.strokeStyle = '#4facfe';
+                      ctx.lineWidth = 4;
+                      ctx.arc(mapX(pt.r), mapY(pt.p), 8, 0, Math.PI * 2);
+                      ctx.fill();
+                      ctx.stroke();
+                  });
+  
+                  // --- Draw Interpolated Data (Orange) ---
+                  if (isInterpolated) {
+                      ctx.beginPath();
+                      ctx.strokeStyle = 'rgba(246, 173, 85, 0.9)'; // Orange with slight opacity
+                      ctx.lineWidth = 6;
+                      
+                      // Step function logic:
+                      // From point i to i+1, we maintain the height of point i, then drop.
+                      // Actually, for interpolation p(r) = max(p(r')), the "steps" connect the peaks.
+                      
+                      ctx.moveTo(mapX(interpolatedData[0].r), mapY(interpolatedData[0].p));
+                      
+                      for(let i=0; i<interpolatedData.length - 1; i++) {
+                          const curr = interpolatedData[i];
+                          const next = interpolatedData[i+1];
+                          
+                          // Draw horizontal line to the next X
+                          ctx.lineTo(mapX(next.r), mapY(curr.p));
+                          // Draw vertical line down to next Y (if different)
+                          ctx.lineTo(mapX(next.r), mapY(next.p));
+                      }
+                      
+                      ctx.stroke();
+                      
+                      // Add a subtle fill area under the orange curve
+                      ctx.lineTo(mapX(1), mapY(0));
+                      ctx.lineTo(mapX(0), mapY(0));
+                      ctx.closePath();
+                      ctx.fillStyle = 'rgba(246, 173, 85, 0.15)';
+                      ctx.fill();
+                  }
+              }
+  
+              // 5. Interaction
+              window.toggleInterpolation = function() {
+                  const btn = document.getElementById('interpolateBtn');
+                  const legend = document.getElementById('orangeLegend');
+                  
+                  isInterpolated = !isInterpolated;
+                  
+                  if (isInterpolated) {
+                      btn.textContent = "Reset Graph";
+                      btn.classList.add('reset');
+                      legend.style.opacity = '1';
+                  } else {
+                      btn.textContent = "Interpolate Curve";
+                      btn.classList.remove('reset');
+                      legend.style.opacity = '0.3';
+                  }
+                  
+                  // Animate the drawing? For now, just redraw.
+                  draw();
+              };
+  
+              // Initialize
+              setTimeout(resize, 100); // Wait for layout
+          })();
+      </script>
+  </div>
+    <p>The interpolation rule is simple: for any recall level \( r \), we set the precision to the maximum precision observed for any recall \( r' \geq r \).</p>
+    <p>$$ p_{\text{interp}}(r) = \max_{r' \ge r} p(r') $$</p>
+    <p>Essentially, we look to the right of the graph and say, "What is the best precision I can get if I demand at least this much recall?" This creates the rectangular steps you see in the orange line.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: AP Math and Vocab -->
+<section id="section6">
+    <p>Once we have the smooth curve, we calculate the AP. A common method (used in the PASCAL VOC challenge) is the <strong>11-point approximation</strong>. We average the interpolated precision at 11 equally spaced recall levels (0.0, 0.1, ... 1.0).</p>
+    <p>The formula looks like this:</p>
+    <p>$$ \text{Average Precision (AP)} \approx \frac{1}{11} \sum_{r \in \{0, 0.1, ..., 1.0\}} p_{\text{interp}}(r) $$</p>
+    <p>Let's try a simplified example. Imagine at 3 specific recall levels, our interpolated precisions are:</p>
+    <ul>
+        <li>Recall 0.0: Precision 1.0</li>
+        <li>Recall 0.5: Precision 0.8</li>
+        <li>Recall 1.0: Precision 0.5</li>
+    </ul>
+    <p>If we just averaged these three (instead of 11), the AP would be:</p>
+    <p>$$ AP \approx \frac{1.0 + 0.8 + 0.5}{3} = 0.766 $$</p>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Interpolation</h4>
+        <p>In the context of Precision-Recall curves, interpolation is a technique to smooth out the jagged raw data. It assigns the highest precision value found to the right of the current recall level, creating a step-function that makes calculating the area under the curve (AP) more robust.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: From AP to mAP -->
+<section id="section7">
+    <h2>From AP to mAP</h2>
+    <p>So far, we have calculated AP for a single class (e.g., 'Car'). But datasets have many classes.</p>
+    <p>To get a single score for the entire deep learning model, we calculate the AP for every single class independently (Cars, Pedestrians, Traffic Lights) and then take the average of those scores. This gives us the <strong>mean Average Precision (mAP)</strong>.</p>
+    <p>$$ \text{mAP} = \frac{1}{N} \sum_{i=1}^{N} AP_i $$</p>
+    <p>where \( N \) is the number of classes.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Stop and Think -->
+<section id="section8">
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why do we average the AP across all classes? What happens if a model is great at detecting cars (AP=0.9) but terrible at detecting pedestrians (AP=0.1)?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> The mAP would be 0.5. The metric treats all classes as equally important. Even if 90% of the objects in your dataset are cars, ignoring the pedestrians will destroy your mAP score. This forces the model to be good at everything, not just the majority class.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Why it Matters -->
+<section id="section9">
+    <p>This metric, mAP, is the <em>de facto</em> standard in computer vision. You cannot publish a research paper or deploy a commercial model without reporting it.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>mAP provides a single number that encapsulates both the classification accuracy and the localization quality of a model across all categories. It allows researchers to say 'Model A is objectively better than Model B'.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: FAQ and Test Knowledge -->
+<section id="section10">
+    <p>However, keep in mind that mAP is strict. It requires the model to have high precision at all levels of recall.</p>
+    
+    <div class="frequently-asked">
+        <h3>Frequently Asked</h3>
+        <p><strong>What is considered a 'good' mAP score?</strong></p>
+        <p>It heavily depends on the difficulty of the dataset and the IoU threshold used. On older datasets like PASCAL VOC, scores over 80% are common. On difficult modern datasets like MS COCO (which has 80 classes and small objects), a mAP of 50-60% is considered state-of-the-art. Always compare scores within the same dataset context!</p>
+    </div>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following statements about mAP is FALSE?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. This is the definition of mAP.')">mAP is the average of AP scores across all classes.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. This is true; since AP is the area under the curve, you need both high precision and recall to maximize the area.')">A high mAP requires the model to have high precision and high recall.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! This is FALSE. AP (and therefore mAP) is calculated by integrating over *all* possible confidence thresholds (from 0 to 1) to form the curve. It is not based on a single threshold choice.')">mAP is calculated using a single global confidence threshold.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. This is true; it creates the monotonically decreasing step function.')">Interpolation helps smooth the Precision-Recall curve before calculating AP.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(11)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 11: Review -->
+<section id="section11">
+    <h2>Review and Reflect</h2>
+    <p>Evaluation is the compass that guides model training.</p>
+    <p>In this lesson, we moved from checking individual boxes to grading the entire neural network.</p>
+    <ul>
+        <li><strong>Precision and Recall</strong> tell us about the trade-off between quality and quantity.</li>
+        <li><strong>Average Precision (AP)</strong> summarizes the Precision-Recall curve into a single score using <strong>Interpolation</strong>.</li>
+        <li><strong>mAP</strong> averages these scores across all object classes to give the final verdict on the model.</li>
+    </ul>
+    <p>Now that we know how to grade a detector, it's time to build one. In the next lesson, we will travel back to 2014 to look at the first deep learning architecture that changed the game: R-CNN.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 11; // Adjusted for the number of sections in this lesson
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    if (nextSectionId === 5 && window.prCurveRedraw) {
+        // Section 5 canvas was sized while hidden; force a redraw now that it is visible
+        setTimeout(() => window.prCurveRedraw(), 50);
+    }
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Specifically checking if this is the final quiz to show the continue button
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section10') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs updated loosely based on context, typically these would come from the LMS routing
+                let courseId = 'computer-vision';
+                let pathId = 'object-detection';
+                let moduleId = 'cv-ch21-m1-foundations';
+                let lessonId = 'cv-ch21-l2-scorecard-ap-map'; 
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch21-m1-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+        // Logic to check status from parent LMS
+        let courseId = 'computer-vision';
+        let pathId = 'object-detection';
+        let moduleId = 'cv-ch21-m1-foundations';
+        let lessonId = 'cv-ch21-l2-scorecard-ap-map';
+        
+        if (window.parent.currentRoute) {
+            const route = window.parent.currentRoute;
+            if (route.courseId) courseId = route.courseId;
+            if (route.pathId) pathId = route.pathId;
+            if (route.moduleId) moduleId = route.moduleId;
+            if (route.lessonId) lessonId = route.lessonId;
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('course')) courseId = urlParams.get('course');
+        if (urlParams.get('path')) pathId = urlParams.get('path');
+        if (urlParams.get('module')) moduleId = urlParams.get('module');
+        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+        const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+        if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+            button.classList.add('completed');
+            button.innerHTML = '✅ Completed!';
+            return;
+        }
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch21-m1-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

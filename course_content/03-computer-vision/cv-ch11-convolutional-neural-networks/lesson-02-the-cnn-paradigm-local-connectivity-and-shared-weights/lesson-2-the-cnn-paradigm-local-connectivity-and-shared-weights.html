@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The CNN Paradigm – Local Connectivity & Shared Weights</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1 -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Comparison diagram showing Classical Pipeline with manual feature extraction versus Deep Learning Pipeline with end-to-end CNN">
+    </div>
+    <h1>The CNN Paradigm – Local Connectivity & Shared Weights</h1>
+    <h2>The Old Way: Manual Feature Engineering</h2>
+
+    <p>In the last lesson, we saw that standard Fully Connected networks result in a computational explosion when dealing with images. So, before Deep Learning took over, how did computer vision work?</p>
+    <p>We used the 'Classical Approach.' Humans—PhD researchers, mostly—would sit down and mathematically design small scanners to look for specific things like edges, corners, or texture changes. This was called <strong>Manual Feature Engineering</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2 -->
+<section id="section2">
+    <h2>Letting the Machine Learn</h2>
+    <p>The problem with the manual approach is that you have to define exactly what an 'ear' or a 'wheel' looks like mathematically. That's incredibly hard!</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3 -->
+<section id="section3">
+    <p>The core idea of Deep Learning, and specifically Convolutional Neural Networks (CNNs), is to stop telling the computer <em>what</em> to look for. Instead, we give it a flexible architecture and let it <strong>learn</strong> the best features itself from the data.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Comic strip comparing manual feature engineering with a stressed scientist measuring cat ears versus learned features with a robot confidently recognizing patterns from data">
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4 -->
+<section id="section4">
+    <p>To achieve this, CNNs introduce three specific architectural changes that solve the problems of Fully Connected layers: <strong>Local Connectivity</strong>, <strong>Shared Weights</strong>, and <strong>Spatial Preservation</strong>. Let's break them down.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>End-to-End Learning</h4>
+        <p>A Deep Learning paradigm where the entire system—from raw input to final output—is trained simultaneously. The network learns how to extract features (feature engineering) and how to classify them at the same time.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5 -->
+<section id="section5">
+    <h2>Pillar 1: Local Connectivity</h2>
+    <p>Remember the 1.5 billion weights? That happened because every neuron looked at <em>every</em> pixel. But think about how you see. When you look at a cat's eye, you don't need to know the color of the pixel in the bottom-left corner of the image to understand the eye.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6 -->
+<section id="section6">
+    <p>Pixels are most related to their neighbors. This is the <strong>Intrinsic Bias</strong> of images. CNNs respect this by connecting neurons only to a small, localized region of the input.</p>
+<!-- Interactive: The Flashlight Concept -->
+<div class="interactive-container" id="flashlightWidget">
+    <div class="canvas-wrapper">
+        <!-- Input Image -->
+        <div class="canvas-box">
+            <div class="canvas-label">Input Image (12x12)</div>
+            <canvas id="inputCanvas" width="240" height="240"></canvas>
+        </div>
+
+        <!-- Arrow Icon -->
+        <div style="font-size: 2rem; color: #cbd5e1;">➔</div>
+
+        <!-- Feature Map -->
+        <div class="canvas-box">
+            <div class="canvas-label">Feature Map (10x10)</div>
+            <canvas id="outputCanvas" width="200" height="200"></canvas>
+        </div>
+    </div>
+    <p class="instruction-hint">Hover over the Input Image to scan with the kernel.</p>
+
+    <script>
+    (function() {
+        const inputCanvas = document.getElementById('inputCanvas');
+        const outputCanvas = document.getElementById('outputCanvas');
+        const ctxIn = inputCanvas.getContext('2d');
+        const ctxOut = outputCanvas.getContext('2d');
+
+        // Config
+        const GRID_SIZE = 12; // Input grid 12x12
+        const KERNEL_SIZE = 3; // 3x3 filter
+        const OUTPUT_SIZE = GRID_SIZE - KERNEL_SIZE + 1; // 10x10
+        
+        // Pixel sizes for rendering
+        const CELL_SIZE_IN = inputCanvas.width / GRID_SIZE;   // 20px
+        const CELL_SIZE_OUT = outputCanvas.width / OUTPUT_SIZE; // 20px
+
+        // Generate a random-ish "image" pattern (0-1 values)
+        // We'll make a simple shape like a smiley face or concentric squares
+        const imageData = [];
+        for (let y = 0; y < GRID_SIZE; y++) {
+            const row = [];
+            for (let x = 0; x < GRID_SIZE; x++) {
+                // Create a pattern: concentric rings
+                const dist = Math.sqrt((x - 5.5)**2 + (y - 5.5)**2);
+                let val = Math.sin(dist) > 0 ? 0.8 : 0.2;
+                // Add some noise
+                val += (Math.random() - 0.5) * 0.2;
+                row.push(Math.max(0, Math.min(1, val)));
+            }
+            imageData.push(row);
+        }
+
+        // State
+        let mouseX = -1;
+        let mouseY = -1;
+        let isHovering = false;
+
+        // Draw Function
+        function draw() {
+            // 1. Clear
+            ctxIn.clearRect(0, 0, inputCanvas.width, inputCanvas.height);
+            ctxOut.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+
+            // Calculate grid position of the flashlight (top-left corner of kernel)
+            // We clamp it so the 3x3 kernel stays inside the grid
+            let gridX = Math.floor(mouseX / CELL_SIZE_IN) - 1; // Center mouse in kernel
+            let gridY = Math.floor(mouseY / CELL_SIZE_IN) - 1;
+
+            // Clamping logic: valid positions for top-left are 0 to (GRID - KERNEL)
+            const maxPos = GRID_SIZE - KERNEL_SIZE;
+            
+            // If hovering, strictly clamp. If not hovering, just reset to -1
+            if (isHovering) {
+                gridX = Math.max(0, Math.min(maxPos, gridX));
+                gridY = Math.max(0, Math.min(maxPos, gridY));
+            } else {
+                gridX = -1;
+                gridY = -1;
+            }
+
+            // --- DRAW INPUT IMAGE ---
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const val = imageData[y][x];
+                    
+                    // Determine brightness: 
+                    // If inside the flashlight (gridX <= x < gridX+3), full brightness.
+                    // Otherwise, dim.
+                    let brightness = Math.floor(val * 255);
+                    let alpha = 0.3; // Dim by default
+
+                    if (isHovering && 
+                        x >= gridX && x < gridX + KERNEL_SIZE && 
+                        y >= gridY && y < gridY + KERNEL_SIZE) {
+                        alpha = 1.0; // Lit up!
+                    }
+
+                    ctxIn.fillStyle = `rgba(${brightness}, ${brightness}, ${brightness}, ${alpha})`;
+                    ctxIn.fillRect(x * CELL_SIZE_IN, y * CELL_SIZE_IN, CELL_SIZE_IN, CELL_SIZE_IN);
+                    
+                    // Subtle grid lines
+                    ctxIn.strokeStyle = 'rgba(0,0,0,0.05)';
+                    ctxIn.strokeRect(x * CELL_SIZE_IN, y * CELL_SIZE_IN, CELL_SIZE_IN, CELL_SIZE_IN);
+                }
+            }
+
+            // Draw Flashlight Border
+            if (isHovering) {
+                ctxIn.strokeStyle = '#f6ad55'; // Orange/Yellow highlight
+                ctxIn.lineWidth = 3;
+                ctxIn.strokeRect(
+                    gridX * CELL_SIZE_IN, 
+                    gridY * CELL_SIZE_IN, 
+                    KERNEL_SIZE * CELL_SIZE_IN, 
+                    KERNEL_SIZE * CELL_SIZE_IN
+                );
+            }
+
+            // --- DRAW FEATURE MAP (OUTPUT) ---
+            // Draw background grid
+            for (let y = 0; y < OUTPUT_SIZE; y++) {
+                for (let x = 0; x < OUTPUT_SIZE; x++) {
+                    ctxOut.fillStyle = '#edf2f7'; // Empty slot color
+                    ctxOut.strokeStyle = '#cbd5e1';
+                    
+                    // If this is the active output pixel
+                    if (isHovering && x === gridX && y === gridY) {
+                        // Use the gradient colors from the CSS theme
+                        ctxOut.fillStyle = '#667eea'; 
+                    }
+
+                    ctxOut.fillRect(x * CELL_SIZE_OUT, y * CELL_SIZE_OUT, CELL_SIZE_OUT, CELL_SIZE_OUT);
+                    ctxOut.strokeRect(x * CELL_SIZE_OUT, y * CELL_SIZE_OUT, CELL_SIZE_OUT, CELL_SIZE_OUT);
+                }
+            }
+        }
+
+        // Event Listeners
+        function updateMouse(e) {
+            const rect = inputCanvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+            isHovering = (
+                mouseX >= 0 && mouseX <= rect.width &&
+                mouseY >= 0 && mouseY <= rect.height
+            );
+            requestAnimationFrame(draw);
+        }
+
+        inputCanvas.addEventListener('mousemove', updateMouse);
+        inputCanvas.addEventListener('mouseleave', () => {
+            isHovering = false;
+            requestAnimationFrame(draw);
+        });
+
+        // Touch support
+        inputCanvas.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            const touch = e.touches[0];
+            const rect = inputCanvas.getBoundingClientRect();
+            mouseX = touch.clientX - rect.left;
+            mouseY = touch.clientY - rect.top;
+            isHovering = true;
+            requestAnimationFrame(draw);
+        }, { passive: false });
+
+        inputCanvas.addEventListener('touchstart', (e) => {
+             e.preventDefault();
+             const touch = e.touches[0];
+             const rect = inputCanvas.getBoundingClientRect();
+             mouseX = touch.clientX - rect.left;
+             mouseY = touch.clientY - rect.top;
+             isHovering = true;
+             requestAnimationFrame(draw);
+        }, { passive: false });
+
+        // Initial Draw
+        draw();
+    })();
+    </script>
+</div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7 -->
+<section id="section7">
+    <p>We call this small window a <strong>Kernel</strong> (or Filter). By focusing on small regions, we drastically reduce the number of connections. We aren't trying to understand the whole image at once; we are scanning it piece by piece.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Kernel (Filter)</h4>
+        <p>A small matrix of weights (e.g., 3x3 or 5x5) that slides over the input image to detect specific features like edges or textures.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- SECTION 8 -->
+<section id="section8">
+    <h2>Pillar 2: Shared Weights</h2>
+    <p>This is the 'secret sauce' that makes CNNs efficient. Imagine you want to detect a vertical edge. Does a vertical edge in the top-left corner look different from a vertical edge in the bottom-right corner?</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why does it make sense to use the <em>same</em> weights (filter) to look at the top-left of an image and the bottom-right?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> Because visual features are 'translation invariant.' A wheel is a wheel, regardless of where it appears in the photo. Therefore, we can use the exact same feature detector (kernel) everywhere.</div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- SECTION 9 -->
+<section id="section9">
+    <p>In a Fully Connected layer, we would need separate weights to find a wheel in the top corner and a wheel in the bottom corner. In a CNN, we <strong>Share Weights</strong>. We use the <em>same</em> kernel and slide it across the entire image.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- SECTION 10 -->
+<section id="section10">
+    <p>Let's look at the math to see how much this helps.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- SECTION 11 -->
+<section id="section11">
+    <p><strong>Fully Connected Approach:</strong><br>
+    Input: $800 \times 600$ image.<br>
+    Neuron connections: $480,000$.<br>
+    Total parameters for 1 neuron: <strong>480,000 weights</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- SECTION 12 -->
+<section id="section12">
+    <p><strong>Convolutional Approach:</strong><br>
+    Input: $800 \times 600$ image.<br>
+    Kernel Size: $3 \times 3$.<br>
+    Total parameters for 1 filter: $3 \times 3 = $ <strong>9 weights</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- SECTION 13 -->
+<section id="section13">
+    <p>We went from nearly half a million parameters to just <strong>9</strong>. This massive reduction allows us to learn many different filters (detecting horizontal edges, vertical edges, colors, etc.) without running out of memory.</p>
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If a filter learns to detect a vertical edge, where in the image will it look for that edge?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. The filter slides across the whole image.')">Only in the center</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Because of Shared Weights, the same edge detector scans the entire image.')">Everywhere</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. The convolution operation applies to all positions systematically.')">Only where the pixel values are high</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 14 -->
+<section id="section14">
+    <h2>Pillar 3: Spatial Preservation</h2>
+    <p>In Lesson 1, we saw that FC layers flatten images into a long line, destroying the spatial relationships. If you shuffle the pixels, an FC layer doesn't care.</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- SECTION 15 -->
+<section id="section15">
+    <p>Convolutional layers produce a <strong>Feature Map</strong>. If the kernel detects an eye at position $(x, y)$ in the input, the activation appears at position $(x, y)$ in the output feature map.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Spatial preservation diagram showing an input face image, kernel processing an eye region, and output 2D feature map maintaining the spatial location">
+    </div>
+    <p>This means the network maintains the 'picture' structure throughout its layers, allowing it to understand that a nose is usually below the eyes.</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- SECTION 16 -->
+<section id="section16">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Shared weights are the key to efficiency. They reduce the parameter count from billions to thousands, making modern AI possible on current hardware. Spatial preservation allows the network to understand shape and structure.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- SECTION 17 -->
+<section id="section17">
+    <h2>Test Your Knowledge</h2>
+    <p>Let's ensure you've grasped the core paradigm shift of CNNs.</p>
+    <div class="test-your-knowledge">
+        <h3>Quiz</h3>
+        <h4>Which of the following is NOT a benefit of Convolutional Layers compared to Fully Connected Layers for image processing?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This IS a benefit. 3x3 kernels are much smaller than dense connections.')">They significantly reduce the number of parameters.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This IS a benefit. The output is a 2D map, not a flat vector.')">They preserve the spatial relationship between pixels.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! This is NOT true. CNNs still require large amounts of data to learn the features.')">They remove the need for all training data.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This IS a benefit. It utilizes the intrinsic bias of images.')">They assume that local pixel neighborhoods are meaningful.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(18)" style="display: none;">Continue</div>
+</section>
+
+<!-- SECTION 18 -->
+<section id="section18">
+    <p>Great job! You now understand the <em>architecture</em> that makes computer vision possible.</p>
+    <div class="vocab-section">
+        <h3>Frequently Asked</h3>
+        <h4>Is a Kernel the same thing as a Filter?</h4>
+        <p>Yes, in the context of Deep Learning, the terms 'Kernel' and 'Filter' are used interchangeably. Both refer to the small matrix of weights (like our 3x3 example) that slides over the image.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<!-- SECTION 19 -->
+<section id="section19">
+    <h2>Review and Reflect</h2>
+    <p>We have moved away from the brute-force Fully Connected approach. The <strong>Convolutional Layer</strong> relies on three pillars:</p>
+    <ul>
+        <li><strong>Local Connectivity:</strong> Focusing on small regions at a time.</li>
+        <li><strong>Shared Weights:</strong> Using the same feature detector everywhere, massively saving memory.</li>
+        <li><strong>Spatial Preservation:</strong> Keeping the 2D structure of the image intact.</li>
+    </ul>
+    <p>In the next lesson, we will look inside the 'Flashlight' and learn the actual math—the Convolution Operation—that transforms pixels into features.</p>
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 19;
+
+updateProgress();
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    // Auto-show mark completed if we reached the end immediately (rare, but possible)
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Handle main quiz continuation
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section17') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Placeholder IDs - in a real app these might be dynamic or match the new lesson structure
+                let courseId = 'computer-vision';
+                let pathId = 'generative-adversarial-networks'; 
+                let moduleId = 'cv-ch21-m1-foundations';
+                let lessonId = 'cv-ch21-l2-cnn-paradigm'; 
+                
+                // Try to grab from URL if available
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch21-l2-cnn_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage for this specific lesson
+    const isCompleted = localStorage.getItem('lesson_cv-ch21-l2-cnn_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

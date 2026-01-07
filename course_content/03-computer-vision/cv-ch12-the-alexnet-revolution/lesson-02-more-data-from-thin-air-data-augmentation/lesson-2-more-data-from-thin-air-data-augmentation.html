@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>More Data from Thin Air – Data Augmentation</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <h1>More Data from Thin Air – Data Augmentation</h1>
+    <h2>The Greedy Brain</h2>
+    <p>In the previous lesson, we saw how AlexNet shattered records with a massive architecture. But a massive brain comes with a massive appetite.</p>
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Hungry robotic brain sitting at table with few training images books saying I've memorized these already">
+        <p class="image-caption">The overfitting dilemma: too much capacity, too little data.</p>
+    </div>
+    <p>AlexNet has 60 million parameters. That is a staggering amount of capacity. Think of these parameters as empty pages in a notebook waiting to be filled with knowledge.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2 -->
+<section id="section2">
+    <p>However, the ImageNet dataset, despite being huge for its time, only had about 1.2 million images. That might sound like a lot, but for a model this size, it's dangerously small.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3 -->
+<section id="section3">
+    <p>When you have a high-capacity model and limited data, you run into the nemesis of deep learning: <strong>Overfitting</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Overfitting</h4>
+        <p>A modeling error where a function is too closely fit to a limited set of data points. The model 'memorizes' the training data (including noise) rather than learning general patterns, leading to poor performance on new, unseen data.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4 -->
+<section id="section4">
+    <p>Imagine studying for a history exam where you only have 5 practice questions. If you study them for a week, you'll memorize the answers word-for-word. But if the actual exam asks the same questions phrased slightly differently, you'll fail.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5 -->
+<section id="section5">
+    <p>The AlexNet team faced a dilemma: Collecting millions of new labeled images is slow and expensive. They needed a way to get more data without actually going out and taking more photos.</p>
+    <p>Their solution? <strong>Data Augmentation</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6 -->
+<section id="section6">
+    <p>They decided to create new data out of thin air.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Data augmentation allows us to artificially expand the size of a training dataset by creating modified versions of images in the dataset. It teaches the model to be 'invariant'—recognizing a cat whether it's centered, in the corner, or under a yellow light.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Geometric Augmentation -->
+<section id="section7">
+    <h2>Geometric Augmentation: The Cookie Cutter</h2>
+    <p>The first trick AlexNet used was <strong>Geometric Augmentation</strong>. This relies on the fact that an object is still the same object even if we shift its position.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Data augmentation pipeline showing one dog image producing 10 augmented versions through crops and horizontal flips">
+        <p class="image-caption">From one to many: geometric transformations multiply the training data.</p>
+    </div>
+    <p>The images in ImageNet were pre-processed to a resolution of $256 \times 256$ pixels. However, AlexNet was designed to accept inputs of size $224 \times 224$ pixels.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8 -->
+<section id="section8">
+    <p>Instead of just resizing the image, the researchers used this size difference to their advantage. They acted like a cookie cutter.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9 -->
+<section id="section9">
+    <p>From every single $256 \times 256$ image, they extracted random $224 \times 224$ patches. Specifically, during training, they grabbed patches from the four corners and the center.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10 -->
+<section id="section10">
+    <p>Then, they took those 5 patches and flipped them horizontally (mirror image).</p>
+    <div class="augmentor-wrapper">
+        <!-- Internal Styles for this specific interactive -->
+        <div class="aug-header">
+            <div class="aug-title">The Augmentor</div>
+            <div class="aug-counter-box">Samples Created: <span id="augCounter">0</span></div>
+        </div>
+    
+        <div class="aug-layout">
+            <!-- Left: Canvas -->
+            <div>
+                <div class="aug-canvas-container" id="augCanvasContainer">
+                    <canvas id="augCanvas" width="256" height="256"></canvas>
+                </div>
+                <p class="aug-helper-text">Drag box to position crop</p>
+            </div>
+    
+            <!-- Right: Controls -->
+            <div class="aug-controls-area">
+                <div class="aug-buttons">
+                    <button class="aug-btn aug-btn-flip" onclick="augmentor.toggleFlip()">
+                        <span style="font-size:1.2em">↔</span> Flip
+                    </button>
+                    <button class="aug-btn aug-btn-capture" onclick="augmentor.capture()">
+                        <span style="font-size:1.2em">📸</span> Capture (224px)
+                    </button>
+                </div>
+                
+                <div>
+                    <div class="aug-gallery-label">Training Batch</div>
+                    <div class="aug-gallery" id="augGallery">
+                        <!-- Captured images go here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <script>
+        (function() {
+            const canvas = document.getElementById('augCanvas');
+            const ctx = canvas.getContext('2d');
+            const gallery = document.getElementById('augGallery');
+            const counterEl = document.getElementById('augCounter');
+    
+            // Config
+            const SRC_SIZE = 256;
+            const CROP_SIZE = 224;
+            const MAX_OFFSET = SRC_SIZE - CROP_SIZE; // 32px
+            
+            // State
+            let state = {
+                isFlipped: false,
+                cropX: 16, // Start centered (32/2)
+                cropY: 16,
+                isDragging: false,
+                lastMouseX: 0,
+                lastMouseY: 0,
+                samples: 0
+            };
+    
+            // Create the "Car" asset programmatically to avoid external dependency issues
+            const carImage = new Image();
+            function generateCarAsset() {
+                const tempCv = document.createElement('canvas');
+                tempCv.width = 256;
+                tempCv.height = 256;
+                const tCtx = tempCv.getContext('2d');
+    
+                // Background (Grass/Road)
+                tCtx.fillStyle = '#68d391'; // green grass
+                tCtx.fillRect(0,0,256,150);
+                tCtx.fillStyle = '#718096'; // road
+                tCtx.fillRect(0,150,256,106);
+    
+                // Car Body
+                tCtx.fillStyle = '#e53e3e'; // Red car
+                tCtx.beginPath();
+                tCtx.roundRect(40, 130, 180, 60, 10);
+                tCtx.fill();
+    
+                // Car Top
+                tCtx.fillStyle = '#fc8181'; 
+                tCtx.beginPath();
+                tCtx.moveTo(70, 130);
+                tCtx.lineTo(90, 90);
+                tCtx.lineTo(170, 90);
+                tCtx.lineTo(190, 130);
+                tCtx.fill();
+    
+                // Windows
+                tCtx.fillStyle = '#bee3f8';
+                tCtx.beginPath();
+                tCtx.moveTo(92, 95);
+                tCtx.lineTo(168, 95);
+                tCtx.lineTo(185, 130);
+                tCtx.lineTo(75, 130);
+                tCtx.fill();
+    
+                // Wheels
+                tCtx.fillStyle = '#1a202c';
+                tCtx.beginPath();
+                tCtx.arc(80, 190, 25, 0, Math.PI*2);
+                tCtx.arc(180, 190, 25, 0, Math.PI*2);
+                tCtx.fill();
+                
+                // Wheel rims
+                tCtx.fillStyle = '#cbd5e0';
+                tCtx.beginPath();
+                tCtx.arc(80, 190, 10, 0, Math.PI*2);
+                tCtx.arc(180, 190, 10, 0, Math.PI*2);
+                tCtx.fill();
+    
+                // Sun
+                tCtx.fillStyle = '#f6e05e';
+                tCtx.beginPath();
+                tCtx.arc(220, 40, 30, 0, Math.PI*2);
+                tCtx.fill();
+    
+                return tempCv.toDataURL();
+            }
+    
+            carImage.src = generateCarAsset();
+            carImage.onload = () => draw();
+    
+            // Main Draw Loop
+            function draw() {
+                // 1. Clear
+                ctx.clearRect(0, 0, SRC_SIZE, SRC_SIZE);
+    
+                // 2. Draw Source Image (with Flip if active)
+                ctx.save();
+                if (state.isFlipped) {
+                    ctx.translate(SRC_SIZE, 0);
+                    ctx.scale(-1, 1);
+                }
+                ctx.drawImage(carImage, 0, 0, SRC_SIZE, SRC_SIZE);
+                ctx.restore();
+    
+                // 3. Draw Overlay (The "Dim" area outside the crop)
+                // We use a "hollow rect" approach by using paths
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.beginPath();
+                // Outer bounds (Canvas)
+                ctx.rect(0, 0, SRC_SIZE, SRC_SIZE);
+                // Inner bounds (Crop box) - draw counter-clockwise to create hole
+                ctx.rect(state.cropX + CROP_SIZE, state.cropY, -CROP_SIZE, CROP_SIZE);
+                ctx.fill();
+    
+                // 4. Draw Viewfinder Border
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 3]);
+                ctx.strokeRect(state.cropX, state.cropY, CROP_SIZE, CROP_SIZE);
+                
+                // 5. Draw Viewfinder Shadow/Glow for visibility
+                ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([]);
+                ctx.strokeRect(state.cropX - 1, state.cropY - 1, CROP_SIZE + 2, CROP_SIZE + 2);
+            }
+    
+            // --- Interaction Logic ---
+    
+            function handleStart(x, y) {
+                // Check if click is near the crop box (simple hit test, or just allow dragging anywhere since canvas is small)
+                state.isDragging = true;
+                state.lastMouseX = x;
+                state.lastMouseY = y;
+            }
+    
+            function handleMove(x, y) {
+                if (!state.isDragging) return;
+    
+                const dx = x - state.lastMouseX;
+                const dy = y - state.lastMouseY;
+    
+                // Update position
+                let newX = state.cropX + dx;
+                let newY = state.cropY + dy;
+    
+                // Clamp (0 to 32)
+                newX = Math.max(0, Math.min(newX, MAX_OFFSET));
+                newY = Math.max(0, Math.min(newY, MAX_OFFSET));
+    
+                state.cropX = newX;
+                state.cropY = newY;
+                state.lastMouseX = x;
+                state.lastMouseY = y;
+    
+                draw();
+            }
+    
+            function handleEnd() {
+                state.isDragging = false;
+            }
+    
+            // Event Listeners (Mouse)
+            canvas.addEventListener('mousedown', e => {
+                const rect = canvas.getBoundingClientRect();
+                handleStart(e.clientX - rect.left, e.clientY - rect.top);
+            });
+            window.addEventListener('mousemove', e => {
+                if(!state.isDragging) return;
+                const rect = canvas.getBoundingClientRect();
+                handleMove(e.clientX - rect.left, e.clientY - rect.top);
+            });
+            window.addEventListener('mouseup', handleEnd);
+    
+            // Event Listeners (Touch)
+            canvas.addEventListener('touchstart', e => {
+                e.preventDefault(); // prevent scrolling
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                handleStart(touch.clientX - rect.left, touch.clientY - rect.top);
+            }, {passive: false});
+            
+            window.addEventListener('touchmove', e => {
+                if(!state.isDragging) return;
+                // e.preventDefault(); // allow checking drags
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                handleMove(touch.clientX - rect.left, touch.clientY - rect.top);
+            }, {passive: false});
+            
+            window.addEventListener('touchend', handleEnd);
+    
+            // --- Public Methods for Buttons ---
+    
+            window.augmentor = {
+                toggleFlip: function() {
+                    state.isFlipped = !state.isFlipped;
+                    const btn = document.querySelector('.aug-btn-flip');
+                    if(state.isFlipped) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                    draw();
+                },
+    
+                capture: function() {
+                    // To capture only the crop, we need a temp canvas again
+                    const capCanvas = document.createElement('canvas');
+                    capCanvas.width = CROP_SIZE;
+                    capCanvas.height = CROP_SIZE;
+                    const capCtx = capCanvas.getContext('2d');
+    
+                    // Draw the image exactly as it appears in the crop region
+                    // Source Image logic again
+                    capCtx.save();
+                    if (state.isFlipped) {
+                        // Logic for flipped capture:
+                        // If flipped, the image is mirrored. 
+                        // We translate and scale the context, then draw the image shifted by -cropX, -cropY
+                        capCtx.translate(CROP_SIZE, 0); 
+                        capCtx.scale(-1, 1);
+                        // When flipped, the X coordinate in the source image is inverted relative to the visual crop
+                        // Visual crop at X means we want pixels from (SRC_WIDTH - X - CROP_WIDTH) in the original image
+                        // But simpler: just draw the whole flipped image offset by the negative crop position
+                        
+                        // Actually, simpler math: Draw Image normally, but translated so the crop area is at 0,0
+                        // If flipped globally:
+                        // 1. Translate origin to (width, 0)
+                        // 2. Scale (-1, 1)
+                        // 3. Draw image at (- (SRC_SIZE - (cropX + CROP_SIZE)), -cropY) ???
+                        
+                        // EASIEST WAY: 
+                        // 1. Create a temp canvas size of SOURCE (256).
+                        // 2. Draw the flipped image there.
+                        // 3. Extract data from that temp canvas at cropX, cropY.
+                        
+                        const tempFull = document.createElement('canvas');
+                        tempFull.width = SRC_SIZE;
+                        tempFull.height = SRC_SIZE;
+                        const tfCtx = tempFull.getContext('2d');
+                        tfCtx.translate(SRC_SIZE, 0);
+                        tfCtx.scale(-1, 1);
+                        tfCtx.drawImage(carImage, 0, 0);
+                        
+                        capCtx.restore(); // reset capCtx
+                        capCtx.drawImage(tempFull, state.cropX, state.cropY, CROP_SIZE, CROP_SIZE, 0, 0, CROP_SIZE, CROP_SIZE);
+    
+                    } else {
+                        capCtx.drawImage(carImage, state.cropX, state.cropY, CROP_SIZE, CROP_SIZE, 0, 0, CROP_SIZE, CROP_SIZE);
+                    }
+    
+                    // Create IMG element
+                    const img = document.createElement('img');
+                    img.src = capCanvas.toDataURL();
+                    img.title = `Crop at ${Math.round(state.cropX)},${Math.round(state.cropY)} ${state.isFlipped ? '(Flipped)' : ''}`;
+                    
+                    // Add to gallery (prepend)
+                    gallery.insertBefore(img, gallery.firstChild);
+    
+                    // Update Counter
+                    state.samples++;
+                    counterEl.innerText = state.samples;
+                    counterEl.parentElement.style.animation = 'none';
+                    counterEl.parentElement.offsetHeight; /* trigger reflow */
+                    counterEl.parentElement.style.animation = 'popIn 0.3s';
+                }
+            };
+            
+            // Initial draw
+            // Wait for image load handled above, but just in case
+            if(carImage.complete) draw();
+    
+        })();
+        </script>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11 -->
+<section id="section11">
+    <p>Let's do the math on how much data this generates from a single image:</p>
+    <p>$$ 5 \text{ positions (corners + center)} \times 2 \text{ orientations (original + flip)} = 10 \text{ augmented images} $$</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12 -->
+<section id="section12">
+    <p>Suddenly, the 1.2 million training images effectively became 12 million training examples. This massive increase made it much harder for the network to simply memorize the data.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>AlexNet used horizontal flips (left-to-right). Why didn't they use vertical flips (upside-down) to get even more data?</h4>
+        <div id="cuy-flip-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> Think about gravity! In the real world, cars, dogs, and houses are rarely upside down. If we train the model on upside-down cars, it might get confused when it sees a normal car. Horizontal flips, however, are natural—a car facing left is just as likely as a car facing right.</div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-flip-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13 -->
+<section id="section13">
+    <p>By forcing the model to recognize the object in these different crops and orientations, AlexNet learned <strong>Translation Invariance</strong>—knowing that a cat in the top-left corner is the same as a cat in the bottom-right.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If you have a dataset of satellite imagery looking down at Earth to detect forests, would vertical flipping be a valid augmentation?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! From a top-down view, a forest looks like a forest regardless of rotation. Gravity doesn\'t orient the image like it does for a photo of a person.')">Yes</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Actually, for top-down maps or satellite views, orientation matters much less than in street photography. A forest is a forest from any angle.')">No</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge-1" onclick="showNextSection(14)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 14: Photometric Augmentation -->
+<section id="section14">
+    <h2>Photometric Augmentation: Changing the Lights</h2>
+    <p>Changing the position of the object is great, but objects also appear in different lighting conditions. A red apple looks different at sunset than it does under fluorescent office lights.</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15 -->
+<section id="section15">
+    <p>To simulate this, AlexNet used <strong>Photometric Augmentation</strong> involving <strong>Principal Component Analysis (PCA)</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>PCA (Principal Component Analysis)</h4>
+        <p>A mathematical technique used to reduce the dimensionality of data. In this context, it identifies the primary directions (eigenvectors) in which the RGB colors vary the most across the entire dataset.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16 -->
+<section id="section16">
+    <p>This sounds intimidating, but the concept is simple: We want to change the intensity of the colors without changing the <em>identity</em> of the object.</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- Section 17 -->
+<section id="section17">
+    <p>The researchers analyzed all the pixels in the ImageNet dataset to find the most common patterns of color variation (represented by eigenvalues $\lambda$ and eigenvectors $p$).</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- Section 18 -->
+<section id="section18">
+    <p>For every training image, they added a random amount of change based on these patterns. Here is the formula they used to calculate the new pixel values:</p>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<!-- Section 19 -->
+<section id="section19">
+    <p>$$ I_{new} = I_{old} + [p_1, p_2, p_3][\alpha_1 \lambda_1, \alpha_2 \lambda_2, \alpha_3 \lambda_3]^T $$</p>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<!-- Section 20 -->
+<section id="section20">
+    <p>Let's break that down:</p>
+    <ul>
+        <li>$I_{old}$: The original pixel color.</li>
+        <li>$p_i$: The 'direction' of color change (e.g., adding more red and green together).</li>
+        <li>$\lambda_i$: How 'strong' that color variation usually is in natural images.</li>
+        <li>$\alpha_i$: A random number generated each time the image is loaded.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<!-- Section 21 -->
+<section id="section21">
+    <p>Essentially, for each image, the network rolls a dice ($\alpha$) to decide: 'Today, this image will look a bit more yellow,' or 'Today, the lighting is a bit dimmer.'</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Photometric augmentation comparison showing original golden retriever photo versus color-shifted versions with cool and warm tones">
+        <p class="image-caption">Same dog, different light: teaching the network color invariance.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(22)">Continue</div>
+</section>
+
+<!-- Section 22 -->
+<section id="section22">
+    <p>This trick alone reduced the Top-1 error rate by over 1%. That might seem small, but in the world of competitive AI, 1% is a victory.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>What is the primary goal of using PCA-based color augmentation?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, PCA on pixel values changes the color/intensity, not the geometry or shape.')">To change the shape of the object.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! It teaches the network that an object is the same regardless of the intensity or color of the light source.')">To simulate different lighting conditions.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, this increases computational work slightly during training; it doesn\'t compress the image.')">To reduce the image file size.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge-2" onclick="showNextSection(23)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 23: Review -->
+<section id="section23">
+    <h2>Review and Reflect</h2>
+    <p>We started with a hungry brain and limited books. By using Data Augmentation, we multiplied our resources.</p>
+    <p>In this lesson, you learned:</p>
+    <ul>
+        <li><strong>Overfitting</strong> happens when large models memorize small datasets.</li>
+        <li><strong>Geometric Augmentation</strong> (translations and reflections) expands the dataset by a factor of 10 and teaches the model that objects can be anywhere in the frame.</li>
+        <li><strong>Photometric Augmentation</strong> (PCA) simulates different lighting conditions, making the model robust to color shifts.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(24)">Continue</div>
+</section>
+
+<!-- Section 24: FAQ & Outro -->
+<section id="section24">
+    <p>Now that we have the data flowing, we need to understand the machinery that processes it. In the next lesson, we will tear open the 'Black Box' and look at the specific layers of the AlexNet architecture.</p>
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <strong>Q: Do we use these augmentations when we are testing the model?</strong>
+        <p>A: Great question! During <strong>training</strong>, we use these random shifts to make the model learn harder. Normally, in modern AI, we turn these off during <strong>testing</strong> and just use the center crop. However, AlexNet was a bit unique: to squeeze out every bit of accuracy for the competition, they actually ran the test images through the 10-crop process and averaged the predictions to get the final answer!</p>
+    </div>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 24;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Unlock continue buttons specifically for the test knowledge sections
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        let continueBtnId = '';
+        if(parentSection.id === 'section13') continueBtnId = 'continue-after-test-knowledge-1';
+        if(parentSection.id === 'section22') continueBtnId = 'continue-after-test-knowledge-2';
+        
+        if (continueBtnId) {
+            const continueButton = document.getElementById(continueBtnId);
+            if (continueButton && continueButton.style.display === 'none') {
+                setTimeout(() => {
+                    continueButton.style.display = 'block';
+                    continueButton.classList.add('show-with-animation');
+                }, 800);
+            }
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // These IDs should ideally be dynamic, but setting defaults based on context
+                let courseId = 'computer-vision';
+                let pathId = 'deep-learning-foundations';
+                let moduleId = 'alexnet-architecture';
+                let lessonId = 'data-augmentation';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_data_augmentation_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage for completion
+    const isCompleted = localStorage.getItem('lesson_data_augmentation_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Why Traditional Networks Fail on Images</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <h1>Why Traditional Networks Fail on Images</h1>
+    <h2>The Parameter Explosion</h2>
+    <p>Welcome back! In previous lessons, we built Fully Connected (FC) networks that were great at predicting house prices or classifying simple data points. But today, we are going to try to teach an FC network to see.</p>
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Diagram showing the transition from structured tabular data to unstructured image data">
+    </div>
+    <p>If FC layers work so well for structured data, why can't we just feed them a photograph? A photo is just numbers (pixel values) after all. Let's try it and see what happens.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>To feed an image into a standard Fully Connected layer, we first have to 'flatten' it. We take the 2D grid of pixels and unroll it into a single, long line—a 1D vector.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Illustration of an 800x600 pixel image being unrolled into a 1D feature vector">
+    </div>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>Let's say we have a standard, modest image: \(800 \times 600\) pixels. And since it's a color image, it has 3 channels (Red, Green, Blue).</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>First, let's calculate how many input nodes we need for our network.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>The math is simple multiplication:</p>
+    <p>$$ \text{Input Nodes} = 800 \times 600 \times 3 = 1,440,000 $$</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>That's roughly 1.44 million input neurons. Now, let's connect this input to just **one** hidden layer with 1,000 neurons. In a Fully Connected network, every input node connects to every hidden node.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Diagram showing 1.44 million input nodes connecting through 1.5 billion weights to a hidden layer">
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>Let's calculate the total number of weights (parameters) for just this first layer connection:</p>
+    <p>$$ \text{Weights} = 1,440,000 \times 1,000 = 1.44 \times 10^9 $$</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>That is <strong>1.44 Billion weights</strong>! To store these weights as standard numbers (4-byte floats), you would need:</p>
+    <p>$$ 1.5 \text{ billion} \times 4 \text{ bytes} \approx 6 \text{ GB of RAM} $$</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>That's 6 gigabytes of memory for a single layer! If we wanted to build a deep network with many layers, we would run out of memory instantly. But the computational cost is only half the problem.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Fully Connected Layer</h4>
+        <p>A neural network layer where every neuron is connected to every neuron in the previous layer. While powerful for structured data, it creates a parameter explosion when applied to high-dimensional data like images.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <h2>The Spatial Blindness</h2>
+    <p>There is a more fundamental flaw with using FC networks for images: they don't understand that pixels are arranged in a grid.</p>
+    <p>When we flattened the image into a long vector, we destroyed the 2D structure. The network no longer knows that pixel \((0,0)\) is right next to pixel \((0,1)\). It treats them as two completely independent features, just like 'House Age' and 'Number of Bedrooms'.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>This leads to a lack of what we call <strong>Intrinsic Bias</strong>—the assumption that neighboring pixels are related to each other.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If we took a photo of a cat and scrambled all the pixels randomly like a jigsaw puzzle, could you still recognize the cat? No. But would a Fully Connected network calculate a different output sum for the scrambled pixels compared to the original?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Hint:</strong> Recall that a neuron calculates a weighted sum (\(w_1x_1 + w_2x_2 + ...\)). Summation is commutative, meaning \(A + B\) is the same as \(B + A\). If the network doesn't know the order, shuffling the inputs might not change the mathematical result as much as you think!
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Hint</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>Let's prove this with a test. Below is a grid of pixels representing an image. On the right is the total weighted sum calculated by a Fully Connected neuron.</p>
+    <!-- START: The Shuffle Test Interactive -->
+<div class="shuffle-test-container">
+    <div class="shuffle-layout">
+        <div class="canvas-wrapper">
+            <canvas id="pixelCanvas" width="10" height="10"></canvas>
+            <div style="text-align:center; font-size:0.8rem; color:#94a3b8; margin-top:5px;">10x10 Input Grid</div>
+        </div>
+
+        <div class="neuron-readout">
+            <div class="neuron-title">Neuron Activation</div>
+            <div class="math-display" id="mathOutput">x₁ + x₂ + ... + x₁₀₀</div>
+            <div>
+                <span class="sum-display" id="totalSumDisplay">0</span>
+                <span class="sum-label">Total Input Sum</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #718096; margin-top: 10px; line-height: 1.4;">
+                <span style="color:#e53e3e">Note:</span> The image has changed completely, but the math result is identical.
+            </p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-interactive btn-shuffle" onclick="startShuffle()">🔀 Shuffle Pixels</button>
+        <button class="btn-interactive btn-reset" onclick="resetGrid()">↺ Reset Image</button>
+    </div>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('pixelCanvas');
+            const ctx = canvas.getContext('2d');
+            const sumDisplay = document.getElementById('totalSumDisplay');
+            const mathOutput = document.getElementById('mathOutput');
+            
+            const gridSize = 10;
+            const totalPixels = gridSize * gridSize;
+            let pixels = new Array(totalPixels).fill(0);
+            let isShuffling = false;
+
+            // Define a simple pattern (Smiley Face)
+            // 0 = Black/Background, 255 = White/Foreground
+            const smileyPattern = [
+                0, 0, 0, 50, 50, 50, 50, 0, 0, 0,
+                0, 0, 50, 200, 200, 200, 200, 50, 0, 0,
+                0, 50, 200, 255, 200, 200, 255, 200, 50, 0,
+                0, 50, 200, 255, 200, 200, 255, 200, 50, 0,
+                0, 50, 200, 200, 200, 200, 200, 200, 50, 0,
+                0, 50, 200, 255, 255, 255, 255, 200, 50, 0,
+                0, 0, 50, 200, 50, 50, 200, 50, 0, 0,
+                0, 0, 50, 200, 200, 200, 200, 50, 0, 0,
+                0, 0, 0, 50, 50, 50, 50, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ];
+
+            function init() {
+                resetGrid();
+            }
+
+            // Draw the 1D array onto the 2D canvas
+            function draw() {
+                // Clear canvas
+                ctx.fillStyle = '#0f172a'; // Dark background
+                ctx.fillRect(0, 0, gridSize, gridSize);
+
+                for (let i = 0; i < totalPixels; i++) {
+                    const x = i % gridSize;
+                    const y = Math.floor(i / gridSize);
+                    const val = pixels[i];
+                    
+                    if (val > 0) {
+                        // Create a greenish/matrix look for tech vibe
+                        // or just grayscale. Let's do Grayscale for clarity.
+                        const intensity = val; 
+                        ctx.fillStyle = `rgb(${intensity}, ${intensity}, ${intensity})`;
+                        ctx.fillRect(x, y, 1, 1);
+                    }
+                }
+                
+                calculateSum();
+            }
+
+            function calculateSum() {
+                const total = pixels.reduce((a, b) => a + b, 0);
+                // Format with commas
+                sumDisplay.innerText = total.toLocaleString();
+            }
+
+            window.startShuffle = function() {
+                if (isShuffling) return;
+                isShuffling = true;
+                
+                let shuffleCount = 0;
+                const maxShuffles = 15;
+                
+                // Animation loop
+                const interval = setInterval(() => {
+                    // Randomize array
+                    pixels = pixels.sort(() => Math.random() - 0.5);
+                    draw();
+                    
+                    shuffleCount++;
+                    if (shuffleCount >= maxShuffles) {
+                        clearInterval(interval);
+                        isShuffling = false;
+                        // Flash the sum to show it stayed same
+                        sumDisplay.classList.remove('highlight-stable');
+                        void sumDisplay.offsetWidth; // trigger reflow
+                        sumDisplay.classList.add('highlight-stable');
+                    }
+                }, 50);
+            };
+
+            window.resetGrid = function() {
+                if (isShuffling) return;
+                // Copy pattern
+                pixels = [...smileyPattern];
+                draw();
+                sumDisplay.classList.remove('highlight-stable');
+            };
+
+            // Initialize
+            init();
+
+        })();
+    </script>
+</div>
+<!-- END: The Shuffle Test Interactive -->
+    <p>Did you see that? You destroyed the image, but the 'Total Input Sum' stayed exactly the same. The network effectively thinks the scrambled noise is the same as the original image!</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>Because FC networks look at the global sum of all pixels at once, they fail to detect local patterns like edges, corners, or textures.</p>
+    <div class="image-placeholder">
+        <img src="images/4.jpg" alt="Meme showing a completed puzzle versus scattered puzzle pieces with text 'Me: These are different' versus 'Fully Connected Network: These are the same picture'">
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p>To fix this, we need a network that looks at the image in small, local chunks, rather than the whole thing at once. We need a network that respects <strong>Spatial Information</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Spatial Information</h4>
+        <p>The information contained in the arrangement of pixels. In images, meaningful information (like an eye or a wheel) is defined by the spatial relationship of neighboring pixels.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <h2>Summary and Assessment</h2>
+    <p>We've established that the tools we used for simple classification tasks are insufficient for the complex world of computer vision.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Modern Computer Vision powers technologies like self-driving cars, facial recognition, and medical diagnosis. If we were stuck using 6 GB of RAM for a single layer, none of these technologies would exist on mobile devices or standard computers today.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <p>Before we move on to the solution (Convolutional Networks), let's check your understanding of the problem.</p>
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <h4>Can't we just make the images smaller to use FC networks?</h4>
+        <p>We could, but we would lose vital information. Even a small \(100 \times 100\) image has 10,000 pixels. Connecting that to a hidden layer of 1,000 units still requires 10 million weights. It's better than billions, but still inefficient compared to the solution we will learn next!</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Why does flattening an image from 2D to 1D cause a loss of spatial information?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Flattening keeps all the pixel values, so the resolution (number of pixels) is technically the same, just rearranged.')">It reduces the resolution of the image.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! In a 1D vector, a pixel that was below another pixel in the 2D grid might now be thousands of positions away in the list. The network loses the context of neighbors.')">It breaks the neighbor relationships between pixels.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Flattening usually includes all color channels in the long vector, so the color data is preserved.')">It removes the color channels.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-q1" onclick="showNextSection(18)" style="display: none;">Continue</div>
+</section>
+
+<section id="section18">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If we have an input image of \(1000 \times 1000\) pixels (Grayscale, 1 channel) and a hidden layer of 100 neurons, how many weights are in the Fully Connected layer?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. Input nodes = $1,000 \\times 1,000 = 1,000,000$. Weights = $1,000,000 \\times 100 = 100,000,000$.')">100 Million (\(10^8\))</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That would be the number of input pixels, but each one connects to 100 neurons.')">1 Million (\(10^6\))</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is too low. Remember, every input connects to every hidden neuron.')">100,000</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-q2" onclick="showNextSection(19)" style="display: none;">Continue</div>
+</section>
+
+<section id="section19">
+    <h2>Review and Reflect</h2>
+    <p>Traditional Fully Connected networks fail on images for two main reasons:</p>
+    <ol>
+        <li><strong>Computational Explosion:</strong> The number of weights grows so fast that even small images require gigabytes of memory.</li>
+        <li><strong>Spatial Blindness:</strong> By flattening the image, the network ignores the local structure (edges, shapes) that makes an image meaningful.</li>
+    </ol>
+    <p>In the next lesson, we will introduce the <strong>Convolutional Layer</strong>, a new architecture designed specifically to solve these two problems by looking at the image through a small, moving window.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 19;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Reveal Continue button if correct (or simplify by revealing regardless of correctness for flow)
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        // Specific logic for Q1 and Q2
+        if (parentSection.id === 'section17') {
+             const continueButton = document.getElementById('continue-after-q1');
+             if (continueButton && continueButton.style.display === 'none') {
+                 setTimeout(() => {
+                     continueButton.style.display = 'block';
+                     continueButton.classList.add('show-with-animation');
+                 }, 800);
+             }
+        }
+        if (parentSection.id === 'section18') {
+             const continueButton = document.getElementById('continue-after-q2');
+             if (continueButton && continueButton.style.display === 'none') {
+                 setTimeout(() => {
+                     continueButton.style.display = 'block';
+                     continueButton.classList.add('show-with-animation');
+                 }, 800);
+             }
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Mock IDs for this new lesson
+                let courseId = 'computer-vision';
+                let pathId = 'foundations';
+                let moduleId = 'cv-ch02-m1-traditional-failures';
+                let lessonId = 'cv-ch02-l1-parameter-explosion';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch02-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = localStorage.getItem('lesson_cv-ch02-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

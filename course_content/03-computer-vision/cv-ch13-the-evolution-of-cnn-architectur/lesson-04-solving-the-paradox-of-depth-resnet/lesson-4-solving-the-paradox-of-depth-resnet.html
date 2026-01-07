@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Solving the Paradox of Depth – ResNet</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: The Wall of Depth -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Neural network skyscraper under construction with upper floors crumbling - illustrating the degradation problem">
+    </div>
+    <h1>Solving the Paradox of Depth – ResNet</h1>
+    <h2>The Wall of Depth</h2>
+    <p>Welcome back to the timeline of innovation! In our last lessons, we saw VGG stacking layers to get deeper, and GoogLeNet widening the network with Inception modules. By 2015, the mantra of the Deep Learning community was clear: <strong>Deeper is Better.</strong></p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: Hitting the Ceiling -->
+<section id="section2">
+    <h2>Hitting the Ceiling</h2>
+    <p>If 19 layers (VGG) are good, surely 50 or 100 layers would be amazing, right? Researchers rushed to stack more layers, expecting accuracy to skyrocket.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>But a strange thing happened. When they trained a 20-layer network and a 56-layer network, the 56-layer network didn't just perform worse on the test data—it performed worse on the <strong>training</strong> data too.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>Wait, let's pause. Usually, if a model performs bad on test data but good on training data, we call it <strong>Overfitting</strong>. But here, the deep model couldn't even learn the training data effectively. It was getting confused by its own depth.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>This phenomenon is called the <strong>Degradation Problem</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Degradation Problem</h4>
+        <p>A phenomenon where adding more layers to a deep neural network leads to higher training error, not due to overfitting, but because the network struggles to optimize the weights in deep layers.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>Take a look at this graph comparing training error. Notice how the deeper network (red line) has consistently higher error than the shallower one (yellow line).</p>
+    <div class="interactive-graph-container">
+        <div class="graph-controls">
+            <button class="graph-btn active" onclick="setGraphMode('training')">Training Error</button>
+            <button class="graph-btn" onclick="setGraphMode('test')">Test Error</button>
+        </div>
+    
+        <div class="canvas-wrapper">
+            <canvas id="degradationChart"></canvas>
+        </div>
+    
+        <div class="legend">
+            <div class="legend-item">
+                <div class="dot" style="background: #f56565;"></div>
+                <span>56-layer (Deeper)</span>
+            </div>
+            <div class="legend-item">
+                <div class="dot" style="background: #4fd1c5;"></div>
+                <span>20-layer (Shallower)</span>
+            </div>
+        </div>
+    
+        <script>
+            (function() {
+                const canvas = document.getElementById('degradationChart');
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                let width, height;
+                let animationFrame;
+                let isInitialized = false;
+                
+                // Polyfill for roundRect (not supported in all browsers)
+                if (!ctx.roundRect) {
+                    ctx.roundRect = function(x, y, w, h, r) {
+                        if (w < 2 * r) r = w / 2;
+                        if (h < 2 * r) r = h / 2;
+                        this.beginPath();
+                        this.moveTo(x + r, y);
+                        this.arcTo(x + w, y, x + w, y + h, r);
+                        this.arcTo(x + w, y + h, x, y + h, r);
+                        this.arcTo(x, y + h, x, y, r);
+                        this.arcTo(x, y, x + w, y, r);
+                        this.closePath();
+                    };
+                }
+                
+                // State
+                let currentMode = 'training'; // 'training' or 'test'
+                let transitionProgress = 1; // 0 to 1
+                let isHovering = false;
+                let mouseX = 0;
+    
+                // Generate Data Curves (Simulated decay)
+                const points = 100;
+                const generateCurve = (start, decay, noise, base) => {
+                    return Array.from({length: points}, (_, i) => {
+                        const x = i / (points - 1);
+                        // Exponential decay formula + simulated noise
+                        return start * Math.exp(-decay * x) + base + (Math.sin(x * 20) * noise); 
+                    });
+                };
+    
+                // Data Definitions
+                const data = {
+                    training: {
+                        deep: generateCurve(0.7, 3, 0.01, 0.25), // 56-layer: High error
+                        shallow: generateCurve(0.7, 5, 0.01, 0.10) // 20-layer: Low error
+                    },
+                    test: {
+                        deep: generateCurve(0.7, 3, 0.015, 0.28), // 56-layer: slightly worse on test
+                        shallow: generateCurve(0.7, 5, 0.015, 0.12) // 20-layer: slightly worse on test
+                    }
+                };
+    
+                // Current interpolated values for animation
+                let currentDeep = [...data.training.deep];
+                let currentShallow = [...data.training.shallow];
+    
+                function resize() {
+                    const rect = canvas.parentElement.getBoundingClientRect();
+                    // Only resize if the element is visible (has dimensions)
+                    if (rect.width === 0 || rect.height === 0) {
+                        return;
+                    }
+                    
+                    canvas.width = rect.width * 2; // Retina support
+                    canvas.height = rect.height * 2;
+                    width = canvas.width;
+                    height = canvas.height;
+                    ctx.scale(2, 2);
+                    width /= 2;
+                    height /= 2;
+                    
+                    if (!isInitialized) {
+                        isInitialized = true;
+                    }
+                    
+                    draw();
+                }
+    
+                function init() {
+                    // Only initialize if section is visible
+                    const section = canvas.closest('section');
+                    if (!section || !section.classList.contains('visible')) {
+                        // Wait for section to become visible
+                        return;
+                    }
+                    
+                    resize();
+                    
+                    // Only add event listeners once
+                    if (!isInitialized) {
+                        // Interactive Event Listeners
+                        canvas.addEventListener('mousemove', (e) => {
+                            const rect = canvas.getBoundingClientRect();
+                            mouseX = e.clientX - rect.left;
+                            isHovering = true;
+                            requestAnimationFrame(draw);
+                        });
+        
+                        canvas.addEventListener('mouseleave', () => {
+                            isHovering = false;
+                            requestAnimationFrame(draw);
+                        });
+                        
+                        window.addEventListener('resize', resize);
+                    }
+                }
+    
+                // Global function to be called by buttons
+                window.setGraphMode = (mode) => {
+                    if (mode === currentMode) return;
+                    currentMode = mode;
+                    
+                    // Update buttons
+                    document.querySelectorAll('.graph-btn').forEach(btn => {
+                        btn.classList.toggle('active', btn.innerText.toLowerCase().includes(mode));
+                    });
+    
+                    // Start transition animation
+                    transitionProgress = 0;
+                    animateTransition();
+                };
+    
+                function animateTransition() {
+                    if (transitionProgress < 1) {
+                        transitionProgress += 0.05;
+                        
+                        // Interpolate values
+                        const targetDeep = data[currentMode].deep;
+                        const targetShallow = data[currentMode].shallow;
+                        
+                        for(let i=0; i<points; i++) {
+                            // Simple Lerp
+                            currentDeep[i] = currentDeep[i] + (targetDeep[i] - currentDeep[i]) * 0.2;
+                            currentShallow[i] = currentShallow[i] + (targetShallow[i] - currentShallow[i]) * 0.2;
+                        }
+                        
+                        draw();
+                        requestAnimationFrame(animateTransition);
+                    }
+                }
+    
+                function draw() {
+                    if (!isInitialized || !width || !height) return;
+                    
+                    ctx.clearRect(0, 0, width, height);
+                    
+                    // Margins
+                    const padding = { top: 20, right: 30, bottom: 30, left: 40 };
+                    const graphW = width - padding.left - padding.right;
+                    const graphH = height - padding.top - padding.bottom;
+    
+                    // Helper to map data to pixel coordinates
+                    const getX = (i) => padding.left + (i / (points - 1)) * graphW;
+                    const getY = (val) => padding.top + (1 - val) * graphH - 20; // 1.0 is top, 0.0 is bottom
+    
+                    // Draw Axes
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    // Y-axis grid
+                    for(let i=0; i<=5; i++) {
+                        const y = padding.top + (i/5) * graphH;
+                        ctx.moveTo(padding.left, y);
+                        ctx.lineTo(width - padding.right, y);
+                    }
+                    ctx.stroke();
+    
+                    // Draw Axis Labels
+                    ctx.fillStyle = '#a0aec0';
+                    ctx.font = '10px sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText('High Error', padding.left - 5, padding.top + 10);
+                    ctx.fillText('Low Error', padding.left - 5, height - padding.bottom);
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Training Iterations (Epochs) →', width/2, height - 5);
+    
+                    // Draw Curves
+                    const drawLine = (dataset, color, widthVal) => {
+                        ctx.beginPath();
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = widthVal;
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
+                        
+                        dataset.forEach((val, i) => {
+                            const px = getX(i);
+                            const py = getY(val);
+                            if (i === 0) ctx.moveTo(px, py);
+                            else ctx.lineTo(px, py);
+                        });
+                        ctx.stroke();
+                    };
+    
+                    // Draw Shallow (Good)
+                    drawLine(currentShallow, '#4fd1c5', 3);
+    
+                    // Draw Deep (Bad)
+                    drawLine(currentDeep, '#f56565', 3);
+    
+                    // HOVER INTERACTION
+                    if (isHovering) {
+                        // Find closest index
+                        const ratio = (mouseX - padding.left) / graphW;
+                        let idx = Math.floor(ratio * (points - 1));
+                        idx = Math.max(0, Math.min(idx, points - 1));
+    
+                        if (ratio >= 0 && ratio <= 1) {
+                            const px = getX(idx);
+                            const yDeep = getY(currentDeep[idx]);
+                            const yShallow = getY(currentShallow[idx]);
+    
+                            // Draw Highlight Line
+                            ctx.beginPath();
+                            ctx.strokeStyle = '#2d3748';
+                            ctx.lineWidth = 1;
+                            ctx.setLineDash([4, 4]);
+                            ctx.moveTo(px, yDeep);
+                            ctx.lineTo(px, yShallow);
+                            ctx.stroke();
+                            ctx.setLineDash([]);
+    
+                            // Draw Area Highlight
+                            ctx.fillStyle = 'rgba(245, 101, 101, 0.1)';
+                            ctx.fillRect(px - 10, yDeep, 20, yShallow - yDeep);
+    
+                            // Draw Tooltip
+                            const text = "Degradation Error";
+                            ctx.font = 'bold 12px sans-serif';
+                            const textW = ctx.measureText(text).width;
+                            const tipX = px < width/2 ? px + 15 : px - 15 - textW - 20;
+                            const tipY = yDeep + (yShallow - yDeep)/2 - 15;
+    
+                            // Tooltip Box
+                            ctx.fillStyle = 'rgba(45, 55, 72, 0.9)';
+                            ctx.beginPath();
+                            ctx.roundRect(tipX, tipY, textW + 20, 30, 6);
+                            ctx.fill();
+    
+                            // Tooltip Arrow
+                            ctx.beginPath();
+                            if (px < width/2) {
+                                ctx.moveTo(tipX, tipY + 15);
+                                ctx.lineTo(tipX - 6, tipY + 15);
+                                ctx.lineTo(tipX, tipY + 10);
+                            } else {
+                                ctx.moveTo(tipX + textW + 20, tipY + 15);
+                                ctx.lineTo(tipX + textW + 26, tipY + 15);
+                                ctx.lineTo(tipX + textW + 20, tipY + 10);
+                            }
+                            ctx.fill();
+    
+                            // Tooltip Text
+                            ctx.fillStyle = '#fff';
+                            ctx.textAlign = 'left';
+                            ctx.fillText(text, tipX + 10, tipY + 19);
+    
+                            // Points on line
+                            ctx.fillStyle = '#fff';
+                            ctx.strokeStyle = '#f56565';
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            ctx.arc(px, yDeep, 4, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.stroke();
+    
+                            ctx.strokeStyle = '#4fd1c5';
+                            ctx.beginPath();
+                            ctx.arc(px, yShallow, 4, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.stroke();
+                        }
+                    }
+                }
+    
+                // Watch for section visibility
+                const section = canvas.closest('section');
+                if (section) {
+                    // Function to check and initialize
+                    const checkAndInit = () => {
+                        if (section.classList.contains('visible')) {
+                            // Small delay to ensure DOM has updated and dimensions are available
+                            setTimeout(() => {
+                                init();
+                            }, 150);
+                        }
+                    };
+                    
+                    // Use MutationObserver to detect when section becomes visible
+                    const observer = new MutationObserver(() => {
+                        checkAndInit();
+                    });
+                    
+                    observer.observe(section, {
+                        attributes: true,
+                        attributeFilter: ['class']
+                    });
+                    
+                    // Also check immediately in case section is already visible
+                    checkAndInit();
+                    
+                    // Expose init function globally for manual triggering if needed
+                    window.initDegradationChart = () => {
+                        checkAndInit();
+                    };
+                }
+            })();
+        </script>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>The degradation problem arises because it is surprisingly difficult for a stack of non-linear layers to learn a simple <strong>Identity Mapping</strong>—that is, just passing the information through unchanged.</p>
+    <p>Ideally, if the extra layers were unnecessary, the network should just set their weights to perform the identity function ($f(x) = x$) and behave like the shallower network. But in practice, standard solvers struggle to do this.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If a very deep network has higher training error than a shallow network, what is the most likely cause?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Overfitting usually results in low training error but high test error. Here, the training error itself is high.')">Overfitting</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The network is physically struggling to optimize the deep layers, leading to worse performance even on known data.')">Degradation</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'While more data helps, the degradation problem persists even with large datasets like ImageNet.')">Not enough data</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-check" onclick="showNextSection(8)" style="display: none;">Continue</div>
+</section>
+
+<!-- SECTION 3: The Residual Revolution -->
+<section id="section8">
+    <h2>The Residual Revolution</h2>
+    <p>Enter <strong>ResNet</strong> (Residual Network), introduced by Kaiming He and his team in 2015. They proposed a radical, yet elegant solution to the degradation problem.</p>
+    <p>Instead of hoping the layers would learn the underlying mapping $H(x)$ directly, they reformulated the problem.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>They added a <strong>Skip Connection</strong> (or Shortcut) that allows the input $x$ to jump over the weight layers and be added directly to the output.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Residual Block Diagram: Input x splits into two paths - one through weight layers, one skip connection that curves around - paths merge via addition">
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>Let's look at the math. It's simpler than it sounds.</p>
+    <ol>
+        <li>Let $H(x)$ be the desired underlying mapping we want the layers to learn.</li>
+        <li>We let the stacked non-linear layers fit a residual mapping, which we define as:
+        $$F(x) = H(x) - x$$</li>
+        <li>The original mapping is then reconstructed by adding $x$ back:
+        $$H(x) = F(x) + x$$</li>
+    </ol>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>Why does this help? Think about the Identity Mapping problem again.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If the optimal function for a specific block is to do absolutely nothing (identity mapping), what should the weights in the residual function $F(x)$ become?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <p><strong>Answer:</strong> They should become zero! It is much easier for a network to drive weights to zero (making $F(x) = 0$) so that Output = $0 + x$, than it is to tune weights to perfectly reproduce $x$.</p>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>This tiny architectural change—adding the input to the output—allowed networks to jump from 19 layers to <strong>152 layers</strong> and beyond, winning the ILSVRC 2015 competition by a landslide.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Residual Block</h4>
+        <p>The fundamental building block of ResNet, consisting of weight layers (convolutions) and a skip connection that adds the input to the output of the weight layers.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- SECTION 4: The Gradient Superhighway -->
+<section id="section13">
+    <h2>The Gradient Superhighway</h2>
+    <p>There is a second, equally important benefit to Skip Connections: <strong>Improved Gradient Flow</strong>.</p>
+    <p>In a standard network (like VGG), the gradient signal used for learning has to pass through every single weight layer during backpropagation. At each step, it gets multiplied, often becoming smaller and smaller until it vanishes. This is the <strong>Vanishing Gradient</strong> problem.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p>But in ResNet, the skip connection acts like a superhighway.</p>
+    <div class="interactive-resnet-container">
+        <div class="instructions">
+            <strong>Mission:</strong> The gradient (glowing ball) is dying before it reaches the start! <br>
+            Drag the <strong>Blue Bridges</strong> onto the gray blocks to create a Superhighway.
+        </div>
+    
+        <div class="resnet-canvas-wrapper">
+            <canvas id="resnetCanvas"></canvas>
+        </div>
+    
+        <div id="signalStatus" class="status-badge status-vanished">Status: Gradient Vanished ⚠️</div>
+    
+        <script>
+            (function() {
+                const canvas = document.getElementById('resnetCanvas');
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                const statusBadge = document.getElementById('signalStatus');
+                
+                // Polyfill for roundRect (not supported in all browsers)
+                if (!ctx.roundRect) {
+                    ctx.roundRect = function(x, y, w, h, r) {
+                        if (w < 2 * r) r = w / 2;
+                        if (h < 2 * r) r = h / 2;
+                        this.beginPath();
+                        this.moveTo(x + r, y);
+                        this.arcTo(x + w, y, x + w, y + h, r);
+                        this.arcTo(x + w, y + h, x, y + h, r);
+                        this.arcTo(x, y + h, x, y, r);
+                        this.arcTo(x, y, x + w, y, r);
+                        this.closePath();
+                    };
+                }
+                
+                let width, height;
+                let scale = 1;
+                let isInitialized = false;
+                let animationFrameId = null;
+    
+                // Game State
+                const layers = 3;
+                const bridgesPlaced = [false, false, false];
+                let particles = [];
+                let lastSpawnTime = 0;
+                
+                // Interaction State
+                let isDragging = false;
+                let dragX = 0, dragY = 0;
+                let activeDragIndex = -1; // -1 means dragging from inventory, 0-2 means dragging existing
+    
+                // Configuration
+                const config = {
+                    layerY: 0, // Set in resize
+                    layerGap: 0, // Set in resize
+                    blockW: 60,
+                    blockH: 80,
+                    speed: 3
+                };
+    
+                // Resize Handler
+                function resize() {
+                    const rect = canvas.parentElement.getBoundingClientRect();
+                    // Only resize if the element is visible (has dimensions)
+                    if (rect.width === 0 || rect.height === 0) {
+                        return;
+                    }
+                    
+                    canvas.width = rect.width;
+                    canvas.height = rect.height;
+                    width = canvas.width;
+                    height = canvas.height;
+                    
+                    config.layerY = height * 0.6;
+                    config.layerGap = width / (layers + 1.5);
+                    
+                    // Reset particles on resize to avoid jumps
+                    particles = [];
+                    
+                    if (!isInitialized) {
+                        isInitialized = true;
+                    }
+                }
+                
+                let eventListenersAdded = false;
+                
+                function init() {
+                    // Only initialize if section is visible
+                    const section = canvas.closest('section');
+                    if (!section || !section.classList.contains('visible')) {
+                        // Wait for section to become visible
+                        return;
+                    }
+                    
+                    resize();
+                    
+                    // Only add event listeners and start animation once
+                    if (!eventListenersAdded && isInitialized) {
+                        eventListenersAdded = true;
+                        
+                        // Interactive Event Listeners
+                        canvas.addEventListener('mousedown', handleStart);
+                        canvas.addEventListener('mousemove', handleMove);
+                        canvas.addEventListener('mouseup', handleEnd);
+                        canvas.addEventListener('mouseleave', () => isDragging = false);
+        
+                        // Touch Support
+                        canvas.addEventListener('touchstart', handleStart, {passive: false});
+                        canvas.addEventListener('touchmove', handleMove, {passive: false});
+                        canvas.addEventListener('touchend', handleEnd);
+                        
+                        window.addEventListener('resize', resize);
+                        
+                        // Start animation loop
+                        draw();
+                    }
+                }
+    
+                // ---------------------------------------------------------------- //
+                //                            ENTITIES                              //
+                // ---------------------------------------------------------------- //
+    
+                class Particle {
+                    constructor() {
+                        // Start at Right (Output)
+                        this.x = width - 50;
+                        this.y = config.layerY;
+                        this.brightness = 1.0;
+                        this.radius = 8;
+                        this.dead = false;
+                        this.targetY = config.layerY;
+                    }
+    
+                    update() {
+                        this.x -= config.speed;
+                        
+                        // Check Logic for Layers
+                        for (let i = 0; i < layers; i++) {
+                            const blockX = getBlockX(i);
+                            
+                            // Entering a block zone
+                            if (this.x < blockX + config.blockW/2 && this.x > blockX - config.blockW/2) {
+                                
+                                if (bridgesPlaced[i]) {
+                                    // Go UP (Skip Connection)
+                                    const arcHeight = 60;
+                                    const centerX = blockX;
+                                    const dist = Math.abs(this.x - centerX);
+                                    const normDist = 1 - (dist / (config.blockW)); // 0 to 1
+                                    
+                                    // Simple parabolic arc approximation for movement
+                                    this.y = config.layerY - Math.sin(Math.acos(Math.max(-1, Math.min(1, (this.x - centerX)/(config.blockW)*1.5)))) * arcHeight;
+                                    
+                                } else {
+                                    // Go Through (Resistance)
+                                    this.y = config.layerY;
+                                    // Dim the light only once per block
+                                    if (Math.abs(this.x - blockX) < config.speed) {
+                                        this.brightness *= 0.4; // Heavy penalty
+                                    }
+                                }
+                            } 
+                            // Reset Y after block
+                            else if (Math.abs(this.x - (blockX - config.blockW)) < 5 && this.y !== config.layerY) {
+                                 // Smoothly return to center line if needed, though arc logic handles it
+                                 this.y = config.layerY;
+                            }
+                        }
+    
+                        // Kill if off screen
+                        if (this.x < 20) {
+                            this.dead = true;
+                            if (this.brightness > 0.1) {
+                                updateStatus(true);
+                            }
+                        }
+                        
+                        // Kill if invisible
+                        if (this.brightness < 0.05) {
+                            this.dead = true;
+                            updateStatus(false);
+                        }
+                    }
+    
+                    draw() {
+                        ctx.beginPath();
+                        // Glow effect
+                        const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * 2);
+                        gradient.addColorStop(0, `rgba(255, 255, 100, ${this.brightness})`);
+                        gradient.addColorStop(0.4, `rgba(255, 200, 50, ${this.brightness * 0.5})`);
+                        gradient.addColorStop(1, `rgba(255, 200, 50, 0)`);
+                        
+                        ctx.fillStyle = gradient;
+                        ctx.arc(this.x, this.y, this.radius * 3, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Core
+                        ctx.beginPath();
+                        ctx.fillStyle = `rgba(255, 255, 255, ${this.brightness})`;
+                        ctx.arc(this.x, this.y, this.radius/2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+    
+                // ---------------------------------------------------------------- //
+                //                            LOGIC                                 //
+                // ---------------------------------------------------------------- //
+    
+                function getBlockX(index) {
+                    // Draw right to left: Layer 0 is rightmost, Layer 2 is leftmost
+                    return width - 150 - (index * config.layerGap);
+                }
+    
+                function updateStatus(success) {
+                    // Only update if changed to avoid DOM spam
+                    const currentSuccess = statusBadge.classList.contains('status-flow');
+                    if (success !== currentSuccess) {
+                        if (success) {
+                            statusBadge.className = 'status-badge status-flow';
+                            statusBadge.innerHTML = "Status: Superhighway Active! 🚀";
+                        } else {
+                            statusBadge.className = 'status-badge status-vanished';
+                            statusBadge.innerHTML = "Status: Gradient Vanished ⚠️";
+                        }
+                    }
+                }
+    
+                function checkCompletion() {
+                    // Check if all bridges are placed
+                    const allBridgesPlaced = bridgesPlaced.every(placed => placed === true);
+                    
+                    const successMessage = document.getElementById('resnet-success-message');
+                    const continueButton = document.getElementById('resnet-continue-button');
+                    
+                    if (allBridgesPlaced) {
+                        // Show success message and continue button
+                        if (successMessage) {
+                            successMessage.style.display = 'block';
+                            successMessage.classList.add('animate-in');
+                        }
+                        
+                        if (continueButton) {
+                            setTimeout(() => {
+                                continueButton.style.display = 'block';
+                                continueButton.classList.add('show-with-animation');
+                            }, 500);
+                        }
+                    } else {
+                        // Hide success message and continue button if not all bridges are placed
+                        if (successMessage) {
+                            successMessage.style.display = 'none';
+                            successMessage.classList.remove('animate-in');
+                        }
+                        
+                        if (continueButton) {
+                            continueButton.style.display = 'none';
+                            continueButton.classList.remove('show-with-animation');
+                        }
+                    }
+                }
+    
+                function spawnParticle() {
+                    const now = Date.now();
+                    if (now - lastSpawnTime > 800) {
+                        particles.push(new Particle());
+                        lastSpawnTime = now;
+                    }
+                }
+    
+                // ---------------------------------------------------------------- //
+                //                          RENDERING                               //
+                // ---------------------------------------------------------------- //
+    
+                function drawArrow(x, y, text) {
+                    ctx.fillStyle = '#a0aec0';
+                    ctx.font = '12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(text, x, y);
+                }
+    
+                function draw() {
+                    if (!isInitialized || !width || !height) {
+                        return;
+                    }
+                    
+                    ctx.clearRect(0, 0, width, height);
+    
+                    // 1. Draw Pipeline (Background Line)
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(20, config.layerY);
+                    ctx.lineTo(width - 20, config.layerY);
+                    ctx.stroke();
+    
+                    // Labels
+                    drawArrow(40, config.layerY + 40, "Input");
+                    drawArrow(width - 40, config.layerY + 40, "Loss");
+    
+                    // 2. Draw Resistance Blocks
+                    for (let i = 0; i < layers; i++) {
+                        const bx = getBlockX(i);
+                        const by = config.layerY;
+                        
+                        // Block
+                        ctx.fillStyle = '#4a5568';
+                        ctx.beginPath();
+                        ctx.roundRect(bx - config.blockW/2, by - config.blockH/2, config.blockW, config.blockH, 6);
+                        ctx.fill();
+                        
+                        // Label
+                        ctx.fillStyle = '#cbd5e1';
+                        ctx.font = '10px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText("Weight", bx, by - 5);
+                        ctx.fillText("Layer", bx, by + 10);
+    
+                        // Drop Zone Highlight
+                        if (isDragging) {
+                            ctx.strokeStyle = '#4facfe';
+                            ctx.lineWidth = 2;
+                            ctx.setLineDash([5, 5]);
+                            ctx.beginPath();
+                            ctx.arc(bx, by - 40, 20, 0, Math.PI*2);
+                            ctx.stroke();
+                            ctx.setLineDash([]);
+                        }
+                    }
+    
+                    // 3. Draw Placed Bridges
+                    ctx.strokeStyle = '#4facfe';
+                    ctx.lineWidth = 6;
+                    ctx.lineCap = 'round';
+                    
+                    for (let i = 0; i < layers; i++) {
+                        if (bridgesPlaced[i]) {
+                            const bx = getBlockX(i);
+                            const by = config.layerY;
+                            
+                            // Draw Arc
+                            ctx.beginPath();
+                            ctx.moveTo(bx + config.blockW/2 + 10, by);
+                            ctx.bezierCurveTo(
+                                bx + config.blockW/2, by - 80,
+                                bx - config.blockW/2, by - 80,
+                                bx - config.blockW/2 - 10, by
+                            );
+                            ctx.stroke();
+                            
+                            // Draw Remove "X" (Optional visual cue)
+                            ctx.fillStyle = 'white';
+                            ctx.beginPath();
+                            ctx.arc(bx, by - 65, 8, 0, Math.PI*2);
+                            ctx.fill();
+                            ctx.fillStyle = '#4facfe';
+                            ctx.font = 'bold 12px sans-serif';
+                            ctx.fillText("x", bx, by - 61);
+                        }
+                    }
+    
+                    // 4. Draw Particles
+                    spawnParticle();
+                    particles.forEach((p, index) => {
+                        p.update();
+                        p.draw();
+                        if (p.dead) particles.splice(index, 1);
+                    });
+    
+                    // 5. Draw Inventory / Dragging
+                    drawInventory();
+    
+                    animationFrameId = requestAnimationFrame(draw);
+                }
+    
+                function drawInventory() {
+                    const invX = width / 2;
+                    const invY = 50;
+    
+                    // Inventory Box
+                    ctx.fillStyle = '#f7fafc';
+                    ctx.strokeStyle = '#cbd5e1';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.roundRect(invX - 60, invY - 30, 120, 60, 10);
+                    ctx.stroke();
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#718096';
+                    ctx.font = '12px sans-serif';
+                    ctx.fillText("Bridge Depot", invX, invY + 20);
+    
+                    // The Draggable Bridge Icon (if not dragging)
+                    if (!isDragging) {
+                        drawBridgeIcon(invX, invY - 5);
+                    }
+    
+                    // The Dragged Item
+                    if (isDragging) {
+                        drawBridgeIcon(dragX, dragY);
+                    }
+                }
+    
+                function drawBridgeIcon(x, y) {
+                    ctx.strokeStyle = '#4facfe';
+                    ctx.lineWidth = 4;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(x - 20, y + 10);
+                    ctx.bezierCurveTo(x - 10, y - 20, x + 10, y - 20, x + 20, y + 10);
+                    ctx.stroke();
+                }
+    
+                // ---------------------------------------------------------------- //
+                //                          INTERACTION                             //
+                // ---------------------------------------------------------------- //
+    
+                function getMousePos(evt) {
+                    const rect = canvas.getBoundingClientRect();
+                    return {
+                        x: (evt.clientX || evt.touches[0].clientX) - rect.left,
+                        y: (evt.clientY || evt.touches[0].clientY) - rect.top
+                    };
+                }
+    
+                function handleStart(e) {
+                    const pos = getMousePos(e);
+                    
+                    // Check Inventory
+                    const invX = width / 2;
+                    const invY = 50;
+                    if (Math.abs(pos.x - invX) < 60 && Math.abs(pos.y - invY) < 30) {
+                        isDragging = true;
+                        dragX = pos.x;
+                        dragY = pos.y;
+                        activeDragIndex = -1; // New bridge
+                        return;
+                    }
+    
+                    // Check Existing Bridges (to remove/move)
+                    for (let i = 0; i < layers; i++) {
+                        if (bridgesPlaced[i]) {
+                            const bx = getBlockX(i);
+                            const by = config.layerY - 60; // Approximate top of arc
+                            if (Math.abs(pos.x - bx) < 30 && Math.abs(pos.y - by) < 30) {
+                                bridgesPlaced[i] = false; // Remove from board
+                                isDragging = true;
+                                dragX = pos.x;
+                                dragY = pos.y;
+                                activeDragIndex = i; // Technically not needed for logic, but good for tracking
+                                // Check completion status after removing a bridge
+                                checkCompletion();
+                                return;
+                            }
+                        }
+                    }
+                }
+    
+                function handleMove(e) {
+                    if (isDragging) {
+                        e.preventDefault();
+                        const pos = getMousePos(e);
+                        dragX = pos.x;
+                        dragY = pos.y;
+                    }
+                }
+    
+                function handleEnd(e) {
+                    if (!isDragging) return;
+                    
+                    // Check Drop Zones
+                    let dropped = false;
+                    for (let i = 0; i < layers; i++) {
+                        const bx = getBlockX(i);
+                        // Hitbox around the block
+                        if (Math.abs(dragX - bx) < 50 && Math.abs(dragY - config.layerY) < 80) {
+                            bridgesPlaced[i] = true;
+                            dropped = true;
+                            // Optional: Play a snap sound or visual effect
+                        }
+                    }
+    
+                    isDragging = false;
+                    
+                    // Check if task is complete after placing a bridge
+                    if (dropped) {
+                        checkCompletion();
+                    }
+                }
+    
+                // Watch for section visibility
+                const section = canvas.closest('section');
+                if (section) {
+                    // Function to check and initialize
+                    const checkAndInit = () => {
+                        if (section.classList.contains('visible')) {
+                            // Small delay to ensure DOM has updated and dimensions are available
+                            setTimeout(() => {
+                                init();
+                            }, 150);
+                        }
+                    };
+                    
+                    // Use MutationObserver to detect when section becomes visible
+                    const observer = new MutationObserver(() => {
+                        checkAndInit();
+                    });
+                    
+                    observer.observe(section, {
+                        attributes: true,
+                        attributeFilter: ['class']
+                    });
+                    
+                    // Also check immediately in case section is already visible
+                    checkAndInit();
+                    
+                    // Expose init function globally for manual triggering if needed
+                    window.initResNetCanvas = () => {
+                        checkAndInit();
+                    };
+                }
+            })();
+        </script>
+    </div>
+    <p id="resnet-success-message" style="display: none;"><em>Excellent! By placing those bridges, you created a direct path for the gradient to flow backwards, bypassing the complex weight layers. This ensures that even the very first layers of a 152-layer network receive a strong learning signal.</em></p>
+    <div id="resnet-continue-button" class="continue-button" onclick="showNextSection(15)" style="display: none;">Continue</div>
+</section>
+
+<section id="section15">
+    <p>Mathematically, because the gradient can flow through the $+x$ term, the derivative contains a term of $+1$. This '1' preserves the gradient magnitude, ensuring the network can actually train.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>ResNet proved that depth is critical for performance, provided you can train it. This architecture is the backbone of almost all modern Computer Vision models today.</p>
+    </div>
+    <div class="frequently-asked">
+        <h3>Frequently Asked</h3>
+        <h4>Can we use skip connections in non-convolutional networks?</h4>
+        <p>Absolutely! The concept of Residual Connections is universal. In fact, the 'Transformer' architecture (which powers ChatGPT and modern NLP) uses residual connections extensively to train deep stacks of attention layers.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- SECTION 5: Review and Reflect -->
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>We've conquered the paradox of depth! Let's verify your understanding.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>In a Residual Block, the output is calculated as $H(x) = F(x) + x$. What does $F(x)$ represent?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, x is the input. F(x) is the learned transformation.')">The original input image</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The layers try to learn the difference needed to improve the features, rather than rebuilding the features from scratch.')">The residual mapping (the difference between output and input)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, this happens at the very end of the network. A residual block happens in the middle.')">The final classification probability</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(17)" style="display: none;">Continue</div>
+</section>
+
+<section id="section17">
+    <p>To recap:</p>
+    <ul>
+        <li><strong>Degradation</strong> prevents standard deep networks from learning.</li>
+        <li><strong>Residual Blocks</strong> solve this by learning a residual function $F(x) = H(x) - x$.</li>
+        <li><strong>Skip Connections</strong> create a gradient superhighway, allowing ultra-deep networks to train.</li>
+    </ul>
+    <p>Now that we have cracked the code for depth, is there anything else left to optimize? In the next lesson, we will look at how researchers started tweaking width, attention, and efficiency.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+// -------------------------------------------------------------------------- //
+//                                 CORE LOGIC                                 //
+// -------------------------------------------------------------------------- //
+
+let currentSection = 1;
+const totalSections = 17; // Total number of logical chunks
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    
+    // Hide the clicked button
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+
+    // Initialize interactive elements when their sections become visible
+    if (nextSectionId === 6 && window.initDegradationChart) {
+        setTimeout(() => {
+            window.initDegradationChart();
+        }, 200);
+    }
+    if (nextSectionId === 14 && window.initResNetCanvas) {
+        setTimeout(() => {
+            window.initResNetCanvas();
+        }, 200);
+    }
+
+    // Smooth scroll
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    // Reset siblings
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+
+    // Mark selected
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+    // Add explanation
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic for revealing the next button depending on the section
+    const parentSection = element.closest('section');
+    
+    // Section 7 Logic (Check Your Understanding)
+    if (parentSection && parentSection.id === 'section7') {
+        const continueButton = document.getElementById('continue-after-check');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+
+    // Section 16 Logic (Test Your Knowledge)
+    if (parentSection && parentSection.id === 'section16') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+// Keyboard navigation for development/ease of use
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+// -------------------------------------------------------------------------- //
+//                           COMPLETION & CELEBRATION                         //
+// -------------------------------------------------------------------------- //
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Try LMS integration
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs would need to be dynamic in a real app, keeping defaults for this template
+                let courseId = 'computer-vision';
+                let pathId = 'cnn-architectures';
+                let moduleId = 'cv-ch05-m2-modern-cnns';
+                let lessonId = 'cv-ch05-l2-resnet';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-resnet_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+// Check completion on load
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check LMS
+    if (window.parent && window.parent.ProgressTracker) {
+        // ... (LMS check logic, simplified for brevity as it matches toggleCompleted variables) ...
+    }
+    
+    // Check LocalStorage
+    const isCompleted = localStorage.getItem('lesson_cv-resnet_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

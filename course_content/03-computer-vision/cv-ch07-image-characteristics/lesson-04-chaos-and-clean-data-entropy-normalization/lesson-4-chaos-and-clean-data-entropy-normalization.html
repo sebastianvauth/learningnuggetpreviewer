@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<style>
+    /* Specific styles for Section 11 interactive */
+    .hud-panel {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .stats {
+        display: flex;
+        gap: 20px;
+    }
+
+    .stat-group {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    .stat-value {
+        color: #4facfe;
+        font-family: monospace;
+        font-weight: 700;
+    }
+
+    .stability-meter {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        transition: all 0.3s ease;
+    }
+
+    .meter-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .meter-critical { background: #fee2e2; color: #ef4444; }
+    .meter-warning { background: #fef3c7; color: #f59e0b; }
+    .meter-optimal { background: #dcfce7; color: #10b981; }
+
+    .controls {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        padding: 20px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .action-btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.2);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:disabled {
+        background: #cbd5e1;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    .btn-secondary {
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    @keyframes pop-anim {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); color: #4facfe; }
+        100% { transform: scale(1); }
+    }
+
+    .pop-anim {
+        animation: pop-anim 0.3s ease-out;
+    }
+
+    #normCanvas {
+        background: #ffffff;
+        cursor: crosshair;
+    }
+</style>
+<title>Chaos and Clean Data – Entropy & Normalization</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Comparison: Gray vs Static" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    </div>
+    <h1>Chaos and Clean Data – Entropy & Normalization</h1>
+    <h2>Introduction: The Measurement of Chaos</h2>
+    
+    <p>We have spent the last few lessons turning images into numbers. We can calculate how bright an image is (Mean) and how punchy the contrast is (Variance). But there is one more question we need to ask: How "busy" is the image?</p>
+    <p>Imagine a book that is 1,000 pages long but contains only the letter 'A' repeated over and over again. It is long, but does it contain any information? Not really. Once you see the first 'A', you can predict every other letter with 100% certainty.</p>
+    <p>Images are the same way. We need a metric to measure the unpredictability, or "information content," of an image. That metric is <strong>Entropy</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>Entropy: The Mathematics of Surprise</h2>
+    <p>To understand Entropy, we turn to Claude Shannon, the father of Information Theory. He defined entropy as a measure of uncertainty.</p>
+    <p>For an image, entropy (\(H\)) tells us how random the pixel values are. If an image is completely predictable (like a solid color), entropy is zero. If every pixel value is equally likely to appear, entropy is maximized.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>We calculate Entropy using the <strong>Relative Frequencies</strong> (\(p_s(g)\)) from the histogram we learned about in the last lesson. Here is the formula:</p>
+    <p>$$ H = - \sum_{g=0}^{255} p_s(g) \cdot \log_2(p_s(g)) $$</p>
+    <div class="visual-placeholder">
+        <div class="placeholder-box">
+            Visual Placeholder: Formula Breakdown
+            <span>Arrows pointing to \(p_s(g)\) labeled 'Probability' and \(\log_2\) labeled 'Bits of Information'.</span>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <h3>Breaking Down the Formula</h3>
+    <ol>
+        <li>We look at the probability \(p_s(g)\) of each gray value \(g\).</li>
+        <li>We multiply it by its logarithm base 2 (\(\log_2\)).</li>
+        <li>We sum them all up and take the negative (because logarithms of fractions are negative, and we want a positive result).</li>
+    </ol>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>The formula uses a logarithm with base 2. What unit do you think the result is measured in?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Because it is base 2, the result is measured in <strong>bits per pixel</strong>. It represents the average number of bits needed to encode the intensity information.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>For a standard 8-bit grayscale image, the Entropy (\(H\)) has specific bounds:</p>
+    <ul>
+        <li><strong>Minimum (\(H=0\)):</strong> No uncertainty. All pixels are the same value (e.g., a solid gray wall).</li>
+        <li><strong>Maximum (\(H=8\)):</strong> Maximum uncertainty. All 256 intensity values are equally likely (e.g., pure random noise).</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>The Entropy Scale</h2>
+    <p>It helps to visualize where different types of images fall on this "Chaos Scale" from 0 to 8.</p>
+    <div class="visual-placeholder">
+        <img src="images/2.jpg" alt="Entropy Scale from 0 to 8" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    </div>
+    <p>Notice the placement of the images:</p>
+    <ul>
+        <li><strong>Solid Gray (\(H=0\)):</strong> The histogram has only one peak at one value. \(1 \times \log_2(1) = 0\).</li>
+        <li><strong>Thomas Müller (\(H \approx 7.2\)):</strong> Natural images usually have high entropy because they contain complex textures (hair), noise, and gradients.</li>
+        <li><strong>TV Static (\(H \approx 8\)):</strong> This is the theoretical limit for 8-bit images. It is pure randomness.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>But wait—look at the Checkerboard on the scale. It has extremely high contrast (black vs. white), yet its entropy is only <strong>1</strong>. Why?</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Why does a high-contrast checkerboard have such low entropy (\(H=1\))?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. Even if it were dark gray and light gray, the entropy would be the same if the probabilities were the same.')">Because it is black and white.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! The histogram only has two values (0 and 255), and they are equally likely (50/50). If you know a pixel isn\'t black, you know for a fact it is white. There is very little \'surprise\'.')">Because it is predictable.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Entropy is independent of the mean value. It cares about the distribution of values.')">Because the mean value is low.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>Let's prove the Checkerboard math. It has two values, each with probability \(0.5\):</p>
+    <p>$$ H = - [ (0.5 \times \log_2 0.5) + (0.5 \times \log_2 0.5) ] $$</p>
+    <p>Since \(\log_2(0.5) = -1\):</p>
+    <p>$$ H = - [ (0.5 \times -1) + (0.5 \times -1) ] = -[-1] = 1 $$</p>
+    <p>So, despite the high contrast, the information content is low!</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Entropy (Image)</h4>
+        <p>A statistical measure of the randomness or average information content of an image, calculated from the histogram. For 8-bit images, it ranges from 0 (constant image) to 8 (random noise).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <h2>Feeding the Neural Network</h2>
+    <p>We've learned how to describe images with numbers. Now, let's talk about why we do it. Usually, we analyze images to feed them into Machine Learning models, like Neural Networks.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Cartoon Robot: Picky about data normalization" style="width: 100%; max-width: 500px; display: block; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    </div>
+    <p>But Neural Networks are like picky eaters. They hate raw pixel values. Raw pixels range from 0 to 255. If you feed these large, positive numbers into a network, the math inside (specifically gradient descent) can become unstable, leading to slow training or total failure.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>To fix this, we perform <strong>Normalization</strong> or <strong>Standardization</strong>. This transforms our pixel data into a range the network loves—typically centered around 0 with a small spread.</p>
+    <p>We use the <strong>Mean</strong> (\(m_s\)) and <strong>Standard Deviation</strong> (\(\sigma_s\)) we learned in previous lessons to do this using the Standardization Formula:</p>
+    <p>$$ s'(x,y) = \frac{s(x,y) - m_s}{\sigma_s} $$</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>Let's see this in action in the <strong>Neural Net Preprocessor</strong>.</p>
+    <div class="interactive-module-container">
+      <div class="hud-panel">
+          <div class="stats">
+              <div class="stat-group">Mean (\(\mu\)): <span id="dispMean" class="stat-value">--</span></div>
+              <div class="stat-group">Std Dev (\(\sigma\)): <span id="dispStd" class="stat-value">--</span></div>
+          </div>
+          <div id="stabilityMeter" class="stability-meter meter-critical">
+              <div class="meter-dot"></div>
+              <span id="meterText">CRITICAL</span>
+          </div>
+      </div>
+  
+      <canvas id="normCanvas"></canvas>
+  
+      <div class="controls">
+          <button id="btnReset" class="action-btn btn-secondary" onclick="if(window.normApp) window.normApp.reset()">
+              ↺ Reset
+          </button>
+          <button id="btnSubMean" class="action-btn btn-primary" onclick="if(window.normApp) window.normApp.subtractMean()">
+              1. Subtract Mean
+          </button>
+          <button id="btnDivStd" class="action-btn btn-primary" onclick="if(window.normApp) window.normApp.divideStd()" disabled>
+              2. Divide by Std Dev
+          </button>
+      </div>
+  
+      <script>
+          class NormalizationApp {
+              constructor() {
+                  this.canvas = document.getElementById('normCanvas');
+                  this.ctx = this.canvas.getContext('2d');
+                  if (!this.canvas || !this.ctx) return;
+
+                  this.particles = [];
+                  this.numParticles = 300;
+                  
+                  this.currentMean = 0;
+                  this.currentStd = 0;
+                  this.state = 0; // 0: Raw, 1: Centered, 2: Scaled
+                  
+                  this.viewScale = 1; 
+                  this.viewOffset = 0; 
+                  
+                  this.targetScale = 1.5; 
+                  this.targetParticles = [];
+                  
+                  this.resize();
+                  this.initData();
+                  
+                  window.addEventListener('resize', () => this.resize());
+                  this.animate();
+              }
+  
+              resize() {
+                  if (!this.canvas) return;
+                  const rect = this.canvas.getBoundingClientRect();
+                  const dpr = window.devicePixelRatio || 1;
+                  this.canvas.width = rect.width * dpr;
+                  this.canvas.height = rect.height * dpr;
+                  this.ctx.scale(dpr, dpr);
+                  this.width = rect.width;
+                  this.height = rect.height;
+              }
+  
+              randomGaussian(mean, stdev) {
+                  const u = 1 - Math.random(); 
+                  const v = Math.random();
+                  const z = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+                  return z * stdev + mean;
+              }
+  
+              initData() {
+                  this.particles = [];
+                  this.targetParticles = [];
+                  const rawMean = 150;
+                  const rawStd = 40;
+                  
+                  for(let i=0; i<this.numParticles; i++) {
+                      const val = this.randomGaussian(rawMean, rawStd);
+                      const y = (Math.random() - 0.5) * 100; 
+                      this.particles.push({ x: val, y: y });
+                      this.targetParticles.push({ x: val, y: y });
+                  }
+  
+                  this.viewScale = 2; 
+                  this.targetScale = 2;
+                  this.viewOffset = 128; 
+                  
+                  this.state = 0;
+                  this.updateUI();
+              }
+  
+              calculateStats() {
+                  if (this.numParticles === 0) return { mean: 0, std: 0 };
+                  const sum = this.targetParticles.reduce((a, b) => a + b.x, 0);
+                  const avg = sum / this.numParticles;
+                  const squareDiffs = this.targetParticles.map(p => Math.pow(p.x - avg, 2));
+                  const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / this.numParticles;
+                  const std = Math.sqrt(avgSquareDiff);
+                  return { mean: avg, std: std };
+              }
+  
+              subtractMean() {
+                  if(this.state !== 0) return;
+                  const stats = this.calculateStats();
+                  const offset = stats.mean;
+                  this.targetParticles.forEach(p => p.x -= offset);
+                  this.viewOffset = 0; 
+                  this.state = 1;
+                  this.updateUI();
+              }
+  
+              divideStd() {
+                  if(this.state !== 1) return;
+                  const stats = this.calculateStats();
+                  const scaleFactor = stats.std;
+                  if (scaleFactor === 0) return;
+                  this.targetParticles.forEach(p => p.x /= scaleFactor);
+                  this.targetScale = 50; 
+                  this.state = 2;
+                  this.updateUI();
+              }
+  
+              reset() {
+                  this.initData();
+              }
+  
+              updateUI() {
+                  const stats = this.calculateStats();
+                  const dispMean = document.getElementById('dispMean');
+                  const dispStd = document.getElementById('dispStd');
+                  const meter = document.getElementById('stabilityMeter');
+                  const meterText = document.getElementById('meterText');
+                  const btnSub = document.getElementById('btnSubMean');
+                  const btnDiv = document.getElementById('btnDivStd');
+  
+                  if (!dispMean || !dispStd || !meter || !meterText || !btnSub || !btnDiv) return;
+
+                  dispMean.innerText = stats.mean.toFixed(2);
+                  dispStd.innerText = stats.std.toFixed(2);
+                  
+                  dispMean.classList.remove('pop-anim');
+                  void dispMean.offsetWidth; 
+                  dispMean.classList.add('pop-anim');
+  
+                  meter.className = 'stability-meter'; 
+                  if (this.state === 0) {
+                      meter.classList.add('meter-critical');
+                      meterText.innerText = "CRITICAL";
+                      btnSub.disabled = false;
+                      btnDiv.disabled = true;
+                  } else if (this.state === 1) {
+                      meter.classList.add('meter-warning');
+                      meterText.innerText = "UNSTABLE";
+                      btnSub.disabled = true;
+                      btnDiv.disabled = false;
+                  } else {
+                      meter.classList.add('meter-optimal');
+                      meterText.innerText = "OPTIMAL";
+                      btnSub.disabled = true;
+                      btnDiv.disabled = true;
+                  }
+              }
+  
+              lerp(start, end, amt) {
+                  return (1 - amt) * start + amt * end;
+              }
+  
+              animate() {
+                  if (!this.ctx) return;
+                  this.ctx.clearRect(0, 0, this.width, this.height);
+                  const speed = 0.1;
+                  this.viewScale = this.lerp(this.viewScale, this.targetScale, 0.05);
+                  this.particles.forEach((p, i) => {
+                      p.x = this.lerp(p.x, this.targetParticles[i].x, speed);
+                  });
+                  this.drawGrid();
+                  this.ctx.fillStyle = '#4facfe';
+                  this.particles.forEach(p => {
+                      const sx = (p.x - this.viewOffset) * this.viewScale + (this.width / 2);
+                      const sy = p.y + (this.height / 2);
+                      this.ctx.beginPath();
+                      this.ctx.arc(sx, sy, 4, 0, Math.PI * 2);
+                      this.ctx.fill();
+                  });
+                  const centerScreenX = (0 - this.viewOffset) * this.viewScale + (this.width / 2);
+                  this.ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                  this.ctx.lineWidth = 2;
+                  this.ctx.beginPath();
+                  this.ctx.moveTo(centerScreenX, 0);
+                  this.ctx.lineTo(centerScreenX, this.height);
+                  this.ctx.stroke();
+                  requestAnimationFrame(() => this.animate());
+              }
+  
+              drawGrid() {
+                  if (!this.ctx) return;
+                  this.ctx.textAlign = 'center';
+                  this.ctx.font = '10px sans-serif';
+                  this.ctx.fillStyle = '#94a3b8';
+                  this.ctx.strokeStyle = '#f1f5f9';
+                  let step = 50; 
+                  if (this.viewScale > 10) step = 1;
+                  if (this.viewScale > 40) step = 0.5;
+                  const rangeHalf = (this.width / 2) / this.viewScale;
+                  const start = Math.floor((this.viewOffset - rangeHalf) / step) * step;
+                  const end = Math.floor((this.viewOffset + rangeHalf) / step) * step;
+                  for (let i = start; i <= end; i += step) {
+                      const sx = (i - this.viewOffset) * this.viewScale + (this.width / 2);
+                      this.ctx.beginPath();
+                      this.ctx.moveTo(sx, 0);
+                      this.ctx.lineTo(sx, this.height);
+                      this.ctx.stroke();
+                      let label = Math.round(i * 100) / 100;
+                      this.ctx.fillText(label, sx, this.height - 10);
+                  }
+              }
+          }
+  
+          window.normApp = null;
+          function initNormApp() {
+              if (window.normApp) {
+                  window.normApp.resize();
+                  return;
+              }
+              requestAnimationFrame(() => {
+                  if (!window.normApp) {
+                      window.normApp = new NormalizationApp();
+                  }
+              });
+          }
+      </script>
+  </div>
+    <p>By clicking <strong>Subtract Mean</strong>, we performed <strong>Centering</strong>. The average brightness is now 0.<br>By clicking <strong>Divide by Std Dev</strong>, we scaled the variance to 1.</p>
+    <p>Now, the data is standardized. The "shape" of the image information is preserved, but the numerical values are now safe for the neural network.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Standardization</h4>
+        <p>A preprocessing step where image pixel values are transformed to have a mean of zero and a standard deviation of one, ensuring stable training for machine learning models.</p>
+    </div>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Without standardization, features with large values (like pixel intensity 255) might dominate the learning process over subtle features, or cause the activation functions to saturate. It connects the statistics of this chapter directly to the performance of modern AI.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <h2>Review and Reflect</h2>
+    <p>We have completed our journey into Image Characteristics.</p>
+    <p>We started by simply calculating the average brightness (<strong>Mean</strong>), realized that wasn't enough, and added contrast (<strong>Variance/Std Dev</strong>). We looked at the full shape of the data (<strong>Histograms</strong>), and finally measured the complexity and randomness (<strong>Entropy</strong>).</p>
+    <p>Crucially, we learned that these aren't just abstract stats—they are the tools we use to <strong>Standardize</strong> data, making it possible to train the advanced AI systems we will study later in the course.</p>
+    
+    <div class="faq-section">
+        <h3>Frequently Asked Question</h3>
+        <p><strong>Q: Why is the maximum entropy exactly 8?</strong></p>
+        <p>A: Great question. It comes down to the bits. An 8-bit image has \(2^8 = 256\) possible intensity levels. Entropy is measured in bits (because of the \(\log_2\)). If you have a distribution where all 256 possibilities are equally likely, you need exactly 8 bits to describe any given pixel. Therefore, \(H=8\).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>You are preprocessing a dataset of dark images for a neural network. You calculate a Mean of 30 and a Standard Deviation of 5. You standardize a pixel with value 40. What is its new value?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'You subtracted the mean (40 - 30 = 10), but you forgot to divide by the standard deviation.')">10</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! (40 - 30) / 5 = 10 / 5 = 2. The pixel is 2 standard deviations above the mean.')">2</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Check the formula again: (Pixel - Mean) / StdDev.')">0.5</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(14)" style="display: none;">Continue</div>
+</section>
+
+<section id="section14">
+    <p>Excellent work mastering these fundamental concepts of Computer Vision and Data Preprocessing. You are now ready to start applying these statistics to real-world problems.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 14;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    if (nextSectionId === 11 && typeof initNormApp === 'function') {
+        initNormApp();
+    }
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after answering quiz in section 13
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section13') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Update these IDs based on your specific curriculum map
+                let courseId = 'computer-vision';
+                let pathId = 'image-fundamentals'; 
+                let moduleId = 'cv-ch03-statistics';
+                let lessonId = 'cv-ch03-l4-entropy-normalization';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch03-l4_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage for completion
+    const isCompleted = localStorage.getItem('lesson_cv-ch03-l4_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

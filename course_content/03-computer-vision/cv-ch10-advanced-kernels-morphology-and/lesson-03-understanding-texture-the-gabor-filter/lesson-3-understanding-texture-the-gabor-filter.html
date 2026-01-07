@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Understanding Texture – The Gabor Filter</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Comparison showing zebra binary silhouette on left versus detailed zebra stripe texture pattern on right">
+        <p class="image-caption">Shape tells you what it is; texture tells you what it's made of.</p>
+    </div>
+    <h1>Understanding Texture – The Gabor Filter</h1>
+    <h2>Beyond the Silhouette</h2>
+    <p>In the last two lessons, we played with 'Morphology'—the shape of things. We expanded shapes, shrank them, and cleaned up noise. But looking at the world only through shapes is like trying to enjoy a painting with the lights off; you miss all the details.</p>
+    <p>Sometimes, we don't care about the silhouette of an object. We care about its <strong>texture</strong>. Is it a brick wall? A piece of denim? A fingerprint? To answer these questions, we need a new tool that looks for repetitive patterns, like lines and stripes.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: The Discovery -->
+<section id="section2">
+    <h2>The Gabor Discovery</h2>
+    <p>Enter Dennis Gabor, a Nobel Prize-winning physicist. He realized that to analyze a signal (or an image) effectively, we can't just look at <em>where</em> something is (spatial location) or <em>what frequency</em> it has (waves). We need to look at both simultaneously.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3: The Problem -->
+<section id="section3">
+    <p>Imagine you are looking for vertical stripes (a frequency pattern), but you only care if they appear in the center of the image (a spatial location). How do we build a mathematical trap to catch exactly that?</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4: The Ingredients -->
+<section id="section4">
+    <p>We combine two ingredients:</p>
+    <ol>
+        <li><strong>A Sinusoidal Plane Wave:</strong> This detects the pattern (the stripes).</li>
+        <li><strong>A Gaussian Function:</strong> This acts as a window (or envelope), focusing the detector on a specific spot.</li>
+    </ol>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5: Visual Aid -->
+<section id="section5">
+    <p>When you multiply them together, you get the <strong>Gabor Filter</strong>. It looks like ripples in a pond trapped inside a hill.</p>
+    <div class="visual-placeholder">
+        <img src="images/2.jpg" alt="3D visualization showing sinusoidal wave plus Gaussian hill equals Gabor filter">
+        <p class="image-caption">Mathematics made visual: the marriage of frequency and location.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6: Bio Connection & Vocab -->
+<section id="section6">
+    <p>This structure is incredibly special. In fact, it turns out that biology beat us to it.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Sinusoidal Plane Wave</h4>
+        <p>A mathematical function representing a periodic oscillation (like a sine wave) that extends infinitely in a 2D plane. In image processing, this looks like alternating light and dark stripes.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7: Math Intro -->
+<section id="section7">
+    <h2>The Mathematics of Texture</h2>
+    <p>Let's look under the hood. The 2D Gabor filter is constructed by multiplying a complex sinusoidal wave with a 2D Gaussian envelope.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Math Lady meme showing woman confused by complex Gabor formula, with caption saying it's just a wave inside a circle">
+        <p class="image-caption">When the formula looks scary but the concept is simple.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- SECTION 8: Formula -->
+<section id="section8">
+    <p>Don't let the meme scare you! Let's break down the formula step-by-step. The general formula for a Gabor filter \( g(x, y) \) is:</p>
+    <p>
+        $$g(x, y) = \underbrace{\exp \left( -\frac{x'^2 + \gamma^2 y'^2}{2\sigma^2} \right)}_{\text{Gaussian Envelope}} \cdot \underbrace{\exp \left( j \left( 2\pi \frac{x'}{\lambda} + \psi \right) \right)}_{\text{Sinusoidal Wave}}$$
+    </p>
+    <p>Here, \( x' \) and \( y' \) are just rotated coordinates based on an angle \( \theta \).</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- SECTION 9: Formula Breakdown -->
+<section id="section9">
+    <p>The first part—the <strong>Gaussian Envelope</strong>—defines the 'window' size. It ensures the filter only looks at a small neighborhood of pixels, fading to zero as you move away from the center.</p>
+    <p>The second part—the <strong>Sinusoidal Wave</strong>—defines the 'pattern' we are looking for inside that window. The term \( j \) indicates this is a complex number, but for visual intuition, just think of it as the alternating stripes.</p>
+    <p>To control what this filter detects, we just have to tune a few parameters. This is where you become the DJ of texture analysis.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- SECTION 10: Tuning Params -->
+<section id="section10">
+    <h2>Tuning the Texture</h2>
+    <p>A Gabor filter is defined by specific parameters that tell it exactly what kind of texture to hunt for. Here are the knobs you can turn:</p>
+    <ul>
+        <li><strong>\( \lambda \) (Lambda) - Wavelength:</strong> This controls the frequency. A larger \( \lambda \) creates thicker stripes (low frequency). A small \( \lambda \) creates thin, tight stripes (high frequency).</li>
+        <li><strong>\( \theta \) (Theta) - Orientation:</strong> This rotates the filter. It determines the angle of edges the filter will respond to (e.g., vertical, horizontal, or diagonal).</li>
+        <li><strong>\( \sigma \) (Sigma) - Standard Deviation:</strong> This controls the size of the Gaussian window. Larger \( \sigma \) means the filter sees a bigger area.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- SECTION 11: Quiz (Theta) -->
+<section id="section11">
+    <p>Let's see if you've got the intuition for \( \theta \).</p>
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If I want to detect vertical edges (like the sides of a building) in an image, what should my Theta (\( \theta \)) angle generally be?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Usually, 0 degrees corresponds to horizontal stripes. We want vertical ones.')">0 degrees (Horizontal)</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Spot on! A 90-degree orientation aligns the filters stripes vertically, making it highly sensitive to vertical edges.')">90 degrees (Vertical)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This would detect diagonal lines, not vertical ones.')">45 degrees (Diagonal)</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- SECTION 12: Interactive & Filter Bank -->
+<section id="section12">
+    <h2>Interactive: The Texture Tuner</h2>
+    <p>Now it's your turn to design a filter. Use the 'Texture Tuner' below to create a kernel that matches specific features.</p>
+    <!-- START INTERACTIVE MODULE -->
+<div class="tuner-container">
+    <!-- Left: Controls -->
+    <div class="tuner-controls">
+        <div class="control-group">
+            <label>Theta (Orientation) <span id="val-theta" class="value-display">90°</span></label>
+            <input type="range" id="param-theta" min="0" max="180" step="1" value="90">
+            <small style="color:#718096; line-height:1.2;">Rotates the stripes. Try 90° for vertical.</small>
+        </div>
+
+        <div class="control-group">
+            <label>Lambda (Wavelength) <span id="val-lambda" class="value-display">8 px</span></label>
+            <input type="range" id="param-lambda" min="3" max="20" step="0.5" value="8">
+            <small style="color:#718096; line-height:1.2;">Thickness of stripes.</small>
+        </div>
+
+        <div class="control-group">
+            <label>Sigma (Size) <span id="val-sigma" class="value-display">4.0</span></label>
+            <input type="range" id="param-sigma" min="1" max="10" step="0.1" value="4.0">
+            <small style="color:#718096; line-height:1.2;">Size of the "window".</small>
+        </div>
+
+        <div class="control-group">
+            <label>Gamma (Aspect Ratio) <span id="val-gamma" class="value-display">0.5</span></label>
+            <input type="range" id="param-gamma" min="0.1" max="1.0" step="0.1" value="0.5">
+            <small style="color:#718096; line-height:1.2;">Ellipticity of the filter.</small>
+        </div>
+        
+        <button onclick="resetTuner()" style="padding: 8px; background: #e2e8f0; border:none; border-radius:4px; cursor:pointer; font-weight:600; color:#4a5568;">Reset to Defaults</button>
+    </div>
+
+    <!-- Right: Visuals -->
+    <div class="tuner-visuals">
+        <!-- The Kernel View -->
+        <div class="vis-box kernel-vis">
+            <h5>The Kernel (What we look for)</h5>
+            <!-- Rendered large for visibility -->
+            <canvas id="canvas-kernel" width="120" height="120"></canvas>
+        </div>
+
+        <!-- Input Image -->
+        <div class="vis-box">
+            <h5>Input: Brick Wall</h5>
+            <canvas id="canvas-input" width="150" height="150"></canvas>
+        </div>
+
+        <!-- Output Heatmap -->
+        <div class="vis-box" style="position:relative;">
+            <h5>Output: Activation Heatmap</h5>
+            <canvas id="canvas-output" width="150" height="150"></canvas>
+            <div id="processing-msg" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(255,255,255,0.9); padding:5px; border-radius:4px; font-size:0.8rem; font-weight:bold; display:none;">Processing...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Canvas References
+    const canvasKernel = document.getElementById('canvas-kernel');
+    const ctxKernel = canvasKernel.getContext('2d');
+    
+    const canvasInput = document.getElementById('canvas-input');
+    const ctxInput = canvasInput.getContext('2d');
+    
+    const canvasOutput = document.getElementById('canvas-output');
+    const ctxOutput = canvasOutput.getContext('2d');
+
+    // State
+    const params = {
+        theta: 90, // Degrees
+        lambda: 8, // Wavelength
+        sigma: 4.0,
+        gamma: 0.5,
+        psi: 0     // Phase offset (kept 0 for even/symmetric filter)
+    };
+
+    // 1. Generate Procedural Brick Wall
+    function drawBrickWall() {
+        const w = canvasInput.width;
+        const h = canvasInput.height;
+        ctxInput.fillStyle = "#e2e8f0"; // Mortar color (light)
+        ctxInput.fillRect(0, 0, w, h);
+
+        const brickH = 15;
+        const brickW = 35;
+        const gap = 4;
+
+        ctxInput.fillStyle = "#8d4004"; // Brick color
+        
+        for(let y = 0; y < h; y += (brickH + gap)) {
+            // Offset every other row
+            const offset = (Math.floor(y / (brickH + gap)) % 2 === 0) ? 0 : -(brickW/2);
+            for(let x = offset; x < w; x += (brickW + gap)) {
+                ctxInput.fillRect(x, y, brickW, brickH);
+            }
+        }
+    }
+
+    // 2. The Gabor Math
+    function getGaborValue(x, y, lambda, thetaRad, sigma, gamma, psi) {
+        // Rotation
+        const x_prime = x * Math.cos(thetaRad) + y * Math.sin(thetaRad);
+        const y_prime = -x * Math.sin(thetaRad) + y * Math.cos(thetaRad);
+
+        // Gaussian Envelope
+        const envelope = Math.exp( - ( (x_prime**2) + (gamma**2 * y_prime**2) ) / (2 * sigma**2) );
+
+        // Carrier Wave (Cosine)
+        const carrier = Math.cos( 2 * Math.PI * (x_prime / lambda) + psi );
+
+        return envelope * carrier;
+    }
+
+    // 3. Generate Kernel Array
+    function generateKernel() {
+        const size = 31; // Odd number, smallish for performance
+        const half = Math.floor(size / 2);
+        const kernel = [];
+        const thetaRad = params.theta * (Math.PI / 180);
+
+        let minVal = 0;
+        let maxVal = 0;
+
+        for (let y = -half; y <= half; y++) {
+            const row = [];
+            for (let x = -half; x <= half; x++) {
+                const val = getGaborValue(x, y, params.lambda, thetaRad, params.sigma, params.gamma, params.psi);
+                row.push(val);
+                if (val < minVal) minVal = val;
+                if (val > maxVal) maxVal = val;
+            }
+            kernel.push(row);
+        }
+
+        return { data: kernel, size: size, min: minVal, max: maxVal };
+    }
+
+    // 4. Visualize Kernel
+    function drawKernel(kernelData) {
+        // Clear canvas
+        ctxKernel.clearRect(0,0, canvasKernel.width, canvasKernel.height);
+        
+        // We need to scale the small kernel (21px) up to the canvas size (120px)
+        const scale = canvasKernel.width / kernelData.size;
+        
+        for (let y = 0; y < kernelData.size; y++) {
+            for (let x = 0; x < kernelData.size; x++) {
+                const val = kernelData.data[y][x];
+                // Normalize -1 to 1 range -> 0 to 255
+                // Actually usually Gabor is approx -1 to 1.
+                // Let's map -1 -> 0 (black), 0 -> 128 (gray), 1 -> 255 (white)
+                const norm = Math.floor(((val + 1) / 2) * 255);
+                
+                ctxKernel.fillStyle = `rgb(${norm},${norm},${norm})`;
+                ctxKernel.fillRect(x * scale, y * scale, scale, scale);
+            }
+        }
+    }
+
+    // 5. Convolution (The Heavy Lifting)
+    function applyFilter(kernelData) {
+        const inputData = ctxInput.getImageData(0, 0, canvasInput.width, canvasInput.height);
+        const outputImg = ctxOutput.createImageData(canvasOutput.width, canvasOutput.height);
+        
+        const w = inputData.width;
+        const h = inputData.height;
+        const kSize = kernelData.size;
+        const kHalf = Math.floor(kSize / 2);
+        
+        // For simple grayscale convolution on the Red channel (since image is grayscale-ish)
+        const src = inputData.data;
+        const dst = outputImg.data;
+
+        // Optimization: Don't process borders
+        for (let y = kHalf; y < h - kHalf; y++) {
+            for (let x = kHalf; x < w - kHalf; x++) {
+                
+                let sum = 0;
+                
+                // Kernel Loop
+                for (let ky = 0; ky < kSize; ky++) {
+                    for (let kx = 0; kx < kSize; kx++) {
+                        const imgX = x + (kx - kHalf);
+                        const imgY = y + (ky - kHalf);
+                        const imgIdx = (imgY * w + imgX) * 4;
+                        
+                        // Use Red channel for intensity
+                        const pixelVal = src[imgIdx]; 
+                        // Invert pixel val so "Mortar" (light) is background and "Brick" (dark) is foreground?
+                        // Actually, edge detection usually works on contrast.
+                        // Let's just use raw intensity.
+                        
+                        sum += pixelVal * kernelData.data[ky][kx];
+                    }
+                }
+
+                // Heatmap Coloring
+                // Gabor output can be pos or neg. We care about MAGNITUDE (energy).
+                const magnitude = Math.abs(sum);
+                
+                // Visualize Magnitude: Black -> Red -> Yellow
+                // Thresholds need tweaking based on kernel response range
+                const intensity = Math.min(magnitude / 2, 255); // Scaling factor purely empirical
+                
+                const idx = (y * w + x) * 4;
+                
+                if (intensity < 50) {
+                    dst[idx] = 0; dst[idx+1] = 0; dst[idx+2] = intensity*2; // Dark Blueish
+                } else if (intensity < 128) {
+                    dst[idx] = intensity * 2; dst[idx+1] = 0; dst[idx+2] = 0; // Red
+                } else {
+                    dst[idx] = 255; dst[idx+1] = (intensity - 128) * 2; dst[idx+2] = 0; // Yellow
+                }
+                dst[idx+3] = 255; // Alpha
+            }
+        }
+        
+        ctxOutput.putImageData(outputImg, 0, 0);
+    }
+
+    // Master Update Function
+    let processingTimeout;
+    function update() {
+        // UI Updates
+        document.getElementById('val-theta').textContent = params.theta + "°";
+        document.getElementById('val-lambda').textContent = params.lambda + " px";
+        document.getElementById('val-sigma').textContent = params.sigma;
+        document.getElementById('val-gamma').textContent = params.gamma;
+
+        // 1. Calculate and Draw Kernel (Fast)
+        const kernel = generateKernel();
+        drawKernel(kernel);
+
+        // 2. Apply to Image (Slow - Debounce)
+        const msg = document.getElementById('processing-msg');
+        msg.style.display = 'block';
+        
+        if(processingTimeout) clearTimeout(processingTimeout);
+        
+        processingTimeout = setTimeout(() => {
+            applyFilter(kernel);
+            msg.style.display = 'none';
+        }, 50); // 50ms delay to keep UI responsive
+    }
+
+    // Event Listeners
+    document.getElementById('param-theta').addEventListener('input', (e) => { params.theta = parseInt(e.target.value); update(); });
+    document.getElementById('param-lambda').addEventListener('input', (e) => { params.lambda = parseFloat(e.target.value); update(); });
+    document.getElementById('param-sigma').addEventListener('input', (e) => { params.sigma = parseFloat(e.target.value); update(); });
+    document.getElementById('param-gamma').addEventListener('input', (e) => { params.gamma = parseFloat(e.target.value); update(); });
+    
+    // Global reset function
+    window.resetTuner = function() {
+        params.theta = 90;
+        params.lambda = 8;
+        params.sigma = 4.0;
+        params.gamma = 0.5;
+        
+        document.getElementById('param-theta').value = 90;
+        document.getElementById('param-lambda').value = 8;
+        document.getElementById('param-sigma').value = 4.0;
+        document.getElementById('param-gamma').value = 0.5;
+        
+        update();
+    };
+
+    // Initialize
+    drawBrickWall();
+    update();
+
+})();
+</script>
+<!-- END INTERACTIVE MODULE -->
+    <p>Did you notice how the response (the heatmap) lights up only when your filter's direction matches the mortar lines in the brick wall? That is the power of Gabor filters.</p>
+    <p>Because a single filter only sees <em>one</em> specific orientation and frequency, we rarely use just one. Instead, we create a <strong>Gabor Filter Bank</strong>—a whole team of filters covering different angles and sizes.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Filter Bank</h4>
+        <p>A collection of filters (kernels) applied to the same image, where each filter is tuned to a different frequency or orientation. The combined outputs provide a complete description of the texture.</p>
+    </div>
+    <div class="check-your-knowledge">
+        <h3>Frequently Asked</h3>
+        <h4>Why do we need a 'Bank' of filters? Why not just one?</h4>
+        <div id="faq-bank-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> A single Gabor filter is extremely picky—it has tunnel vision. If you tune it for vertical lines, it is completely blind to horizontal ones. To 'see' the whole image, we need a bank of filters to cover all bases (e.g., one for 0°, one for 45°, one for 90°, etc.).</div>
+        <button class="reveal-button" onclick="revealAnswer('faq-bank-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- SECTION 13: Bio Connection -->
+<section id="section13">
+    <h2>The Biological Connection</h2>
+    <p>Here is the mind-blowing part: Gabor filters aren't just a computer vision trick. They are essentially how <em>you</em> see.</p>
+    <p>Neurophysiological studies have shown that the simple cells in the mammalian <strong>Primary Visual Cortex (V1)</strong> have receptive fields that look almost exactly like Gabor functions. Your brain breaks down the visual world into little oriented edges and frequencies before it understands 'face' or 'car'.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 14: Stop and Think -->
+<section id="section14">
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>We mentioned that early layers of Deep Learning networks (CNNs) often look like Gabor filters. Why do you think AI 'evolved' to use these filters automatically?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> Think about atoms. Just as atoms are the building blocks of matter, edges and textures are the building blocks of vision. Whether it's a biological brain or an artificial neural network, detecting edges and their orientations is the most efficient first step to understanding complex objects.</div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Thoughts</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- SECTION 15: Why it matters -->
+<section id="section15">
+    <p>This connects everything we've learned. From the manual mathematics of Dennis Gabor to the biological evolution of the eye, and finally to the learned weights of modern Artificial Intelligence. The Gabor filter is the bridge.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Texture analysis is crucial for real-world applications like detecting defects in fabric manufacturing, identifying terrain types in satellite imagery, or analyzing medical scans. It also helps us understand the foundations of Deep Learning.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- SECTION 16: Review and Final Test -->
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>We've covered a lot of ground! We moved from simple shapes to complex textures.</p>
+    <p>To summarize:</p>
+    <ul>
+        <li><strong>Gabor Filters</strong> combine a Gaussian envelope (location) with a Sinusoidal wave (frequency).</li>
+        <li>We use parameters like <strong>Lambda (\( \lambda \))</strong> for frequency and <strong>Theta (\( \theta \))</strong> for orientation to tune the filter.</li>
+        <li>A <strong>Filter Bank</strong> is used to capture all textures in an image.</li>
+        <li>This mimics how the biological <strong>Visual Cortex (V1)</strong> works.</li>
+    </ul>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If I increase the Lambda (\( \lambda \)) parameter of my Gabor filter, what happens to the visual appearance of the kernel?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Rotation is controlled by Theta (\( \\theta \)).')">The stripes rotate.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Lambda represents wavelength. A longer wavelength means wider, thicker stripes.')">The stripes become thicker (lower frequency).</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The window size is controlled by Sigma (\( \\sigma \)).')">The overall size of the filter window shrinks.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(17)" style="display: none;">Finish Lesson</div>
+</section>
+
+<!-- SECTION 17: Completion -->
+<section id="section17">
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 17;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    // Auto-show completed button if we reached the end via text flow
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // If this is the final quiz (Section 16), reveal the finish button
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section16') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Example IDs - in a real app these would be dynamic
+                let courseId = 'computer-vision';
+                let pathId = 'texture-analysis';
+                let moduleId = 'cv-ch3-m1-filters';
+                let lessonId = 'cv-ch3-l1-gabor';
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch3-l1-gabor_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch3-l1-gabor_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

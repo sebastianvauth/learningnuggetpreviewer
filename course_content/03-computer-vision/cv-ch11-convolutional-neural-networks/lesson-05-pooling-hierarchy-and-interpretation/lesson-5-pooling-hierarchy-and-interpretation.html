@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Pooling, Hierarchy, and Interpretation</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Introduction -->
+<section id="section1" class="visible">
+  <div class="visual-placeholder">
+    <img src="images/1.jpg" alt="Comparison of raw precise data shown as a detailed city map versus topologically useful summary data shown as a simplified subway map, illustrating the concept of data abstraction in computer vision">
+</div>
+    <h1>Pooling, Hierarchy, and Interpretation</h1>
+    <h2>Introduction: The Need for Summary</h2>
+
+    <p>We've built a system that can detect edges, textures, and simple shapes using convolution. But we have a problem: precise location isn't always what we want. If you are trying to recognize a face, does it matter if the left eye is at pixel \((102, 55)\) or pixel \((103, 56)\)? Not really. You just need to know that there is an eye in the top-left region.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Max Pooling Intro -->
+<section id="section2">
+    <h2>Max Pooling</h2>
+    <p>To solve this, we introduce the <strong>Pooling Layer</strong>. Think of it as a summarizer. It looks at a small region of the feature map and asks: 'Is the feature present here?'</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Max Pooling Mechanism -->
+<section id="section3">
+    <p>The most common type is <strong>Max Pooling</strong>. It slides a window over the input, just like a convolution, but instead of doing a dot product, it simply picks the largest number.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Interactive Grid -->
+<section id="section4">
+    <p>Let's look at a \(2 \times 2\) Max Pooling operation with a stride of 2. This effectively cuts the height and width of the image in half.</p>
+    <!-- Max Pooling Interactive Module -->
+<div class="pooling-interactive-wrapper">
+    <h3>Visualize Max Pooling (Stride 2)</h3>
+    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 15px;">
+      The grid is divided into 4 regions. Click 'Pool' to extract the maximum value from each colored region.
+    </p>
+    
+    <canvas id="poolingCanvas" width="500" height="280"></canvas>
+    
+    <div class="interactive-controls">
+      <button id="triggerPoolBtn" class="pool-btn" onclick="startPooling()">Pool Features</button>
+      <button id="resetPoolBtn" class="pool-btn" onclick="resetPooling()" style="background: #e2e8f0; color: #4a5568; display: none;">Reset</button>
+    </div>
+  </div>
+  
+  <script>
+  (function() {
+    const canvas = document.getElementById('poolingCanvas');
+    const ctx = canvas.getContext('2d');
+    const triggerBtn = document.getElementById('triggerPoolBtn');
+    const resetBtn = document.getElementById('resetPoolBtn');
+  
+    // Configuration
+    const CELL_SIZE = 50;
+    const GAP = 5; // Gap between cells
+    const INPUT_OFFSET_X = 20;
+    const INPUT_OFFSET_Y = 20;
+    
+    // The output grid starts further to the right
+    const ARROW_WIDTH = 60;
+    const OUTPUT_OFFSET_X = INPUT_OFFSET_X + (CELL_SIZE * 4) + (GAP * 3) + ARROW_WIDTH;
+    const OUTPUT_OFFSET_Y = INPUT_OFFSET_Y + CELL_SIZE; // Vertically centered relative to input
+  
+    // Colors for the 4 quadrants (TopLeft, TopRight, BtmLeft, BtmRight)
+    const QUAD_COLORS = [
+      '#FECACA', // Red-ish
+      '#BFDBFE', // Blue-ish
+      '#BBF7D0', // Green-ish
+      '#FED7AA'  // Orange-ish
+    ];
+    
+    const TEXT_COLOR = '#1e293b';
+    const HIGHLIGHT_COLOR = '#ffffff'; // Text color when selected
+  
+    // State
+    let gridData = []; // 4x4 array
+    let animationState = 'IDLE'; // IDLE, HIGHLIGHT, MOVING, DONE
+    let progress = 0; // 0 to 1
+    let movingItems = []; // Array of objects {val, startX, startY, endX, endY}
+  
+    // Initialize
+    function init() {
+      generateData();
+      draw();
+    }
+  
+    function generateData() {
+      gridData = [];
+      for(let i=0; i<4; i++) {
+        let row = [];
+        for(let j=0; j<4; j++) {
+          row.push(Math.floor(Math.random() * 9) + 1); // 1-9
+        }
+        gridData.push(row);
+      }
+    }
+  
+    // Logic to find max values and setup animation paths
+    function preparePooling() {
+      movingItems = [];
+      
+      // Helper to process a 2x2 quadrant
+      // qx, qy are 0 or 1 (indices of the quadrants)
+      const processQuadrant = (qx, qy, colorIdx) => {
+        let maxVal = -1;
+        let maxR = -1;
+        let maxC = -1;
+  
+        // Scan the 2x2 area in the 4x4 grid
+        // TopLeft starts at 0,0. TopRight starts at 0,2. etc.
+        const startRow = qy * 2;
+        const startCol = qx * 2;
+  
+        for(let r=startRow; r<startRow+2; r++) {
+          for(let c=startCol; c<startCol+2; c++) {
+            if(gridData[r][c] > maxVal) {
+              maxVal = gridData[r][c];
+              maxR = r;
+              maxC = c;
+            }
+          }
+        }
+  
+        // Calculate Visual Coordinates
+        const startX = INPUT_OFFSET_X + maxC * (CELL_SIZE + GAP) + CELL_SIZE/2;
+        const startY = INPUT_OFFSET_Y + maxR * (CELL_SIZE + GAP) + CELL_SIZE/2;
+  
+        // Output grid is 2x2. 
+        // Output(0,0) corresponds to Quadrant(0,0)
+        const endX = OUTPUT_OFFSET_X + qx * (CELL_SIZE + GAP) + CELL_SIZE/2;
+        const endY = OUTPUT_OFFSET_Y + qy * (CELL_SIZE + GAP) + CELL_SIZE/2;
+  
+        movingItems.push({
+          val: maxVal,
+          startX: startX,
+          startY: startY,
+          currentX: startX,
+          currentY: startY,
+          endX: endX,
+          endY: endY,
+          r: maxR, // Store original row/col to hide original during move
+          c: maxC,
+          colorIdx: colorIdx
+        });
+      };
+  
+      // Process 4 quadrants
+      processQuadrant(0, 0, 0); // TL - Red
+      processQuadrant(1, 0, 1); // TR - Blue
+      processQuadrant(0, 1, 2); // BL - Green
+      processQuadrant(1, 1, 3); // BR - Orange
+    }
+  
+    window.startPooling = function() {
+      if(animationState !== 'IDLE') return;
+      
+      preparePooling();
+      animationState = 'HIGHLIGHT';
+      triggerBtn.disabled = true;
+      
+      // Simple sequence
+      setTimeout(() => {
+        animationState = 'MOVING';
+        animate();
+      }, 600); // Wait 600ms showing highlight
+    };
+  
+    window.resetPooling = function() {
+      animationState = 'IDLE';
+      progress = 0;
+      triggerBtn.style.display = 'inline-block';
+      triggerBtn.disabled = false;
+      resetBtn.style.display = 'none';
+      generateData();
+      draw();
+    };
+  
+    function animate() {
+      if (animationState !== 'MOVING') return;
+  
+      progress += 0.04; // Animation speed
+  
+      if (progress >= 1) {
+        progress = 1;
+        animationState = 'DONE';
+        triggerBtn.style.display = 'none';
+        resetBtn.style.display = 'inline-block';
+      }
+  
+      // Ease out cubic
+      const ease = 1 - Math.pow(1 - progress, 3);
+  
+      // Update positions
+      movingItems.forEach(item => {
+        item.currentX = item.startX + (item.endX - item.startX) * ease;
+        item.currentY = item.startY + (item.endY - item.startY) * ease;
+      });
+  
+      draw();
+  
+      if (animationState === 'MOVING') {
+        requestAnimationFrame(animate);
+      }
+    }
+  
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+      // 1. Draw Input Grid Backgrounds (Quadrants)
+      for(let r=0; r<4; r++) {
+        for(let c=0; c<4; c++) {
+          const x = INPUT_OFFSET_X + c * (CELL_SIZE + GAP);
+          const y = INPUT_OFFSET_Y + r * (CELL_SIZE + GAP);
+  
+          // Determine Quadrant Color
+          let qIdx = 0;
+          if (r < 2 && c < 2) qIdx = 0;      // TL
+          else if (r < 2 && c >= 2) qIdx = 1; // TR
+          else if (r >= 2 && c < 2) qIdx = 2; // BL
+          else qIdx = 3;                      // BR
+  
+          ctx.fillStyle = QUAD_COLORS[qIdx];
+          
+          // If animation is done, fade out the original input grid slightly
+          if(animationState === 'DONE') ctx.globalAlpha = 0.3;
+          
+          ctx.beginPath();
+          ctx.roundRect(x, y, CELL_SIZE, CELL_SIZE, 8);
+          ctx.fill();
+          ctx.globalAlpha = 1.0;
+  
+          // Draw numbers (unless it's a moving number currently in flight)
+          const isMovingItem = movingItems.find(item => item.r === r && item.c === c);
+          
+          // Logic: 
+          // IDLE: Draw all.
+          // HIGHLIGHT: Draw all, but highlight winner.
+          // MOVING: Don't draw winner (it's drawn separately).
+          // DONE: Don't draw winner (it's at destination).
+          
+          let shouldDrawText = true;
+          if (animationState === 'MOVING' && isMovingItem) shouldDrawText = false;
+          if (animationState === 'DONE' && isMovingItem) shouldDrawText = false;
+  
+          if (shouldDrawText) {
+             ctx.fillStyle = TEXT_COLOR;
+             ctx.font = 'bold 20px sans-serif';
+             ctx.textAlign = 'center';
+             ctx.textBaseline = 'middle';
+             
+             // If Highlight state, check if this is a winner
+             if (animationState === 'HIGHLIGHT' && isMovingItem) {
+               ctx.fillStyle = '#000'; // Make winner pop
+               ctx.font = 'bold 24px sans-serif';
+               // Add a ring
+               ctx.strokeStyle = '#2d3748';
+               ctx.lineWidth = 3;
+               ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+             } else if (animationState === 'DONE' || animationState === 'MOVING') {
+               ctx.fillStyle = 'rgba(30, 41, 59, 0.3)'; // Dim others
+             }
+  
+             ctx.fillText(gridData[r][c], x + CELL_SIZE/2, y + CELL_SIZE/2);
+          }
+        }
+      }
+  
+      // 2. Draw Output Grid Placeholders
+      for(let r=0; r<2; r++) {
+        for(let c=0; c<2; c++) {
+          const x = OUTPUT_OFFSET_X + c * (CELL_SIZE + GAP);
+          const y = OUTPUT_OFFSET_Y + r * (CELL_SIZE + GAP);
+          
+          // Determine color for border/bg hint
+          let qIdx = 0;
+          if (r===0 && c===0) qIdx = 0;
+          else if (r===0 && c===1) qIdx = 1;
+          else if (r===1 && c===0) qIdx = 2;
+          else qIdx = 3;
+  
+          ctx.strokeStyle = '#cbd5e1';
+          ctx.lineWidth = 2;
+          
+          // If done, fill with color to show mapping
+          if(animationState === 'DONE') {
+              ctx.fillStyle = QUAD_COLORS[qIdx];
+              ctx.beginPath();
+              ctx.roundRect(x, y, CELL_SIZE, CELL_SIZE, 8);
+              ctx.fill();
+          } else {
+              // Dashed placeholder
+              ctx.setLineDash([5, 5]);
+              ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+              ctx.setLineDash([]);
+          }
+        }
+      }
+  
+      // 3. Draw Arrow / Text "Max Pool"
+      ctx.fillStyle = '#64748b';
+      ctx.font = '14px sans-serif';
+      ctx.fillText("Stride 2", INPUT_OFFSET_X + (CELL_SIZE*4 + GAP*3)/2, INPUT_OFFSET_Y + (CELL_SIZE*4 + GAP*3) + 20);
+      
+      // Draw arrow in middle
+      const arrowX = INPUT_OFFSET_X + (CELL_SIZE*4) + 15;
+      const arrowY = INPUT_OFFSET_Y + (CELL_SIZE*2);
+      ctx.beginPath();
+      ctx.moveTo(arrowX, arrowY);
+      ctx.lineTo(arrowX + 30, arrowY);
+      ctx.lineTo(arrowX + 25, arrowY - 5);
+      ctx.moveTo(arrowX + 30, arrowY);
+      ctx.lineTo(arrowX + 25, arrowY + 5);
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+  
+      // 4. Draw Moving Items (The Winners)
+      if (animationState === 'MOVING' || animationState === 'DONE') {
+        movingItems.forEach(item => {
+          // Draw the circle/bg behind number
+          ctx.fillStyle = '#fff';
+          if (animationState === 'DONE') ctx.fillStyle = 'transparent'; // Integrate into grid
+          
+          if (animationState === 'MOVING') {
+              ctx.shadowColor = "rgba(0,0,0,0.2)";
+              ctx.shadowBlur = 10;
+          }
+  
+          // Draw Number
+          ctx.fillStyle = '#000';
+          ctx.font = 'bold 24px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(item.val, item.currentX, item.currentY);
+          
+          ctx.shadowBlur = 0;
+        });
+      }
+    }
+  
+    // Shim for roundRect if not supported in older browsers
+    if (!ctx.roundRect) {
+      ctx.roundRect = function(x, y, w, h, r) {
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        this.beginPath();
+        this.moveTo(x + r, y);
+        this.arcTo(x + w, y, x + w, y + h, r);
+        this.arcTo(x + w, y + h, x, y + h, r);
+        this.arcTo(x, y + h, x, y, r);
+        this.arcTo(x, y, x + w, y, r);
+        this.closePath();
+        return this;
+      }
+    }
+  
+    // Start
+    init();
+  
+  })();
+  </script>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Math -->
+<section id="section5">
+    <p>Mathematically, if our \(2 \times 2\) window contains the values \([1, 0, 3, 8]\), the operation is simply:</p>
+    <p>\[ output = \max(1, 0, 3, 8) = 8 \]</p>
+    <p>We keep the strong activation (the 8) and discard the rest.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Invariance & Vocab -->
+<section id="section6">
+    <p>By doing this, we gain <strong>Translation Invariance</strong>. If the feature shifts slightly to the right, the max value in that window is likely still the same. The network becomes robust to small movements.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Translation Invariance</h4>
+        <p>The ability of a network to recognize a feature (like an ear or a wheel) regardless of slight shifts in its position within the image.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Stop and Think -->
+<section id="section7">
+    <p>This leads to a drastic reduction in data. A \(2 \times 2\) pooling layer with stride 2 discards 75% of the input values.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Max Pooling throws away 75% of the data in this setup. Why is losing so much information actually a *good* thing?</h4>
+        <div id="cuy-pooling-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> It reduces the number of parameters and computations needed for the next layers, preventing overfitting. More importantly, it abstracts 'where' a feature is to simply 'what' feature is present in that general area.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-pooling-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Hierarchy Intro -->
+<section id="section8">
+    <h2>The Feature Hierarchy</h2>
+    <p>Now that we have convolutions to detect features and pooling to summarize them, we can stack them. This creates a <strong>Hierarchy of Features</strong>.</p>
+    <div class="visual-placeholder">
+        <img src="images/2.jpg" alt="Computer vision hierarchy pyramid showing increasing abstraction from low-level features (Gabor filters, textures) at the bottom, to mid-level parts (eyes, tires, noses) in the middle, to high-level objects (faces, cars, dogs) at the top">
+    </div>
+    <p>In the first layer, the network learns to detect edges. In the second layer, it combines those edges to detect shapes (circles, squares). In the third layer, it combines shapes to detect objects (wheels, eyes).</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Receptive Field -->
+<section id="section9">
+    <p>This is very similar to how the human visual cortex operates. We process visual information in stages of increasing complexity.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Receptive Field</h4>
+        <p>The region of the input image that a specific neuron is looking at. As you go deeper into the network (after pooling), a single neuron 'sees' a larger and larger portion of the original image.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Hierarchy Quiz -->
+<section id="section10">
+    <p>By the time we reach the end of the network, a single neuron might represent the concept of 'Car'. It fires highly if it sees wheels, windows, and a bumper, regardless of where they are exactly.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If Layer 1 detects vertical edges, what might Layer 2 detect by combining Layer 1's outputs?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Layer 1 would likely detect horizontal edges independently. Layer 2 combines features.')">Horizontal edges</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! If you combine a vertical edge and a horizontal edge, you get a corner. This is how complexity builds up.')">Corners and shapes</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The network moves away from pixels towards abstract concepts.')">Individual pixels</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Interpretation Intro -->
+<section id="section11">
+    <h2>When Interpretation Goes Wrong</h2>
+    <p>We like to think the network learns exactly what we want it to learn (e.g., 'This is a plane because it has wings'). But neural networks are lazy. They will look for the easiest pattern to minimize error.</p>
+    <p>Sometimes, the network learns <strong>Spurious Correlations</strong>. It finds a pattern that exists in the training data but isn't actually true in the real world.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Interactive Boat -->
+<section id="section12">
+    <!-- Spurious Correlation Interactive Module -->
+<div class="spurious-wrapper">
+    <h3>The Spurious Correlation Detector</h3>
+    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 15px;">
+      The model was trained on planes in blue skies and boats in murky water. Change the boat's environment and see what happens.
+    </p>
+  
+    <canvas id="spuriousCanvas" width="560" height="320"></canvas>
+    
+    <div class="prediction-readout" id="predictionText">
+      Prediction: <span class="pred-correct">BOAT (99%)</span>
+    </div>
+  
+    <div class="spurious-controls">
+      <div class="slider-label">
+        <span>Muddy Water</span>
+        <span>Environment Color</span>
+        <span>Blue Ocean</span>
+      </div>
+      <input type="range" id="bgSlider" class="custom-slider" min="0" max="100" value="0">
+    </div>
+  </div>
+  
+  <script>
+  (function() {
+    const canvas = document.getElementById('spuriousCanvas');
+    const ctx = canvas.getContext('2d');
+    const slider = document.getElementById('bgSlider');
+    const predText = document.getElementById('predictionText');
+  
+    // Animation/State variables
+    let sliderValue = 0; // 0 to 100
+    
+    // Colors
+    const COLOR_MUDDY = { r: 101, g: 119, b: 85 };  // Green/Brown
+    const COLOR_BLUE  = { r: 59, g: 130, b: 246 };  // Bright Blue
+    
+    // Initialize
+    function init() {
+      slider.addEventListener('input', (e) => {
+        sliderValue = parseInt(e.target.value);
+        draw();
+        updatePrediction();
+      });
+      draw(); // Initial draw
+    }
+  
+    // Linear Interpolation for colors
+    function lerpColor(c1, c2, t) {
+      const r = Math.round(c1.r + (c2.r - c1.r) * t);
+      const g = Math.round(c1.g + (c2.g - c1.g) * t);
+      const b = Math.round(c1.b + (c2.b - c1.b) * t);
+      return `rgb(${r},${g},${b})`;
+    }
+  
+    function drawBoat(ctx, x, y, scale, waterColor) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+  
+      // Background (Water/Sky context)
+      ctx.fillStyle = waterColor;
+      ctx.fillRect(-100, -20, 200, 120); // Water line
+      
+      // Sky (Generic pale)
+      ctx.fillStyle = '#f1f5f9'; 
+      ctx.fillRect(-100, -120, 200, 100);
+  
+      // The Boat Hull
+      ctx.fillStyle = '#854d0e'; // Brown
+      ctx.beginPath();
+      ctx.moveTo(-60, 0);
+      ctx.lineTo(60, 0);
+      ctx.lineTo(40, 40);
+      ctx.lineTo(-40, 40);
+      ctx.closePath();
+      ctx.fill();
+  
+      // The Mast
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(-5, -80, 10, 80);
+  
+      // The Sail
+      ctx.fillStyle = '#cbd5e1'; // White-ish
+      ctx.beginPath();
+      ctx.moveTo(5, -75);
+      ctx.lineTo(50, -10);
+      ctx.lineTo(5, -10);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Border
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 5;
+      ctx.strokeRect(-100, -120, 200, 220);
+  
+      ctx.restore();
+    }
+  
+    function drawPlane(ctx, x, y, scale) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+  
+      // Background (Blue Sky - The Training Bias)
+      ctx.fillStyle = 'rgb(59, 130, 246)'; 
+      ctx.fillRect(-100, -120, 200, 220);
+  
+      // Plane Body
+      ctx.fillStyle = '#e2e8f0'; // Light gray
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 80, 20, 0, 0, 2 * Math.PI);
+      ctx.fill();
+  
+      // Wings
+      ctx.fillStyle = '#94a3b8'; // Darker gray
+      ctx.beginPath();
+      ctx.moveTo(-20, 0);
+      ctx.lineTo(-40, 60);
+      ctx.lineTo(10, 10);
+      ctx.closePath();
+      ctx.fill();
+  
+      ctx.beginPath();
+      ctx.moveTo(-20, 0);
+      ctx.lineTo(-40, -60);
+      ctx.lineTo(10, -10);
+      ctx.closePath();
+      ctx.fill();
+  
+      // Tail
+      ctx.beginPath();
+      ctx.moveTo(60, 0);
+      ctx.lineTo(75, -30);
+      ctx.lineTo(70, 0);
+      ctx.closePath();
+      ctx.fill();
+  
+      // Border
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 5;
+      ctx.strokeRect(-100, -120, 200, 220);
+  
+      ctx.restore();
+    }
+  
+    function drawBars(boatProb, planeProb) {
+      const barHeight = 24;
+      const startY = 260;
+      const maxWidth = 300;
+      const startX = 180;
+  
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'right';
+  
+      // Boat Bar
+      ctx.fillStyle = '#2d3748';
+      ctx.fillText("Class: BOAT", startX - 10, startY + barHeight/2);
+      
+      // Background track
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(startX, startY, maxWidth, barHeight);
+      
+      // Fill
+      ctx.fillStyle = boatProb > 0.5 ? '#22c55e' : '#94a3b8';
+      ctx.fillRect(startX, startY, maxWidth * boatProb, barHeight);
+      
+      // Text value
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#1e293b';
+      ctx.fillText(Math.round(boatProb * 100) + "%", startX + maxWidth * boatProb + 5, startY + barHeight/2);
+  
+  
+      // Plane Bar
+      const planeY = startY + 35;
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#2d3748';
+      ctx.fillText("Class: PLANE", startX - 10, planeY + barHeight/2);
+      
+      // Background track
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(startX, planeY, maxWidth, barHeight);
+      
+      // Fill
+      ctx.fillStyle = planeProb > 0.5 ? '#ef4444' : '#94a3b8';
+      ctx.fillRect(startX, planeY, maxWidth * planeProb, barHeight);
+      
+      // Text value
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#1e293b';
+      ctx.fillText(Math.round(planeProb * 100) + "%", startX + maxWidth * planeProb + 5, planeY + barHeight/2);
+    }
+  
+    function updatePrediction() {
+      const t = sliderValue / 100;
+      
+      // Simulate model failure:
+      // As t goes from 0 to 1 (Muddy to Blue), 
+      // Boat probability drops, Plane probability rises.
+      
+      // Logic: The model is highly correlated with color.
+      // at t=0, Plane Prob = 0.01
+      // at t=1, Plane Prob = 0.95
+      
+      // Let's make it non-linear for effect (sigmoid-ish)
+      // Basic curve
+      let planeProb = Math.pow(t, 2) * 0.95; 
+      
+      // Add a base uncertainty
+      if (planeProb < 0.01) planeProb = 0.01;
+      
+      let boatProb = 1.0 - planeProb;
+  
+      // Update Text
+      if (boatProb > 0.5) {
+          predText.innerHTML = `Prediction: <span class="pred-correct">BOAT (${Math.round(boatProb*100)}%)</span>`;
+      } else {
+          predText.innerHTML = `Prediction: <span class="pred-wrong">PLANE (${Math.round(planeProb*100)}%)</span> <span style="font-size:0.8em; color:#64748b">⚠️ Error</span>`;
+      }
+    }
+  
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+      const t = sliderValue / 100;
+      const waterColor = lerpColor(COLOR_MUDDY, COLOR_BLUE, t);
+  
+      // 1. Draw Images
+      // Left: Dynamic Boat
+      drawBoat(ctx, 140, 130, 1.0, waterColor);
+      
+      // Right: Static Plane Reference
+      drawPlane(ctx, 420, 130, 0.8);
+  
+      // Labels
+      ctx.font = '600 14px sans-serif';
+      ctx.fillStyle = '#475569';
+      ctx.textAlign = 'center';
+      ctx.fillText("Input Image", 140, 20);
+      ctx.fillText("Training Data (Plane)", 420, 20);
+  
+      // 2. Calculate Probabilities based on slider
+      // Model thinks: Blue = Plane.
+      let planeProb = Math.pow(t, 2) * 0.95; 
+      if (t < 0.1) planeProb = 0.01;
+      let boatProb = 1.0 - planeProb;
+  
+      // 3. Draw Bars
+      drawBars(boatProb, planeProb);
+    }
+  
+    init();
+  })();
+  </script>
+    <p>In the interactive above, the network didn't learn what a plane looks like. It learned that <strong>Blue Background = Plane</strong>. This is a dangerous failure mode.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Why It Matters -->
+<section id="section13">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>If a self-driving car learns that 'Orange Sky = Sunset' but encounters a bright orange construction truck, it might get confused. Understanding <em>what</em> the network is actually looking at is vital for safety.</p>
+    </div>
+    <p>Visualizing feature maps helps us catch these errors. If the 'Plane' neuron lights up only when it sees blue, and not when it sees wings, we know we have a problem.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Review and FAQ -->
+<section id="section14">
+    <h2>Review and Reflect</h2>
+    <p>We have now completed the architecture of the Convolutional Neural Network. From the raw pixels, we use Convolutions to extract features, ReLu to add non-linearity, and Pooling to summarize and downsample.</p>
+    
+    <div class="faq-section">
+        <h3>Frequently Asked Question</h3>
+        <p><strong>Q: Do we backpropagate through Max Pooling if it has no weights?</strong></p>
+        <p>A: Yes! Even though Max Pooling has no learnable weights, we still need to pass gradients back to the previous layer. The gradient is passed exclusively to the neuron that was the 'winner' (the max value) in the forward pass, because that neuron is the only one that influenced the output.</p>
+    </div>
+
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Final Quiz -->
+<section id="section15">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following is NOT a benefit of Max Pooling?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Pooling reduces the size of the feature maps, which reduces computation. This is a benefit.')">Reduces computational cost</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Pooling helps the model recognize features even if they shift slightly. This is a benefit.')">Provides Translation Invariance</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Pooling *decreases* resolution (downsampling). It does not increase it.')">Increases the resolution of the image</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'By picking the max value, it keeps the strongest signal. This is a benefit.')">Helps extract dominant features</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-final-test" onclick="showNextSection(16)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 16: Conclusion -->
+<section id="section16">
+    <p>Deep learning is powerful, but as we saw, it requires careful monitoring to ensure it learns the <em>right</em> features.</p>
+    <p>In this chapter, we moved from the limitations of fully connected networks to the specialized power of CNNs. We explored:</p>
+    <ul>
+        <li><strong>Convolutions</strong> for local feature extraction.</li>
+        <li><strong>Shared Weights</strong> for efficiency.</li>
+        <li><strong>Pooling</strong> for invariance.</li>
+        <li><strong>Hierarchy</strong> for building complex concepts.</li>
+    </ul>
+    <p>You are now ready to apply these blocks to build modern architectures like AlexNet or ResNet!</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show hidden continue button after answering final quiz
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section15') {
+        const continueButton = document.getElementById('continue-after-final-test');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Update with appropriate IDs for this new lesson
+                let courseId = 'computer-vision';
+                let pathId = 'cnn-architecture';
+                let moduleId = 'cv-ch2-pooling';
+                let lessonId = 'cv-ch2-l2-pooling-hierarchy';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch2-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+         // Placeholder IDs used for check
+        let courseId = 'computer-vision';
+        let pathId = 'cnn-architecture';
+        let moduleId = 'cv-ch2-pooling';
+        let lessonId = 'cv-ch2-l2-pooling-hierarchy';
+        
+        if (window.parent.currentRoute) {
+            const route = window.parent.currentRoute;
+            if (route.courseId) courseId = route.courseId;
+            if (route.pathId) pathId = route.pathId;
+            if (route.moduleId) moduleId = route.moduleId;
+            if (route.lessonId) lessonId = route.lessonId;
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('course')) courseId = urlParams.get('course');
+        if (urlParams.get('path')) pathId = urlParams.get('path');
+        if (urlParams.get('module')) moduleId = urlParams.get('module');
+        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+        const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+        if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+            button.classList.add('completed');
+            button.innerHTML = '✅ Completed!';
+            return;
+        }
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch2-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

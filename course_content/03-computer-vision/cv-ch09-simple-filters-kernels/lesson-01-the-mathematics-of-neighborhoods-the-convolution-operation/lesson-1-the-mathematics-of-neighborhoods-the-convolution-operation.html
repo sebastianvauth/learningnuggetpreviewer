@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Mathematics of Neighborhoods</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <img src="images/1.jpg" alt="Lonely Pixel vs Neighborhood: Point Operation vs Spatial Operation">
+    <h1>Context is King</h1>
+    
+    <p>Welcome back! In our previous lessons on Histograms and Gamma Correction, we treated every pixel like an island. We changed a pixel's brightness based solely on its own value. If a pixel was dark, we brightened it. It didn't matter if that pixel was part of a cat's eye or a plain white wall.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Points to Neighborhoods -->
+<section id="section2">
+    <h2>From Points to Neighborhoods</h2>
+    <p>But here is the problem: images are not just bags of isolated pixels. They have structure. To see an edge, a texture, or a pattern, you need to know what is happening <em>next</em> to a pixel.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Think about it -->
+<section id="section3">
+    <p>Think about it: An 'edge' is only an edge because the pixel on the left is dark and the pixel on the right is bright. This brings us to a major paradigm shift in Computer Vision: <strong>Context is King</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Visualizing Neighborhoods -->
+<section id="section4">
+    <p>To process this structure, we move from <strong>Point Operations</strong> to <strong>Neighborhood Operations</strong>.</p>
+    <img src="images/2.jpg" alt="Point Operation vs Neighborhood Operation Diagram">
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: The Math Shift -->
+<section id="section5">
+    <p>Instead of looking at just one pixel \(s(x,y)\), we look at that pixel plus its neighbors. This usually means a small square region, like a \(3 \times 3\) or \(5 \times 5\) grid.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Meet the Kernel -->
+<section id="section6">
+    <h2>Meet the Kernel</h2>
+    <p>So, how do we combine a pixel with its neighbors mathematically? We use a special tool called a <strong>Kernel</strong> (or Filter).</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Kernel Vocab -->
+<section id="section7">
+    <p>A Kernel is simply a small matrix of numbers—weights—that tells us how important each neighbor is. To apply this kernel to an image, we use an operation called <strong>Convolution</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Kernel</h4>
+        <p>A small matrix (usually square with odd dimensions like 3x3) containing numerical weights used to extract features from an image.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Formula -->
+<section id="section8">
+    <p>The math might look intimidating at first, but it's just a structured way of multiplying and adding. Here is the formula for calculating a new pixel value \(s_a(x, y)\) based on an input image \(s_e\) and a kernel \(h\):</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Math Block -->
+<section id="section9">
+    <p>$$ s_a(x, y) = \frac{1}{N} \sum_{u=0}^{m-1} \sum_{v=0}^{m-1} s_e(x + k - u, y + k - v) \cdot h(u, v) $$</p>
+    <p>Don't panic! Let's break that down. The double summation symbols (\(\sum\)) just mean "loop over the rows and columns of the kernel."</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Sliding Window Intro -->
+<section id="section10">
+    <p>We place the kernel over the image so its center aligns with the pixel we want to change. Then, we multiply the kernel values by the image values underneath them and add everything up. This process is called the <strong>Sliding Window</strong> approach.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Sliding Window</h4>
+        <p>The process of moving the kernel over every pixel of the input image, one by one, to perform the convolution operation.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Interactive Sliding Window -->
+<section id="section11">
+    <h2>The Sliding Window in Action</h2>
+    <p>The best way to understand this is to see it in action. Imagine a transparency sheet with numbers written on it (the kernel) sliding over a grid of numbers (the image).</p>
+    <div class="interactive-container" id="slidingWindowModule">
+        <div class="canvas-wrapper">
+            <canvas id="convCanvas" width="360" height="360"></canvas>
+            <div class="instruction-overlay" id="dragHint">Drag the blue box!</div>
+        </div>
+    
+        <div class="calc-panel">
+            <div class="calc-header">Pixel Calculation</div>
+            
+            <!-- The 3x3 Grid of calculations -->
+            <div class="calc-grid" id="calcGrid">
+                <!-- Will be populated by JS -->
+            </div>
+    
+            <div class="calc-result">
+                <div class="result-row">
+                    <span>Sum:</span>
+                    <span id="sumVal">0</span>
+                </div>
+                <div class="result-row">
+                    <span>Normalize (÷9):</span>
+                    <span id="normVal">0</span>
+                </div>
+                <div class="result-row">
+                    <span>New Pixel Value:</span>
+                    <span id="finalVal">0</span>
+                </div>
+            </div>
+        </div>
+    
+        <script>
+        (function() {
+            const canvas = document.getElementById('convCanvas');
+            const ctx = canvas.getContext('2d');
+            const calcGrid = document.getElementById('calcGrid');
+            const sumDisplay = document.getElementById('sumVal');
+            const normDisplay = document.getElementById('normVal');
+            const finalDisplay = document.getElementById('finalVal');
+            const hint = document.getElementById('dragHint');
+    
+            // Configuration
+            const gridSize = 6; // 6x6 image
+            const kernelSize = 3;
+            const cellSize = 60; // Size of one pixel in canvas
+            
+            // State
+            let kernelX = 1; // Grid coordinates (0-5)
+            let kernelY = 1;
+            let isDragging = false;
+    
+            // Image Data (A simple pattern: Dark background, bright square in middle)
+            const imagePixels = [
+                [20, 20, 20, 20, 20, 20],
+                [20, 50, 50, 50, 50, 20],
+                [20, 50, 200, 200, 50, 20],
+                [20, 50, 200, 200, 50, 20],
+                [20, 50, 50, 50, 50, 20],
+                [20, 20, 20, 20, 20, 20]
+            ];
+    
+            // Kernel Weights (Box Blur - All 1s)
+            const kernelWeights = [
+                [1, 1, 1],
+                [1, 1, 1],
+                [1, 1, 1]
+            ];
+    
+            // Initialize
+            function init() {
+                render();
+                updateCalculations();
+                
+                // Events
+                canvas.addEventListener('mousedown', startDrag);
+                canvas.addEventListener('mousemove', drag);
+                canvas.addEventListener('mouseup', endDrag);
+                canvas.addEventListener('mouseleave', endDrag);
+                
+                // Touch support
+                canvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault(); 
+                    startDrag(e.touches[0]);
+                }, {passive: false});
+                canvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault(); 
+                    drag(e.touches[0]);
+                }, {passive: false});
+                canvas.addEventListener('touchend', endDrag);
+            }
+    
+            function getMousePos(evt) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                return {
+                    x: (evt.clientX - rect.left) * scaleX,
+                    y: (evt.clientY - rect.top) * scaleY
+                };
+            }
+    
+            function startDrag(evt) {
+                const pos = getMousePos(evt);
+                // Check if inside current kernel box
+                const kPixelX = kernelX * cellSize;
+                const kPixelY = kernelY * cellSize;
+                const kSize = kernelSize * cellSize;
+    
+                if (pos.x >= kPixelX && pos.x <= kPixelX + kSize &&
+                    pos.y >= kPixelY && pos.y <= kPixelY + kSize) {
+                    isDragging = true;
+                    hint.style.opacity = '0';
+                    canvas.style.cursor = 'grabbing';
+                }
+            }
+    
+            function drag(evt) {
+                if (!isDragging) return;
+                
+                const pos = getMousePos(evt);
+                
+                // Center the kernel on the mouse
+                let rawX = (pos.x / cellSize) - (kernelSize / 2);
+                let rawY = (pos.y / cellSize) - (kernelSize / 2);
+    
+                // Snap to grid
+                let newX = Math.round(rawX);
+                let newY = Math.round(rawY);
+    
+                // Boundaries (Keep kernel fully inside grid)
+                // Or allow partial overlap? Lesson says "hangs off the side" is next lesson.
+                // So we strictly bound it inside for now.
+                newX = Math.max(0, Math.min(newX, gridSize - kernelSize));
+                newY = Math.max(0, Math.min(newY, gridSize - kernelSize));
+    
+                if (newX !== kernelX || newY !== kernelY) {
+                    kernelX = newX;
+                    kernelY = newY;
+                    render();
+                    updateCalculations();
+                }
+            }
+    
+            function endDrag() {
+                isDragging = false;
+                canvas.style.cursor = 'grab';
+            }
+    
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+                // 1. Draw Image Pixels
+                for (let y = 0; y < gridSize; y++) {
+                    for (let x = 0; x < gridSize; x++) {
+                        const val = imagePixels[y][x];
+                        
+                        // Draw pixel
+                        ctx.fillStyle = `rgb(${val}, ${val}, ${val})`;
+                        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                        
+                        // Draw border
+                        ctx.strokeStyle = '#333';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+    
+                        // Draw value text
+                        ctx.fillStyle = val > 128 ? '#000' : '#fff';
+                        ctx.font = '12px monospace';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(val, x * cellSize + cellSize/2, y * cellSize + cellSize/2);
+                    }
+                }
+    
+                // 2. Draw Kernel Overlay
+                const kX = kernelX * cellSize;
+                const kY = kernelY * cellSize;
+                const kW = kernelSize * cellSize;
+    
+                // Outer Glow
+                ctx.shadowColor = 'rgba(102, 126, 234, 0.8)';
+                ctx.shadowBlur = 15;
+                
+                // Fill
+                ctx.fillStyle = 'rgba(102, 126, 234, 0.3)';
+                ctx.fillRect(kX, kY, kW, kW);
+                
+                // Border
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#667eea'; // Primary purple/blue
+                ctx.lineWidth = 4;
+                ctx.strokeRect(kX, kY, kW, kW);
+    
+                // 3. Highlight Center Target
+                const centerX = (kernelX + 1) * cellSize;
+                const centerY = (kernelY + 1) * cellSize;
+                
+                // Draw a crosshair or specific border for the center pixel
+                ctx.strokeStyle = '#f6ad55'; // Orange accent
+                ctx.lineWidth = 3;
+                ctx.setLineDash([5, 3]);
+                ctx.strokeRect(centerX, centerY, cellSize, cellSize);
+                ctx.setLineDash([]);
+            }
+    
+            function updateCalculations() {
+                let sum = 0;
+                let html = '';
+    
+                for (let ky = 0; ky < kernelSize; ky++) {
+                    for (let kx = 0; kx < kernelSize; kx++) {
+                        // Coordinates in image
+                        const imgX = kernelX + kx;
+                        const imgY = kernelY + ky;
+                        
+                        const pixelVal = imagePixels[imgY][imgX];
+                        const weight = kernelWeights[ky][kx];
+                        const product = pixelVal * weight;
+                        sum += product;
+    
+                        // Style logic: Highlight the center cell calculation
+                        const isCenter = (ky === 1 && kx === 1);
+                        const bgStyle = isCenter ? 'background: #fffaf0; border-color: #f6ad55;' : '';
+    
+                        html += `
+                            <div class="calc-cell" style="${bgStyle}">
+                                <strong>${pixelVal} × ${weight}</strong>
+                                <span>= ${product}</span>
+                            </div>
+                        `;
+                    }
+                }
+    
+                // Update DOM
+                calcGrid.innerHTML = html;
+                
+                // Animate values slightly for effect
+                sumDisplay.innerText = sum;
+                
+                // Normalization (Sum of weights is 9)
+                const normFactor = 9;
+                const normalized = Math.round(sum / normFactor);
+                
+                normDisplay.innerText = normalized;
+                finalDisplay.innerText = normalized;
+            }
+    
+            // Start
+            init();
+        })();
+        </script>
+    </div>
+    <p>Notice that for every single pixel in the output image, we have to do 9 multiplications and additions (for a \(3 \times 3\) kernel).</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Normalization Intro -->
+<section id="section12">
+    <p>You might have noticed the \(\frac{1}{N}\) in the formula. This is the <strong>Normalization Factor</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Normalization Formula -->
+<section id="section13">
+    <p>Usually, \(N\) is the sum of all the weights in the kernel.</p>
+    <p>$$ N = \sum_{u=0}^{m-1} \sum_{v=0}^{m-1} h(u, v) $$</p>
+    <p>Why do we divide by \(N\)? Imagine a kernel full of \(1\)s. If we add up 9 white pixels (value 255), the sum would be \(2295\). That's way above the maximum pixel value of 255! Dividing by 9 brings the average back into the correct range.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Check Understanding - Normalization -->
+<section id="section14">
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If your kernel is full of 1s (total sum 9) and you forget to divide by 9, what happens to the resulting image?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. You are summing up values, so the result will be larger, not smaller.')">
+                It becomes very dark (close to 0).
+            </div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The values will likely exceed 255, causing the image to look \'blown out\' or completely white.')">
+                It becomes mostly white/saturated.
+            </div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Since you are adding 9 pixels together, the value will definitely change.')">
+                It stays the same.
+            </div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-check1" onclick="showNextSection(15)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 15: Step-by-Step Intro -->
+<section id="section15">
+    <h2>Step-by-Step Calculation</h2>
+    <p>Let's crunch the numbers manually for one pixel to make sure we've got it. We will use a standard \(3 \times 3\) 'Box Blur' kernel where every weight is \(1\).</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16: Calculation Setup -->
+<section id="section16">
+    <p>Imagine a \(3 \times 3\) patch of the image where the center pixel is <strong>85</strong>, surrounded by some black pixels (\(0\)) and white pixels (\(255\)).</p>
+    <ul>
+        <li><strong>Kernel (\(h\)):</strong> All \(1\)s.</li>
+        <li><strong>Normalization (\(N\)):</strong> \(9\) (sum of ones).</li>
+    </ul>
+    <img src="images/3.jpg" alt="3x3 patch calculation diagram showing convolution with a box blur kernel">
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- Section 17: Calculation Steps -->
+<section id="section17">
+    <p>To calculate the new value for the center pixel:</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- Section 18: The Math -->
+<section id="section18">
+    <p>1. <strong>Multiply:</strong> Pair every kernel value with the image pixel underneath. Since the kernel is all \(1\)s, we just take the pixel values.<br>
+    2. <strong>Sum:</strong> \(0 + 0 + 0 + 0 + 85 + 255 + 0 + 255 + 255 = 850\)<br>
+    3. <strong>Normalize:</strong> Divide by \(N=9\).</p>
+    <p>$$ s_a(1,1) = \frac{850}{9} \approx 94 $$</p>
+    <p>So, the pixel changed from <strong>85</strong> to <strong>94</strong>. It got a bit brighter because it 'absorbed' some brightness from its white neighbors.</p>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<!-- Section 19: Normalization Vocab -->
+<section id="section19">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Normalization Factor</h4>
+        <p>A value (N) used to scale the result of the convolution, typically the sum of the kernel weights, ensuring the output pixel values remain within a valid range (e.g., 0-255).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<!-- Section 20: Deep Dive / Odd Dimensions -->
+<section id="section20">
+    <h2>Deep Dive</h2>
+    <p>We typically use kernels with odd dimensions, like \(3 \times 3\), \(5 \times 5\), or \(7 \times 7\).</p>
+    <div class="stop-and-think">
+        <h3>Stop and Think</h3>
+        <h4>Why do we typically use odd-sized kernels rather than even ones (e.g., 2x2 or 4x4)?</h4>
+        <div id="sat-odd-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Think about the center. In a 3x3 grid, there is a clear center pixel (1,1) to align with the image pixel we are modifying. In a 2x2 grid, the geometric center lands between pixels, making it ambiguous which pixel receives the result.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('sat-odd-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<!-- Section 21: Test Knowledge 1 -->
+<section id="section21">
+    <p>Before we wrap up, let's test your knowledge on the mechanics of convolution.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>You have a 3x3 Kernel where the center is 4 and the surrounding 8 pixels are all 0. What is the Normalization Factor N?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Remember, N is the sum of the weights inside the kernel. Most weights are 0 here.')">
+                9
+            </div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! N is the sum of weights: 4 + (8 * 0) = 4.')">
+                4
+            </div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. You need to sum up the values inside the matrix.')">
+                1
+            </div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test1" onclick="showNextSection(22)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 22: Test Knowledge 2 -->
+<section id="section22">
+    <p>Let's try one more calculation.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If you apply a 3x3 kernel of all 1s (N=9) to an area of the image that is completely solid gray (every pixel is 100), what is the result?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'You summed them up (100 * 9 = 900), but you forgot to divide by the normalization factor N=9.')">
+                900
+            </div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Sum = 900. Divide by 9 = 100. If the neighborhood is constant, a smoothing filter shouldn\'t change the value.')">
+                100
+            </div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The weights are 1, not 0, so the result won\'t vanish.')">
+                0
+            </div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test2" onclick="showNextSection(23)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 23: FAQ -->
+<section id="section23">
+    <div class="why-it-matters">
+        <h3>Frequently Asked Question</h3>
+        <h4>Does the kernel change values as it slides over the image?</h4>
+        <p>No, the kernel weights (the numbers inside the kernel matrix) stay constant during the entire convolution operation for a single image. The only thing that changes is which image pixels are currently 'underneath' the kernel.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(24)">Continue</div>
+</section>
+
+<!-- Section 24: Review and Reflect -->
+<section id="section24">
+    <h2>Review and Reflect</h2>
+    
+    <p>Great job! You've learned the fundamental operation of computer vision. To summarize:</p>
+    <ul>
+        <li><strong>Context:</strong> We moved from single pixels to neighborhoods.</li>
+        <li><strong>Convolution:</strong> We multiply a <strong>Kernel</strong> with the image pixels and sum the results.</li>
+        <li><strong>Normalization:</strong> We divide by the sum of weights to keep the brightness valid.</li>
+    </ul>
+    <p>But wait—what happens when the kernel slides to the very edge of the image and hangs off the side? We'll solve that mystery in the next lesson!</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 24;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after selection
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        const continueBtnId = parentSection.querySelector('.continue-button')?.id;
+        if(continueBtnId) {
+             const continueButton = document.getElementById(continueBtnId);
+             if (continueButton && continueButton.style.display === 'none') {
+                setTimeout(() => {
+                    continueButton.style.display = 'block';
+                    continueButton.classList.add('show-with-animation');
+                }, 800);
+            }
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            // Mock LMS integration
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs would ideally be dynamic or passed via URL params
+                let courseId = 'computer-vision';
+                let pathId = 'image-processing';
+                let moduleId = 'cv-ch2-neighborhoods';
+                let lessonId = 'cv-ch2-l1-math-neighborhoods';
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch2-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch2-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

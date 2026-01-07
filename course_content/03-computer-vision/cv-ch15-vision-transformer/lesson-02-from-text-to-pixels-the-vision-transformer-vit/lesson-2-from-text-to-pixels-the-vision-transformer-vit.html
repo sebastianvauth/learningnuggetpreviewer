@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Lesson 2: From Text to Pixels – The Vision Transformer (ViT)</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Introduction -->
+<section id="section1" class="visible">
+    <h1>From Text to Pixels – The Vision Transformer (ViT)</h1>
+    <h2>Introduction</h2>
+    <p>In the previous lesson, we explored the Transformer architecture—a machine designed to process sequences of text, like translating German to English.</p>
+    <figure class="lesson-figure">
+        <img src="images/1.jpg" alt="Robot comparing text in a book to a framed painting" loading="lazy">
+        <figcaption>A playful reminder that Transformers start life reading words before we retrain them to understand pixels.</figcaption>
+    </figure>
+    <p>But you are here for Computer Vision, not translation. The big question is: How do we take this powerful architecture, which is built to read words, and make it "see" images? In this lesson, we will bridge the gap between NLP and Vision by building the Vision Transformer (ViT).</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: The Pixel Problem -->
+<section id="section2">
+    <h2>The Pixel Problem</h2>
+    <p>You might be asking, "Why can't we just feed pixels into the Transformer like we feed words?" It seems logical: a sentence is a sequence of words; an image is just a sequence of pixels, right?</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Complexity Math -->
+<section id="section3">
+    <p>Technically, yes. You could flatten an image into a long line of pixels and feed it in. But there is a massive computational trap waiting for us.</p>
+    <p>To understand why this is a bad idea, we need to look at the math behind the Self-Attention mechanism. The computational complexity of a Self-Attention layer is defined by this formula:</p>
+    <p>$$ O(n^2 \cdot d) $$</p>
+    <p>Here, \(d\) is the vector dimension, but the killer variable is \(n\)—the sequence length (number of tokens). The complexity grows <strong>quadratically</strong> with the sequence length.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Quiz (Calculate n) -->
+<section id="section4">
+    <p>Let's do the math for a standard, small image of size \(224 \times 224\) pixels. If every pixel is a token, what is \(n\)?</p>
+    <div class="test-your-knowledge">
+        <h3>Quick Calculation</h3>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That is just the width. We need the total area (width × height).')">224</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! 224 × 224 = 50,176.')">50,176</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That is 224 + 224. We need to multiply the dimensions.')">448</div>
+        </div>
+    </div>
+    <div class="continue-button" id="btn-sec4" onclick="showNextSection(5)" style="display:none;">Continue</div>
+</section>
+
+<!-- Section 5: The Result of the Math -->
+<section id="section5">
+    <p>So, we have \(n = 50,176\) tokens. Now, let's plug that into the complexity formula to see how many operations the attention matrix requires (ignoring \(d\) for a moment, let's just look at \(n^2\)).</p>
+    <p>$$ 50,176^2 \approx 2,517,630,976 $$</p>
+    <p>That is roughly <strong>2.5 billion</strong> operations for a <em>single</em> layer of attention on a <em>tiny</em> image. If you tried to train a deep network this way, your GPU would likely melt (or just run out of memory immediately).</p>
+    <p>Compare this to Convolutional Neural Networks (CNNs). Their complexity is linear with respect to the number of pixels: \(O(k \cdot n \cdot d^2)\). This is why CNNs dominated vision for so long—they are efficient.</p>
+    <p>We need a way to reduce \(n\) drastically while still keeping the image content. We need... a chef.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: The Solution (Patching) -->
+<section id="section6">
+    <h2>The Solution: Patching</h2>
+    <p>To fix the complexity nightmare, the creators of the Vision Transformer (ViT) decided not to look at pixels, but at <strong>patches</strong>.</p>
+    <figure class="lesson-figure">
+        <img src="images/2.jpg" alt="Chef labeled ViT chopping a cat photograph into square patches" loading="lazy">
+        <figcaption>ViT “preps dinner” by slicing the image into patches—each square becomes a token the model can digest.</figcaption>
+    </figure>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Patch Math -->
+<section id="section7">
+    <p>The strategy is simple: We break the image into a grid of fixed-size patches, typically \(16 \times 16\) pixels. We then treat each <em>patch</em> as a single token—like a word in a sentence.</p>
+    <p>Let's see how this affects our math. If we take our \(224 \times 224\) image and use a patch size of \(16 \times 16\):</p>
+    <ol>
+        <li>Patches along the width: \(224 / 16 = 14\)</li>
+        <li>Patches along the height: \(224 / 16 = 14\)</li>
+        <li>Total patches (\(n\)): \(14 \times 14 = 196\)</li>
+    </ol>
+    <p>Now, let's look at \(n^2\) again:</p>
+    <p>$$ 196^2 = 38,416 $$</p>
+    <p>We went from <strong>2.5 billion</strong> operations to roughly <strong>38 thousand</strong>. This is manageable!</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Interactive Patching -->
+<section id="section8">
+    <p>Play with the interactive tool below to see how patch size affects the sequence length (\(n\)).</p>
+    <!-- START: Interactive Patching Tool Module -->
+<div class="patch-tool-container">
+  <div class="patch-tool-header">
+      <h4>ViT Patching Simulator</h4>
+      <p>Simulating a standard <strong>224 × 224</strong> input image</p>
+  </div>
+
+  <div class="patch-tool-layout">
+      <!-- Controls & Stats Side -->
+      <div class="patch-controls">
+          
+          <!-- Slider -->
+          <div class="control-group">
+              <label for="patchSizeSlider">
+                  Patch Size: <span id="patchSizeVal" style="color: #667eea; font-weight:bold;">16</span> px
+              </label>
+              <input type="range" id="patchSizeSlider" min="8" max="56" value="16" step="1">
+              <div class="slider-labels">
+                  <span>Fine (8px)</span>
+                  <span>Coarse (56px)</span>
+              </div>
+          </div>
+
+          <!-- Stats Box -->
+          <div class="stats-box">
+              <div class="stat-item">
+                  <div class="stat-label">Grid Dimensions</div>
+                  <div class="stat-value" id="gridDimVal">14 × 14</div>
+              </div>
+              <div class="stat-item highlight">
+                  <div class="stat-label">Sequence Length (\(n\))</div>
+                  <div class="stat-value" id="seqLenVal">196</div>
+              </div>
+              <div class="stat-item">
+                  <div class="stat-label">Complexity (\(n^2\))</div>
+                  <div class="stat-value" id="complexityVal">38,416</div>
+              </div>
+          </div>
+
+          <!-- Image Upload -->
+          <div class="upload-group">
+              <label for="imageUpload" class="upload-btn">
+                  📷 Upload Custom Image
+              </label>
+              <input type="file" id="imageUpload" accept="image/*">
+              <p class="upload-note">Image will be resized to 224×224</p>
+          </div>
+      </div>
+
+      <!-- Canvas Side -->
+      <div class="canvas-wrapper">
+          <canvas id="patchCanvas" width="448" height="448"></canvas>
+          <div id="loadingMsg">Loading...</div>
+      </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // --- Configuration ---
+  const SIMULATED_SIZE = 224; // ViT standard size
+  const DISPLAY_SCALE = 2;    // Render canvas at 2x for clarity
+  const CANVAS_SIZE = SIMULATED_SIZE * DISPLAY_SCALE;
+  
+  // --- Elements ---
+  const canvas = document.getElementById('patchCanvas');
+  const ctx = canvas.getContext('2d');
+  const slider = document.getElementById('patchSizeSlider');
+  const fileInput = document.getElementById('imageUpload');
+  
+  // Text Elements
+  const uiPatchSize = document.getElementById('patchSizeVal');
+  const uiGridDim = document.getElementById('gridDimVal');
+  const uiSeqLen = document.getElementById('seqLenVal');
+  const uiComplexity = document.getElementById('complexityVal');
+
+  // --- State ---
+  let currentImg = new Image();
+  let isImageLoaded = false;
+
+  // --- Initialization ---
+  // Create a default programmatic pattern so we don't rely on external URLs
+  function createDefaultImage() {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = SIMULATED_SIZE;
+      tempCanvas.height = SIMULATED_SIZE;
+      const tCtx = tempCanvas.getContext('2d');
+      
+      // Draw a nice gradient background
+      const grd = tCtx.createLinearGradient(0, 0, SIMULATED_SIZE, SIMULATED_SIZE);
+      grd.addColorStop(0, "#8EC5FC");
+      grd.addColorStop(1, "#E0C3FC");
+      tCtx.fillStyle = grd;
+      tCtx.fillRect(0, 0, SIMULATED_SIZE, SIMULATED_SIZE);
+      
+      // Draw some shapes
+      tCtx.fillStyle = "rgba(255, 255, 255, 0.5)";
+      tCtx.beginPath();
+      tCtx.arc(112, 112, 60, 0, 2 * Math.PI);
+      tCtx.fill();
+      
+      tCtx.fillStyle = "#667eea";
+      tCtx.font = "bold 100px sans-serif";
+      tCtx.textAlign = "center";
+      tCtx.textBaseline = "middle";
+      tCtx.fillText("ViT", 112, 112);
+
+      currentImg.src = tempCanvas.toDataURL();
+  }
+
+  currentImg.onload = () => {
+      isImageLoaded = true;
+      draw();
+  };
+
+  createDefaultImage();
+
+  // --- Interaction Logic ---
+  function updateStats(patchSize) {
+      // Calculations based on 224x224
+      // Note: ViT usually discards partial patches, so we use Math.floor
+      const patchesPerRow = Math.floor(SIMULATED_SIZE / patchSize);
+      const totalPatches = patchesPerRow * patchesPerRow;
+      const complexity = totalPatches * totalPatches;
+
+      // Update UI
+      uiPatchSize.textContent = patchSize;
+      uiGridDim.textContent = `${patchesPerRow} × ${patchesPerRow}`;
+      uiSeqLen.textContent = totalPatches.toLocaleString();
+      uiComplexity.textContent = complexity.toLocaleString();
+  }
+
+  function draw() {
+      if (!isImageLoaded) return;
+
+      const patchSize = parseInt(slider.value);
+      
+      // 1. Clear Canvas
+      ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+      // 2. Draw Image (Stretched to fit standard ViT square)
+      // We simulate scaling the input image to 224x224, then render at 448x448
+      ctx.drawImage(currentImg, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+      // 3. Draw Grid
+      const patchesPerRow = Math.floor(SIMULATED_SIZE / patchSize);
+      
+      // Visual cell size on the actual canvas (accounting for 2x scale)
+      // We calculate the visual size based on the integer number of patches
+      // to show exactly what the network 'sees' (discarding edges if not divisible)
+      const visualPatchSize = (CANVAS_SIZE / patchesPerRow); 
+
+      ctx.strokeStyle = "rgba(0, 242, 254, 0.8)"; // Cyan grid
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      // Draw Verticals
+      for (let i = 0; i <= patchesPerRow; i++) {
+          const x = i * visualPatchSize;
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, CANVAS_SIZE);
+      }
+
+      // Draw Horizontals
+      for (let i = 0; i <= patchesPerRow; i++) {
+          const y = i * visualPatchSize;
+          ctx.moveTo(0, y);
+          ctx.lineTo(CANVAS_SIZE, y);
+      }
+      
+      ctx.stroke();
+
+      // 4. Highlight one patch (Top Left) to make it clear what a "token" is
+      ctx.fillStyle = "rgba(102, 126, 234, 0.3)";
+      ctx.fillRect(0, 0, visualPatchSize, visualPatchSize);
+      
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 14px sans-serif";
+      ctx.fillText("Token 1", 5, 20);
+
+      // Update Text
+      updateStats(patchSize);
+  }
+
+  // --- Event Listeners ---
+  slider.addEventListener('input', draw);
+
+  fileInput.addEventListener('change', function(e) {
+      if (this.files && this.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+              const tempImg = new Image();
+              tempImg.onload = function() {
+                  currentImg = tempImg;
+                  draw();
+              }
+              tempImg.src = evt.target.result;
+          }
+          reader.readAsDataURL(this.files[0]);
+      }
+  });
+
+})();
+</script>
+<!-- END: Interactive Patching Tool Module -->
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Vocab (Patching) -->
+<section id="section9">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Patching</h4>
+        <p>The process of dividing an input image into a grid of fixed-size sub-images (patches). This reduces the effective sequence length passed to the Transformer, mitigating the quadratic complexity of self-attention.</p>
+    </div>
+    <p>But we can't feed raw square images into the network. We need to flatten them into vectors.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: ViT Pipeline Step 1 -->
+<section id="section10">
+    <h2>The ViT Pipeline</h2>
+    <p>Now that we have our patches, we need to prepare them for the Transformer Encoder. This involves three key steps.</p>
+    <h3>1. Linear Projection (Patch Embedding)</h3>
+    <p>First, we flatten the \(16 \times 16 \times 3\) (RGB) patch into a 1D vector. Then, we pass it through a linear layer to map it to a specific dimension \(D\). In NLP terms, this is our "Word Embedding."</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: ViT Pipeline Step 2 -->
+<section id="section11">
+    <h3>2. Positional Embeddings</h3>
+    <p>Just like in NLP, the Transformer has no idea which patch is top-left and which is bottom-right. If we shuffled the patches, the self-attention calculation wouldn't change.</p>
+    <p>To fix this, we add a learnable <strong>Positional Embedding</strong> vector to every patch embedding. This gives the model a hint about where each patch belongs in the image.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Stop and Think -->
+<section id="section12">
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why do we add Positional Embeddings <em>after</em> flattening the patches into a sequence, rather than just feeding the (x,y) coordinates of the patch into the network?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> The Transformer Encoder is designed to accept a 1D sequence of vectors (like a sentence). It doesn't inherently understand 2D grids. By flattening the patches into a sequence first, we conform to the architecture's input requirements. The learnable positional embedding effectively 'encodes' the 2D (x,y) information into the 1D vector space.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: ViT Pipeline Step 3 -->
+<section id="section13">
+    <h3>3. The [CLS] Token</h3>
+    <p>Finally, we steal a trick from the NLP model BERT. We prepend a special, learnable token to the start of our sequence: the <strong>Classification Token</strong> or <code>[CLS]</code>.</p>
+    <p>The <code>[CLS]</code> token doesn't correspond to any specific patch. Instead, through the layers of self-attention, it aggregates information from <em>all</em> the other patches. By the end of the network, the state of the <code>[CLS]</code> token represents the <strong>entire image</strong>.</p>
+    <p>We attach a small MLP head (neural network) to this final <code>[CLS]</code> token to predict the class (e.g., "Dog", "Cat", "Car").</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Vocab (CLS) -->
+<section id="section14">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>[CLS] Token</h4>
+        <p>A special, learnable token prepended to the input sequence of patches. Its final state at the output of the Transformer serves as the aggregate representation of the entire image, used for classification tasks.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Summary & Context -->
+<section id="section15">
+    <h2>Summary & Context</h2>
+    <p>You've just built the architecture that challenged the dominance of CNNs.</p>
+    <p>The Vision Transformer (ViT) proved that you don't <em>need</em> convolutions to understand images. You just need to be smart about how you feed the data to the model.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>ViT shifted the paradigm of computer vision research. It showed that with enough data, a generic architecture (Transformer) could outperform highly specialized ones (CNNs), unifying the fields of NLP and Vision.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16: FAQ -->
+<section id="section16">
+    <p>However, there are still some questions you might have.</p>
+    <div class="check-your-knowledge" style="border-left-color: #f093fb; background: linear-gradient(135deg, #fdf2ff 0%, #fff5ff 100%);">
+        <h3>Frequently Asked Question</h3>
+        <h4>What happens if the image size isn't divisible by the patch size?</h4>
+        <div id="faq-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Great practical question! If an image is \(225 \times 225\) and your patch size is \(16\), it doesn't fit perfectly. In practice, we usually resize the input image to a compatible size or 'pad' the edges with zeros (black pixels) to make it fit the grid perfectly.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('faq-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- Section 17: Final Quiz -->
+<section id="section17">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following describes the correct order of operations in the Vision Transformer pipeline?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. We need to project the patches into embeddings before we can treat them as tokens alongside the [CLS] token.')">Flatten Patches -> Add [CLS] Token -> Linear Projection -> Encoder</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! We cut the image, project patches to vectors, add the special token and position info, and then feed it to the Encoder.')">Image Patching -> Linear Projection -> Add [CLS] & Position Embeddings -> Transformer Encoder</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, the Linear Projection must happen <em>before</em> the Encoder to convert raw pixels into the vector dimension the Transformer expects.')">Image Patching -> Transformer Encoder -> Linear Projection</div>
+        </div>
+    </div>
+    <div class="continue-button" id="btn-sec17" onclick="showNextSection(18)" style="display:none;">Continue</div>
+</section>
+
+<!-- Section 18: Review and Reflect -->
+<section id="section18">
+    <h2>Review and Reflect</h2>
+    <p>To feed an image into a Transformer, we had to overcome the quadratic complexity of self-attention. We did this by <strong>Patching</strong>: chopping the image into a coarse grid (like \(16 \times 16\)) and treating each patch as a token.</p>
+    <p>We then added <strong>Positional Embeddings</strong> to retain spatial information and a <strong><code>[CLS]</code> token</strong> to aggregate the global image context.</p>
+    <p>In the next lesson, we will discuss a hidden drawback of this approach: why ViT is so "data-hungry" compared to CNNs.</p>
+    
+</section>
+
+<!-- Completion Button -->
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 18;
+
+// Initialize
+updateProgress();
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    
+    if (!nextSectionElement) return;
+    
+    // Hide the button that was clicked
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    // Reveal next section
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    // Check if we reached the end
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    
+    // Smooth scroll
+    setTimeout(() => { 
+        nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after interacting with quiz
+    // Specific IDs for section 4 and 17 buttons
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        const btnId = parentSection.id === 'section4' ? 'btn-sec4' : 
+                      parentSection.id === 'section17' ? 'btn-sec17' : null;
+        
+        if (btnId) {
+            const continueButton = document.getElementById(btnId);
+            if (continueButton && continueButton.style.display === 'none') {
+                setTimeout(() => {
+                    continueButton.style.display = 'table'; // CSS sets it to table for centering
+                    continueButton.classList.add('show-with-animation');
+                }, 800);
+            }
+        }
+    }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none' && btn.offsetParent !== null) {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+// Celebration Logic
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Save state locally
+        localStorage.setItem('lesson_cv-vit-l2_completed', 'true');
+        
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    
+    const emojis = ['🎉', '🎊', '✨', '🤖', '👁️', '🟦'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+// Check completion on load
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (button && localStorage.getItem('lesson_cv-vit-l2_completed') === 'true') {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

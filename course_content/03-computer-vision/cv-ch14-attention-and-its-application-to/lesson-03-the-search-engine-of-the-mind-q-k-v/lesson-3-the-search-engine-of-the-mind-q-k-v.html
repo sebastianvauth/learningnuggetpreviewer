@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Search Engine of the Mind (Q, K, V)</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+
+<div class="lesson-container">
+
+    <!-- SECTION 1: Introduction -->
+    <section id="section1" class="visible">
+      <figure class="image-placeholder">
+        <img src="images/1.jpg" alt="Long sentence shown as a ticker tape where the early words fade away to illustrate lost context" loading="lazy">
+        <figcaption>When only the newest words stay crisp, you forget how the sentence started—exactly the RNN problem we are about to fix.</figcaption>
+    </figure>
+        <h1>The Search Engine of the Mind (Q, K, V)</h1>
+        <h2>Introduction: The Conversation Problem</h2>
+        <p>In our last lesson, we saw how Recurrent Neural Networks (RNNs) read sentences like a human reads a ticker tape—one word at a time, often forgetting the beginning by the time they reach the end.</p>
+        
+        <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+    </section>
+
+    <section id="section2">
+        <p>But imagine if you could read a whole page instantly. Imagine if, when you saw the word 'bank', your eyes immediately darted to the word 'river' at the end of the sentence to understand the context, without having to read all the words in between first. This is the promise of <strong>Attention</strong>.</p>
+        <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+    </section>
+
+    <section id="section3">
+        <p>The goal of the Attention mechanism is simple but revolutionary: <strong>What if every word could talk to every other word at the same time?</strong></p>
+        <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+    </section>
+
+    <section id="section4">
+        <p>To achieve this, we don't look at neurons or brains. We look at something you use every day: a Database Retrieval System (or a Search Engine).</p>
+        <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+    </section>
+
+    <!-- SECTION 2: Library Analogy -->
+    <section id="section5">
+        <h2>The Library Analogy</h2>
+        <p>To understand how a computer 'pays attention', let's visit a library. When you walk into a library to find information, a three-step process occurs.</p>
+        <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+    </section>
+
+    <section id="section6">
+        <p><strong>1. The Request (Query):</strong> You walk to the librarian and ask, 'Do you have books about dinosaurs?' This is your <strong>Query (\(Q\))</strong>.</p>
+        <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+    </section>
+
+    <section id="section7">
+        <p><strong>2. The Search (Key):</strong> The librarian doesn't read every single book. They look at the catalog or the labels on the book spines. These labels are the <strong>Keys (\(K\))</strong>. The librarian matches your Query ('dinosaurs') against the Keys ('Cooking', 'History', 'Paleontology').</p>
+        <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+    </section>
+
+    <section id="section8">
+        <p><strong>3. The Content (Value):</strong> When the librarian finds a match between your Query and a Key (e.g., 'Paleontology'), they hand you the book. The information inside that book—the text, the images, the knowledge—is the <strong>Value (\(V\))</strong>.</p>
+        <figure class="image-placeholder">
+            <img src="images/2.jpg" alt="Diagram showing how a query matches catalog keys and then pulls the associated value" loading="lazy">
+            <figcaption>A single flow ties everything together: Queries line up with Keys, and the winning Key hands back its Value.</figcaption>
+        </figure>
+        <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+    </section>
+
+    <section id="section9">
+        <p>In deep learning, we mathematically formalize this. For every single word in a sentence, we generate these three vectors: a Query, a Key, and a Value.</p>
+        <div class="vocab-section">
+            <h3>Build Your Vocab</h3>
+            <h4>Query, Key, Value (Q, K, V)</h4>
+            <p>The three components of the attention mechanism.</p>
+            <ul>
+                <li><strong>Query (\(Q\)):</strong> Represents the current token looking for information.</li>
+                <li><strong>Key (\(K\)):</strong> Represents the label or identifier of other tokens.</li>
+                <li><strong>Value (\(V\)):</strong> Represents the actual information/content of the tokens.</li>
+            </ul>
+        </div>
+        <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+    </section>
+
+    <section id="section10">
+        <p>The intuition is: I use my <strong>Query</strong> to find relevant <strong>Keys</strong>, and once found, I retrieve their <strong>Values</strong>.</p>
+        <div class="check-your-knowledge">
+            <h3>Check Your Understanding</h3>
+            <h4>In a search engine like Google, what corresponds to the 'Query' and what corresponds to the 'Key'?</h4>
+            <div class="multiple-choice">
+                <div class="choice-option" onclick="selectChoice(this, false, 'Not quite. The search engine doesn\'t scan the entire content of every page instantly; it looks at indexed metadata first.')">
+                    Query: The search bar text; Key: The content of the website.
+                </div>
+                <div class="choice-option" onclick="selectChoice(this, true, 'Exactly! You type a Query, and Google matches it against the indexed Keys (keywords/titles) to show you the result.')">
+                    Query: The search bar text; Key: The page title or keywords (metadata).
+                </div>
+                <div class="choice-option" onclick="selectChoice(this, false, 'Backwards! The user provides the Query.')">
+                    Query: The website URL; Key: The search bar text.
+                </div>
+            </div>
+        </div>
+        <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+    </section>
+
+    <!-- SECTION 3: Self-Attention -->
+    <section id="section11">
+        <h2>Self-Attention: The Mirror Effect</h2>
+        <p>Now, here is the twist. In a library, <em>you</em> (the person) are distinct from the <em>books</em>. But in a neural network processing a sentence, the words themselves are both the askers and the answers.</p>
+        <figure class="image-placeholder">
+            <img src="images/86.jpg" alt="Spider-Man pointing at another Spider-Man to illustrate tokens attending to themselves" loading="lazy">
+            <figcaption>Self-attention feels like the Spider-Man pointing meme—every token is simultaneously the one asking and the one answering.</figcaption>
+        </figure>
+        <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+    </section>
+
+    <section id="section12">
+        <p>This is called <strong>Self-Attention</strong>. Every word in the sentence generates its own Query, Key, and Value.</p>
+        <ul>
+            <li>The word 'Bank' asks: 'Who helps define my meaning?' (Query)</li>
+            <li>The word 'River' replies: 'I am a body of water!' (Key)</li>
+            <li>The word 'Money' replies: 'I am currency!' (Key)</li>
+        </ul>
+        <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+    </section>
+
+    <section id="section13">
+        <p>Because 'Bank' is the Query, it compares itself to all Keys. It finds a high similarity with 'River' (if the context is nature) and low similarity with 'Money'. It then absorbs the <strong>Value</strong> of 'River' to update its own meaning.</p>
+        
+        <div class="stop-and-think">
+            <h3>Stop and Think</h3>
+            <p>Consider the sentence: "The bank of the river." If the word 'bank' is the Query, which other word in the sentence acts as the most important Key to help us understand what 'bank' means?</p>
+            <div id="sat-answer" style="display:none;" class="animate-in">
+                <strong>Answer:</strong> The word 'river'. By paying attention to 'river', the model understands that 'bank' refers to land alongside water, not a financial institution. This relationship is what the attention mechanism learns to find.
+            </div>
+            <button class="reveal-button" onclick="revealAnswer('sat-answer')">Reveal Answer</button>
+        </div>
+        <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+    </section>
+
+    <section id="section14">
+        <p>Let's visualize how this matching works in practice.</p>
+        <section id="section14">
+            <h2>Visualize the Attention</h2>
+            <p>Let's visualize how this matching works in practice. In the sentence below, the word <strong>"bat"</strong> is our Query. It needs to look at the other words to figure out if it is a furry animal or a wooden stick.</p>
+            
+            <p><strong>Your Task:</strong> Click and drag from the word <strong>"bat"</strong> to the word that gives the strongest clue about its identity.</p>
+        
+        <!-- Interactive Canvas Container -->
+        <div class="interactive-module-container">
+            <div class="canvas-wrapper" style="height: 300px; background: #f8fafc;">
+                <canvas id="attentionCanvas"></canvas>
+            </div>
+            <div class="feedback-panel neutral">
+                <div class="feedback-content">
+                    <span id="feedbackText" class="feedback-text">Drag a line from 'bat' to a context clue...</span>
+                </div>
+            </div>
+            <div class="interactive-controls">
+                <button id="resetInteractiveBtn" class="mode-btn" style="display: none;">Try Again</button>
+            </div>
+        </div>
+        
+            <!-- Hidden completion message initially -->
+            <div id="post-interactive-message" style="display:none; opacity: 0; transition: opacity 1s;">
+                <p>Correct! By connecting 'bat' to words like <strong>'flew'</strong> (action) or <strong>'cave'</strong> (location), the Attention mechanism assigns a high score to these relationships. The model now knows this is the animal, not the sports equipment.</p>
+                <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+            </div>
+        
+            <script>
+            (function() {
+                const canvas = document.getElementById('attentionCanvas');
+                const ctx = canvas.getContext('2d');
+                const feedbackEl = document.getElementById('feedbackText');
+                const resetBtn = document.getElementById('resetInteractiveBtn');
+                const postMsg = document.getElementById('post-interactive-message');
+                
+                // High DPI scaling
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = 300 * dpr;
+                canvas.style.width = `${rect.width}px`;
+                canvas.style.height = `300px`;
+                ctx.scale(dpr, dpr);
+        
+                // State
+                const sentence = ["The", "giant", "bat", "flew", "out", "of", "the", "cave"];
+                let tokens = [];
+                const queryIndex = 2; // "bat"
+                let isDragging = false;
+                let dragEndPos = { x: 0, y: 0 };
+                let activeTargetIndex = -1;
+                let completed = false;
+                let connection = null; // { targetIndex, strength }
+        
+                // Configuration
+                const config = {
+                    baseY: 150,
+                    padding: 15,
+                    boxHeight: 40,
+                    font: "600 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                    colors: {
+                        query: { bg: '#764ba2', text: '#fff', border: '#667eea' },
+                        default: { bg: '#fff', text: '#4a5568', border: '#cbd5e1' },
+                        hover: { bg: '#e6f3ff', text: '#2b6cb0', border: '#4facfe' },
+                        highlight: { bg: '#f0fff4', text: '#2f855a', border: '#48bb78' }
+                    }
+                };
+        
+                function initTokens() {
+                    ctx.font = config.font;
+                    let totalWidth = 0;
+                    const gap = 15;
+                    
+                    // Calculate widths
+                    const measurements = sentence.map(word => {
+                        const w = ctx.measureText(word).width + (config.padding * 2);
+                        totalWidth += w + gap;
+                        return w;
+                    });
+                    totalWidth -= gap; // remove last gap
+        
+                    // Center content
+                    let startX = (canvas.width / dpr - totalWidth) / 2;
+                    if (startX < 20) startX = 20; // minimal margin
+        
+                    tokens = sentence.map((word, i) => {
+                        const width = measurements[i];
+                        const token = {
+                            text: word,
+                            x: startX,
+                            y: config.baseY,
+                            w: width,
+                            h: config.boxHeight,
+                            index: i,
+                            isQuery: i === queryIndex
+                        };
+                        startX += width + gap;
+                        return token;
+                    });
+                }
+        
+                function drawRoundedRect(x, y, w, h, r) {
+                    ctx.beginPath();
+                    ctx.moveTo(x + r, y);
+                    ctx.lineTo(x + w - r, y);
+                    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+                    ctx.lineTo(x + w, y + h - r);
+                    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                    ctx.lineTo(x + r, y + h);
+                    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+                    ctx.lineTo(x, y + r);
+                    ctx.quadraticCurveTo(x, y, x + r, y);
+                    ctx.closePath();
+                }
+        
+                function drawCurve(x1, y1, x2, y2, strength = 1, color = '#764ba2') {
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    // Control points for bezier (arc upwards)
+                    const cpY = Math.min(y1, y2) - 80;
+                    ctx.bezierCurveTo(x1, cpY, x2, cpY, x2, y2);
+                    ctx.lineWidth = 3 * strength;
+                    ctx.strokeStyle = color;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                    
+                    // Draw arrowhead at end
+                    // (Simplified for this style)
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(x2, y2, 4 * strength, 0, Math.PI*2);
+                    ctx.fill();
+                }
+        
+                function render() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+                    // 1. Draw Connection Line (if dragging or completed)
+                    const queryToken = tokens[queryIndex];
+                    const startX = queryToken.x + queryToken.w / 2;
+                    const startY = queryToken.y;
+        
+                    if (isDragging) {
+                        drawCurve(startX, startY, dragEndPos.x, dragEndPos.y, 1, '#a3bffa');
+                    } else if (connection) {
+                        const targetToken = tokens[connection.targetIndex];
+                        const endX = targetToken.x + targetToken.w / 2;
+                        const endY = targetToken.y;
+                        let color = connection.strength === 'high' ? '#48bb78' : '#cbd5e1';
+                        if (connection.strength === 'medium') color = '#ecc94b';
+                        
+                        drawCurve(startX, startY, endX, endY, connection.strength === 'high' ? 1.5 : 0.8, color);
+                    }
+        
+                    // 2. Draw Tokens
+                    tokens.forEach(token => {
+                        let style = config.colors.default;
+                        
+                        if (token.isQuery) {
+                            style = config.colors.query;
+                        } else if (completed && token.index === connection.targetIndex) {
+                            // Result state
+                            if (connection.strength === 'high') style = config.colors.highlight;
+                            else if (connection.strength === 'medium') style = {bg:'#fffff0', text:'#b7791f', border:'#ecc94b'};
+                            else style = {bg:'#fff5f5', text:'#c53030', border:'#fc8181'};
+                        } else if (isDragging && token.index === activeTargetIndex && token.index !== queryIndex) {
+                            style = config.colors.hover;
+                        }
+        
+                        // Shadow
+                        ctx.shadowColor = 'rgba(0,0,0,0.1)';
+                        ctx.shadowBlur = 4;
+                        ctx.shadowOffsetY = 2;
+        
+                        ctx.fillStyle = style.bg;
+                        drawRoundedRect(token.x, token.y, token.w, token.h, 8);
+                        ctx.fill();
+        
+                        ctx.shadowColor = 'transparent';
+                        ctx.strokeStyle = style.border;
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+        
+                        ctx.fillStyle = style.text;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(token.text, token.x + token.w / 2, token.y + token.h / 2);
+                        
+                        // Label "Query" above bat
+                        if (token.isQuery) {
+                            ctx.fillStyle = '#764ba2';
+                            ctx.font = '12px sans-serif';
+                            ctx.fillText("Query", token.x + token.w / 2, token.y - 12);
+                            ctx.font = config.font;
+                        }
+                    });
+                }
+        
+                function getMousePos(evt) {
+                    const rect = canvas.getBoundingClientRect();
+                    const clientX = evt.clientX || (evt.touches && evt.touches[0].clientX);
+                    const clientY = evt.clientY || (evt.touches && evt.touches[0].clientY);
+                    return {
+                        x: (clientX - rect.left) * (canvas.width / rect.width / dpr),
+                        y: (clientY - rect.top) * (canvas.height / rect.height / dpr)
+                    };
+                }
+        
+                function checkCollision(pos) {
+                    return tokens.findIndex(t => 
+                        pos.x >= t.x && pos.x <= t.x + t.w &&
+                        pos.y >= t.y && pos.y <= t.y + t.h
+                    );
+                }
+        
+                function evaluateMatch(targetIndex) {
+                    const targetWord = tokens[targetIndex].text.toLowerCase();
+                    
+                    // Logic based on prompt
+                    if (['flew', 'cave', 'out'].includes(targetWord)) {
+                        // "out" is arguably part of the motion, but flew/cave are the strongest context. 
+                        // Let's group "flew" and "cave" as Success.
+                        if(targetWord === 'out') return { strength: 'medium', msg: "Medium Match. 'Out' relates to movement, but 'flew' or 'cave' are stronger clues."};
+                        
+                        return { strength: 'high', msg: `Excellent! '${tokens[targetIndex].text}' helps clarify that 'bat' is an animal.` };
+                    } else if (targetWord === 'giant') {
+                        return { strength: 'medium', msg: "Weak Match. 'Giant' describes size, but a baseball bat can be giant too. It doesn't clarify the identity." };
+                    } else {
+                        return { strength: 'low', msg: "Low Attention. This word doesn't provide enough context to define 'bat'." };
+                    }
+                }
+        
+                // Event Listeners
+                function onStart(e) {
+                    if (completed) return;
+                    const pos = getMousePos(e);
+                    const idx = checkCollision(pos);
+                    if (idx === queryIndex) {
+                        isDragging = true;
+                        dragEndPos = pos;
+                        feedbackEl.textContent = "Dragging... connect to a context clue.";
+                        feedbackEl.style.color = "#4a5568";
+                        render();
+                    }
+                }
+        
+                function onMove(e) {
+                    if (!isDragging) return;
+                    e.preventDefault(); // prevent scroll on touch
+                    const pos = getMousePos(e);
+                    dragEndPos = pos;
+                    activeTargetIndex = checkCollision(pos);
+                    render();
+                }
+        
+                function onEnd(e) {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    
+                    if (activeTargetIndex !== -1 && activeTargetIndex !== queryIndex) {
+                        const result = evaluateMatch(activeTargetIndex);
+                        connection = { targetIndex: activeTargetIndex, strength: result.strength };
+                        feedbackEl.textContent = result.msg;
+                        
+                        if (result.strength === 'high') {
+                            completed = true;
+                            feedbackEl.style.color = "#2f855a";
+                            resetBtn.style.display = 'none'; // No reset needed on success
+                            
+                            // Reveal success section
+                            postMsg.style.display = 'block';
+                            setTimeout(() => postMsg.style.opacity = 1, 100);
+                        } else {
+                            feedbackEl.style.color = result.strength === 'medium' ? "#b7791f" : "#c53030";
+                            resetBtn.style.display = 'inline-block'; // Allow retry
+                            completed = true; // Temporary state until reset
+                        }
+                    } else {
+                        render(); // clear line
+                        feedbackEl.textContent = "Drag a line from 'bat' to a context clue...";
+                    }
+                    render();
+                }
+        
+                resetBtn.addEventListener('click', () => {
+                    completed = false;
+                    connection = null;
+                    activeTargetIndex = -1;
+                    resetBtn.style.display = 'none';
+                    feedbackEl.textContent = "Drag a line from 'bat' to a context clue...";
+                    feedbackEl.style.color = "#4a5568";
+                    render();
+                });
+        
+                // Mouse
+                canvas.addEventListener('mousedown', onStart);
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onEnd);
+        
+                // Touch
+                canvas.addEventListener('touchstart', onStart, {passive: false});
+                canvas.addEventListener('touchmove', onMove, {passive: false});
+                canvas.addEventListener('touchend', onEnd);
+        
+                // Init
+                initTokens();
+                render();
+        
+                // Handle Resize
+                window.addEventListener('resize', () => {
+                    const rect = canvas.parentElement.getBoundingClientRect();
+                    canvas.width = rect.width * dpr;
+                    canvas.style.width = `${rect.width}px`;
+                    ctx.scale(dpr, dpr);
+                    initTokens();
+                    render();
+                });
+        
+            })();
+            </script>
+        </section>
+        <p>Correct! By connecting 'bat' to 'flew' and 'cave', the model knows this is the animal, not the sports equipment. This connection strength is the 'Attention Score'.</p>
+        <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+    </section>
+
+    <!-- SECTION 4: Why This Matters -->
+    <section id="section15">
+        <h2>Why This Matters</h2>
+        <p>You might be wondering: Why do we need three different vectors (\(Q, K, V\))? Why not just compare the words directly?</p>
+        <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+    </section>
+
+    <section id="section16">
+        <p>The separation allows the model to be much more expressive. Think of it this way:</p>
+        <ul>
+            <li>You might look like your father (<strong>Key</strong> - appearance).</li>
+            <li>But you might want to find someone who shares your interests (<strong>Query</strong> - hobbies).</li>
+            <li>And the information you give to them is your life story (<strong>Value</strong> - content).</li>
+        </ul>
+        <div class="why-it-matters">
+            <h3>Why It Matters</h3>
+            <p>The \(Q, K, V\) concept is the engine block of modern AI. Whether it's ChatGPT writing a poem or a Vision Transformer (ViT) recognizing a tumor in an X-ray, they all rely on this exact 'search and retrieve' mechanism to understand context.</p>
+        </div>
+        <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+    </section>
+
+    <section id="section17">
+        <div class="test-your-knowledge">
+            <h3>Test Your Knowledge</h3>
+            <h4>Match the component to its role in the Attention mechanism:</h4>
+            <div class="multiple-choice">
+                <div class="choice-option" onclick="selectChoice(this, false, 'Remember the library: You search with a Query, match against a label (Key), and read the content (Value).')">
+                    Q=Content, K=Label, V=Search
+                </div>
+                <div class="choice-option" onclick="selectChoice(this, true, 'Spot on! Query asks, Key matches, Value provides the information.')">
+                    Q=Search, K=Label, V=Content
+                </div>
+                <div class="choice-option" onclick="selectChoice(this, false, 'Not quite. Think about a Google search: Query is what you type.')">
+                    Q=Label, K=Content, V=Search
+                </div>
+            </div>
+        </div>
+        <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+    </section>
+
+    <!-- SECTION 5: Review -->
+    <section id="section18">
+        <h2>Review and Reflect</h2>
+        <p>In this lesson, we demystified the core of the Attention mechanism.</p>
+
+        <ul>
+            <li><strong>The Goal:</strong> Overcome sequential bottlenecks by allowing every input to see every other input.</li>
+            <li><strong>The Mechanism:</strong> Modeled after a database retrieval: <strong>Query</strong> (Look for this), <strong>Key</strong> (Match with this), and <strong>Value</strong> (Retrieve this).</li>
+            <li><strong>Self-Attention:</strong> Every token generates its own Q, K, and V to understand its relationship with the rest of the sequence.</li>
+        </ul>
+        
+        <div class="faq-section">
+            <h3>Frequently Asked Question</h3>
+            <p><strong>Why are Key and Value different? Aren't they both just 'the word'?</strong></p>
+            <p>Great question! While they both originate from the same word embedding, they serve different functions. Think of a library book again: The 'Key' is the Dewey Decimal number on the spine (used for finding the book), while the 'Value' is the text inside the book (used for reading). If we used the text inside the book to search, it would be too messy and inefficient. Separating them allows the model to optimize matching (Keys) separately from representing meaning (Values).</p>
+        </div>
+
+        <p>Now that you understand the <em>concept</em>, you are ready to see the <em>math</em>. In the next lesson, we will open the hood and calculate the actual Attention Scores using the dot product.</p>
+    </section>
+
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 18; // Total number of clickable sections
+
+updateProgress();
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    
+    if (!nextSectionElement) return;
+    
+    // Hide the button that was just clicked
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    // Scroll to the new section
+    setTimeout(() => { 
+        nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    }, 200);
+
+    // Check if we reached the end to show completion button
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    // Reset styling
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+
+    // Apply new styling
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+    // Create explanation box
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+// Completion Logic
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_attention_qkv_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    const msg = document.createElement('div');
+    msg.className = 'success-message';
+    msg.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    msg.style.animation = 'success-popup 2.5s ease-out';
+    document.body.appendChild(msg);
+    setTimeout(() => { if (msg.parentNode) msg.parentNode.removeChild(msg); }, 2500);
+}
+
+function createConfetti() {
+    const container = document.createElement('div');
+    container.className = 'confetti-container';
+    document.body.appendChild(container);
+    const emojis = ['🎉', '🧠', '✨', '🔍', '📚', '🤖'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            container.appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 5000);
+}
+
+// Check local storage on load
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_attention_qkv_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

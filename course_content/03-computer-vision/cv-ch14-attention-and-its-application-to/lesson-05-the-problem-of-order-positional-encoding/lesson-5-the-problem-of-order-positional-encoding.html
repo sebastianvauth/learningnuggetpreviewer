@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Problem of Order</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <figure class="lesson-figure">
+        <img src="images/1.jpg" alt="Comic strip showing a robot chef assembling a pizza incorrectly after ignoring ingredient positions" loading="lazy">
+        <figcaption>Order matters: the robot chef comic foreshadows why attention models need positional clues.</figcaption>
+    </figure>
+    <h1>The Problem of Order</h1>
+    <h2>Introduction: The Robot Chef</h2>
+    <p>In our previous lesson, we built a powerful mechanism: Self-Attention. It allows every pixel or word to talk to every other one, regardless of distance. But there is a hidden flaw in our design. A flaw so fundamental that without fixing it, our Transformer cannot understand the difference between 'The dog chased the cat' and 'The cat chased the dog'.</p>
+    
+    <p>The Self-Attention mechanism effectively treats an image or a sentence as a 'bag of words' (or pixels). It knows <em>what</em> is present, but it has no inherent concept of <em>where</em> things are relative to each other.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Math of Invariance</h2>
+    <p>Why does this happen? It comes down to the mathematics of the weighted sum.</p>
+    <p>Recall that Attention calculates a weighted sum of Value vectors (\(V\)). Let's look at a simplified calculation. Suppose we are calculating the context for a word using just two other words, \(A\) and \(B\), with attention weights \(\alpha_1\) and \(\alpha_2\):</p>
+    <p>$$ Context = \alpha_1 V_A + \alpha_2 V_B $$</p>
+    <p>In standard arithmetic, addition is <strong>commutative</strong>:</p>
+    <p>$$ \alpha_1 V_A + \alpha_2 V_B = \alpha_2 V_B + \alpha_1 V_A $$</p>
+    <p>The result is the same regardless of whether \(A\) came before \(B\) or vice versa.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>Because the attention scores (\(QK^T\)) are calculated using dot products (which are also order-independent for the pair), the network has no clue about the sequence order. We call this property <strong>Permutation Invariance</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Permutation Invariance</h4>
+        <p>A property of a function where changing the order of the input elements does not change the output (or changes it in a way that doesn't preserve the original order information). A set {A, B, C} is processed identically to {C, A, B}.</p>
+    </div>
+    <p>If we shuffle the words in a sentence, the Self-Attention layer produces the exact same set of context vectors, just shuffled in the same way. The model loses the syntax of language or the geometry of an image.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If you input a picture of a face into a raw Self-Attention layer without positional encoding, and you scrambled the pixels randomly, how would the attention scores between two specific pixels (e.g., a specific eye pixel and a specific mouth pixel) change?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Remember, raw attention uses dot products of content ($Q \\cdot K$). It doesn\'t inherently know about distance.')">The scores would change completely because the distance changed.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Since the content (color/texture) of the pixels hasn\'t changed, their similarity ($Q \\cdot K^T$) remains the same regardless of where they are on the canvas.')">The scores would remain exactly the same.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <h2>The Solution: Positional Encoding</h2>
+    <p>To fix this, we must explicitly inject information about position into the data <em>before</em> it enters the attention mechanism.</p>
+    <p>We do this by creating a <strong>Positional Encoding (PE)</strong> vector for every possible index (0, 1, 2, ... N) and adding it to the input embedding.</p>
+    <div class="interactive-module-container" id="pe-interactive">
+      <div class="canvas-wrapper" style="height: 500px;">
+          <canvas id="posEncodingCanvas"></canvas>
+      </div>
+      <div class="interactive-controls" style="flex-direction: column;">
+          <button id="injectBtn" class="mode-btn active">Inject Positional Encoding (+)</button>
+          <p id="instructionText" class="caption">Click the button to add the position vector.</p>
+      </div>
+  </div>
+  
+  <script>
+  (function() {
+      const canvas = document.getElementById('posEncodingCanvas');
+      const ctx = canvas.getContext('2d');
+      const btn = document.getElementById('injectBtn');
+      const instruction = document.getElementById('instructionText');
+  
+      // --- Configuration ---
+      const CONFIG = {
+          width: 800,
+          height: 500,
+          slots: 5,
+          dims: 5, // Dimensions in the vector
+          colors: {
+              meaning: '#667eea', // Blue/Purple
+              position: '#ed64a6', // Pink
+              sum: '#48bb78',     // Green
+              slot: '#e2e8f0',
+              text: '#4a5568',
+              grid: '#cbd5e1'
+          }
+      };
+  
+      // Fix DPI
+      function resize() {
+          const dpr = window.devicePixelRatio || 1;
+          const rect = canvas.getBoundingClientRect();
+          canvas.width = CONFIG.width * dpr;
+          canvas.height = CONFIG.height * dpr;
+          ctx.scale(dpr, dpr);
+          canvas.style.width = '100%';
+          canvas.style.maxWidth = CONFIG.width + 'px';
+      }
+      
+      // --- Data ---
+      // The "Meaning" of Dog (Fixed)
+      const meaningVector = [0.8, 0.6, -0.4, 0.2, 0.9];
+      
+      // Precomputed Sinusoidal-ish encodings for positions 1-5
+      const positionVectors = [
+          [0.1, 0.2, 0.3, 0.4, 0.5],    // Pos 1: Rising
+          [0.9, 0.7, 0.5, 0.3, 0.1],    // Pos 2: Falling
+          [-0.5, -0.3, 0.1, 0.4, 0.8],  // Pos 3: Cross
+          [0.8, -0.2, 0.8, -0.2, 0.8],  // Pos 4: Zigzag
+          [-0.8, 0.6, -0.4, 0.2, -0.1]  // Pos 5: Chaotic
+      ];
+  
+      let state = {
+          tokenSlot: 0, // Current slot index (0-4)
+          isDragging: false,
+          dragX: 0,
+          dragY: 0,
+          added: false, // Has the user clicked "Add"?
+          animProp: 0   // 0 to 1 transition for the "Add" animation
+      };
+  
+      // --- Layout Calculations ---
+      const layout = {
+          slotY: 80,
+          slotSize: 80,
+          slotGap: 20,
+          chartY: 280,
+          chartWidth: 140,
+          chartHeight: 120,
+          chartGap: 60
+      };
+      
+      // Centering the slots
+      const totalSlotWidth = (CONFIG.slots * layout.slotSize) + ((CONFIG.slots - 1) * layout.slotGap);
+      const startSlotX = (CONFIG.width - totalSlotWidth) / 2;
+  
+      // Centering the charts
+      // Chart Layout: Meaning [gap] Position [gap] Sum
+      const totalChartWidth = (3 * layout.chartWidth) + (2 * layout.chartGap);
+      const startChartX = (CONFIG.width - totalChartWidth) / 2;
+  
+      // --- Drawing Functions ---
+  
+      function drawRoundedRect(x, y, w, h, r, color, stroke = false) {
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.lineTo(x + w - r, y);
+          ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+          ctx.lineTo(x + w, y + h - r);
+          ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+          ctx.lineTo(x + r, y + h);
+          ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+          ctx.lineTo(x, y + r);
+          ctx.quadraticCurveTo(x, y, x + r, y);
+          ctx.closePath();
+          if (stroke) {
+              ctx.strokeStyle = color;
+              ctx.lineWidth = 2;
+              ctx.stroke();
+          } else {
+              ctx.fillStyle = color;
+              ctx.fill();
+          }
+      }
+  
+      function drawBarChart(x, y, width, height, values, color, label, opacity = 1) {
+          ctx.save();
+          ctx.globalAlpha = opacity;
+          
+          // Label
+          ctx.fillStyle = CONFIG.colors.text;
+          ctx.font = "bold 14px -apple-system, sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(label, x + width/2, y - 15);
+  
+          // Frame
+          ctx.strokeStyle = CONFIG.colors.grid;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x, y, width, height);
+  
+          // Zero line
+          const midY = y + height / 2;
+          ctx.beginPath();
+          ctx.moveTo(x, midY);
+          ctx.lineTo(x + width, midY);
+          ctx.strokeStyle = '#cbd5e1';
+          ctx.stroke();
+  
+          // Bars
+          const barWidth = (width / values.length) - 4;
+          values.forEach((val, i) => {
+              const barHeight = (val * (height/2)) * 0.9; // Scale to fit
+              const bx = x + 2 + i * (width / values.length) + 2;
+              
+              ctx.fillStyle = color;
+              // Draw from midY
+              ctx.fillRect(bx, midY, barWidth, -barHeight);
+          });
+  
+          ctx.restore();
+      }
+  
+      function drawToken(x, y) {
+          // Shadow
+          ctx.shadowColor = "rgba(0,0,0,0.2)";
+          ctx.shadowBlur = 10;
+          ctx.shadowOffsetY = 5;
+          
+          drawRoundedRect(x, y, layout.slotSize, layout.slotSize, 10, 'white');
+          
+          ctx.shadowColor = "transparent";
+          
+          // Border
+          drawRoundedRect(x, y, layout.slotSize, layout.slotSize, 10, CONFIG.colors.meaning, true);
+          
+          // Text
+          ctx.fillStyle = CONFIG.colors.meaning;
+          ctx.font = "bold 20px -apple-system, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("Dog", x + layout.slotSize/2, y + layout.slotSize/2);
+          
+          // Subtext
+          ctx.font = "12px -apple-system, sans-serif";
+          ctx.fillStyle = "#a0aec0";
+          ctx.fillText("vector", x + layout.slotSize/2, y + layout.slotSize/2 + 20);
+      }
+  
+      function drawScene() {
+          ctx.clearRect(0, 0, CONFIG.width, CONFIG.height);
+  
+          // 1. Draw Slots (Sequence)
+          for (let i = 0; i < CONFIG.slots; i++) {
+              const sx = startSlotX + i * (layout.slotSize + layout.slotGap);
+              drawRoundedRect(sx, layout.slotY, layout.slotSize, layout.slotSize, 10, CONFIG.colors.slot);
+              
+              // Slot Number
+              ctx.fillStyle = "#a0aec0";
+              ctx.font = "bold 14px sans-serif";
+              ctx.textAlign = "center";
+              ctx.fillText(i + 1, sx + layout.slotSize/2, layout.slotY + layout.slotSize + 25);
+          }
+          
+          // Label for sequence
+          ctx.fillStyle = CONFIG.colors.text;
+          ctx.font = "bold 16px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("Input Sequence (Positions)", CONFIG.width/2, layout.slotY - 20);
+  
+          // 2. Draw Calculations
+          const chartY = layout.chartY;
+          
+          // Meaning Chart
+          drawBarChart(startChartX, chartY, layout.chartWidth, layout.chartHeight, meaningVector, CONFIG.colors.meaning, "Meaning (E)");
+  
+          // Position Chart (Visibility based on animation)
+          const posChartX = startChartX + layout.chartWidth + layout.chartGap;
+          const currentPosVector = positionVectors[state.tokenSlot];
+          
+          if (state.animProp > 0) {
+              drawBarChart(posChartX, chartY, layout.chartWidth, layout.chartHeight, currentPosVector, CONFIG.colors.position, `Position (P${state.tokenSlot + 1})`, state.animProp);
+  
+              // Symbols (+ and =)
+              ctx.globalAlpha = state.animProp;
+              ctx.fillStyle = CONFIG.colors.text;
+              ctx.font = "bold 30px sans-serif";
+              ctx.fillText("+", startChartX + layout.chartWidth + layout.chartGap/2, chartY + layout.chartHeight/2);
+              ctx.fillText("=", posChartX + layout.chartWidth + layout.chartGap/2, chartY + layout.chartHeight/2);
+              ctx.globalAlpha = 1;
+  
+              // Sum Chart
+              const sumChartX = posChartX + layout.chartWidth + layout.chartGap;
+              const sumVector = meaningVector.map((v, k) => v + currentPosVector[k]);
+              drawBarChart(sumChartX, chartY, layout.chartWidth, layout.chartHeight, sumVector, CONFIG.colors.sum, "Final Input (X)", state.animProp);
+          }
+  
+          // 3. Draw Token
+          let tx, ty;
+          if (state.isDragging) {
+              tx = state.dragX - layout.slotSize/2;
+              ty = state.dragY - layout.slotSize/2;
+          } else {
+              tx = startSlotX + state.tokenSlot * (layout.slotSize + layout.slotGap);
+              ty = layout.slotY;
+          }
+          drawToken(tx, ty);
+      }
+  
+      // --- Interaction ---
+  
+      function getMousePos(evt) {
+          const rect = canvas.getBoundingClientRect();
+          const scaleX = canvas.width / rect.width;
+          const scaleY = canvas.height / rect.height;
+          return {
+              x: ((evt.clientX || evt.touches[0].clientX) - rect.left) * (CONFIG.width / canvas.offsetWidth),
+              y: ((evt.clientY || evt.touches[0].clientY) - rect.top) * (CONFIG.height / canvas.offsetHeight)
+          };
+      }
+  
+      function isOverToken(pos) {
+          const tx = startSlotX + state.tokenSlot * (layout.slotSize + layout.slotGap);
+          const ty = layout.slotY;
+          return pos.x >= tx && pos.x <= tx + layout.slotSize &&
+                 pos.y >= ty && pos.y <= ty + layout.slotSize;
+      }
+  
+      function handleStart(e) {
+          if (!state.added) return; // Can't drag until added
+          e.preventDefault();
+          const pos = getMousePos(e);
+          if (isOverToken(pos)) {
+              state.isDragging = true;
+              state.dragX = pos.x;
+              state.dragY = pos.y;
+              canvas.style.cursor = 'grabbing';
+              drawScene();
+          }
+      }
+  
+      function handleMove(e) {
+          if (!state.added) return;
+          e.preventDefault();
+          const pos = getMousePos(e);
+          
+          if (state.isDragging) {
+              state.dragX = pos.x;
+              state.dragY = pos.y;
+              
+              // Preview slot snapping visual? (Optional, kept simple for now)
+              
+              drawScene();
+          } else {
+              // Hover cursor
+              canvas.style.cursor = isOverToken(pos) ? 'grab' : 'default';
+          }
+      }
+  
+      function handleEnd(e) {
+          if (!state.isDragging) return;
+          e.preventDefault();
+          state.isDragging = false;
+          canvas.style.cursor = 'grab';
+  
+          // Calculate nearest slot
+          // Slot center X
+          let closestDist = Infinity;
+          let closestSlot = 0;
+  
+          for (let i = 0; i < CONFIG.slots; i++) {
+              const sx = startSlotX + i * (layout.slotSize + layout.slotGap) + layout.slotSize/2;
+              const sy = layout.slotY + layout.slotSize/2;
+              const dist = Math.hypot(state.dragX - sx, state.dragY - sy);
+              if (dist < closestDist) {
+                  closestDist = dist;
+                  closestSlot = i;
+              }
+          }
+  
+          // Snap
+          state.tokenSlot = closestSlot;
+          drawScene();
+      }
+  
+      // Animation Loop for the "Add" button
+      function animateAddition() {
+          if (state.animProp < 1) {
+              state.animProp += 0.05;
+              drawScene();
+              requestAnimationFrame(animateAddition);
+          } else {
+              state.animProp = 1;
+              drawScene();
+          }
+      }
+  
+      // --- Init ---
+      resize();
+      window.addEventListener('resize', resize);
+      drawScene();
+  
+      // Event Listeners
+      canvas.addEventListener('mousedown', handleStart);
+      canvas.addEventListener('mousemove', handleMove);
+      window.addEventListener('mouseup', handleEnd);
+  
+      canvas.addEventListener('touchstart', handleStart, {passive: false});
+      canvas.addEventListener('touchmove', handleMove, {passive: false});
+      window.addEventListener('touchend', handleEnd);
+  
+      btn.addEventListener('click', () => {
+          if (!state.added) {
+              state.added = true;
+              btn.textContent = "✓ Added! Now drag the token.";
+              btn.disabled = true;
+              instruction.textContent = "Drag the 'Dog' block to different positions to see the vector change.";
+              instruction.style.color = CONFIG.colors.meaning;
+              animateAddition();
+          }
+      });
+  
+  })();
+  </script>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>Mathematically, for a token embedding \(X\) at position \(t\):</p>
+    <p>$$ X_{input} = X_{token} + P_{t} $$</p>
+    <p>By adding this vector, we slightly alter the embedding. The word 'Dog' at the beginning of a sentence now looks mathematically distinct from the word 'Dog' at the end of a sentence.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <h2>Designing the Encodings</h2>
+    <p>How do we choose these \(P\) vectors? We could just use integers (1, 2, 3...), but those values get huge for long sequences. We could use fractions (0.1, 0.2...), but those get too crowded for long sequences.</p>
+    <p>The original Transformer paper used a clever solution: <strong>Sinusoidal Encodings</strong>.</p>
+    <figure class="lesson-figure">
+        <img src="images/2.jpg" alt="Overlay of sine and cosine waves illustrating unique positional fingerprints" loading="lazy">
+        <figcaption>Sinusoidal waves show how each position receives a distinctive mathematical fingerprint.</figcaption>
+    </figure>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>By using sine and cosine waves of different frequencies, we ensure that:</p>
+    <ul>
+        <li>Every position has a unique code.</li>
+        <li>The values stay stable (between -1 and 1).</li>
+        <li>The model can easily learn relative distances (because waves are periodic).</li>
+    </ul>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Sinusoidal Encoding</h4>
+        <p>A method of generating positional information using sine and cosine functions of varying frequencies. This creates a unique pattern for each position index that allows the model to distinguish order.</p>
+    </div>
+    <p>However, in many modern Vision Transformers (ViT), we simply use <strong>Learnable Embeddings</strong>. We initialize random vectors for every position and let the neural network learn the best way to represent 'Position 1' vs 'Position 2' during training, just like it learns the weights of a filter.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <h2>Why didn't CNNs need this?</h2>
+    <p>We spent weeks studying Convolutional Neural Networks, and we never had to manually add 'position' numbers to the pixels.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why do CNNs implicitly understand position without needing Positional Encodings?</h4>
+        <div id="cuy-cnn-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Because of the sliding window! A convolution processes pixels based on their spatial neighbors. The geometry is 'hard-coded' into the operation. If you shuffle the pixels, the local patterns are destroyed, and the convolution output changes completely. CNNs have an 'Inductive Bias' for locality.
+            <br><br><em>Hint: Think about how a 3x3 kernel moves across the image.</em>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-cnn-answer')">Reveal Answer</button>
+    </div>
+    <p>Transformers lack this 'sliding window' structure. They are more flexible, but that flexibility means we have to manually teach them the concept of space and order.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Without Positional Encodings, a Vision Transformer would just be a 'Bag of Patches'. It wouldn't know if a patch containing a nose belongs above or below a patch containing a mouth. Positional Encoding restores the spatial geometry that is lost in the Attention layer.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <h2>Frequently Asked Questions</h2>
+    <p>Here are some common questions students ask about Positional Encodings.</p>
+    <div class="vocab-section" style="background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-left-color: #718096;">
+        <h4 style="color: #4a5568;">Why do we ADD the position vector? Doesn't that mess up the word meaning? Why not concatenate it?</h4>
+        <p>Great question! Concatenation (joining them end-to-end) would work, but it increases the dimensionality of the data, which makes the model slower and larger. It turns out that because the embedding dimension is high (e.g., 512 or 1024 dimensions), the model can learn to separate the 'semantic' information (Meaning) from the 'positional' information (Order) even if they are added together. It's like adding a red tint to a grayscale photo; you can still see the photo, but now you also know it's the 'red' version.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <h2>Review and Reflect</h2>
+    <p>Let's summarize what we've learned about the Problem of Order.</p>
+    <p>We discovered that the math of Self-Attention is <strong>Permutation Invariance</strong>—it ignores order. To fix this, we inject <strong>Positional Encodings</strong> by adding unique vectors to our input tokens. These can be fixed <strong>Sinusoidal</strong> waves or <strong>Learnable</strong> parameters. This allows the Transformer to understand syntax in language and geometry in images.</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following best describes the relationship between the Input Embedding (\(E\)), the Positional Encoding (\(P\)), and the final input to the attention layer (\(X\))?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Multiplication would drastically distort the magnitude of the embedding vectors.')">$X = E \times P$ (Multiplication)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Concatenation is a valid strategy in some architectures, but the standard Transformer simply adds them to keep dimensions constant.')">$X = \text{concatenate}(E, P)$</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! We add the position vector to the token vector. The model learns to disentangle the two signals.')">$X = E + P$ (Element-wise Addition)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, this happens *before* the data ever enters the attention mechanism.')">$X = \text{Attention}(E, P)$</div>
+        </div>
+    </div>
+    
+    <p>Now that our tokens know <em>what</em> they are and <em>where</em> they are, we are ready to scale up. In the next lesson, we will see how to assemble these components into the full Transformer Block using Multi-Head Attention.</p>
+    
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 11;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            // Placeholder logic for LMS integration
+            if (window.parent && window.parent.ProgressTracker) {
+                // Adjust IDs for this specific lesson
+                let courseId = 'computer-vision';
+                let pathId = 'transformers';
+                let moduleId = 'cv-ch-transformers-foundations';
+                let lessonId = 'cv-ch-transformers-l2-order';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch-transformers-l2-order_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    // Check completion status on load
+    const isCompleted = localStorage.getItem('lesson_cv-ch-transformers-l2-order_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Speed Freaks – The YOLO Revolution</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/1.jpg" alt="Illustration contrasting a methodical tortoise representing R-CNN with a fast cheetah representing YOLO." loading="lazy">
+            <figcaption>R-CNNs lumber like a tortoise while YOLO sprints like a cheetah—it only looks once.</figcaption>
+        </figure>
+    </div>
+    <h1>Speed Freaks – The YOLO Revolution</h1>
+    <h2>The Need for Speed</h2>
+    <p>In previous lessons, we looked at the R-CNN family. They are precise, accurate, and... honestly? A bit like a tortoise. Great for analyzing a static photo, but if you are trying to detect pedestrians from a moving autonomous vehicle, you don't have seconds to spare. You need to know <em>now</em>.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: The Bottleneck -->
+<section id="section2">
+    <p>The bottleneck in two-stage detectors is the 'proposal' step. The network has to look at the image, propose regions, and then look at those regions again. What if we could just... not do that? What if we just looked at the image once?</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3: YOLO Philosophy -->
+<section id="section3">
+    <p>This is the philosophy behind <strong>YOLO</strong> (You Only Look Once). It reframes object detection from a classification problem on sub-regions to a single <strong>regression problem</strong>.</p>
+    <div class="visual-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/2.jpg" alt="Diagram comparing the multi-stage R-CNN pipeline with the single-pass YOLO tensor output." loading="lazy">
+            <figcaption>YOLO fuses region proposal and classification into one tensor-producing pass.</figcaption>
+        </figure>
+    </div>
+    <p>Instead of cropping and classifying, YOLO takes the whole image and spits out bounding box coordinates and class probabilities in one go.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4: The Grid Intro -->
+<section id="section4">
+    <h2>The Grid and 'Responsibility'</h2>
+    <p>So, how does a single network handle an image with multiple objects without proposing regions first? The secret is in the <strong>Grid</strong>.</p>
+    <div class="image-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/3.jpg" alt="Dog illustration spread across grid cells with the center cell flagged responsible for detection." loading="lazy">
+            <figcaption>Only the cell containing the object's center—here marked with a flag—owns the prediction.</figcaption>
+        </figure>
+    </div>
+    <p>YOLO divides the input image into an \(S \times S\) grid. If the center of an object falls into a grid cell, that cell is <strong>responsible</strong> for detecting that object.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5: Grid Interaction -->
+<section id="section5">
+    <p>This is a crucial concept. Even if a Golden Retriever is huge and spans 9 different cells, only the specific cell containing the <em>center</em> of the dog is allowed to predict the bounding box for it.</p>
+    <p>Let's test your intuition on this.</p>
+    <!-- START INTERACTIVE MODULE -->
+<div class="yolo-grid-interactive" id="yoloInteractive">
+  <div class="canvas-wrapper">
+      <canvas id="yoloCanvas" width="600" height="400"></canvas>
+      <div id="feedbackOverlay" class="feedback-overlay">
+          <span id="feedbackIcon">🎯</span>
+          <span id="feedbackText">Click the grid cell responsible for detecting the <strong>Red Car</strong>.</span>
+      </div>
+  </div>
+  <div class="controls">
+      <button class="reset-btn" onclick="initYoloInteractive()">Reset / Try Again</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('yoloCanvas');
+  const ctx = canvas.getContext('2d');
+  const feedbackText = document.getElementById('feedbackText');
+  const feedbackIcon = document.getElementById('feedbackIcon');
+  const feedbackOverlay = document.getElementById('feedbackOverlay');
+
+  // Config
+  const GRID_SIZE = 7;
+  let width = 600;
+  let height = 400;
+  let cellW = width / GRID_SIZE;
+  let cellH = height / GRID_SIZE;
+
+  // State
+  let mouseCol = -1;
+  let mouseRow = -1;
+  let isSolved = false;
+
+  // The Object (Car) Definition
+  // We position it so it spans multiple cells, but center is distinct
+  const car = {
+      x: 320,  // x position
+      y: 210,  // y position
+      w: 160,  // width
+      h: 90,   // height
+      color: '#e53e3e'
+  };
+
+  // Calculate Car Center
+  const carCenter = {
+      x: car.x + car.w / 2,
+      y: car.y + car.h / 2
+  };
+
+  // Determine the "Responsible" Cell
+  const targetCell = {
+      col: Math.floor(carCenter.x / cellW),
+      row: Math.floor(carCenter.y / cellH)
+  };
+
+  // Distractor (Pedestrian)
+  const ped = { x: 100, y: 180, w: 30, h: 60 };
+
+  function drawScene() {
+      // 1. Sky
+      ctx.fillStyle = '#ebf8ff';
+      ctx.fillRect(0, 0, width, height);
+
+      // 2. Road
+      ctx.fillStyle = '#a0aec0';
+      ctx.fillRect(0, height * 0.55, width, height * 0.45);
+      
+      // Road Markings
+      ctx.strokeStyle = '#fff';
+      ctx.setLineDash([20, 20]);
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(0, height * 0.75);
+      ctx.lineTo(width, height * 0.75);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 3. Draw Car (Target)
+      ctx.shadowColor = 'rgba(0,0,0,0.2)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 5;
+
+      // Car Body
+      ctx.fillStyle = car.color;
+      ctx.beginPath();
+      ctx.roundRect(car.x, car.y, car.w, car.h, 10);
+      ctx.fill();
+
+      // Car Top
+      ctx.fillStyle = '#c53030';
+      ctx.beginPath();
+      ctx.roundRect(car.x + 20, car.y - 30, car.w - 40, 30, [10, 10, 0, 0]);
+      ctx.fill();
+
+      // Windows
+      ctx.fillStyle = '#bee3f8';
+      ctx.beginPath();
+      ctx.roundRect(car.x + 30, car.y - 25, car.w - 60, 20, 5);
+      ctx.fill();
+
+      // Wheels
+      ctx.fillStyle = '#2d3748';
+      ctx.beginPath();
+      ctx.arc(car.x + 30, car.y + car.h, 15, 0, Math.PI * 2);
+      ctx.arc(car.x + car.w - 30, car.y + car.h, 15, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.shadowColor = 'transparent';
+
+      // 4. Draw Pedestrian (Distractor)
+      ctx.fillStyle = '#48bb78';
+      ctx.beginPath();
+      ctx.arc(ped.x + ped.w/2, ped.y, 10, 0, Math.PI*2); // Head
+      ctx.fill();
+      ctx.fillRect(ped.x, ped.y + 10, ped.w, ped.h); // Body
+  }
+
+  function drawGrid() {
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+
+      for (let i = 0; i <= GRID_SIZE; i++) {
+          // Vertical
+          ctx.beginPath();
+          ctx.moveTo(i * cellW, 0);
+          ctx.lineTo(i * cellW, height);
+          ctx.stroke();
+
+          // Horizontal
+          ctx.beginPath();
+          ctx.moveTo(0, i * cellH);
+          ctx.lineTo(width, i * cellH);
+          ctx.stroke();
+      }
+  }
+
+  function highlightCell(col, row, color = 'rgba(66, 153, 225, 0.3)') {
+      if (col < 0 || row < 0 || col >= GRID_SIZE || row >= GRID_SIZE) return;
+      ctx.fillStyle = color;
+      ctx.fillRect(col * cellW, row * cellH, cellW, cellH);
+      ctx.strokeStyle = color.replace('0.3', '0.8');
+      ctx.lineWidth = 2;
+      ctx.strokeRect(col * cellW, row * cellH, cellW, cellH);
+  }
+
+  function drawCenterPoint() {
+      // Only drawn on success
+      ctx.fillStyle = '#fbbf24'; // Yellow dot
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(carCenter.x, carCenter.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+  }
+
+  function checkCollision(col, row) {
+      // Check if the grid cell overlaps with the car rectangle
+      const cellX = col * cellW;
+      const cellY = row * cellH;
+      
+      // Simple AABB collision detection
+      return (
+          car.x < cellX + cellW &&
+          car.x + car.w > cellX &&
+          car.y < cellY + cellH &&
+          car.y + car.h > cellY
+      );
+  }
+
+  function render() {
+      ctx.clearRect(0, 0, width, height);
+      
+      drawScene();
+      
+      // Highlight logic
+      if (!isSolved) {
+          drawGrid();
+          // Highlight current hover
+          if (mouseCol !== -1) {
+              highlightCell(mouseCol, mouseRow);
+          }
+      } else {
+          // If solved, only highlight the winner
+          drawGrid();
+          highlightCell(targetCell.col, targetCell.row, 'rgba(72, 187, 120, 0.5)');
+          drawCenterPoint();
+      }
+  }
+
+  // Event Listeners
+  canvas.addEventListener('mousemove', (e) => {
+      if (isSolved) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      const col = Math.floor(x / cellW);
+      const row = Math.floor(y / cellH);
+
+      if (col !== mouseCol || row !== mouseRow) {
+          mouseCol = col;
+          mouseRow = row;
+          render();
+      }
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+      if (isSolved) return;
+      mouseCol = -1;
+      mouseRow = -1;
+      render();
+  });
+
+  canvas.addEventListener('click', () => {
+      if (isSolved || mouseCol === -1) return;
+
+      // Logic Check
+      if (mouseCol === targetCell.col && mouseRow === targetCell.row) {
+          // CORRECT
+          isSolved = true;
+          render();
+          setFeedback('success', '🎉 Correct! This cell contains the center of the object, so it is responsible for detecting it.');
+      } else if (checkCollision(mouseCol, mouseRow)) {
+          // OVERLAP BUT NOT CENTER
+          setFeedback('warning', '⚠️ Incorrect. The object touches this cell, but its <strong>center</strong> is elsewhere.');
+          highlightCell(mouseCol, mouseRow, 'rgba(237, 137, 54, 0.4)'); // Flash orange
+      } else {
+          // MISS
+          setFeedback('error', '❌ Miss. That cell does not contain the center of the car.');
+      }
+  });
+
+  function setFeedback(type, html) {
+      feedbackOverlay.className = `feedback-overlay ${type}`;
+      feedbackIcon.textContent = type === 'success' ? '✅' : (type === 'warning' ? '🤔' : '❌');
+      feedbackText.innerHTML = html;
+  }
+
+  window.initYoloInteractive = function() {
+      isSolved = false;
+      mouseCol = -1;
+      mouseRow = -1;
+      setFeedback('', 'Click the grid cell responsible for detecting the <strong>Red Car</strong>.');
+      render();
+  };
+
+  // Initialize
+  initYoloInteractive();
+
+})();
+</script>
+<!-- END INTERACTIVE MODULE -->
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6: Vocab Responsibility -->
+<section id="section6">
+    <p>By assigning responsibility to specific cells, YOLO allows the neural network to output a prediction tensor directly, without needing a separate region proposal algorithm.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Grid Responsibility</h4>
+        <p>The rule in YOLO where the grid cell containing the center of the ground truth object is the only cell trained to predict that object.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7: Output Tensor -->
+<section id="section7">
+    <h2>Crunching the Numbers: The Output Tensor</h2>
+    <p>Because YOLO is a single-shot detector, its output isn't a list of results—it's a 3D tensor. Let's break down exactly what the network spits out.</p>
+    <p>For every grid cell, the network predicts \(B\) bounding boxes (usually 2 or more) and \(C\) class probabilities.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- SECTION 8: Math Details -->
+<section id="section8">
+    <p>Each bounding box consists of 5 numbers: \(x\) (center x), \(y\) (center y), \(w\) (width), \(h\) (height), and a Confidence score. Plus, the cell needs to predict the probabilities for each of the \(C\) classes (e.g., Dog, Cat, Car).</p>
+    <p>So, the total output size is:</p>
+    <p>$$ S \times S \times (B \times 5 + C) $$</p>
+    <!-- START TENSOR CALCULATOR MODULE -->
+<div class="tensor-calculator-wrapper">
+    
+  <!-- Controls Section -->
+  <div class="tc-controls">
+      <h3>Adjust Parameters</h3>
+      
+      <div class="control-group">
+          <div class="control-label">
+              <span>Grid Size (S)</span>
+              <span class="value-badge" id="val-S">7</span>
+          </div>
+          <input type="range" id="input-S" min="1" max="13" value="7" step="1">
+          <div class="control-help">Splits image into S×S grid</div>
+      </div>
+
+      <div class="control-group">
+          <div class="control-label">
+              <span>Boxes per Cell (B)</span>
+              <span class="value-badge" id="val-B">2</span>
+          </div>
+          <input type="range" id="input-B" min="1" max="5" value="2" step="1">
+          <div class="control-help">Bboxes predicted per cell</div>
+      </div>
+
+      <div class="control-group">
+          <div class="control-label">
+              <span>Classes (C)</span>
+              <span class="value-badge" id="val-C">20</span>
+          </div>
+          <input type="range" id="input-C" min="1" max="80" value="20" step="1">
+          <div class="control-help">Number of object categories</div>
+      </div>
+  </div>
+
+  <!-- Visual & Math Section -->
+  <div class="tc-display">
+      <canvas id="tensorCanvas" width="400" height="250"></canvas>
+      
+      <div class="math-breakdown">
+          <div class="math-row">
+              <span class="math-label">Tensor Depth:</span>
+              <span class="math-calc">
+                  (<span class="var-B">2</span> × 5) + <span class="var-C">20</span> = <strong><span class="res-D">30</span></strong>
+              </span>
+          </div>
+          <div class="math-row total-row">
+              <span class="math-label">Total Output:</span>
+              <span class="math-calc">
+                  <span class="var-S">7</span> × <span class="var-S">7</span> × <span class="res-D">30</span> = <span class="final-result">1,470</span>
+              </span>
+          </div>
+      </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  // Canvas Setup
+  const canvas = document.getElementById('tensorCanvas');
+  const ctx = canvas.getContext('2d');
+  
+  // Inputs
+  const inputS = document.getElementById('input-S');
+  const inputB = document.getElementById('input-B');
+  const inputC = document.getElementById('input-C');
+  
+  // Labels
+  const valS = document.getElementById('val-S');
+  const valB = document.getElementById('val-B');
+  const valC = document.getElementById('val-C');
+  
+  // Math Spans
+  const varS = document.querySelectorAll('.var-S'); // multiple
+  const varB = document.querySelector('.var-B');
+  const varC = document.querySelector('.var-C');
+  const resD = document.querySelectorAll('.res-D'); // multiple
+  const finalResult = document.querySelector('.final-result');
+
+  // State
+  let S = 7;
+  let B = 2;
+  let C = 20;
+
+  function updateState() {
+      S = parseInt(inputS.value);
+      B = parseInt(inputB.value);
+      C = parseInt(inputC.value);
+
+      // Update Text UI
+      valS.textContent = S;
+      valB.textContent = B;
+      valC.textContent = C;
+      
+      varS.forEach(el => el.textContent = S);
+      varB.textContent = B;
+      varC.textContent = C;
+
+      const depth = (B * 5) + C;
+      resD.forEach(el => el.textContent = depth);
+      
+      const total = S * S * depth;
+      finalResult.textContent = total.toLocaleString();
+
+      draw();
+  }
+
+  function draw() {
+      // Clear
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const depthVal = (B * 5) + C;
+      
+      // Visual Parameters
+      // We want to center the 3D block
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2 + 20; // shifted down slightly
+      
+      // Front Face (SxS Grid) size
+      // We keep the visual size relatively constant so it fits, 
+      // but changing S changes the grid density
+      const faceSize = 120; 
+      
+      // Depth scale
+      // We normalize depth to fit nicely. 
+      // Min depth (1*5+1=6) -> small length
+      // Max depth (5*5+80=105) -> max length
+      // We map range [6, 105] to pixels [20, 100]
+      const maxVisualDepth = 100;
+      const normalizedDepth = 20 + ((depthVal - 6) / (105 - 6)) * 80;
+      
+      // Isometric Projection Vectors
+      // x moves right, y moves down
+      // z moves up and right
+      const angle = Math.PI / 6; // 30 degrees
+      const dx = Math.cos(angle) * normalizedDepth;
+      const dy = -Math.sin(angle) * normalizedDepth;
+
+      // Origin of Front Face (Top-Left)
+      // Adjust x by half faceSize, y by half faceSize to center
+      // Then shift backwards by half depth to keep center of gravity stable
+      const x0 = cx - (faceSize / 2) - (dx / 2);
+      const y0 = cy - (faceSize / 2) - (dy / 2);
+
+      // --- DRAWING ORDER: Back -> Connectors -> Front ---
+
+      // 1. Back Face (Depth)
+      ctx.fillStyle = '#e9d8fd'; // Light purple
+      ctx.strokeStyle = '#9f7aea';
+      ctx.lineWidth = 1;
+      
+      ctx.beginPath();
+      ctx.moveTo(x0 + dx, y0 + dy);
+      ctx.lineTo(x0 + dx + faceSize, y0 + dy);
+      ctx.lineTo(x0 + dx + faceSize, y0 + dy + faceSize);
+      ctx.lineTo(x0 + dx, y0 + dy + faceSize);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // 2. Connecting Lines (Sides)
+      ctx.beginPath();
+      // Top Right Connector
+      ctx.moveTo(x0 + faceSize, y0);
+      ctx.lineTo(x0 + faceSize + dx, y0 + dy);
+      // Bottom Right Connector
+      ctx.moveTo(x0 + faceSize, y0 + faceSize);
+      ctx.lineTo(x0 + faceSize + dx, y0 + faceSize + dy);
+      // Bottom Left Connector
+      ctx.moveTo(x0, y0 + faceSize);
+      ctx.lineTo(x0 + dx, y0 + faceSize + dy);
+      // Top Left (usually hidden by front face, but drawn for wireframe feel if needed)
+      // ctx.moveTo(x0, y0);
+      // ctx.lineTo(x0 + dx, y0 + dy);
+      ctx.stroke();
+
+      // 3. Side Panels Fills (for solid look)
+      // Right Side
+      ctx.fillStyle = '#d6bcfa'; // Medium purple
+      ctx.beginPath();
+      ctx.moveTo(x0 + faceSize, y0);
+      ctx.lineTo(x0 + faceSize + dx, y0 + dy);
+      ctx.lineTo(x0 + faceSize + dx, y0 + dy + faceSize);
+      ctx.lineTo(x0 + faceSize, y0 + faceSize);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Top Side
+      ctx.fillStyle = '#b794f4'; // Darker purple
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x0 + dx, y0 + dy);
+      ctx.lineTo(x0 + dx + faceSize, y0 + dy);
+      ctx.lineTo(x0 + faceSize, y0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // 4. Front Face (Grid)
+      ctx.fillStyle = '#ebf8ff'; // Light Blue
+      ctx.strokeStyle = '#4299e1'; // Blue borders
+      ctx.lineWidth = 2;
+
+      ctx.fillRect(x0, y0, faceSize, faceSize);
+      ctx.strokeRect(x0, y0, faceSize, faceSize);
+
+      // Draw Grid Lines
+      ctx.strokeStyle = 'rgba(66, 153, 225, 0.4)';
+      ctx.lineWidth = 1;
+      
+      const cellSize = faceSize / S;
+      
+      ctx.beginPath();
+      for(let i=1; i<S; i++) {
+          // Vertical
+          ctx.moveTo(x0 + i*cellSize, y0);
+          ctx.lineTo(x0 + i*cellSize, y0 + faceSize);
+          // Horizontal
+          ctx.moveTo(x0, y0 + i*cellSize);
+          ctx.lineTo(x0 + faceSize, y0 + i*cellSize);
+      }
+      ctx.stroke();
+
+      // 5. Labels
+      ctx.fillStyle = '#2d3748';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+
+      // Label S (Width)
+      ctx.fillText(`S=${S}`, x0 + faceSize/2, y0 + faceSize + 15);
+      
+      // Label S (Height)
+      ctx.save();
+      ctx.translate(x0 - 15, y0 + faceSize/2);
+      ctx.rotate(-Math.PI/2);
+      ctx.fillText(`S=${S}`, 0, 0);
+      ctx.restore();
+
+      // Label Depth
+      // Position along the top connecting line
+      ctx.fillStyle = '#553c9a';
+      ctx.fillText(`D=${depthVal}`, x0 + faceSize/2 + dx/2 + 10, y0 + dy/2 - 5);
+  }
+
+  // Event Listeners
+  inputS.addEventListener('input', updateState);
+  inputB.addEventListener('input', updateState);
+  inputC.addEventListener('input', updateState);
+
+  // Init
+  updateState();
+
+})();
+</script>
+<!-- END TENSOR CALCULATOR MODULE -->
+    <p>Suppose we have a grid size of \(S = 7\), \(B = 2\) boxes per cell, and \(C = 20\) classes. The math works out to:</p>
+    <ul>
+        <li>Predictions per cell: \((2 \times 5) + 20 = 30\)</li>
+        <li>Total cells: \(7 \times 7 = 49\)</li>
+        <li><strong>Total Output Tensor:</strong> \(7 \times 7 \times 30\)</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- SECTION 9: Quiz -->
+<section id="section9">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If we increased the number of classes (C) to 80 (like in the COCO dataset) but kept the grid at 7x7 and boxes at 2, what is the depth of the output tensor?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This was the depth for 20 classes. Remember to add the new class count to the box parameters.')">
+                30
+            </div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! 2 boxes &times; 5 params = 10. Plus 80 classes = 90.')">
+                90
+            </div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Check your math. It is (Boxes &times; 5) + Classes.')">
+                100
+            </div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(10)" style="display: none;">Continue</div>
+</section>
+
+<!-- SECTION 10: Confidence -->
+<section id="section10">
+    <h2>How Sure Are You? The Confidence Score</h2>
+    <p>The network predicts a box, but is it a <em>good</em> box? Or is it just guessing at a cloud? This is where the <strong>Confidence Score</strong> comes in.</p>
+    <p>In YOLO, confidence isn't just a probability of 'is there an object?'. It combines the probability of an object existing with how well the box fits that object.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- SECTION 11: IoU and Formula -->
+<section id="section11">
+    <p>The formula is:</p>
+    <p>$$ \text{Confidence} = P(\text{Object}) \times \text{IoU}^{\text{truth}}_{\text{pred}} $$</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>IoU (Intersection over Union)</h4>
+        <p>A metric measuring the overlap between two bounding boxes. 0 means no overlap, 1 means a perfect match.</p>
+    </div>
+    <p>Imagine the network is <strong>80% sure</strong> ($0.8$) there is a dog, but the box only overlaps <strong>50%</strong> ($0.5$) with the real dog. The confidence score becomes \(0.8 \times 0.5 = 0.4\).</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- SECTION 12: Stop and Think -->
+<section id="section12">
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>YOLO is incredibly fast, but early versions had lower accuracy for small objects compared to R-CNN. Based on the grid design we just discussed, why might a flock of small birds be a nightmare for YOLO?</h4>
+        <div id="cuy-small-birds" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> A single grid cell can only predict B boxes (e.g., 2). If 10 tiny birds are flying close together and their centers all land in the same grid cell, the cell simply runs out of 'slots' to detect them all!
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-small-birds')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- SECTION 13: FAQ / Why it matters -->
+<section id="section13">
+    <h2>Why It Matters & Review</h2>
+    <p>YOLO changed the game by enabling real-time detection because it sees the <strong>Global Context</strong>. It makes fewer mistakes distinguishing background from objects compared to Fast R-CNN.</p>
+    <div class="frequently-asked">
+        <h3>Frequently Asked</h3>
+        <h4>What happens if two objects have centers in the exact same grid cell?</h4>
+        <p>This is a classic problem! In the original YOLO, the cell would struggle because it can only predict one set of classes. Later versions introduced Anchor Boxes to help multiple boxes in the same cell specialize in different shapes, but extreme overlapping remains a challenge.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 14: Review -->
+<section id="section14">
+    <h3>Review and Reflect</h3>
+    <p>In this lesson, you stepped on the gas with Single-Shot Detection:</p>
+    <ul>
+        <li><strong>Single Stage:</strong> We moved from proposing regions to a direct regression problem using a single neural network.</li>
+        <li><strong>The Grid:</strong> You learned that the image is split into an \(S \times S\) grid, and the cell containing the object's center bears the <strong>responsibility</strong> for detection.</li>
+        <li><strong>The Output:</strong> We calculated the output tensor size \(S \times S \times (B \times 5 + C)\).</li>
+        <li><strong>Confidence:</strong> We defined confidence as a mix of object probability and IoU.</li>
+    </ul>
+    <p>Next up, we will tackle the issue of <strong>Scale</strong>. How do we detect a tiny ant and a giant elephant with the same network? Enter Feature Pyramid Networks.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 14; // Adjusted for this lesson
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic for section 9 specifically
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section9') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Update specific Lesson IDs here
+                let courseId = 'computer-vision';
+                let pathId = 'object-detection'; // Changed path
+                let moduleId = 'cv-ch21-m2-yolo'; // Changed module
+                let lessonId = 'cv-ch21-l2-yolo'; // Changed lesson
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch21-l2-yolo_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage for this specific lesson
+    const isCompleted = localStorage.getItem('lesson_cv-ch21-l2-yolo_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

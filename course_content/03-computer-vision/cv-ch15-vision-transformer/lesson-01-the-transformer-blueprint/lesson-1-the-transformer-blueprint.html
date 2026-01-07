@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Transformer Blueprint</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: Introduction -->
+<section id="section1" class="visible">
+    <div class="visual-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/1.jpg" alt="Illustration comparing a robot reading a book for NLP with another robot observing artwork for computer vision" loading="lazy">
+            <figcaption>Transformers bridged the world of language and vision—first learning to read, then learning to see.</figcaption>
+        </figure>
+    </div>
+    <h1>The Transformer Blueprint</h1>
+    <h2>Introduction: Reading Before Seeing</h2>
+    <p>Before we can understand how computers "see" with Transformers, we have to understand how they "read".</p>
+    <p>For years, Computer Vision was dominated by Convolutional Neural Networks (CNNs). But in 2017, a paper titled "Attention Is All You Need" changed everything—not for images, but for language.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>This paper introduced the <strong>Transformer</strong>, an architecture designed to solve Sequence-to-Sequence (Seq2Seq) tasks, like translating German into English. It discarded the Recurrent Neural Networks (RNNs) used previously and relied entirely on a mechanism called <strong>Attention</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>To understand the Vision Transformer (ViT), we first need to look at the blueprint of the original Transformer. It consists of two main stacks: the <strong>Encoder</strong> and the <strong>Decoder</strong>.</p>
+    <div class="visual-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/2.jpg" alt="Diagram showing the transformer encoder stack on the left feeding information into the decoder stack on the right" loading="lazy">
+            <figcaption>The transformer blueprint pairs a blue encoder stack with a red decoder stack, passing context forward step-by-step.</figcaption>
+        </figure>
+    </div>
+    <p>The <strong>Encoder</strong> (Blue) processes the input data (like a sentence) to understand its context. The <strong>Decoder</strong> (Red) uses that understanding to generate an output sequence one step at a time.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 2: The Encoder Stack -->
+<section id="section4">
+    <h2>The Encoder Stack</h2>
+    <p>Let's zoom into the left side: The Encoder. Its job is to build a rich, context-aware representation of the input.</p>
+    <p>Imagine we are translating the sentence "I love learning." First, we break this sentence into tokens (words or sub-words). But computers don't understand strings, they understand numbers.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>So, we pass these tokens through an <strong>Input Embedding</strong> layer. This turns each token into a dense vector of numbers. However, there is a catch.</p>
+    <p>Unlike RNNs which read words one by one, the Transformer ingests the entire sentence at once. This makes it fast, but it means the model has no inherent idea of <em>order</em>. To the model, "Man eats shark" and "Shark eats man" look like the same bag of words.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>To fix this, we inject <strong>Positional Encodings</strong>. These are specific vectors added to our word embeddings that carry information about <em>where</em> a token is in the sequence.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <p>If you shuffled the words in a sentence entering a standard Neural Network (like an MLP), the output would be garbage. If you shuffled the words entering a Self-Attention layer <em>without</em> Positional Encodings, what would happen?</p>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> The output would be identical! Self-attention is <strong>permutation invariant</strong>. Every token attends to every other token equally, regardless of distance or order. This is why Positional Encodings are strictly necessary—they force the model to respect the order of the sequence.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>Once embedded and position-encoded, the data flows into the <strong>Transformer Blocks</strong>. Each block contains a <strong>Multi-Head Self-Attention (MHSA)</strong> layer and a <strong>Feed-Forward Network</strong>.</p>
+    <p>The MHSA allows every token to "look at" every other token in the sentence to figure out context. For example, in the sentence "The bank of the river," the word "bank" attends to "river" to realize it's not a financial institution.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- SECTION 3: The Decoder Stack -->
+<section id="section8">
+    <h2>The Decoder Stack</h2>
+    <p>Now, let's look at the right side: The Decoder. Its job is to generate the translation, one word at a time.</p>
+    <p>The Decoder is <strong>auto-regressive</strong>. This means it consumes the previously generated words to predict the next one. It has a structure similar to the Encoder, but with two crucial differences.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>First, it uses <strong>Masked Multi-Head Self-Attention</strong>. Since we generate the sentence word by word, the Decoder isn't allowed to "peek" at future words. We mask out future positions so a word can only attend to itself and previous words.</p>
+    <p>Second, and most importantly, is the <strong>Cross-Attention</strong> layer. This is the bridge between the two stacks.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>In Cross-Attention, the Decoder asks the Encoder for relevant information. This interaction is defined by three components: <strong>Query ($Q$)</strong>, <strong>Key ($K$)</strong>, and <strong>Value ($V$)</strong>.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <p>Match the components to their source. Click reveal to see the correct mapping.</p>
+        <div style="margin-bottom: 1rem;">
+            <ul>
+                <li><strong>Query ($Q$):</strong> ?</li>
+                <li><strong>Key ($K$):</strong> ?</li>
+                <li><strong>Value ($V$):</strong> ?</li>
+            </ul>
+        </div>
+        <div id="qkv-answer" style="display:none;" class="animate-in">
+            <ul style="list-style-type: none; margin-left: 0;">
+                <li>✅ <strong>Query ($Q$):</strong> Comes from the <strong>Decoder</strong> (What I want to know next)</li>
+                <li>✅ <strong>Key ($K$):</strong> Comes from the <strong>Encoder</strong> (The available information)</li>
+                <li>✅ <strong>Value ($V$):</strong> Comes from the <strong>Encoder</strong> (The content associated with the Key)</li>
+            </ul>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('qkv-answer')">Reveal Answer</button>
+    </div>
+    
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>Think of it this way: The Decoder sends a <strong>Query</strong> representing the current context (e.g., "I have translated the subject, what is the verb?"). The Encoder provides <strong>Keys</strong> describing the input sentence. The attention mechanism finds the best match and returns the corresponding <strong>Values</strong>.</p>
+
+    <!-- Interactive Schematic -->
+    <div class="interactive-sentence-box">
+        <h4>Interactive Attention</h4>
+        <p style="font-size: 0.9rem; margin-bottom: 10px;">Input Sentence (Encoder):</p>
+        <div class="sentence-row">
+            <span class="word-token" id="in-1">Ich</span>
+            <span class="word-token" id="in-2">liebe</span>
+            <span class="word-token" id="in-3">das</span>
+            <span class="word-token" id="in-4">Lernen</span>
+        </div>
+        <div class="connection-line">&darr; Cross-Attention &uarr;</div>
+        <div class="sentence-row">
+            <span class="word-token" id="out-1">I</span>
+            <span class="word-token clickable" id="out-2" onclick="activateAttention()">love</span>
+            <span class="word-token" id="out-3" style="opacity: 0.5; border: 1px dashed #ccc;">[Next]</span>
+        </div>
+        <p style="font-size: 0.9rem; margin-top: 10px;">Output Sentence (Decoder)<br><small>Click "love" to see where it attends!</small></p>
+    </div>
+
+    <p id="after-interactive-text" style="display:none;" class="animate-in">Notice how the generated word "love" depends on "liebe" in the input (via Cross-Attention) and "I" in the output (via Masked Self-Attention).</p>
+
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<script>
+function activateAttention() {
+    // Reset
+    document.querySelectorAll('.word-token').forEach(el => el.className = 'word-token');
+    document.getElementById('out-2').classList.add('clickable', 'active');
+    
+    // Highlight Sources
+    setTimeout(() => {
+        // Cross Attention (Encoder Source)
+        document.getElementById('in-2').classList.add('highlight-source'); // liebe
+        // Self Attention (Decoder Previous)
+        document.getElementById('out-1').classList.add('highlight-self'); // I
+        
+        // Reveal text
+        document.getElementById('after-interactive-text').style.display = 'block';
+    }, 100);
+}
+</script>
+
+<!-- SECTION 4: Why It Matters -->
+<section id="section12">
+    <h2>Why It Matters</h2>
+    <p>You might be wondering: "I thought this was a computer vision course?"</p>
+    <p>It is! But here is the secret: The <strong>Vision Transformer (ViT)</strong> is essentially the Encoder stack of this architecture. To understand ViT, you simply need to understand how we can treat an image like a language sequence.</p>
+    
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Understanding the separation of Query, Key, and Value is crucial because Vision Transformers will manipulate these concepts to process images. In object detection (DETR) and multi-modal models, the Cross-Attention mechanism you just learned is the exact tool used to link text to images.</p>
+    </div>
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Auto-regressive</h4>
+        <p>A process where the model predicts the next step in a sequence based on the steps it has already generated. The Transformer Decoder is auto-regressive.</p>
+    </div>
+
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>Here are a few more terms you should know before we move to images:</p>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Seq2Seq</h4>
+        <p>Sequence-to-Sequence. A class of models that convert one sequence (like text or audio) into another.</p>
+        
+        <h4 style="margin-top: 20px;">Cross-Attention</h4>
+        <p>An attention mechanism where the Queries come from one sequence (Decoder) and the Keys/Values come from a different sequence (Encoder).</p>
+    </div>
+
+    <div class="faq-section">
+        <h4>FAQ: Do we use the Decoder for image classification?</h4>
+        <p>Generally, no. Most vision tasks (like classification) only use the <strong>Encoder</strong> stack to understand the image. The Decoder is typically used only if we need to generate sequences, such as in image captioning tasks where the model looks at an image and writes a description.</p>
+    </div>
+
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 5: Test Your Knowledge (Split into 3 steps) -->
+<section id="section14">
+    <h2>Test Your Knowledge</h2>
+    <div class="test-your-knowledge">
+        <h3>Question 1</h3>
+        <h4>Which of the following statements about Positional Encodings is TRUE?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Both the Encoder and Decoder process sequences, so both need to know the order of tokens.')">They are only used in the Decoder stack.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Without them, the model sees a \'bag of words\' rather than a sequence.')">They are necessary because the self-attention mechanism has no inherent concept of order.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, masking is a separate operation used in the Decoder. Positional encodings just add location data.')">They are used to mask future tokens in the sequence.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <div class="test-your-knowledge">
+        <h3>Question 2</h3>
+        <h4>In the Cross-Attention layer, where does the 'Query' ($Q$) come from?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The Encoder provides the Keys and Values (the source information).')">The Encoder Stack</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The Decoder \'queries\' the Encoder to find relevant information for the next prediction.')">The Decoder Stack</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Input embeddings are at the very start of the network; Cross-Attention happens deeper in the architecture.')">The Input Embeddings</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <div class="test-your-knowledge">
+        <h3>Question 3</h3>
+        <h4>Why is the Self-Attention in the Decoder 'Masked'?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. To predict token $t$, the model should only be allowed to see tokens $1$ to $t-1$.')">To prevent the model from seeing future tokens (cheating) during training.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Masking here is about causality (time), not noise reduction.')">To ignore background noise in the data.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'While it changes the calculation, the primary purpose is preserving causality.')">To reduce the computational complexity.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(17)" style="display: none;">Continue</div>
+</section>
+
+<!-- SECTION 6: Review -->
+<section id="section17">
+    <h2>Review and Reflect</h2>
+    <p>Great work! You now have the blueprint of the Transformer.</p>
+    <p>In this lesson, we explored the architecture that revolutionized AI:</p>
+    <ul>
+        <li>The <strong>Encoder</strong> builds a context-aware understanding of the input.</li>
+        <li>The <strong>Decoder</strong> uses that understanding to generate output step-by-step.</li>
+        <li><strong>Positional Encodings</strong> are vital for providing order to the permutation-invariant Attention mechanism.</li>
+    </ul>
+    <p>In the next lesson, we will tackle the biggest challenge of applying this architecture to images: The Computational Complexity of pixels.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 17;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Check if this is the final quiz question to show the final continue button
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section16') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs would ideally be dynamic, but hardcoding for template structure based on previous example
+                let courseId = 'computer-vision';
+                let pathId = 'transformers';
+                let moduleId = 'cv-ch22-m1-intro';
+                let lessonId = 'cv-ch22-l1-transformer-blueprint';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch22-m1-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🤖', '🧠', '📜'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+        // Attempt to check completion via parent tracker
+        // Fallback logic handled below
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch22-m1-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Big Picture: From Handcrafted to Learned</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <img src="images/1.jpg" alt="Split View: Human writing in grid (Manual Annotation) vs Robot spinning slot machine (Automatic Generation)">
+    <h1>The Big Picture: From Handcrafted to Learned</h1>
+    
+    <p>Congratulations! You've just spent four lessons mastering the art of the 'Kernel.' You now know how to smooth an image with a Gaussian Blur and how to hunt for edges using the Sobel operator. We acted like master chefs, carefully choosing the exact ingredients (numbers) to put into our matrices to get the flavor we wanted.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Who writes the numbers? -->
+<section id="section2">
+    <h2>Who writes the numbers?</h2>
+    <p>But here is the million-dollar question: What if we didn't have to guess the numbers? What if we didn't have to mathematically derive that a Sobel filter needs a $-2$ in the center?</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Modern Era -->
+<section id="section3">
+    <p>In the modern era of Artificial Intelligence, specifically in <strong>Convolutional Neural Networks (CNNs)</strong>, we stop writing the numbers ourselves. We let the computer write them.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Revolution & Convolution -->
+<section id="section4">
+    <p>The massive revolution in Computer Vision didn't come from inventing a new way to process images. It is still based on the exact same <strong>Convolution</strong> operation you mastered in Lesson 1.</p>
+    <img src="images/2.jpg" alt="Convolution Formula Diagram highlighting the 'h' variable as a dynamic, learned parameter in a neural network context">
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Learnable Parameters -->
+<section id="section5">
+    <p>The difference is in the \(h(u, v)\) term. In a CNN, the values inside the kernel are initialized as random garbage (noise). As the network trains on thousands of images, it slowly tweaks these numbers. It tries to find the best possible filter to recognize the objects in the pictures.</p>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Learnable Parameters</h4>
+        <p>In a neural network, the values inside the filters (kernels) are not fixed. They are variables that the network updates during training to minimize errors. These are often referred to as weights.</p>
+    </div>
+    
+    <p>So, instead of a human saying, 'I think we need an edge detector here,' the AI looks at the data and says, 'To solve this problem, I really need to detect edges,' and it <em>learns</em> to become an edge detector.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Evolution of Features -->
+<section id="section6">
+    <h2>The Evolution of Features</h2>
+    <p>You might be wondering: If the AI learns its own filters, does it learn something completely alien to us? Does it invent math we've never seen?</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: The Answer is No -->
+<section id="section7">
+    <p>The fascinating answer is: <strong>No.</strong></p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Visualization & Interactive -->
+<section id="section8">
+    <p>When researchers visualize the filters learned by famous AI models (like AlexNet or ResNet) in their very first layer, they see something incredible. The AI usually reinvents the wheel.</p>
+    <!-- START INTERACTIVE MODULE -->
+<div class="filter-interactive-container">
+    <div class="canvas-wrapper">
+      <canvas id="filterCanvas"></canvas>
+    </div>
+    
+    <div class="controls-area">
+      <div class="labels">
+        <span id="label-0" onclick="setSlider(0)">1. Handcrafted Sobel</span>
+        <span id="label-1" onclick="setSlider(1)">2. Handcrafted Gabor</span>
+        <span id="label-2" onclick="setSlider(2)">3. Learned AlexNet</span>
+      </div>
+      <input type="range" id="filterSlider" min="0" max="2" step="0.01" value="0">
+    </div>
+  
+    <div class="caption-box" id="filterCaption">
+      <strong>Step 1: Sobel Filters.</strong> These are simple mathematical grids humans designed to detect hard vertical and horizontal edges. They are rigid and black & white.
+    </div>
+  </div>
+  
+  <script>
+  // Lazily initialize the interactive when the section becomes visible so sizing works
+  let filterInteractiveInitialized = false;
+  let filterInteractiveResize = null;
+  function initFilterInteractive() {
+    if (filterInteractiveInitialized) {
+      if (typeof filterInteractiveResize === 'function') filterInteractiveResize();
+      return;
+    }
+    filterInteractiveInitialized = true;
+    // Let the section render before measuring canvas dimensions
+    requestAnimationFrame(() => {
+      const canvas = document.getElementById('filterCanvas');
+      const ctx = canvas.getContext('2d');
+      const slider = document.getElementById('filterSlider');
+      const caption = document.getElementById('filterCaption');
+      const labels = [
+        document.getElementById('label-0'),
+        document.getElementById('label-1'),
+        document.getElementById('label-2')
+      ];
+  
+      // Grid configuration
+      const cols = 6;
+      const rows = 4;
+      const filters = [];
+  
+      // Initialize randomized filter properties for the animation
+      for (let i = 0; i < cols * rows; i++) {
+        filters.push({
+          angleBase: (Math.PI * (Math.floor(i / 2) % 4)) / 4, 
+          angleJitter: (Math.random() - 0.5) * 1.5,
+          colorR: Math.floor(Math.random() * 200 + 55),
+          colorG: Math.floor(Math.random() * 200 + 55),
+          colorB: Math.floor(Math.random() * 200 + 55),
+          isBlob: Math.random() > 0.8,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+  
+      // Handle Resize
+      function resize() {
+        const parent = canvas.parentElement;
+        if (!parent) return;
+        canvas.width = parent.clientWidth * 2; // HiDPI
+        canvas.height = parent.clientHeight * 2;
+        draw(parseFloat(slider.value));
+      }
+      window.addEventListener('resize', resize);
+      filterInteractiveResize = resize;
+  
+      // Helper: Linear Interpolation
+      const lerp = (start, end, t) => start * (1 - t) + end * t;
+  
+      // Drawing Function
+      function draw(t) {
+        const w = canvas.width / cols;
+        const h = canvas.height / rows;
+        const cellSize = Math.min(w, h) * 0.8;
+  
+        ctx.fillStyle = '#1a202c';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+        filters.forEach((f, index) => {
+          const cx = (index % cols) * w + w / 2;
+          const cy = Math.floor(index / cols) * h + h / 2;
+          
+          ctx.save();
+          ctx.translate(cx, cy);
+  
+          let angle, softness, colorStrength, frequency, isBlobby;
+  
+          if (t <= 1) {
+            const snappedAngle = Math.round(f.angleBase / (Math.PI/2)) * (Math.PI/2);
+            angle = lerp(snappedAngle, f.angleBase, t);
+            softness = t;
+            colorStrength = 0;
+            frequency = lerp(1.5, 3, t);
+            isBlobby = 0;
+          } else {
+            const t2 = t - 1;
+            angle = lerp(f.angleBase, f.angleBase + f.angleJitter, t2);
+            softness = 1;
+            colorStrength = t2;
+            frequency = 3;
+            isBlobby = f.isBlob ? t2 : 0;
+          }
+  
+          drawKernel(ctx, cellSize, angle, softness, colorStrength, frequency, f, isBlobby);
+          ctx.restore();
+        });
+      }
+  
+      function drawKernel(ctx, size, angle, softness, colorStrength, frequency, filterProps, isBlobby) {
+        ctx.beginPath();
+        ctx.arc(0, 0, size/2, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.rotate(angle);
+  
+        const steps = 30;
+        const radius = size / 2;
+  
+        for (let i = -radius; i < radius; i += size/steps) {
+          const dist = Math.abs(i) / radius;
+          const gaussian = Math.exp(-Math.pow(dist * 2.5, 2));
+          
+          let wave = Math.cos((i / radius) * Math.PI * frequency + filterProps.phase);
+          
+          if (softness < 0.5) {
+            wave = wave > 0 ? 1 : -1;
+            const boxWindow = Math.abs(i) < size/4 ? 1 : 0;
+            const env = lerp(boxWindow, gaussian, softness * 2); 
+          }
+          
+          const intensity = wave * gaussian;
+  
+          let r, g, b;
+          
+          if (isBlobby > 0.5) {
+            const blobInt = gaussian;
+            r = lerp(128, filterProps.colorR * blobInt, colorStrength);
+            g = lerp(128, filterProps.colorG * blobInt, colorStrength);
+            b = lerp(128, filterProps.colorB * blobInt, colorStrength);
+          } else {
+            const baseVal = 128 + (intensity * 127);
+            const cR = intensity > 0 ? filterProps.colorR : 0;
+            const cG = intensity > 0 ? filterProps.colorG : 0;
+            const cB = intensity > 0 ? filterProps.colorB : 0;
+  
+            r = lerp(baseVal, cR + (128*(1-Math.abs(intensity))), colorStrength);
+            g = lerp(baseVal, cG + (128*(1-Math.abs(intensity))), colorStrength);
+            b = lerp(baseVal, cB + (128*(1-Math.abs(intensity))), colorStrength);
+          }
+  
+          ctx.fillStyle = `rgb(${r},${g},${b})`;
+          ctx.fillRect(-size/2, i, size, (size/steps) + 1);
+        }
+      }
+  
+      // Interaction Logic
+      slider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        updateUI(val);
+        draw(val);
+      });
+  
+      // Global exposure for label clicks
+      window.setSlider = function(val) {
+        slider.value = val;
+        updateUI(val);
+        draw(val);
+      }
+  
+      function updateUI(val) {
+        labels.forEach((l, i) => l.classList.toggle('active', Math.abs(val - i) < 0.5));
+        if (val < 0.5) {
+          caption.innerHTML = "<strong>1. Handcrafted Sobel.</strong> Rigid, manually programmed matrices. Notice they are strictly vertical or horizontal and purely black & white (high contrast).";
+        } else if (val >= 0.5 && val < 1.5) {
+          caption.innerHTML = "<strong>2. Handcrafted Gabor.</strong> Scientists realized 'Frequencies' are better. These look like waves. We still manually designed these to capture textures.";
+        } else {
+          caption.innerHTML = "<strong>3. Learned Filters (AlexNet).</strong> We let the AI learn from scratch. Look closely! It <em>rediscovered</em> the waves (Gabor) on its own, but added <strong>Color</strong> and rotation to solve harder problems.";
+        }
+      }
+  
+      // Initial draw after sizing
+      slider.value = 0;
+      resize();
+    });
+  }
+  </script>
+  <!-- END INTERACTIVE MODULE -->
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Validation & Stop and Think -->
+<section id="section9">
+    <p>This validates everything you just learned. The concepts of <strong>Edge Detection</strong> and <strong>Smoothing</strong> aren't just old-school tricks. They are the fundamental 'alphabet' of vision. Even the most advanced AIs start by learning this alphabet.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>In the interactive above, you might see that the AI learned diagonal edge detectors, not just vertical or horizontal ones like Sobel. Why might a neural network find diagonal edges useful?</h4>
+        <div id="stop-think-diagonal" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Real-world objects aren't made of Lego bricks! They have curves and slanted lines. A diagonal edge detector helps the network recognize the curve of a ball or the slope of a roof much better than just vertical/horizontal filters alone.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-diagonal')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Why It Matters -->
+<section id="section10">
+    <p>This is why understanding Chapter 9 is so critical. If you look inside a 'Black Box' AI, you will see the ghosts of the filters you studied here.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Understanding classical filters allows you to debug modern networks. If an AI fails to recognize a texture, you might realize its initial layers failed to learn the correct frequency filters (like Gabor filters), giving you a clue on how to fix it.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: FAQ Intro -->
+<section id="section11">
+    <h2>Frequently Asked Questions</h2>
+    <p>Before we wrap up this module, let's address a common question about the relationship between the past and the present.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: FAQ Interaction -->
+<section id="section12">
+    <div class="check-your-knowledge">
+        <h3>FAQ</h3>
+        <h4>Do modern AIs still use the Sobel filter specifically?</h4>
+        <div id="faq-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Sometimes! While CNNs usually learn their own filters, engineers often explicitly use Sobel filters as a pre-processing step to feed 'edges' directly into the network. This can speed up training because the network doesn't have to waste time learning to be an edge detector—it gets the edges for free!
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('faq-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Summary Intro -->
+<section id="section13">
+    <h2>Module Summary</h2>
+    <p>Let's take a moment to recap the journey we've taken through the world of Simple Filters.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Recap List -->
+<section id="section14">
+    <ul>
+        <li><strong>1. Context is King:</strong> We moved from single-pixel operations to <strong>Convolution</strong>, where a pixel's value depends on its neighbors.</li>
+        <li><strong>2. The Border Problem:</strong> We learned that sliding windows hate edges. We fixed this with <strong>Padding</strong> (Mirroring being the photographers' favorite).</li>
+        <li><strong>3. Blur & Sharpen:</strong> We saw how averaging neighbors (Box/Gaussian) removes noise but kills detail, while subtracting neighbors (Sharpen) boosts detail but boosts noise.</li>
+        <li><strong>4. Gradients:</strong> We used the <strong>Sobel Operator</strong> to calculate gradients, giving us the Magnitude (strength) and Orientation (direction) of edges.</li>
+        <li><strong>5. The Bridge to AI:</strong> Finally, we saw that these handcrafted matrices are the ancestors of the <strong>Weights</strong> inside modern Deep Learning networks.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Quiz -->
+<section id="section15">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following statements best describes the relationship between the Sobel Filter and a Convolutional Neural Network (CNN)?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. Both rely on the mathematical operation of Convolution.')">They are completely unrelated technologies.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. CNNs usually learn their own filters, which may or may not look like Sobel filters.')">CNNs use fixed Sobel filters in every layer.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The network minimizes error by adjusting weights, often converging on edge-detecting patterns similar to what humans designed manually.')">A CNN learns the values inside its filters, and often 'rediscovers' edge detectors similar to Sobel.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. Sobel is for edge detection, a key part of shape detection.')">Sobel filters are only used for color correction, while CNNs are for shape detection.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(16)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 16: Review and Reflect -->
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>You have now completed the module on Simple Filters (Kernels).</p>
+    
+    <p>We started with simple math—multiplying and adding numbers in a small grid—and ended up at the doorstep of the most advanced Artificial Intelligence systems in the world.</p>
+    <p>In this lesson, you connected the dots between manual engineering and automated learning:</p>
+    <ul>
+        <li>You learned that the <strong>kernel values</strong> in AI are variables, not constants.</li>
+        <li>You visualized how AI <strong>rediscovers</strong> fundamental vision concepts like edges.</li>
+        <li>You realized that understanding the 'basics' is the key to mastering the 'advanced.'</li>
+    </ul>
+    <p>In the next module, we will dive deeper into <strong>Feature Extraction</strong> and see how we can describe images not just by their edges, but by their content.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    if (nextSectionId === 8 && typeof initFilterInteractive === 'function') {
+        initFilterInteractive();
+    }
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+ const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section15') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Identifiers mapped to this lesson within Simple Filters
+                let courseId = 'computer-vision';
+                let pathId = 'simple-filters-kernels';
+                let moduleId = 'cv-ch09-l5-handcrafted-to-learned';
+                let lessonId = 'cv-ch09-l5-main';
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch09-l5-main_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+        // LMS Integration Check
+        let courseId = 'computer-vision';
+        let pathId = 'simple-filters-kernels';
+        let moduleId = 'cv-ch09-l5-handcrafted-to-learned';
+        let lessonId = 'cv-ch09-l5-main';
+        if (window.parent.currentRoute) {
+            const route = window.parent.currentRoute;
+            if (route.courseId) courseId = route.courseId;
+            if (route.pathId) pathId = route.pathId;
+            if (route.moduleId) moduleId = route.moduleId;
+            if (route.lessonId) lessonId = route.lessonId;
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('course')) courseId = urlParams.get('course');
+        if (urlParams.get('path')) pathId = urlParams.get('path');
+        if (urlParams.get('module')) moduleId = urlParams.get('module');
+        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+        const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+        if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+            button.classList.add('completed');
+            button.innerHTML = '✅ Completed!';
+            return;
+        }
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch09-l5-main_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Going Wide & Efficient – GoogLeNet & Inception</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Comparison: Tall thin VGG tower vs Short wide GoogLeNet building">
+    </div>
+    <h1>Going Wide & Efficient</h1>
+    <p>Welcome back! In our last lesson, we looked at VGGNet, which proved that 'small is beautiful' by stacking tiny \(3 \times 3\) filters to achieve depth. But there was a catch: VGG was heavy. With over 130 million parameters, it was like driving a tank—powerful, but slow and fuel-hungry.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: The Dilemma -->
+<section id="section2">
+    <h2>The Dilemma of Kernel Size</h2>
+    <p>By 2014, engineers faced a dilemma. When designing a layer, should you use a \(3 \times 3\) filter to capture fine details? Or a \(5 \times 5\) filter to capture larger context? Or maybe just a \(1 \times 1\) to look at local patterns?</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Bold Question -->
+<section id="section3">
+    <p>The creators of GoogLeNet (the winner of the 2014 ImageNet competition) asked a bold question: <strong>Why choose one when you can have them all?</strong></p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Inception Module Intro -->
+<section id="section4">
+    <p>Instead of making the network just 'deeper' (adding more layers vertically), they decided to make it 'wider'. This led to the creation of the <strong>Inception Module</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Inception Module</h4>
+        <p>A block in a CNN that performs multiple convolutions (\(1\times1, 3\times3, 5\times5\)) and pooling operations in parallel, concatenating their outputs to capture features at different scales simultaneously.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: The 4 Branches -->
+<section id="section5">
+    <p>In an Inception module, the input doesn't go through a single path. It splits into four parallel branches:</p>
+    <ul>
+        <li>A \(1 \times 1\) convolution</li>
+        <li>A \(3 \times 3\) convolution</li>
+        <li>A \(5 \times 5\) convolution</li>
+        <li>A Max Pooling operation</li>
+    </ul>
+    <div class="inception-interactive-container">
+        <canvas id="inceptionCanvas"></canvas>
+        <div class="controls">
+            <button class="toggle-btn active" data-path="0" style="--btn-color: #4facfe;">
+                <span class="icon">⚡</span> 1x1 Conv
+            </button>
+            <button class="toggle-btn" data-path="1" style="--btn-color: #667eea;">
+                <span class="icon">🔍</span> 3x3 Conv
+            </button>
+            <button class="toggle-btn" data-path="2" style="--btn-color: #764ba2;">
+                <span class="icon">🔭</span> 5x5 Conv
+            </button>
+            <button class="toggle-btn" data-path="3" style="--btn-color: #f093fb;">
+                <span class="icon">💧</span> Pooling
+            </button>
+        </div>
+        <p class="interactive-caption">Toggle the buttons to build the parallel branches of the Inception Module.</p>
+    </div>
+    
+    <script>
+    (function() {
+        const canvas = document.getElementById('inceptionCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let animationFrame;
+        let isInitialized = false;
+    
+        // Configuration for the 4 paths
+        const paths = [
+            { id: 0, label: '1x1 Conv', color: '#4facfe', active: true, xFactor: 0.2 },
+            { id: 1, label: '3x3 Conv', color: '#667eea', active: false, xFactor: 0.4 },
+            { id: 2, label: '5x5 Conv', color: '#764ba2', active: false, xFactor: 0.6 },
+            { id: 3, label: 'Max Pool', color: '#f093fb', active: false, xFactor: 0.8 }
+        ];
+    
+        // Particles system for flow visualization
+        const particles = [];
+        
+        function resize() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            
+            // Check if canvas is visible and has valid dimensions
+            if (rect.width === 0 || rect.height === 0) {
+                return false; // Canvas not visible yet
+            }
+            
+            width = rect.width;
+            height = rect.height;
+            
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            
+            ctx.scale(dpr, dpr);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            return true;
+        }
+    
+        function createParticle(pathIndex) {
+            return {
+                pathIndex: pathIndex,
+                progress: 0,
+                speed: 0.01 + Math.random() * 0.01,
+                offset: (Math.random() - 0.5) * 10 // jitter
+            };
+        }
+    
+        function drawRoundedRect(x, y, w, h, r, color, label, isFilled = true) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+    
+            if (isFilled) {
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px -apple-system, sans-serif';
+                ctx.fillText(label, x + w/2, y + h/2);
+            } else {
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = color;
+                ctx.stroke();
+                ctx.fillStyle = color;
+                ctx.font = 'bold 12px -apple-system, sans-serif';
+                ctx.fillText(label, x + w/2, y + h/2);
+            }
+        }
+    
+        function drawConnection(x1, y1, x2, y2, color, active) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            // Draw a bezier curve for smooth connector
+            const midY = (y1 + y2) / 2;
+            ctx.bezierCurveTo(x1, midY, x2, midY, x2, y2);
+            
+            ctx.lineWidth = active ? 3 : 1;
+            ctx.strokeStyle = active ? color : 'rgba(200, 200, 200, 0.3)';
+            ctx.stroke();
+            
+            return { x1, y1, x2, y2, midY }; // Return layout for particle calc
+        }
+    
+        function getBezierPoint(t, p0, p1, p2, p3) {
+            const u = 1 - t;
+            const tt = t * t;
+            const uu = u * u;
+            const uuu = uu * u;
+            const ttt = tt * t;
+            
+            let p = {
+                x: uuu * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + ttt * p3.x,
+                y: uuu * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + ttt * p3.y
+            };
+            return p;
+        }
+    
+        function animate() {
+            if (!isInitialized || width === 0 || height === 0) {
+                animationFrame = requestAnimationFrame(animate);
+                return;
+            }
+            
+            ctx.clearRect(0, 0, width, height);
+    
+            const inputY = 40;
+            const branchY = 175;
+            const outputY = 310;
+            const blockW = 80;
+            const blockH = 40;
+            const centerX = width / 2;
+    
+            // 1. Draw Input Block
+            drawRoundedRect(centerX - 50, inputY - 20, 100, 40, 8, '#2d3748', 'Input');
+    
+            // 2. Draw Concatenation Block
+            // We only "fill" it if at least one path is active
+            const anyActive = paths.some(p => p.active);
+            drawRoundedRect(centerX - 60, outputY - 20, 120, 40, 8, anyActive ? '#10b981' : '#cbd5e1', 'Concatenation', anyActive);
+    
+            // 3. Draw Connections & Branches
+            paths.forEach(path => {
+                const branchX = width * path.xFactor;
+                
+                // Top Connection (Input -> Branch)
+                const topCurve = drawConnection(centerX, inputY + 20, branchX, branchY - 20, path.color, path.active);
+                
+                // Bottom Connection (Branch -> Output)
+                const botCurve = drawConnection(branchX, branchY + 20, centerX, outputY - 20, path.color, path.active);
+    
+                // Draw Branch Block
+                drawRoundedRect(branchX - 40, branchY - 20, 80, 40, 6, path.active ? path.color : '#e2e8f0', path.label, path.active);
+    
+                // Handle Particles
+                if (path.active) {
+                    // Spawn new particles
+                    if (Math.random() < 0.03) {
+                        particles.push(createParticle(path.id));
+                    }
+                }
+            });
+    
+            // 4. Update and Draw Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                const path = paths[p.pathIndex];
+                
+                if (!path.active) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+    
+                p.progress += p.speed;
+                
+                if (p.progress >= 2) { // 0-1 is top half, 1-2 is bottom half
+                    particles.splice(i, 1);
+                    continue;
+                }
+    
+                const branchX = width * path.xFactor;
+                let pos;
+    
+                if (p.progress < 1) {
+                    // First half: Input to Branch
+                    pos = getBezierPoint(p.progress, 
+                        {x: centerX, y: inputY + 20},
+                        {x: centerX, y: (inputY + 20 + branchY - 20)/2}, 
+                        {x: branchX, y: (inputY + 20 + branchY - 20)/2}, 
+                        {x: branchX, y: branchY - 20}
+                    );
+                } else {
+                    // Second half: Branch to Output
+                    const t = p.progress - 1;
+                    pos = getBezierPoint(t, 
+                        {x: branchX, y: branchY + 20},
+                        {x: branchX, y: (branchY + 20 + outputY - 20)/2}, 
+                        {x: centerX, y: (branchY + 20 + outputY - 20)/2}, 
+                        {x: centerX, y: outputY - 20}
+                    );
+                }
+    
+                ctx.beginPath();
+                ctx.arc(pos.x + p.offset, pos.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = path.color;
+                ctx.fill();
+            }
+    
+            animationFrame = requestAnimationFrame(animate);
+        }
+    
+        // Interaction Handlers
+        const buttons = document.querySelectorAll('.toggle-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pathIndex = parseInt(btn.getAttribute('data-path'));
+                paths[pathIndex].active = !paths[pathIndex].active;
+                
+                // Toggle visual class
+                if (paths[pathIndex].active) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        });
+    
+        // Initialize function that can be called when section becomes visible
+        function initCanvas() {
+            if (isInitialized) return;
+            if (resize()) {
+                isInitialized = true;
+                if (!animationFrame) {
+                    animate();
+                }
+            }
+        }
+        
+        // Expose init function globally so it can be called when section becomes visible
+        window.initInceptionCanvas = initCanvas;
+    
+        // Init - try to initialize, but it may fail if section is hidden
+        window.addEventListener('resize', () => {
+            if (resize() && !isInitialized) {
+                isInitialized = true;
+                if (!animationFrame) {
+                    animate();
+                }
+            }
+        });
+        
+        // Try initial initialization
+        initCanvas();
+    
+    })();
+    </script>
+    <p>The results from all these branches are then stitched together (concatenated) to form the input for the next layer. This allows the network to capture both local details and bigger picture features at the same time.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Quiz 1 -->
+<section id="section6">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>At the end of an Inception module, we concatenate the outputs from the different branches. Why is this necessary?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. Averaging would blend the features together, losing the distinct information captured by different kernels.')">
+                To average the pixel values to save space.
+            </div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! By stacking the feature maps together, we give the next layer access to both fine details (from 3x3) and broader context (from 5x5).')">
+                To combine features learned at different scales (local and global) into a single output.
+            </div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Convolutional networks typically reduce or maintain resolution, they rarely increase it until the very end of specific segmentation tasks. Here, we are combining features, not changing resolution.')">
+                To increase the image resolution.
+            </div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge-1" onclick="showNextSection(7)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 7: Computational Explosion -->
+<section id="section7">
+    <h2>The Computational Explosion</h2>
+    <p>The 'Naïve' Inception module sounds great, but there is a massive problem: <strong>Computational Cost</strong>. Let's look at the math.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Math Setup -->
+<section id="section8">
+    <p>Imagine we have an input feature map with <strong>192 channels</strong> (perhaps coming from a previous module). We want to apply a <strong>\(5 \times 5\) convolution</strong> to output <strong>32 channels</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Naive Calculation -->
+<section id="section9">
+    <p>How many weights (parameters) do we need for just this one branch?</p>
+    <div class="check-your-knowledge">
+        <h3>Do the Math</h3>
+        <h4>Calculation A (Naïve Approach):</h4>
+        <p>$$ \text{Weights} = \text{Filter Width} \times \text{Filter Height} \times \text{Input Channels} \times \text{Output Channels} $$</p>
+        <div id="math-reveal-1" style="display:none;" class="animate-in">
+            <p>$$ \text{Weights} = 5 \times 5 \times 192 \times 32 $$</p>
+            <p>$$ \text{Weights} = 153,600 $$</p>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('math-reveal-1')">Reveal Calculation</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Fire -->
+<section id="section10">
+    <p>Over 150,000 parameters for just one part of one module! If we stack many of these, our server room might catch fire. We need a hero to save us from this computational explosion.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Bottleneck Intro -->
+<section id="section11">
+    <h2>Enter the Bottleneck Layer</h2>
+    <p>The hero of our story is the humble <strong>\(1 \times 1\) Convolution</strong>, often called a <strong>Bottleneck Layer</strong>.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Comic: 'Bouncer' 1x1 conv filtering data channels before they enter the 5x5 Club">
+    </div>
+    <p>It acts like a funnel. Before we run the expensive \(5 \times 5\) convolution, we use a cheap \(1 \times 1\) convolution to reduce the number of channels (dimensionality).</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Vocab Bottleneck -->
+<section id="section12">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Bottleneck Layer</h4>
+        <p>A layer, typically a 1x1 convolution, used to reduce the number of feature channels (depth) before a computationally expensive operation, improving efficiency.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Math Setup 2 -->
+<section id="section13">
+    <p>Let's re-run our calculation, but this time we will use a bottleneck to reduce the <strong>192 input channels</strong> down to <strong>16 channels</strong> before passing them to the \(5 \times 5\) layer.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Math Calculation 2 -->
+<section id="section14">
+    <p>This becomes a two-step process:</p>
+    <p><strong>Step 1: The Bottleneck (\(1 \times 1\))</strong><br>
+    We map 192 channels to 16.<br>
+    $$ 1 \times 1 \times 192 \times 16 = 3,072 \text{ weights} $$</p>
+    <p><strong>Step 2: The Main Event (\(5 \times 5\))</strong><br>
+    Now we convolve the 16 channels to the final 32.<br>
+    $$ 5 \times 5 \times 16 \times 32 = 12,800 \text{ weights} $$</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Comparison & Stop/Think -->
+<section id="section15">
+    <p><strong>Total Weights:</strong><br>
+    $$ 3,072 + 12,800 = 15,872 $$</p>
+    <p>Compare that to our original <strong>153,600</strong>. We achieved a <strong>~10x reduction</strong> in computation! The network learns to compress information into fewer channels, processes it efficiently, and then expands it again.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>We used a 1x1 convolution to reduce the channels. But wait... does a 1x1 filter actually look at neighboring pixels?</h4>
+        <div id="stop-think-reveal" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> No! A 1x1 convolution only looks at a single pixel location at a time, but it looks across all the <em>depth</em> (channels) of that pixel. It combines information from different feature maps (e.g., combining 'redness' and 'vertical edge') without looking at spatial neighbors.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-reveal')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16: FAQ -->
+<section id="section16">
+    <div class="frequently-asked">
+        <h3>Frequently Asked Question</h3>
+        <h4>Doesn't reducing the channels lose information?</h4>
+        <p>It can, if you reduce it too much! However, neural networks are surprisingly good at compression. The 1x1 layer learns to combine sparse features into dense, information-rich features. Think of it like summarizing a long book into a short, accurate report before handing it to a busy boss.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- Section 17: Interactive Slider -->
+<section id="section17">
+    <h2>Interactive Bottleneck</h2>
+    <p>Now it's your turn to manage the budget. Try to find the sweet spot between performance and information preservation.</p>
+    <div class="bottleneck-interactive-container">
+        <canvas id="bottleneckCanvas"></canvas>
+        
+        <div class="dashboard-controls">
+            <div class="control-group">
+                <label>Bottleneck Channels: <span id="channel-display">16</span></label>
+                <input type="range" id="bottleneck-slider" min="1" max="64" value="16" step="1">
+                <div class="labels">
+                    <span>Narrow (1)</span>
+                    <span>Wide (64)</span>
+                </div>
+            </div>
+    
+            <div class="metrics-group">
+                <div class="metric">
+                    <label>Computation Cost</label>
+                    <div class="bar-container">
+                        <div id="cost-bar" class="bar-fill" style="width: 25%"></div>
+                    </div>
+                    <div class="metric-value" id="cost-value">~15k params</div>
+                </div>
+                
+                <div class="metric warning-box">
+                    <label>Information Loss</label>
+                    <div id="warning-light" class="indicator"></div>
+                    <div class="metric-value" id="status-text">Optimal</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    (function() {
+        const canvas = document.getElementById('bottleneckCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('bottleneck-slider');
+        const display = document.getElementById('channel-display');
+        const costBar = document.getElementById('cost-bar');
+        const costValue = document.getElementById('cost-value');
+        const warningLight = document.getElementById('warning-light');
+        const statusText = document.getElementById('status-text');
+    
+        let bottleneckSize = 16;
+        let width, height;
+        let isInitialized = false;
+        let animationFrame;
+        
+        // Particles
+        const particles = [];
+        
+        function resize() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            
+            // Check if canvas is visible and has valid dimensions
+            if (rect.width === 0 || rect.height === 0) {
+                return false; // Canvas not visible yet
+            }
+            
+            width = rect.width;
+            height = rect.height;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+            return true;
+        }
+    
+        function createParticle() {
+            return {
+                x: 0,
+                y: Math.random() * 100 + (height/2 - 50), // Spawn in middle band
+                speed: 2 + Math.random() * 2,
+                size: 2 + Math.random() * 2,
+                color: '#fff'
+            };
+        }
+    
+        function drawLayer(x, centerY, h, label, color) {
+            ctx.fillStyle = color;
+            // Draw main block
+            const w = 40;
+            const y = centerY - h/2;
+            
+            // 3D effect side
+            ctx.fillStyle = '#1a202c'; // darker
+            ctx.fillRect(x + w, y + 5, 10, h);
+            
+            // Front face
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+            
+            // Border
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, w, h);
+    
+            // Label
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x + w/2, y + h + 15);
+            
+            return { x, y, w, h };
+        }
+    
+        function drawConnection(rect1, rect2, color) {
+            ctx.beginPath();
+            // Top line
+            ctx.moveTo(rect1.x + rect1.w, rect1.y);
+            ctx.bezierCurveTo(
+                rect1.x + rect1.w + 30, rect1.y, 
+                rect2.x - 30, rect2.y, 
+                rect2.x, rect2.y
+            );
+            // Right side (connection point)
+            ctx.lineTo(rect2.x, rect2.y + rect2.h);
+            // Bottom line
+            ctx.bezierCurveTo(
+                rect2.x - 30, rect2.y + rect2.h,
+                rect1.x + rect1.w + 30, rect1.y + rect1.h,
+                rect1.x + rect1.w, rect1.y + rect1.h
+            );
+            ctx.closePath();
+            
+            const grad = ctx.createLinearGradient(rect1.x + rect1.w, 0, rect2.x, 0);
+            grad.addColorStop(0, color);
+            grad.addColorStop(1, 'rgba(79, 172, 254, 0.1)'); // Fade out
+            ctx.fillStyle = grad;
+            ctx.fill();
+        }
+    
+        function updateDashboard() {
+            const val = parseInt(slider.value);
+            bottleneckSize = val;
+            display.innerText = val;
+    
+            // Math from lesson:
+            // Input: 192, Output (5x5): 32
+            // Param Cost = (1x1 conv) + (5x5 conv)
+            // Cost = (192 * 1 * 1 * val) + (val * 5 * 5 * 32)
+            // Cost = 192*val + 800*val = 992 * val
+            
+            const currentParams = 992 * val;
+            // Max params (if val was 64) = ~63k
+            // Naive approach (no bottleneck, just 192 -> 32 via 5x5) = 192 * 5 * 5 * 32 = 153,600
+            
+            // Let's normalize percentage against a "reasonable" max for visualization
+            // Max on slider is 64. 
+            const maxSliderParams = 992 * 64; 
+            const percentage = (currentParams / maxSliderParams) * 100;
+            
+            costBar.style.width = `${percentage}%`;
+            costValue.innerText = `~${(currentParams/1000).toFixed(1)}k params`;
+    
+            // Warning Logic
+            // If bottleneck is < 8, it's too aggressive compression
+            if (val < 8) {
+                warningLight.className = 'indicator warning';
+                statusText.innerText = "Info Loss!";
+                statusText.style.color = "#f56565";
+                costBar.style.background = "#48bb78"; // Cheap is Green
+            } else {
+                warningLight.className = 'indicator safe';
+                statusText.innerText = "Stable";
+                statusText.style.color = "#48bb78";
+                // If cost gets high, turn bar orange/red
+                if (percentage > 70) {
+                     costBar.style.background = "#f6ad55";
+                } else {
+                     costBar.style.background = "linear-gradient(90deg, #48bb78, #4facfe)";
+                }
+            }
+        }
+    
+        function animate() {
+            if (!isInitialized || width === 0 || height === 0) {
+                animationFrame = requestAnimationFrame(animate);
+                return;
+            }
+            
+            ctx.clearRect(0, 0, width, height);
+    
+            const centerY = height / 2;
+            
+            // Layer dimensions
+            const inputH = 140; // Represents 192 channels
+            const outputH = 80; // Represents final 32 channels
+            
+            // Bottleneck height is proportional to slider
+            // Map 1-64 slider to pixel height 10-100
+            const bottleneckH = 10 + (bottleneckSize / 64) * 90;
+    
+            const space = width / 4;
+            
+            // Draw Layers
+            const l1 = drawLayer(space * 0.5, centerY, inputH, "Input (192)", "#667eea");
+            const l2 = drawLayer(space * 2, centerY, bottleneckH, `1x1 (${bottleneckSize})`, "#4facfe");
+            const l3 = drawLayer(space * 3.2, centerY, outputH, "5x5 (32)", "#764ba2");
+    
+            // Draw Connections
+            drawConnection(l1, l2, "rgba(102, 126, 234, 0.3)");
+            drawConnection(l2, l3, "rgba(79, 172, 254, 0.3)");
+    
+            // Particles Logic
+            if (particles.length < 20) particles.push(createParticle());
+    
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.speed;
+    
+                // Reset
+                if (p.x > width) {
+                    p.x = 0;
+                    p.y = centerY + (Math.random() - 0.5) * inputH;
+                }
+    
+                // Constrain Y based on where the particle is horizontally
+                let currentLimit = inputH;
+                
+                // Approaching Bottleneck
+                if (p.x > l1.x + l1.w && p.x < l2.x) {
+                    // Interpolate limit
+                    const progress = (p.x - (l1.x + l1.w)) / (l2.x - (l1.x + l1.w));
+                    currentLimit = inputH - (inputH - bottleneckH) * progress;
+                } else if (p.x >= l2.x && p.x <= l2.x + l2.w) {
+                    currentLimit = bottleneckH;
+                } else if (p.x > l2.x + l2.w && p.x < l3.x) {
+                    // Expanding
+                    const progress = (p.x - (l2.x + l2.w)) / (l3.x - (l2.x + l2.w));
+                    currentLimit = bottleneckH + (outputH - bottleneckH) * progress;
+                }
+    
+                // Visual constraint (basic clamping)
+                const ceiling = centerY - currentLimit/2;
+                const floor = centerY + currentLimit/2;
+                if (p.y < ceiling) p.y = ceiling + 2;
+                if (p.y > floor) p.y = floor - 2;
+    
+                // Draw
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                
+                // Color logic based on "Information Loss"
+                if (bottleneckSize < 8 && p.x > l2.x) {
+                     // Make some particles disappear or turn red to show loss
+                     if (Math.random() > 0.9) ctx.fillStyle = "rgba(245, 101, 101, 0.8)";
+                     else ctx.fillStyle = "rgba(255, 255, 255, 0.4)"; // Faded
+                } else {
+                     ctx.fillStyle = "#fff";
+                }
+                
+                ctx.fill();
+            }
+    
+            requestAnimationFrame(animate);
+        }
+    
+        slider.addEventListener('input', updateDashboard);
+        
+        // Initialize function that can be called when section becomes visible
+        function initCanvas() {
+            if (isInitialized) return;
+            if (resize()) {
+                isInitialized = true;
+                updateDashboard();
+                if (!animationFrame) {
+                    animate();
+                }
+            }
+        }
+        
+        // Expose init function globally so it can be called when section becomes visible
+        window.initBottleneckCanvas = initCanvas;
+        
+        // Handle resize events
+        window.addEventListener('resize', () => {
+            if (resize() && !isInitialized) {
+                isInitialized = true;
+                updateDashboard();
+                if (!animationFrame) {
+                    animate();
+                }
+            } else if (isInitialized) {
+                resize(); // Just resize if already initialized
+            }
+        });
+        
+        // Try initial initialization
+        initCanvas();
+    
+    })();
+    </script>
+    <p>By adjusting the bottleneck size, network designers can tune the exact cost of the network. This efficiency is what allowed GoogLeNet to be <strong>22 layers deep</strong>—much deeper than VGG—while using 12x fewer parameters!</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- Section 18: Quiz 2 -->
+<section id="section18">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following best describes the primary function of a 1x1 convolution in the Inception module?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, spatial patterns require looking at neighboring pixels (like 3x3 or 5x5). 1x1 only looks at one pixel at a time.')">
+                It captures spatial patterns like edges and corners.
+            </div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! It acts as a bottleneck to shrink the number of channels.')">
+                It performs dimensionality reduction to decrease computational cost.
+            </div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. Pooling layers reduce height and width. 1x1 convolutions reduce depth (channels).')">
+                It acts as a pooling layer to reduce image height and width.
+            </div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge-2" onclick="showNextSection(19)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 19: Review -->
+<section id="section19">
+    <h2>Review and Reflect</h2>
+    <p>We've covered a major leap in CNN evolution today.</p>
+    <p>In this lesson, you learned how architectures moved from simple stacks to complex branching structures:</p>
+    <ul>
+        <li><strong>GoogLeNet</strong> introduced the idea of 'going wide' with the <strong>Inception Module</strong>.</li>
+        <li>We solved the problem of choosing kernel sizes by simply using <strong>all of them</strong> in parallel.</li>
+        <li>We used <strong>Bottleneck Layers (\(1 \times 1\) Convs)</strong> to drastically reduce the number of parameters, making the network efficient enough to run on limited hardware.</li>
+    </ul>
+    <p>But even with these efficiency tricks, researchers hit a wall when trying to go deeper than ~20 layers. Training errors started to go <em>up</em>, not down. In the next lesson, we will uncover the <strong>Degradation Problem</strong> and the genius solution that fixed it: <strong>ResNet</strong>.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 19;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    // Initialize canvas for section 5 when it becomes visible
+    if (nextSectionId === 5 && window.initInceptionCanvas) {
+        setTimeout(() => {
+            window.initInceptionCanvas();
+        }, 100);
+    }
+    
+    // Initialize canvas for section 17 (bottleneck interactive) when it becomes visible
+    if (nextSectionId === 17 && window.initBottleneckCanvas) {
+        setTimeout(() => {
+            window.initBottleneckCanvas();
+        }, 100);
+    }
+    
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+        // Trigger MathJax re-render for revealed math content
+        if (window.MathJax) {
+            MathJax.typesetPromise([revealText]).catch((err) => console.log('MathJax error:', err));
+        }
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after answering specific quizzes
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        let continueBtnId = '';
+        if (parentSection.id === 'section6') continueBtnId = 'continue-after-test-knowledge-1';
+        if (parentSection.id === 'section18') continueBtnId = 'continue-after-test-knowledge-2';
+        
+        if (continueBtnId) {
+            const continueButton = document.getElementById(continueBtnId);
+            if (continueButton && continueButton.style.display === 'none') {
+                setTimeout(() => {
+                    continueButton.style.display = 'block';
+                    continueButton.classList.add('show-with-animation');
+                }, 800);
+            }
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Generic IDs for demonstration
+                let courseId = 'computer-vision';
+                let pathId = 'cnns';
+                let moduleId = 'googlenet';
+                let lessonId = 'going-wide-efficient';
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_googlenet_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage for basic persistence
+    const isCompleted = localStorage.getItem('lesson_googlenet_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

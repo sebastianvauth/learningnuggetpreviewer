@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Cleaning Up the Mess – Compound Operations & Noise Removal</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Comparison showing noisy binary image with salt and pepper noise, question mark made of various structuring elements, and cleaned image">
+        <p class="image-caption">The challenge: transform chaos into clarity using the right morphological operations.</p>
+    </div>
+    <h1>Cleaning Up the Mess – Compound Operations & Noise Removal</h1>
+    <h2>Introduction: The Goldilocks Problem</h2>
+    
+    <p>Welcome back! In the last lesson, we learned how to play god with shapes—making them grow with <strong>Dilation</strong> and shrink with <strong>Erosion</strong>. But there's a catch.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Problem with Simple Filters</h2>
+    <p>Imagine you wash a favorite t-shirt to remove a stain. If the stain is gone, but the shirt has shrunk three sizes, that's not a success. It's a disaster.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>The same applies to images. If we use <strong>Erosion</strong> to remove small noise pixels (the 'stain'), our main object also shrinks. If we use <strong>Dilation</strong> to fill in gaps, our object grows puffy.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>We need a way to clean the image without permanently changing the size of our objects. The secret? Combining the operations.</p>
+    <h3>The Strategy</h3>
+    <p>In morphology, order matters. By chaining erosion and dilation together, we can cancel out the size changes while keeping the cleaning effects.</p>
+    <!-- START INTERACTIVE MODULE -->
+<div class="interactive-pipeline-container">
+    <canvas id="pipelineCanvas"></canvas>
+    <div id="pipelineTooltip" class="pipeline-tooltip"></div>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('pipelineCanvas');
+    const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('pipelineTooltip');
+    const container = document.querySelector('.interactive-pipeline-container');
+
+    // Configuration
+    const logicalWidth = 800;
+    const logicalHeight = 450;
+    const nodeSize = 100;
+    
+    // State management for hover effects
+    let hoveredNode = null;
+
+    // Define the nodes for the flowchart
+    const nodes = [
+        // --- ROW 1: OPENING (Salt Removal) ---
+        {
+            id: 'open-1', x: 50, y: 50, w: 120, h: 120,
+            type: 'image', variant: 'salt',
+            title: "Input: Salt Noise",
+            desc: "The original object (white box) corrupted by random white pixels (salt) in the background."
+        },
+        {
+            id: 'open-op1', x: 210, y: 100, w: 100, h: 20,
+            type: 'arrow', label: 'Erosion', icon: '↘️',
+            title: "Operation: Erosion",
+            desc: "Shrinks everything. The noise (being small) disappears completely. The object shrinks."
+        },
+        {
+            id: 'open-2', x: 350, y: 50, w: 120, h: 120,
+            type: 'image', variant: 'eroded',
+            title: "Intermediate Result",
+            desc: "The noise is gone! But the main object is now smaller than it should be."
+        },
+        {
+            id: 'open-op2', x: 510, y: 100, w: 100, h: 20,
+            type: 'arrow', label: 'Dilation', icon: '↗️',
+            title: "Operation: Dilation",
+            desc: "Grows everything back. The object returns to original size. Noise doesn't return because it was fully erased."
+        },
+        {
+            id: 'open-3', x: 650, y: 50, w: 120, h: 120,
+            type: 'image', variant: 'clean',
+            title: "Output: Opening",
+            desc: "Clean object, correct size. Salt noise removed."
+        },
+
+        // --- ROW 2: CLOSING (Pepper Removal) ---
+        {
+            id: 'close-1', x: 50, y: 250, w: 120, h: 120,
+            type: 'image', variant: 'pepper',
+            title: "Input: Pepper Noise",
+            desc: "The object has small black holes (pepper) inside it."
+        },
+        {
+            id: 'close-op1', x: 210, y: 300, w: 100, h: 20,
+            type: 'arrow', label: 'Dilation', icon: '↗️',
+            title: "Operation: Dilation",
+            desc: "Expands the white object. This squeezes the black holes shut."
+        },
+        {
+            id: 'close-2', x: 350, y: 250, w: 120, h: 120,
+            type: 'image', variant: 'dilated',
+            title: "Intermediate Result",
+            desc: "The holes are filled! But now the main object is too puffy and large."
+        },
+        {
+            id: 'close-op2', x: 510, y: 300, w: 100, h: 20,
+            type: 'arrow', label: 'Erosion', icon: '↘️',
+            title: "Operation: Erosion",
+            desc: "Shrinks the object back to normal. The holes remain filled (bridged)."
+        },
+        {
+            id: 'close-3', x: 650, y: 250, w: 120, h: 120,
+            type: 'image', variant: 'clean',
+            title: "Output: Closing",
+            desc: "Clean object, correct size. Pepper noise filled."
+        }
+    ];
+
+    function init() {
+        // Handle High DPI displays
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = logicalWidth * dpr;
+        canvas.height = logicalHeight * dpr;
+        ctx.scale(dpr, dpr);
+        
+        // Setup Event Listeners
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseleave', () => {
+            hoveredNode = null;
+            tooltip.style.display = 'none';
+            draw();
+        });
+
+        draw();
+    }
+
+    // --- DRAWING FUNCTIONS ---
+
+    function draw() {
+        ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+
+        // Draw Row Labels
+        ctx.font = "bold 16px sans-serif";
+        ctx.fillStyle = "#4a5568";
+        ctx.fillText("Opening Pipeline (Remove Salt)", 50, 30);
+        ctx.fillText("Closing Pipeline (Fill Holes)", 50, 230);
+
+        // Draw Connectors and Nodes
+        nodes.forEach(node => {
+            if (node.type === 'arrow') {
+                drawArrow(node);
+            } else {
+                drawImageNode(node);
+            }
+        });
+    }
+
+    function drawArrow(node) {
+        ctx.save();
+        const startX = node.x;
+        const startY = node.y + 10;
+        const endX = node.x + node.w - 10;
+        
+        // Line
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, startY);
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Arrowhead
+        ctx.beginPath();
+        ctx.moveTo(endX, startY);
+        ctx.lineTo(endX - 10, startY - 5);
+        ctx.lineTo(endX - 10, startY + 5);
+        ctx.fillStyle = "#cbd5e1";
+        ctx.fill();
+
+        // Icon/Label Bubble
+        const isHovered = (hoveredNode === node);
+        const bubbleColor = isHovered ? "#667eea" : "#fff";
+        const textColor = isHovered ? "#fff" : "#4a5568";
+        const strokeColor = isHovered ? "#667eea" : "#cbd5e1";
+
+        ctx.beginPath();
+        ctx.arc(node.x + node.w/2, startY, 20, 0, Math.PI * 2);
+        ctx.fillStyle = bubbleColor;
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = strokeColor;
+        ctx.stroke();
+
+        // Icon Text
+        ctx.fillStyle = textColor;
+        ctx.font = "20px serif"; // Emoji works best with serif/system fallback
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(node.icon, node.x + node.w/2, startY + 2); // Slight offset for emoji vertical alignment
+
+        // Label Text
+        ctx.font = "bold 12px sans-serif";
+        ctx.fillStyle = "#718096";
+        ctx.fillText(node.label, node.x + node.w/2, startY + 35);
+
+        ctx.restore();
+    }
+
+    function drawImageNode(node) {
+        ctx.save();
+        
+        const isHovered = (hoveredNode === node);
+        
+        // Box Shadow
+        if (isHovered) {
+            ctx.shadowColor = "rgba(102, 126, 234, 0.5)";
+            ctx.shadowBlur = 15;
+        }
+
+        // Frame
+        ctx.fillStyle = "#000"; // Black background for image
+        ctx.fillRect(node.x, node.y, node.w, node.h);
+        
+        // Border
+        ctx.strokeStyle = isHovered ? "#667eea" : "#2d3748";
+        ctx.lineWidth = isHovered ? 3 : 1;
+        ctx.strokeRect(node.x, node.y, node.w, node.h);
+
+        ctx.shadowBlur = 0; // Reset shadow for internal content
+
+        // Draw Content based on variant
+        const cx = node.x + node.w / 2;
+        const cy = node.y + node.h / 2;
+
+        ctx.fillStyle = "#fff";
+
+        if (node.variant === 'salt') {
+            // Main Object
+            ctx.fillRect(cx - 20, cy - 20, 40, 40);
+            // Salt (random dots)
+            ctx.fillRect(node.x + 10, node.y + 10, 4, 4);
+            ctx.fillRect(node.x + 90, node.y + 20, 4, 4);
+            ctx.fillRect(node.x + 20, node.y + 90, 4, 4);
+            ctx.fillRect(node.x + 100, node.y + 80, 4, 4);
+        } else if (node.variant === 'eroded') {
+            // Shrunk Object
+            ctx.fillRect(cx - 15, cy - 15, 30, 30);
+            // No Salt
+        } else if (node.variant === 'clean') {
+            // Normal Object
+            ctx.fillRect(cx - 20, cy - 20, 40, 40);
+        } else if (node.variant === 'pepper') {
+            // Main Object
+            ctx.fillRect(cx - 20, cy - 20, 40, 40);
+            // Pepper (Black holes)
+            ctx.fillStyle = "#000";
+            ctx.fillRect(cx - 5, cy - 10, 4, 4);
+            ctx.fillRect(cx + 10, cy + 5, 4, 4);
+            ctx.fillRect(cx - 10, cy + 10, 4, 4);
+        } else if (node.variant === 'dilated') {
+            // Grown Object
+            ctx.fillRect(cx - 25, cy - 25, 50, 50);
+            // Holes filled
+        }
+
+        ctx.restore();
+    }
+
+    // --- INTERACTION LOGIC ---
+
+    function handleMouseMove(e) {
+        const rect = canvas.getBoundingClientRect();
+        
+        // Calculate scale factor in case canvas is resized via CSS
+        const scaleX = canvas.width / (rect.width * (window.devicePixelRatio || 1));
+        const scaleY = canvas.height / (rect.height * (window.devicePixelRatio || 1));
+
+        const mouseX = (e.clientX - rect.left) * scaleX;
+        const mouseY = (e.clientY - rect.top) * scaleY;
+
+        let found = null;
+
+        // Check collision with logical nodes
+        // Note: We map logical coords to the mouse coords
+        // The simple way: map mouse back to logical
+        const logicalMouseX = mouseX / (window.devicePixelRatio || 1);
+        const logicalMouseY = mouseY / (window.devicePixelRatio || 1);
+
+        nodes.forEach(node => {
+            // Bounding box check
+            // For arrows, we check the circle area mostly
+            if (node.type === 'arrow') {
+                const cx = node.x + node.w/2;
+                const cy = node.y + 10;
+                const dist = Math.sqrt((logicalMouseX - cx)**2 + (logicalMouseY - cy)**2);
+                if (dist < 25) found = node;
+            } else {
+                if (logicalMouseX >= node.x && logicalMouseX <= node.x + node.w &&
+                    logicalMouseY >= node.y && logicalMouseY <= node.y + node.h) {
+                    found = node;
+                }
+            }
+        });
+
+        if (found !== hoveredNode) {
+            hoveredNode = found;
+            draw(); // Redraw to update highlights
+            updateTooltip(e.clientX, e.clientY, found);
+        } else if (found) {
+             // Update tooltip position while moving inside a node
+             updateTooltip(e.clientX, e.clientY, found);
+        } else {
+            tooltip.style.display = 'none';
+        }
+    }
+
+    function updateTooltip(x, y, node) {
+        if (!node) return;
+        
+        tooltip.innerHTML = `<h5>${node.title}</h5><p>${node.desc}</p>`;
+        tooltip.style.display = 'block';
+        
+        // Position tooltip relative to page to avoid clipping in canvas
+        // We use the container as the offset parent usually, but clientX/Y are viewport relative
+        // Let's position relative to the container for better stability
+        const containerRect = container.getBoundingClientRect();
+        const relX = x - containerRect.left;
+        const relY = y - containerRect.top;
+
+        tooltip.style.left = relX + 'px';
+        tooltip.style.top = relY + 'px';
+    }
+
+    // Initialize
+    init();
+
+})();
+</script>
+<!-- END INTERACTIVE MODULE -->
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <h2>Opening: Removing the Salt</h2>
+    <p>Let's tackle the first problem: <strong>Salt Noise</strong>. These are small, random white pixels on a dark background.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>To remove these, we use an operation called <strong>Opening</strong>. The math is simple: First, we Erode, then we Dilate.</p>
+    <p>$$Opening(I) = Dilation(Erosion(I))$$</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>Here is the logic step-by-step:</p>
+    <ol>
+        <li><strong>Erosion:</strong> The structuring element peels away the outer layer of everything. Large objects shrink, but small noise pixels (smaller than the element) disappear completely.</li>
+        <li><strong>Dilation:</strong> We grow the large objects back. However, since the noise pixels were completely erased in step 1, there is nothing left to grow back! The noise stays dead.</li>
+    </ol>
+    <p>Opening is perfect for separating objects that are barely touching or removing bright specks.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>You have an image of a starry night (tiny white dots on black), but you want to remove the smallest stars to focus only on the moon. Which operation should you use?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" onclick="selectChoice(this, false, 'Dilation would make the stars bigger and brighter!')">Dilation</div>
+            <div class="choice-option" onclick="selectChoice(this, false, 'Erosion would remove the stars, but it would also shrink the moon significantly.')">Erosion</div>
+            <div class="choice-option" onclick="selectChoice(this, true, 'Correct! The erosion step kills the tiny stars. The dilation step restores the moon to its original size.')">Opening</div>
+            <div class="choice-option" onclick="selectChoice(this, false, 'Closing is for filling black holes in white objects, not removing white objects from black backgrounds.')">Closing</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <h2>Closing: Filling the Pepper</h2>
+    <p>Now, let's look at the opposite problem: <strong>Pepper Noise</strong>. These are small black holes inside bright objects.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>To fix this, we use <strong>Closing</strong>. It's the reverse of Opening.</p>
+    <p>$$Closing(I) = Erosion(Dilation(I))$$</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>The logic works like this:</p>
+    <ol>
+        <li><strong>Dilation:</strong> The bright object expands. This expansion squeezes the small black holes shut.</li>
+        <li><strong>Erosion:</strong> We shrink the object back down. The holes, having been bridged over, remain filled.</li>
+    </ol>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Comic strip showing shape with holes feeling empty, getting a dilation hug from Doctor Closing, then erosion stepping back leaving shape whole and happy">
+        <p class="image-caption">Sometimes, all you need is a good hug (and some erosion afterward).</p>
+    </div>
+    <p>Think of it like applying putty to a wall (Dilation) and then sanding it down smooth (Erosion). The hole stays filled.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Dual Operation</h4>
+        <p>In morphology, Opening and Closing are duals of each other. Opening affects the foreground (removes it), while Closing affects the background (fills it in).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <h2>The Ultimate Scrubber: Median Filter</h2>
+    <p>Morphological opening and closing are powerful, but sometimes you just have a messy image with <strong>Salt-and-Pepper noise</strong>—a mix of random white and black pixels.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>We could try to chain Opening and Closing together, but there is a more elegant tool: the <strong>Median Filter</strong>.</p>
+    <p>Recall from the last lesson that we collect neighbors in a list and sort them.</p>
+    <p>$$s_a(x, y) = \text{median}(r)$$</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>The Median Filter replaces the center pixel with the middle value of the sorted list. This is statistically robust against outliers.</p>
+    <div class="stop-and-think">
+        <h3>Stop and Think</h3>
+        <h4>The Median filter is great for salt-and-pepper noise. Why don't we just use the Mean (Average) filter we learned in Chapter 9? What would a Mean filter do to a bright white noise pixel?</h4>
+        <div id="sat-answer" style="display:none;" class="animate-in">
+            <p><strong>Answer:</strong> A Mean filter averages the bright white pixel (255) with its black neighbors (0). The result is a gray smudge (e.g., 85). The noise isn't removed; it's just spread out. The Median filter sorts the values: [0, 0, 0, ..., 255]. The median is 0. The white pixel is completely eliminated!</p>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('sat-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <h2>Practice Time: The Noise Scrubber</h2>
+    <p>Let's put this into practice. Can you clean up this letter?</p>
+    <!-- START NOISE SCRUBBER INTERACTIVE -->
+<div class="scrubber-container">
+    <div class="canvas-wrapper">
+        <canvas id="scrubberCanvas"></canvas>
+        <div id="scrubberFeedback" class="feedback-box">
+            <span class="emoji">🤔</span>
+            <span class="text">The image is messy! Try to clean it.</span>
+        </div>
+    </div>
+    
+    <div class="controls-wrapper">
+        <button class="tool-btn" onclick="ScrubberModule.applyOpening()">
+            <span class="icon">🌑</span> Apply Opening
+            <span class="sub">Remove Salt</span>
+        </button>
+        <button class="tool-btn" onclick="ScrubberModule.applyClosing()">
+            <span class="icon">🌕</span> Apply Closing
+            <span class="sub">Fill Holes</span>
+        </button>
+        <button class="tool-btn" onclick="ScrubberModule.applyMedian()">
+            <span class="icon">✨</span> Apply Median
+            <span class="sub">Average Out</span>
+        </button>
+        <button class="reset-btn" onclick="ScrubberModule.reset()">
+            🔄 Reset
+        </button>
+    </div>
+</div>
+
+<script>
+const ScrubberModule = (function() {
+    const canvas = document.getElementById('scrubberCanvas');
+    const ctx = canvas.getContext('2d');
+    const feedbackText = document.querySelector('#scrubberFeedback .text');
+    const feedbackBox = document.getElementById('scrubberFeedback');
+    
+    // Config
+    const GRID_SIZE = 20; // 20x20 pixels
+    const PIXEL_SCALE = 20; // Rendering scale
+    
+    // State
+    let grid = [];
+    let cleanGrid = [];
+    
+    // Initialize Canvas
+    canvas.width = GRID_SIZE * PIXEL_SCALE;
+    canvas.height = GRID_SIZE * PIXEL_SCALE;
+
+    // --- GRID HELPERS ---
+    
+    function createGrid() {
+        return Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
+    }
+
+    function copyGrid(source) {
+        return source.map(row => [...row]);
+    }
+
+    // --- CONTENT GENERATION ---
+
+    function generateData() {
+        const newGrid = createGrid();
+        
+        // Draw Letter 'A'
+        // Define points roughly
+        const center = Math.floor(GRID_SIZE / 2);
+        
+        // Draw Legs
+        for(let y = 4; y < 18; y++) {
+            // Left leg
+            let lx = center - Math.floor((y-2)/2.5) - 2;
+            newGrid[y][lx] = 1;
+            newGrid[y][lx+1] = 1; // Thick stroke
+            newGrid[y][lx+2] = 1; 
+
+            // Right leg
+            let rx = center + Math.floor((y-2)/2.5);
+            newGrid[y][rx] = 1;
+            newGrid[y][rx-1] = 1; // Thick stroke
+            newGrid[y][rx-2] = 1;
+        }
+
+        // Top bar
+        for(let x = center-2; x <= center+1; x++) {
+            newGrid[4][x] = 1;
+            newGrid[5][x] = 1;
+        }
+
+        // Cross bar
+        for(let x = center-5; x <= center+4; x++) {
+            newGrid[11][x] = 1;
+            newGrid[12][x] = 1;
+        }
+        
+        cleanGrid = copyGrid(newGrid);
+        
+        // Add Noise (Salt & Pepper)
+        // We add noise to a copy to keep 'cleanGrid' as the answer key
+        grid = copyGrid(cleanGrid);
+        
+        // Add Salt (White dots on black background)
+        for(let i=0; i<15; i++) {
+            const rx = Math.floor(Math.random() * GRID_SIZE);
+            const ry = Math.floor(Math.random() * GRID_SIZE);
+            if(cleanGrid[ry][rx] === 0) grid[ry][rx] = 1;
+        }
+
+        // Add Pepper (Black dots on white foreground)
+        for(let i=0; i<15; i++) {
+            const rx = Math.floor(Math.random() * GRID_SIZE);
+            const ry = Math.floor(Math.random() * GRID_SIZE);
+            if(cleanGrid[ry][rx] === 1) grid[ry][rx] = 0;
+        }
+    }
+
+    // --- MORPHOLOGICAL OPERATIONS ---
+
+    // 1 if any neighbor is 1 (Grow)
+    function dilate(inputGrid) {
+        const output = createGrid();
+        for(let y=0; y<GRID_SIZE; y++) {
+            for(let x=0; x<GRID_SIZE; x++) {
+                let maxVal = 0;
+                // 3x3 kernel
+                for(let ky=-1; ky<=1; ky++) {
+                    for(let kx=-1; kx<=1; kx++) {
+                        const ny = y + ky;
+                        const nx = x + kx;
+                        if(ny >= 0 && ny < GRID_SIZE && nx >= 0 && nx < GRID_SIZE) {
+                            if(inputGrid[ny][nx] === 1) maxVal = 1;
+                        }
+                    }
+                }
+                output[y][x] = maxVal;
+            }
+        }
+        return output;
+    }
+
+    // 1 if all neighbors are 1 (Shrink) -> effectively 0 if any neighbor is 0
+    function erode(inputGrid) {
+        const output = createGrid();
+        for(let y=0; y<GRID_SIZE; y++) {
+            for(let x=0; x<GRID_SIZE; x++) {
+                let minVal = 1;
+                // 3x3 kernel
+                for(let ky=-1; ky<=1; ky++) {
+                    for(let kx=-1; kx<=1; kx++) {
+                        const ny = y + ky;
+                        const nx = x + kx;
+                        if(ny >= 0 && ny < GRID_SIZE && nx >= 0 && nx < GRID_SIZE) {
+                            if(inputGrid[ny][nx] === 0) minVal = 0;
+                        } else {
+                            // Border handling: assume padding is 0 (black)
+                            minVal = 0; 
+                        }
+                    }
+                }
+                output[y][x] = minVal;
+            }
+        }
+        return output;
+    }
+
+    // Median Filter
+    function medianFilter(inputGrid) {
+        const output = createGrid();
+        for(let y=0; y<GRID_SIZE; y++) {
+            for(let x=0; x<GRID_SIZE; x++) {
+                let neighbors = [];
+                for(let ky=-1; ky<=1; ky++) {
+                    for(let kx=-1; kx<=1; kx++) {
+                        const ny = y + ky;
+                        const nx = x + kx;
+                        if(ny >= 0 && ny < GRID_SIZE && nx >= 0 && nx < GRID_SIZE) {
+                            neighbors.push(inputGrid[ny][nx]);
+                        } else {
+                            neighbors.push(0); // Border pad
+                        }
+                    }
+                }
+                neighbors.sort((a,b) => a-b);
+                output[y][x] = neighbors[4]; // Middle of 9 elements
+            }
+        }
+        return output;
+    }
+
+    // --- RENDER LOOP ---
+
+    function render() {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for(let y=0; y<GRID_SIZE; y++) {
+            for(let x=0; x<GRID_SIZE; x++) {
+                if(grid[y][x] === 1) {
+                    ctx.fillStyle = "#fff";
+                    // Draw slightly smaller than full square for grid effect
+                    ctx.fillRect(x*PIXEL_SCALE + 1, y*PIXEL_SCALE + 1, PIXEL_SCALE - 2, PIXEL_SCALE - 2);
+                }
+            }
+        }
+    }
+
+    // --- ANALYSIS & FEEDBACK ---
+
+    function checkState() {
+        let hasSalt = false;
+        let hasPepper = false;
+        let perfectMatch = true;
+
+        for(let y=0; y<GRID_SIZE; y++) {
+            for(let x=0; x<GRID_SIZE; x++) {
+                const current = grid[y][x];
+                const ideal = cleanGrid[y][x];
+                
+                if(current !== ideal) perfectMatch = false;
+
+                // Salt: It is white (1) but should be black (0)
+                if(current === 1 && ideal === 0) hasSalt = true;
+                
+                // Pepper: It is black (0) but should be white (1)
+                if(current === 0 && ideal === 1) hasPepper = true;
+            }
+        }
+
+        if(perfectMatch) {
+            feedbackBox.className = "feedback-box success";
+            feedbackText.innerHTML = "Perfect! The 'A' is crisp and clean.";
+            return;
+        }
+
+        feedbackBox.className = "feedback-box";
+        
+        if(hasSalt && hasPepper) {
+            feedbackText.innerHTML = "Still messy. Try to clean specifically the holes or the dots.";
+        } else if (hasSalt && !hasPepper) {
+            feedbackText.innerHTML = "The holes are filled (Pepper gone), but there are still white dots (Salt).";
+        } else if (!hasSalt && hasPepper) {
+            feedbackText.innerHTML = "The white dots are gone (Salt gone), but the letter still has holes (Pepper).";
+        } else {
+            // No specific noise pixels, but shape is slightly different (Median rounding)
+            feedbackText.innerHTML = "Clean! The edges are a bit rounded, but the noise is gone. Good enough!";
+        }
+    }
+
+    // --- PUBLIC METHODS ---
+
+    return {
+        init: function() {
+            generateData();
+            render();
+        },
+        reset: function() {
+            this.init();
+            feedbackBox.className = "feedback-box";
+            feedbackText.innerHTML = "Image reset. Try a different combination!";
+        },
+        applyOpening: function() {
+            // Erosion -> Dilation
+            const eroded = erode(grid);
+            grid = dilate(eroded);
+            render();
+            checkState();
+        },
+        applyClosing: function() {
+            // Dilation -> Erosion
+            const dilated = dilate(grid);
+            grid = erode(dilated);
+            render();
+            checkState();
+        },
+        applyMedian: function() {
+            grid = medianFilter(grid);
+            render();
+            checkState();
+        }
+    };
+})();
+
+// Initialize on load
+ScrubberModule.init();
+</script>
+<!-- END NOISE SCRUBBER INTERACTIVE -->
+    <p>Notice how the Median filter is a great 'all-rounder', but Opening and Closing give you precise control over specifically bright or dark noise.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>In medical imaging (like analyzing MRI scans) or satellite imagery, binary masks often have small imperfections. Using Opening/Closing allows algorithms to clean up these masks to calculate accurate areas (e.g., tumor size) without measuring the noise.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <h3>FAQ: Frequently Asked Questions</h3>
+    <p>You might be wondering...</p>
+    <div class="faq-section">
+        <p><strong>Q: If I run Opening twice, does it change anything?</strong></p>
+        <div id="faq-answer" style="display:none;" class="animate-in">
+            <p>Usually not! This property is called <strong>Idempotence</strong>. Once the small noise is removed in the first pass, running the same filter again won't find anything new to remove. The image is 'stable' under that operation.</p>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('faq-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>Great work! You've mastered the art of cleaning images without destroying them.</p>
+    <p>Let's recap:</p>
+    <ul>
+        <li><strong>Opening (Erosion then Dilation):</strong> Removes small <strong>bright</strong> objects (Salt). Think of it as 'polishing' the background.</li>
+        <li><strong>Closing (Dilation then Erosion):</strong> Fills small <strong>dark</strong> holes (Pepper). Think of it as 'patching' the foreground.</li>
+        <li><strong>Median Filter:</strong> Replaces a pixel with the median neighbor. It is the ultimate weapon against mixed salt-and-pepper noise because it rejects outliers completely rather than averaging them.</li>
+    </ul>
+    <p>In the next lesson, we will leave the world of shapes and enter the world of frequencies and textures with <strong>Gabor Filters</strong>.</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>You are processing a scanned document. The text is black on white paper. The letters look 'broken' with tiny white gaps inside the black ink strokes. Which operation fixes this?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" onclick="selectChoice(this, false, 'Remember, Opening removes small foreground objects. If the text is black (0) and background is white (255), we usually invert the image mentally. In standard terms (white text on black), filling holes requires Closing. If we treat black as the foreground, we are trying to fill gaps.')">Opening</div>
+            <div class="choice-option" onclick="selectChoice(this, true, 'Correct! Assuming standard binary convention (white object, black background), Closing fills dark holes. If your text is the object, Closing will bridge the gaps in the ink.')">Closing</div>
+            <div class="choice-option" onclick="selectChoice(this, false, 'Erosion would make the gaps bigger!')">Erosion</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(17)" style="display: none;">Continue</div>
+</section>
+
+<section id="section17">
+    <!-- Final placeholder section to trigger completion logic -->
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 17;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    // If nextSectionId is 17 (the invisible end marker), just show the completion button
+    if (nextSectionId === 17) {
+        currentSection = nextSectionId;
+        updateProgress();
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) {
+            completedButton.classList.add('show');
+            setTimeout(() => { completedButton.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200);
+        }
+        return;
+    }
+
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    
+    if (!nextSectionElement) return;
+    
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    // Cap progress at 100%
+    const progress = Math.min((currentSection / (totalSections - 1)) * 100, 100);
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after answering the final quiz
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section16') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs updated based on lesson context
+                let courseId = 'computer-vision';
+                let pathId = 'morphological-operations';
+                let moduleId = 'cv-ch09-m1-morphology';
+                let lessonId = 'cv-ch09-l2-compound-operations';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch09-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '🧹', '🧼'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = localStorage.getItem('lesson_cv-ch09-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

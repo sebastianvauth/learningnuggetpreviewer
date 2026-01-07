@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Building the Transformer (MHSA & Blocks)</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <figure>
+            <img src="./images/1.jpg" alt="Illustration showing single-head attention focusing narrowly on grammar details while broader meaning fades away">
+            <figcaption>Single-Head Attention: Missing the Big Picture</figcaption>
+        </figure>
+    </div>
+    <h1>Building the Transformer (MHSA & Blocks)</h1>
+    <h2>The One-Track Mind Problem</h2>
+    <p>Welcome back! In the previous lesson, we solved the problem of word order using Positional Encoding. Now, we have a mechanism that can read a sequence and understand where words are. But we still have a subtle problem.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>Why One Head Isn't Enough</h2>
+    <p>Imagine you are analyzing a complex sentence like:</p>
+    <p style="background: #f1f5f9; padding: 15px; border-left: 4px solid #667eea; font-style: italic;">"The bank, which had just opened, refused to give the man a loan because his history was poor."</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>To fully understand this, you need to track multiple relationships at once:</p>
+    <ul>
+        <li><strong>Syntactic:</strong> "The bank" is the subject of "refused".</li>
+        <li><strong>Semantic:</strong> "Bank" refers to a financial institution, not a river edge (disambiguation).</li>
+        <li><strong>Coreference:</strong> "His" refers to "the man".</li>
+    </ul>
+    <p>A single Self-Attention mechanism computes a single probability distribution (the Attention Matrix). It tends to focus on the <em>dominant</em> relationship—perhaps just the syntax—while missing the subtler semantic links.</p>
+    <p>It's like having a team of analysts where everyone is an expert in grammar, but no one knows anything about finance or history. We need a diverse team.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <h2>Multi-Head Self-Attention (MHSA)</h2>
+    <p>To solve this, we don't just run Attention once. We run it multiple times in parallel. This is called <strong>Multi-Head Self-Attention (MHSA)</strong>.</p>
+    <div class="image-placeholder">
+        <figure>
+            <img src="./images/2.jpg" alt="Diagram of input vector splitting into multiple attention heads before merging together">
+            <figcaption>Multi-Head Self-Attention splits the input into diverse heads before merging.</figcaption>
+        </figure>
+    </div>
+    <p>Here is the core idea: Instead of one set of Query, Key, and Value matrices (\(W_Q, W_K, W_V\)), we create multiple sets—one for each "head".</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>If we have \(h\) heads, each head \(i\) has its own learnable projection matrices \(W_Q^i, W_K^i, W_V^i\). This allows each head to map the input into a different "representation subspace". Head 1 might learn to look for nouns, while Head 2 looks for emotional tone.</p>
+    <h3>The Math of Many Heads</h3>
+    <p>Let's break down the calculation step-by-step:</p>
+    <p><strong>1. Project:</strong> For each head \(i\), we project the input \(X\) (or queries, keys, and values) into a lower dimension \(d_k\):</p>
+    <p>$$ Q_i = X W_Q^i, \quad K_i = X W_K^i, \quad V_i = X W_V^i $$</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p><strong>2. Attend:</strong> We calculate the attention for each head independently:</p>
+    <p>$$ \text{head}_i = \text{Attention}(Q_i, K_i, V_i) = \text{softmax}\left(\frac{Q_i K_i^T}{\sqrt{d_k}}\right)V_i $$</p>
+    <p><strong>3. Concatenate:</strong> We take the outputs of all heads and glue them together side-by-side:</p>
+    <p>$$ \text{Concat}(\text{head}_1, \dots, \text{head}_h) $$</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p><strong>4. Fuse:</strong> Finally, we pass this long concatenated vector through one last linear layer (\(W^O\)) to mix the information from all the heads together:</p>
+    <p>$$ \text{MHSA}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O $$</p>
+    <p>The result is a rich representation that captures the sentence from multiple perspectives simultaneously.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Multi-Head Self-Attention (MHSA)</h4>
+        <p>An extension of self-attention where the mechanism runs multiple times in parallel (heads). Each head learns different linear projections, allowing the model to attend to information from different representation subspaces at different positions.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <h2>Visualizing the Heads</h2>
+    <p>Does this actually work? Researchers have visualized what different heads focus on, and the results are fascinating.</p>
+   <!-- Interactive Attention Visualizer -->
+<div class="interactive-module-container">
+    
+  <!-- Controls -->
+  <div class="interactive-controls" style="border-bottom: 1px solid #e2e8f0; border-top: none;">
+      <button id="btn-head1" onclick="setHead(1)" class="mode-btn active">Head 1 (Syntax)</button>
+      <button id="btn-head2" onclick="setHead(2)" class="mode-btn">Head 2 (Coreference)</button>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas-wrapper" style="height: 180px;">
+      <canvas id="attentionCanvas"></canvas>
+  </div>
+  
+  <!-- Legend/Caption -->
+  <div class="feedback-panel neutral">
+      <p id="caption-text" class="feedback-text" style="text-align: center;">
+          Visualizing local grammatical dependencies.
+      </p>
+  </div>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('attentionCanvas');
+  const ctx = canvas.getContext('2d');
+  const caption = document.getElementById('caption-text');
+  const btn1 = document.getElementById('btn-head1');
+  const btn2 = document.getElementById('btn-head2');
+
+  // State
+  let activeHead = 1;
+  let animationOffset = 0;
+  
+  // Sentence Data
+  const sentence = "The animal didn't cross the street because it was too tired .";
+  const words = sentence.split(' ');
+  let wordLayout = [];
+
+  // Configuration
+  const config = {
+      font: "500 18px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      textColor: "#2d3748",
+      dimColor: "#cbd5e1",
+      head1Color: "#667eea", // Blue/Purple
+      head2Color: "#f093fb", // Pink/Orange
+      head2Stroke: 4,
+      baseY: 100, // Vertical position of text
+      padding: 20
+  };
+
+  // Relationships [Source Index, Target Index]
+  // Note: Attention flows FROM Query (Source) TO Key (Target)
+  const relationsHead1 = [
+      [0, 1], // The -> animal
+      [9, 10] // too -> tired
+  ];
+  
+  const relationsHead2 = [
+      [7, 1] // it -> animal
+  ];
+
+  // High DPI Canvas Setup
+  function resize() {
+      // Reset transforms so repeated resizes don't compound scaling
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      
+      canvas.width = rect.width * dpr;
+      canvas.height = 180 * dpr; // Fixed height for arcs
+      
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `180px`;
+      
+      ctx.scale(dpr, dpr);
+      calculateLayout(rect.width);
+      draw();
+  }
+
+  // Calculate word positions
+  function calculateLayout(containerWidth) {
+      ctx.font = config.font;
+      let currentX = config.padding;
+      
+      // Measure total width to center it
+      let totalWidth = 0;
+      words.forEach(word => {
+          totalWidth += ctx.measureText(word).width + 10; // 10px spacing
+      });
+      
+      // Start X to center the sentence
+      currentX = (containerWidth - totalWidth) / 2;
+      if(currentX < config.padding) currentX = config.padding; // align left if too long
+
+      wordLayout = words.map((word, index) => {
+          const width = ctx.measureText(word).width;
+          const data = {
+              text: word,
+              x: currentX,
+              y: config.baseY,
+              width: width,
+              centerX: currentX + (width / 2),
+              topY: config.baseY - 20
+          };
+          currentX += width + 10; // spacing
+          return data;
+      });
+  }
+
+  function drawArc(startIdx, endIdx, color, thickness, isAnimated) {
+      const start = wordLayout[startIdx];
+      const end = wordLayout[endIdx];
+
+      if (!start || !end) return;
+
+      const startX = start.centerX;
+      const endX = end.centerX;
+      const dist = Math.abs(endX - startX);
+
+      ctx.beginPath();
+      ctx.moveTo(startX, start.topY);
+
+      // Control points for Bezier curve (higher arc for longer distance)
+      const controlY = start.topY - (dist * 0.4) - 20;
+      const midX = (startX + endX) / 2;
+
+      ctx.quadraticCurveTo(midX, controlY, endX, end.topY);
+
+      ctx.lineWidth = thickness;
+      ctx.strokeStyle = color;
+      ctx.lineCap = 'round';
+
+      if (isAnimated) {
+          ctx.setLineDash([10, 10]);
+          ctx.lineDashOffset = -animationOffset;
+      } else {
+          ctx.setLineDash([]);
+      }
+
+      ctx.stroke();
+      
+      // Draw Arrowhead at end
+      // Simple circle for this aesthetic usually looks cleaner than a triangle
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(endX, end.topY, thickness + 2, 0, Math.PI * 2);
+      ctx.fill();
+  }
+
+  function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. Draw Text
+      ctx.font = config.font;
+      wordLayout.forEach((w, i) => {
+          // Determine if word is part of an active relationship
+          let isActive = false;
+          const rels = activeHead === 1 ? relationsHead1 : relationsHead2;
+          
+          rels.forEach(r => {
+              if (r.includes(i)) isActive = true;
+          });
+
+          // Dim inactive words slightly for focus
+          ctx.fillStyle = isActive ? config.textColor : "#94a3b8";
+          // Extra highlight for "it" and "animal" in Head 2
+          if (activeHead === 2 && (i === 1 || i === 7)) {
+              ctx.fillStyle = "#2d3748";
+              ctx.font = "bold 18px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+          } else {
+              ctx.font = config.font;
+          }
+          
+          ctx.fillText(w.text, w.x, w.y);
+      });
+
+      // 2. Draw Connections
+      if (activeHead === 1) {
+          relationsHead1.forEach(r => {
+              drawArc(r[0], r[1], config.head1Color, 3, false); // Static arcs for Syntax
+          });
+      } else {
+          relationsHead2.forEach(r => {
+              // Animated, glowing arc for Coreference
+              ctx.shadowBlur = 10;
+              ctx.shadowColor = config.head2Color;
+              drawArc(r[0], r[1], config.head2Color, 6, true);
+              ctx.shadowBlur = 0;
+          });
+      }
+  }
+
+  // Animation Loop
+  function animate() {
+      animationOffset += 0.5;
+      draw();
+      requestAnimationFrame(animate);
+  }
+
+  // Global toggle function attached to window for HTML access
+  window.setHead = function(id) {
+      activeHead = id;
+      
+      // UI Updates using class toggling
+      if(id === 1) {
+          btn1.classList.add('active');
+          btn2.classList.remove('active');
+          caption.innerHTML = "Head 1 focuses on <strong style='color:#667eea'>syntax</strong> (grammar). e.g., Adjective → Noun.";
+      } else {
+          btn2.classList.add('active');
+          btn1.classList.remove('active');
+          caption.innerHTML = "Head 2 focuses on <strong style='color:#f093fb'>coreference</strong>. It resolves 'it' to 'animal'.";
+      }
+  };
+
+  // Initialize
+  window.addEventListener('resize', resize);
+  // Expose a safe reflow hook for when the section becomes visible
+  window.refreshAttentionVisualizer = () => resize();
+  resize();
+  animate(); // Start animation loop
+})();
+</script>
+    <p>Notice how 'Head 2' figured out that 'it' refers to the animal, not the street. This disambiguation is crucial for understanding the meaning.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why do we project the inputs into smaller dimensions (e.g., dimension divided by the number of heads) for each head, rather than keeping the full dimension?</h4>
+        <div id="cuy-dims-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> Efficiency! By splitting the dimension across heads (e.g., if the model size is 512 and we have 8 heads, each head uses 64 dimensions), the total computational cost remains roughly similar to a single-head attention with full dimension.</div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-dims-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <h2>The Transformer Block Architecture</h2>
+    <p>Now we have the engine (MHSA), but we need a chassis to hold it. This is the <strong>Transformer Block</strong>, the fundamental Lego brick of modern AI.</p>
+    <div class="image-placeholder">
+        <figure>
+            <img src="./images/3.jpg" alt="Transformer block diagram showing MHSA, residual connections, and feed-forward network stack">
+            <figcaption>Transformer block stages: MHSA → Add & Norm → FFN → Add & Norm.</figcaption>
+        </figure>
+    </div>
+    <p>A standard Transformer block isn't just attention. It consists of four distinct stages arranged in a specific way.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <h3>1. The Attention Sub-layer</h3>
+    <p>The input enters the MHSA layer we just built. It looks at the global context.</p>
+    
+    <h3>2. Add & Norm (The Stabilizers)</h3>
+    <p>Crucially, we add the original input to the output of the attention layer (a <strong>Residual Connection</strong>) and then normalize it (<strong>Layer Normalization</strong>).</p>
+    <p>$$ \text{Output}_1 = \text{LayerNorm}(x + \text{MHSA}(x)) $$</p>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Residual Connection</h4>
+        <p>A 'skip connection' that adds the input of a layer to its output. This allows gradients to flow through the network more easily, preventing the vanishing gradient problem in deep networks.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <h3>3. Feed-Forward Network (FFN)</h3>
+    <p>The normalized data passes through a simple Multi-Layer Perceptron (MLP). This processes the information gathered by attention individually for each position. It's like the brain processing the facts the eyes have seen.</p>
+    
+    <h3>4. Add & Norm (Again)</h3>
+    <p>We apply another residual connection and layer normalization after the FFN.</p>
+    <p>$$ \text{Output}_{final} = \text{LayerNorm}(\text{Output}_1 + \text{FFN}(\text{Output}_1)) $$</p>
+    <p>This repeating pattern of <strong>Attention \(\rightarrow\) Residual \(\rightarrow\) Norm \(\rightarrow\) FFN \(\rightarrow\) Residual \(\rightarrow\) Norm</strong> allows us to stack dozens of these blocks without the training becoming unstable.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <h2>Variation: Cross-Attention</h2>
+    <p>Before we finish, there is one variant you should know. So far, we've discussed <strong>Self-Attention</strong>, where the Queries, Keys, and Values all come from the same sequence (the image or the sentence itself).</p>
+    <p>But what if we are translating English to German? We generate the German sentence (Query), but we need to look at the English sentence (Key/Value) for information.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>In Cross-Attention, where do the Queries (Q) come from compared to the Keys (K) and Values (V)?</h4>
+        <div id="cuy-cross-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> The Queries (Q) come from the target sequence (e.g., the output being generated), while the Keys (K) and Values (V) come from the source sequence (e.g., the input context).</div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-cross-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>This <strong>Cross-Attention</strong> mechanism is the bridge between different sequences, and it's heavily used in tasks like Image Captioning (Image features = K/V, Text = Q).</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>The architecture you just learned—the Transformer Block—is arguably the most important structure in modern deep learning. From GPT-4 (text) to Stable Diffusion (images) to AlphaFold (biology), they all use stacks of these exact blocks.</p>
+    </div>
+    <div class="frequently-asked">
+        <h3>Frequently Asked</h3>
+        <h4>Why do we need the Feed-Forward Network (FFN)? Isn't Attention enough?</h4>
+        <p>Attention is great at <em>mixing</em> information between different tokens ('gathering' context). However, it is purely a linear combination of values. The FFN introduces non-linearity and provides the model with the capacity to <em>process</em> that gathered information and perform complex reasoning on it token-by-token.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <h2>Review and Reflect</h2>
+    <p>We have now assembled the full engine. In this lesson, you scaled up your understanding:</p>
+    <ul>
+        <li><strong>MHSA:</strong> You learned that multiple heads allow the model to focus on different types of relationships (syntax, semantic, etc.) in parallel.</li>
+        <li><strong>The Block:</strong> You saw how Attention is combined with Feed-Forward Networks, Residual Connections, and Layer Normalization to form a stable, stackable Transformer Block.</li>
+        <li><strong>Cross-Attention:</strong> You distinguished between looking at yourself (Self-Attention) and looking at another source (Cross-Attention).</li>
+    </ul>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which component of the Transformer Block is responsible for mixing information between different tokens in the sequence?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The FFN processes each token independently (position-wise). It does not mix information between tokens.')">The Feed-Forward Network (FFN)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Layer Norm normalizes values to stabilize training, but it does not move information between different words.')">The Layer Normalization</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! MHSA is the only part of the block where tokens \'look\' at each other and exchange information via the attention scores.')">Multi-Head Self-Attention (MHSA)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Positional Encoding provides information about order, but it is added before the block starts.')">Positional Encoding</div>
+        </div>
+    </div>
+    
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(15)" style="display: none;">Continue</div>
+</section>
+
+<section id="section15">
+    <p>Now that we have the Transformer architecture down, the big question remains: <strong>How do we feed an image into this thing?</strong> An image isn't a sequence of words.</p>
+    <p>In the next and final lesson, we will bridge the gap between Vision and Language with the Vision Transformer (ViT).</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 15;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    // Resize the attention visualizer once section 8 becomes visible
+    if (nextSectionId === 8 && window.refreshAttentionVisualizer) {
+        requestAnimationFrame(() => window.refreshAttentionVisualizer());
+    }
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic specific to the final quiz to reveal the last continue/finish
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section14') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Mock IDs for the new lesson
+                let courseId = 'computer-vision';
+                let pathId = 'transformers';
+                let moduleId = 'cv-ch22-m1-foundations';
+                let lessonId = 'cv-ch22-l2-building-blocks';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch22-m1-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '🤖'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage for this specific lesson
+    const isCompleted = localStorage.getItem('lesson_cv-ch22-m1-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

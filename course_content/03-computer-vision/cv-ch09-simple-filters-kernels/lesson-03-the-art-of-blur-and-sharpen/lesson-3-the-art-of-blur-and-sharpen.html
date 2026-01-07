@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Art of Blur and Sharpen</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: Intro -->
+<section id="section1" class="visible">
+    <img src="images/1.jpg" alt="Split image view showing Raw Pixels, Blur Kernel, and Sharpen Kernel effects on a city street scene">
+    <h1>The Art of Blur and Sharpen</h1>
+    <h2>From Mechanics to Magic</h2>
+    <p>In the last two lessons, we acted like mechanics. We learned <em>how</em> the engine works (the convolution operation) and <em>where</em> to drive the car (border handling). Now, we get to be the chefs. By simply changing the ingredients—the numbers inside the kernel—we can drastically alter the flavor of the image.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: Identity Filter -->
+<section id="section2">
+    <h2>The Art of Doing Nothing</h2>
+    <p>Before we start changing things, let's establish a baseline. What if we want to run a convolution but change absolutely nothing about the image?</p>
+    <p>To achieve this, we need a kernel that looks at the center pixel, multiplies it by 1, and ignores all the neighbors. We call this the <strong>Identity Filter</strong>.</p>
+    <img src="images/2.jpg" alt="3x3 Identity Filter kernel with 1 in the center and 0 elsewhere, with N=1">
+    <p>Mathematically, if the center pixel is $100$, the calculation is:</p>
+    <p>$$ (0 \cdot \text{neighbors}) + (1 \cdot 100) = 100 $$</p>
+    <p>The normalization factor $N$ is just the sum of the weights: $1$. This is the "Do Nothing" operation.</p>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Identity Filter</h4>
+        <p>A kernel with a central value of 1 and 0s everywhere else. It preserves the original image exactly as is during convolution.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3: Box Blur -->
+<section id="section3">
+    <h2>Smoothing: The Democracy of Pixels</h2>
+    <p>Now, let's mess things up a bit. One of the most common tasks in computer vision is to reduce noise. We do this by smoothing, or blurring, the image.</p>
+    <p>The simplest way to smooth an image is to treat every pixel in the neighborhood equally. Imagine a democracy where the center pixel and all its neighbors get one vote. We average them all together.</p>
+    <p>This is called the <strong>Box Blur</strong> (or Mean Filter). Here is the kernel for a $3 \times 3$ box blur:</p>
+    <img src="images/3.jpg" alt="3x3 Box Blur kernel with all weights set to 1, showing N=9">
+    <p>Notice that the sum of the weights is $1+1+...+1 = 9$. So, our normalization factor $N$ must be 9. We sum up all 9 pixels under the kernel and divide by 9.</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If we used a $5 \times 5$ Box Blur kernel full of 1s, what would the normalization factor $N$ be?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, that is the width. We need the sum of all elements in the matrix.')">5</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! A 5x5 matrix has 25 elements. If they are all 1, the sum is 25.')">25</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That is for a 3x3 kernel.')">9</div>
+        </div>
+    </div>
+    <p>While Box Blur is simple, it has a drawback. It treats a distant neighbor in the corner exactly the same as the pixel right next to the center. This creates "boxy" or geometric artifacts in the blurred image.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4: Gaussian Blur -->
+<section id="section4">
+    <h2>Smoothing: The Elitist Approach</h2>
+    <p>To get a smoother, more natural blur, we need to be a bit more elitist. The center pixel should be the most important, the immediate neighbors somewhat important, and the corner pixels the least important.</p>
+    <p>This approach is called <strong>Gaussian Blur</strong>. The weights follow a bell curve (a Gaussian distribution).</p>
+    <img src="images/4.jpg" alt="3D visualization comparing the shapes of Box Plot (brick-like) and Gaussian Plot (mountain-like) kernels">
+    <p>Here is a common integer approximation of a $3 \times 3$ Gaussian kernel:</p>
+    <p>$$ h_{gaussian} = \begin{pmatrix} 1 & 2 & 1 \\ 2 & 4 & 2 \\ 1 & 2 & 1 \end{pmatrix} $$</p>
+    <p>Let's check the math. If we sum these weights:</p>
+    <p>$$ 1+2+1 + 2+4+2 + 1+2+1 = 16 $$</p>
+    <p>So, for this specific kernel, we divide the result by $N=16$.</p>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Why does Gaussian Blur generally look better than Box Blur?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Actually, it can be slightly more computationally expensive because the weights are different.')">It is faster to calculate.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Both filters preserve average brightness if normalized correctly.')">It preserves the average brightness better.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Spot on! By prioritizing the center, it avoids the harsh geometric artifacts caused by the Box Blur.')">It accounts for spatial distance, giving more weight to closer pixels.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5: Sharpening -->
+<section id="section5">
+    <h2>Sharpening: Enhancing Differences</h2>
+    <p>So far, we've been blending pixels together. But what if we want to do the opposite? What if we want to make edges pop out?</p>
+    <p>To sharpen an image, we want to increase the contrast between a pixel and its neighbors. We can do this by <em>subtracting</em> the neighbors from the center.</p>
+    <p>Consider this <strong>Sharpen Kernel</strong>:</p>
+    <p>$$ h_{sharpen} = \begin{pmatrix} 0 & -1 & 0 \\ -1 & 5 & -1 \\ 0 & -1 & 0 \end{pmatrix} $$</p>
+    <p>Let's analyze the normalization factor $N$.</p>
+    <p>$$ 5 + (-1) + (-1) + (-1) + (-1) = 5 - 4 = 1 $$</p>
+    <p>Since the sum is 1, the overall brightness of the image stays roughly the same.</p>
+    <p>Here is the logic: </p>
+    <ol>
+        <li>If the center pixel is similar to its neighbors (a flat area), $5 \times \text{val} - 4 \times \text{val} = 1 \times \text{val}$. No change.</li>
+        <li>If the center is much brighter than its neighbors (an edge), the subtraction doesn't pull it down enough, and the center becomes <em>even brighter</em> relative to the surroundings.</li>
+    </ol>
+    
+<!-- START FILTER LAB INTERACTIVE -->
+<div class="filter-lab-container">
+    <div class="canvas-wrapper">
+        <canvas id="cvCanvas" width="500" height="300"></canvas>
+        <div id="loadingOverlay" class="loading-overlay">Computing Convolution...</div>
+    </div>
+
+    <div class="math-readout" id="mathReadout">
+        Kernel: Identity [1x1]
+    </div>
+
+    <div class="controls-area">
+        <div class="control-group">
+            <h5>Filter Type</h5>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="setFilter('identity', this)">Identity (Do Nothing)</button>
+                <button class="filter-btn" onclick="setFilter('box', this)">Box Blur (Democracy)</button>
+                <button class="filter-btn" onclick="setFilter('gaussian', this)">Gaussian Blur (Elitist)</button>
+                <button class="filter-btn" onclick="setFilter('sharpen', this)">Sharpen (Edge Boost)</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h5>Kernel Settings</h5>
+            
+            <div class="slider-row">
+                <div class="slider-label">
+                    <span>Kernel Size (Neighbors)</span>
+                    <span id="sizeVal">3x3</span>
+                </div>
+                <input type="range" id="sizeSlider" min="3" max="15" step="2" value="3" oninput="updateParams()">
+            </div>
+
+            <div class="slider-row" id="sigmaRow" style="opacity: 0.3; pointer-events: none;">
+                <div class="slider-label">
+                    <span>Sigma (Spread)</span>
+                    <span id="sigmaVal">1.0</span>
+                </div>
+                <input type="range" id="sigmaSlider" min="0.5" max="5.0" step="0.1" value="1.0" oninput="updateParams()" disabled>
+            </div>
+
+            <p style="font-size: 0.8rem; color: #64748b; margin-top: 10px; line-height: 1.4;">
+                <strong id="descTitle">Identity:</strong> <span id="descText">The center pixel is multiplied by 1. No neighbors are counted.</span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('cvCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        
+        let currentFilter = 'identity';
+        let originalImageData = null;
+        let isProcessing = false;
+
+        // 1. Generate Procedural Brick Texture with Noise
+        function generateBricks() {
+            // Background (Mortar)
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Bricks
+            const brickH = 40;
+            const brickW = 80;
+            const gap = 8;
+            
+            for(let y=0; y<canvas.height; y+=brickH+gap) {
+                const offset = (Math.floor(y/(brickH+gap)) % 2) * (brickW/2);
+                for(let x=-brickW; x<canvas.width; x+=brickW+gap) {
+                    // Brick Color with variation
+                    const hue = 350 + Math.random() * 20;
+                    const sat = 60 + Math.random() * 20;
+                    const light = 50 + Math.random() * 10;
+                    ctx.fillStyle = `hsl(${hue}, ${sat}%, ${light}%)`;
+                    
+                    // Draw Brick
+                    ctx.fillRect(x + offset, y, brickW, brickH);
+                }
+            }
+
+            // Add Salt & Pepper Noise (Crucial for showing blur effect)
+            const imageData = ctx.getImageData(0,0, canvas.width, canvas.height);
+            const data = imageData.data;
+            for(let i=0; i<data.length; i+=4) {
+                if(Math.random() > 0.95) {
+                    const noise = (Math.random() - 0.5) * 50;
+                    data[i] += noise;
+                    data[i+1] += noise;
+                    data[i+2] += noise;
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+            originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+
+        // 2. Kernel Generators
+        function getBoxKernel(size) {
+            const len = size*size;
+            const val = 1/len;
+            const kernel = [];
+            for(let i=0; i<size; i++) {
+                const row = [];
+                for(let j=0; j<size; j++) row.push(val);
+                kernel.push(row);
+            }
+            return kernel;
+        }
+
+        function getGaussianKernel(size, sigma) {
+            const kernel = [];
+            const center = Math.floor(size/2);
+            let sum = 0;
+
+            for(let y=0; y<size; y++) {
+                const row = [];
+                for(let x=0; x<size; x++) {
+                    const dx = x - center;
+                    const dy = y - center;
+                    // Gaussian formula
+                    const val = (1 / (2 * Math.PI * sigma * sigma)) * Math.exp(-(dx*dx + dy*dy)/(2*sigma*sigma));
+                    sum += val;
+                    row.push(val);
+                }
+                kernel.push(row);
+            }
+            // Normalize so sum = 1
+            for(let y=0; y<size; y++) {
+                for(let x=0; x<size; x++) {
+                    kernel[y][x] /= sum;
+                }
+            }
+            return kernel;
+        }
+
+        function getSharpenKernel(size) {
+            // Generic Laplacian-style High Pass for any size
+            // Center is positive, everything else is -1.
+            // Sum should be 1.
+            // Formula: Center = (TotalPixels - 1) + 1. Neighbors = -1.
+            const kernel = [];
+            const totalPixels = size * size;
+            const centerVal = totalPixels; // e.g., for 3x3 (9 pixels), center is 9. 
+            // Neighbors sum to -8. 9 - 8 = 1.
+            
+            // Note: The lesson used [-1, 5, -1], which is less aggressive than [-1, 9, -1].
+            // To match visual expectation of "Sharpen" vs "Edge Detect", we normalize differently.
+            // Let's use the Unsharp Mask approximation: 2*Identity - Gaussian.
+            // Or stick to the discrete matrix logic. Let's use the discrete logic from the lesson
+            // generalized: Center weight high, neighbors negative.
+            
+            const centerIdx = Math.floor(size/2);
+            for(let y=0; y<size; y++) {
+                const row = [];
+                for(let x=0; x<size; x++) {
+                    if(y === centerIdx && x === centerIdx) {
+                        row.push(totalPixels); 
+                    } else {
+                        row.push(-1);
+                    }
+                }
+                kernel.push(row);
+            }
+            return kernel;
+        }
+
+        // 3. Convolution Engine
+        function applyConvolution(kernel) {
+            const w = canvas.width;
+            const h = canvas.height;
+            const src = originalImageData.data;
+            const output = ctx.createImageData(w, h);
+            const dst = output.data;
+            
+            const kSize = kernel.length;
+            const kHalf = Math.floor(kSize/2);
+
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let r=0, g=0, b=0;
+
+                    // Kernel Loop
+                    for (let ky = 0; ky < kSize; ky++) {
+                        for (let kx = 0; kx < kSize; kx++) {
+                            const py = y + (ky - kHalf);
+                            const px = x + (kx - kHalf);
+
+                            // Border Handling: Clamp to Edge
+                            const cpy = Math.min(Math.max(py, 0), h-1);
+                            const cpx = Math.min(Math.max(px, 0), w-1);
+
+                            const offset = (cpy * w + cpx) * 4;
+                            const weight = kernel[ky][kx];
+
+                            r += src[offset] * weight;
+                            g += src[offset+1] * weight;
+                            b += src[offset+2] * weight;
+                        }
+                    }
+
+                    const dstOffset = (y * w + x) * 4;
+                    
+                    // Clamp values to 0-255 (Crucial for Sharpen)
+                    dst[dstOffset] = Math.min(Math.max(r, 0), 255);
+                    dst[dstOffset+1] = Math.min(Math.max(g, 0), 255);
+                    dst[dstOffset+2] = Math.min(Math.max(b, 0), 255);
+                    dst[dstOffset+3] = 255; // Alpha
+                }
+            }
+            return output;
+        }
+
+        // 4. UI Handlers
+        function setFilter(type, element) {
+            if(isProcessing) return;
+            currentFilter = type;
+            
+            // Update Buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (element) {
+                element.classList.add('active');
+            }
+
+            // Toggle Slider Availability
+            const sigmaRow = document.getElementById('sigmaRow');
+            const sizeSlider = document.getElementById('sizeSlider');
+            const sigmaSlider = document.getElementById('sigmaSlider');
+            
+            if (type === 'gaussian') {
+                sigmaRow.style.opacity = '1';
+                sigmaRow.style.pointerEvents = 'auto';
+                sigmaSlider.disabled = false;
+            } else {
+                sigmaRow.style.opacity = '0.3';
+                sigmaRow.style.pointerEvents = 'none';
+                sigmaSlider.disabled = true;
+            }
+
+            if (type === 'identity') {
+                sizeSlider.disabled = true;
+                sizeSlider.parentNode.style.opacity = '0.3';
+            } else {
+                sizeSlider.disabled = false;
+                sizeSlider.parentNode.style.opacity = '1';
+            }
+
+            // Update Description Text
+            updateText(type);
+            triggerRender();
+        }
+
+        function updateText(type) {
+            const title = document.getElementById('descTitle');
+            const text = document.getElementById('descText');
+            
+            switch(type) {
+                case 'identity':
+                    title.innerText = "Identity:";
+                    text.innerText = "Center pixel × 1. No neighbors. The image remains unchanged.";
+                    break;
+                case 'box':
+                    title.innerText = "Box Blur:";
+                    text.innerText = "All neighbors get an equal vote. Look at how the fine noise disappears but the brick edges become 'blocky'.";
+                    break;
+                case 'gaussian':
+                    title.innerText = "Gaussian Blur:";
+                    text.innerText = "Weighted democracy. Close neighbors matter more. Notice how the blur is smoother and rounder than the Box Blur.";
+                    break;
+                case 'sharpen':
+                    title.innerText = "Sharpen:";
+                    text.innerText = "Subtracting neighbors from the center. Look at the mortar lines—the contrast is boosted, but noise is also amplified.";
+                    break;
+            }
+        }
+
+        function updateParams() {
+            if(isProcessing) return;
+            document.getElementById('sizeVal').innerText = document.getElementById('sizeSlider').value + "x" + document.getElementById('sizeSlider').value;
+            document.getElementById('sigmaVal').innerText = document.getElementById('sigmaSlider').value;
+            triggerRender();
+        }
+
+        function triggerRender() {
+            if (currentFilter === 'identity') {
+                ctx.putImageData(originalImageData, 0, 0);
+                document.getElementById('mathReadout').innerText = `Kernel: Identity [1x1]`;
+                return;
+            }
+
+            // Show Loading (Convolution is heavy on CPU)
+            loadingOverlay.classList.add('visible');
+            isProcessing = true;
+
+            // Small timeout to allow UI to update before blocking thread
+            setTimeout(() => {
+                const size = parseInt(document.getElementById('sizeSlider').value);
+                const sigma = parseFloat(document.getElementById('sigmaSlider').value);
+                
+                let kernel;
+                let mathText = "";
+
+                if (currentFilter === 'box') {
+                    kernel = getBoxKernel(size);
+                    mathText = `Box Blur [${size}x${size}]. All weights = ${ (1/(size*size)).toFixed(3) }`;
+                } else if (currentFilter === 'gaussian') {
+                    kernel = getGaussianKernel(size, sigma);
+                    mathText = `Gaussian [${size}x${size}], Sigma=${sigma}. Center weight ≈ ${kernel[Math.floor(size/2)][Math.floor(size/2)].toFixed(3)}`;
+                } else if (currentFilter === 'sharpen') {
+                    kernel = getSharpenKernel(size);
+                    mathText = `Sharpen [${size}x${size}]. Center=${size*size}, Neighbors=-1. Sum=1.`;
+                }
+
+                const newImage = applyConvolution(kernel);
+                ctx.putImageData(newImage, 0, 0);
+                
+                document.getElementById('mathReadout').innerText = mathText;
+                loadingOverlay.classList.remove('visible');
+                isProcessing = false;
+            }, 50);
+        }
+
+        // Initialize
+        generateBricks();
+        updateText('identity');
+        setFilter('identity', document.querySelector('.filter-btn'));
+        // Initial disable of sliders for identity
+        document.getElementById('sizeSlider').disabled = true;
+        document.getElementById('sizeSlider').parentNode.style.opacity = '0.3';
+    </script>
+</div>
+<!-- END FILTER LAB INTERACTIVE -->
+
+    <p>However, sharpening comes with a risk. Since we are using negative numbers and multipliers, the math might produce a pixel value like $300$ or $-50$.</p>
+
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If I apply a sharpen filter and the resulting pixel calculation is 300, but my image format only supports values from 0 to 255, what should I do?</h4>
+        <div id="cuy-clip-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> You need to Clip (or Clamp) the value. Any result above 255 becomes 255. Any result below 0 becomes 0. If you don't do this, the values might 'wrap around' (300 becomes 44), creating bizarre noise.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-clip-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6: Why It Matters -->
+<section id="section6">
+    <h2>Why It Matters</h2>
+    <p>Why do we care about blurring and sharpening? It's not just for making photos look pretty.</p>
+    <ul>
+        <li><strong>Blurring</strong> is essential for "Denoising." Before a computer tries to detect an object, it often blurs the image slightly to remove graininess that might confuse the algorithm.</li>
+        <li><strong>Sharpening</strong> is often used in printing and medical imaging to ensure fine details (like a fracture in a bone X-ray) are visible to the human eye.</li>
+    </ul>
+
+    <div class="why-it-matters">
+        <h3>Common Question</h3>
+        <p><strong>Can I un-blur an image using the Sharpen filter?</strong></p>
+        <p>Great question! In CSI movies, they click 'Enhance' and a blurry face becomes clear. In reality? Not quite. Blurring destroys information (it averages it away). Sharpening can boost the edges that remain, but it cannot magically restore fine details that were completely smeared out. It also tends to amplify noise.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7: Review -->
+<section id="section7">
+    <h2>Review and Reflect</h2>
+    
+    <p>In this lesson, we mastered the art of kernel design:</p>
+    <ul>
+        <li>The <strong>Identity</strong> filter (central 1) leaves the image alone.</li>
+        <li><strong>Box Blur</strong> (all 1s) smoothes democratically but adds artifacts.</li>
+        <li><strong>Gaussian Blur</strong> (bell curve) smoothes naturally by prioritizing the center.</li>
+        <li><strong>Sharpen</strong> (negative neighbors) enhances edges by amplifying differences.</li>
+    </ul>
+    <p>Now that we know how to smooth things out, we are ready for the next challenge: finding the edges. In the next lesson, we will look at the Sobel filter and the math of gradients.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 7;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // LMS Integration simulation
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs aligned to the Simple Filters & Kernels chapter
+                let courseId = 'computer-vision';
+                let pathId = 'simple-filters-kernels';
+                let moduleId = 'cv-ch09-l3-blur-sharpen';
+                let lessonId = 'cv-ch09-l3-main';
+                
+                // Try to get IDs from parent routing
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch09-l3-main_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage for basic state persistence
+    const isCompleted = localStorage.getItem('lesson_cv-ch09-l3-main_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The "Why" and "How" of Modifying Pixels</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Split-screen meme comparing raw dark data to normalized clear image: You vs. the guy she tells you not to worry about" style="width: 100%; max-width: 800px; height: auto; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+    </div>
+    <h1>The "Why" and "How" of Modifying Pixels</h1>
+    <h2>Introduction: From Observer to Editor</h2>
+    
+    <p>Up until now, we've been acting like art critics—looking at images, analyzing their histograms, and calculating their mean values. We were <em>describing</em> them. But today, we stop just looking and start touching. We are moving from image analysis to <strong>Image Modification</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Why Mess with Pixels Intro -->
+<section id="section2">
+    <h2>Why Mess with Pixels?</h2>
+    <p>You might think modifying images is just about making them look pretty for Instagram. While that is part of it, in Computer Vision, we change pixel values for three very specific, pragmatic reasons.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Visual Flowchart -->
+<section id="section3">
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Flowchart showing Raw Data flowing to Human Perception, Automated Analysis, and Machine Learning" style="width: 100%; max-width: 800px; height: auto; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+    </div>
+    <p>Raw sensor data is often messy, dark, or mathematically awkward. We modify it to make it useful.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: The Three Motivations -->
+<section id="section4">
+    <p>Here is the breakdown of why we modify images:</p>
+    <ul>
+        <li><strong>Enhancement for Human Perception:</strong> Sometimes an image contains the data we need, but our eyes can't see it. We might increase contrast to highlight edges or brighten shadows so a human operator can make a decision.</li>
+        <li><strong>Preprocessing for Automated Analysis:</strong> Algorithms are picky. A standard edge detector might fail on a low-contrast image. By stretching the contrast first, we make the robot's job easier and more robust.</li>
+        <li><strong>Data Normalization for Machine Learning:</strong> Neural networks hate erratic numbers. They prefer inputs to be standardized (e.g., between 0 and 1, or with zero mean). Modifying pixels ensures the math inside the network remains stable.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Check Your Knowledge -->
+<section id="section5">
+    <p>In short: We modify images to help humans see better, algorithms work better, and neural networks learn better.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Imagine you are engineering a self-driving car. You write a script that darkens very bright pixels to prevent the lane-detection camera from being blinded by sun glare. Which motivation best describes this?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. The driver isn\'t looking at this feed; the car\'s computer is.')">Enhancement for Human Perception</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Spot on! You are modifying the image to make the subsequent algorithm (lane detection) more robust against glare.')">Preprocessing for Automated Analysis</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is a close guess, but \'glare reduction\' is usually a specific preprocessing step rather than general statistical normalization.')">Data Normalization for Machine Learning</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-q1" onclick="showNextSection(6)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 6: The Math Intro -->
+<section id="section6">
+    <h2>The Math: The Rulebook</h2>
+    <p>Now that we know <em>why</em>, let's define <em>how</em>. We don't just randomly change pixels; we use a mathematical function.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Transformation Function -->
+<section id="section7">
+    <p>Let's say we have an input image \(S_e\). A specific pixel at coordinates \((x, y)\) has a gray value \(s_e(x, y)\).</p>
+    <p>We define a <strong>Gray Value Transformation</strong> as a function \(f\) that maps an input gray value to a new output gray value:</p>
+    <p>$$s_a(x, y) = f(s_e(x, y))$$</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Why It Matters (Global Operation) -->
+<section id="section8">
+    <p>This means that for every single pixel in the image, we take its old value, plug it into our function \(f\), and write the result into the new image \(S_a\).</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>This is a 'global' operation. The function \(f\) doesn't care where the pixel is located (x, y). It only cares what the gray value is. If a pixel is 50, it gets treated the same whether it's in the top-left corner or the center.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Normalization Intro -->
+<section id="section9">
+    <p>But wait—what if our math gives us a number that doesn't fit? For example, if we multiply pixel values by 2, a bright pixel of 200 becomes 400. But an 8-bit image can only hold values up to 255.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Normalization Formula -->
+<section id="section10">
+    <p>This is where <strong>Normalization</strong> comes in. If a function \(f(g)\) produces values outside our target range (usually \([0, c]\) where \(c=255\)), we squash or stretch the results back into bounds using this formula:</p>
+    <p>$$f_n(g) = \frac{f(g) - \min(f)}{\\max(f) - \min(f)} \cdot c$$</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Breakdown and Quiz -->
+<section id="section11">
+    <p>Let's break that down:</p>
+    <ol>
+        <li><strong>\(f(g) - \min(f)\)</strong>: Shifts the data so the lowest value starts at 0.</li>
+        <li><strong>Divide by range</strong>: Scales the data to be between 0 and 1.</li>
+        <li><strong>Multiply by \(c\)</strong>: Scales it up to our target maximum (e.g., 255).</li>
+    </ol>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If you apply a transformation function \(f(g)\) and the resulting values range from 100 to 300, what does the normalization formula do to the value 100?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, 100 is the minimum value in this range. We want the minimum to map to 0.')">It becomes 100</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! 100 - 100 = 0. The minimum value is mapped to the start of the new range.')">It becomes 0</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, typically the maximum value maps to 255, not the minimum.')">It becomes 255</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-q2" onclick="showNextSection(12)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 12: LUT Intro + Stop and Think -->
+<section id="section12">
+    <h2>The Cheat Code: Look-Up Tables (LUTs)</h2>
+    <p>We have a mathematical definition, but we have a computational problem. Let's think about the scale of modern images.</p>
+    <div class="stop-and-think">
+        <h3>Stop and Think</h3>
+        <h4>If you have a 12-megapixel smartphone photo (\(4000 \times 3000\) pixels), but the image is 8-bit grayscale (only 256 possible colors), is it smart to calculate that normalization formula 12 million times? How could you cheat?</h4>
+        <div id="sat-lut-answer" style="display:none;" class="animate-in">
+            <p><strong>Hint:</strong> You don't need to calculate the answer for every pixel. You only need to calculate the answer for every possible <em>color</em>.</p>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('sat-lut-answer')">Reveal Hint</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: The Solution -->
+<section id="section13">
+    <p>Calculating a complex function 12 million times is slow. But notice something: there are only 256 possible input values (0 to 255).</p>
+    <p>Instead of calculating \(f(pixel)\) for every pixel, we calculate \(f(0), f(1), f(2)...\) up to \(f(255)\) just <strong>once</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Vocab LUT -->
+<section id="section14">
+    <p>We store these 256 results in a simple array called a <strong>Look-Up Table (LUT)</strong>. When we process the image, we just look at the pixel value (say, 100), go to index 100 in our array, and grab the answer. This is massively faster.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Look-Up Table (LUT)</h4>
+        <p>An array or list used to replace runtime computation with a simple indexing operation. In image processing, it maps each of the 256 possible input gray values to a pre-computed output value.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Interactive Simulator -->
+<section id="section15">
+    <p>Let's see this in action.</p>
+    <div class="interactive-container" style="text-align: center; margin: 2rem 0;">
+        <div class="lut-instruction">Click on any pixel in the <strong>Input Image</strong> to process it through the LUT.</div>
+        
+        <div class="lut-canvas-wrapper">
+            <canvas id="lutCanvas" width="800" height="350"></canvas>
+        </div>
+    
+        <div class="lut-controls">
+            <button class="lut-btn" onclick="lutSim.reset()">Reset Output</button>
+            <button class="lut-btn" onclick="lutSim.randomize()">New Input Image</button>
+        </div>
+    
+        <script>
+        // Polyfill for roundRect if not supported
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+                if (typeof r === 'number') r = { tl: r, tr: r, br: r, bl: r };
+                else r = { ...{ tl: 0, tr: 0, br: 0, bl: 0 }, ...r };
+                this.beginPath();
+                this.moveTo(x + r.tl, y);
+                this.lineTo(x + w - r.tr, y);
+                this.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+                this.lineTo(x + w, y + h - r.br);
+                this.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+                this.lineTo(x + r.bl, y + h);
+                this.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+                this.lineTo(x, y + r.tl);
+                this.quadraticCurveTo(x, y, x + r.tl, y);
+                this.closePath();
+                return this;
+            };
+        }
+
+        class LUTSimulator {
+            constructor() {
+                this.canvas = document.getElementById('lutCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.width = 800;
+                this.height = 350;
+                
+                // High DPI scaling
+                this.dpr = window.devicePixelRatio || 1;
+                this.canvas.width = this.width * this.dpr;
+                this.canvas.height = this.height * this.dpr;
+                this.ctx.scale(this.dpr, this.dpr);
+    
+                // Configuration
+                this.gridSize = 5;
+                this.cellSize = 30;
+                this.gridGap = 2;
+                
+                // Layout Coordinates
+                this.inputX = 50;
+                this.inputY = 100;
+                
+                this.lutX = 300;
+                this.lutY = 50;
+                this.lutW = 200;
+                this.lutH = 250;
+                
+                this.outputX = 600;
+                this.outputY = 100;
+    
+                // State
+                this.isAnimating = false;
+                this.animState = null; // { startX, startY, endX, endY, progress, value, type }
+                
+                // Data
+                this.inputData = [];
+                this.outputData = [];
+                this.lut = []; // The Lookup Table Array
+    
+                this.init();
+                this.setupEvents();
+                this.animate();
+            }
+    
+            init() {
+                // Generate LUT (Sigmoid contrast curve)
+                for(let i=0; i<256; i++) {
+                    // Simple S-curve math
+                    let x = i / 255; 
+                    let y = 1 / (1 + Math.exp(-10 * (x - 0.5))); // Sigmoid
+                    // Normalize roughly to 0-1
+                    y = (y - 0.006) / (0.993 - 0.006);
+                    let val = Math.floor(Math.max(0, Math.min(255, y * 255)));
+                    this.lut.push(val);
+                }
+    
+                this.randomize();
+            }
+    
+            randomize() {
+                this.inputData = [];
+                this.outputData = [];
+                for(let i=0; i < this.gridSize * this.gridSize; i++) {
+                    // Random gray values
+                    this.inputData.push(Math.floor(Math.random() * 256));
+                    this.outputData.push(null); // null means not yet calculated
+                }
+                this.draw();
+            }
+    
+            reset() {
+                this.outputData = this.outputData.map(() => null);
+                this.draw();
+            }
+    
+            setupEvents() {
+                this.canvas.addEventListener('mousedown', (e) => {
+                    if(this.isAnimating) return;
+    
+                    const rect = this.canvas.getBoundingClientRect();
+                    const x = (e.clientX - rect.left) * (this.canvas.width / rect.width / this.dpr);
+                    const y = (e.clientY - rect.top) * (this.canvas.height / rect.height / this.dpr);
+    
+                    // Check collision with Input Grid
+                    const totalGridW = (this.cellSize * this.gridSize) + (this.gridGap * (this.gridSize-1));
+                    
+                    if (x >= this.inputX && x <= this.inputX + totalGridW &&
+                        y >= this.inputY && y <= this.inputY + totalGridW) {
+                        
+                        // Determine which cell
+                        const col = Math.floor((x - this.inputX) / (this.cellSize + this.gridGap));
+                        const row = Math.floor((y - this.inputY) / (this.cellSize + this.gridGap));
+                        
+                        if(col >= 0 && col < this.gridSize && row >= 0 && row < this.gridSize) {
+                            this.startSimulation(row, col);
+                        }
+                    }
+                });
+            }
+    
+            startSimulation(row, col) {
+                this.isAnimating = true;
+                const index = row * this.gridSize + col;
+                const inVal = this.inputData[index];
+                const outVal = this.lut[inVal];
+    
+                // Animation Sequence Data
+                this.animSequence = {
+                    phase: 'to_lut', // to_lut, highlighting, to_output
+                    inputIndex: index,
+                    inputVal: inVal,
+                    outputVal: outVal,
+                    startTime: Date.now(),
+                    
+                    // Coordinates
+                    startPos: {
+                        x: this.inputX + (col * (this.cellSize + this.gridGap)) + this.cellSize/2,
+                        y: this.inputY + (row * (this.cellSize + this.gridGap)) + this.cellSize/2
+                    },
+                    lutPos: {
+                        x: this.lutX + 40, // Start of the row boxes
+                        y: this.lutY + 195 // Middle of the highlighted row
+                    },
+                    endPos: {
+                        x: this.outputX + (col * (this.cellSize + this.gridGap)) + this.cellSize/2,
+                        y: this.outputY + (row * (this.cellSize + this.gridGap)) + this.cellSize/2
+                    }
+                };
+            }
+    
+            draw() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                
+                // 1. Draw Input Grid
+                this.drawGrid(this.inputX, this.inputY, this.inputData, "Input Image", false);
+    
+                // 2. Draw LUT Visualization
+                this.drawLUTSystem();
+    
+                // 3. Draw Output Grid
+                this.drawGrid(this.outputX, this.outputY, this.outputData, "Output Image", true);
+    
+                // 4. Draw Animation Overlay
+                if (this.isAnimating) {
+                    this.drawAnimationStep();
+                }
+            }
+    
+            drawGrid(startX, startY, data, label, isOutput) {
+                this.ctx.fillStyle = "#2d3748";
+                this.ctx.font = "bold 16px sans-serif";
+                this.ctx.textAlign = "center";
+                this.ctx.fillText(label, startX + (this.gridSize * this.cellSize)/2, startY - 15);
+    
+                for(let r=0; r<this.gridSize; r++) {
+                    for(let c=0; c<this.gridSize; c++) {
+                        const idx = r * this.gridSize + c;
+                        const val = data[idx];
+                        const x = startX + c * (this.cellSize + this.gridGap);
+                        const y = startY + r * (this.cellSize + this.gridGap);
+    
+                        // Cell Background
+                        if (val === null) {
+                            this.ctx.fillStyle = "#f1f5f9"; // Empty placeholder
+                            this.ctx.strokeStyle = "#cbd5e1";
+                        } else {
+                            this.ctx.fillStyle = `rgb(${val}, ${val}, ${val})`;
+                            this.ctx.strokeStyle = val > 200 ? "#cbd5e1" : "transparent"; // border for light cells
+                        }
+                        
+                        this.ctx.beginPath();
+                        this.ctx.roundRect(x, y, this.cellSize, this.cellSize, 4);
+                        this.ctx.fill();
+                        this.ctx.lineWidth = 1;
+                        this.ctx.stroke();
+    
+                        // Hover effect (only input)
+                        if (!this.isAnimating && !isOutput) {
+                             // Simple way to handle hover would be tracking mouse pos, 
+                             // but for simplicity we rely on click.
+                        }
+                    }
+                }
+            }
+    
+            drawLUTSystem() {
+                // Container
+                this.ctx.fillStyle = "white";
+                this.ctx.strokeStyle = "#cbd5e1";
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.roundRect(this.lutX, this.lutY, this.lutW, this.lutH, 8);
+                this.ctx.fill();
+                this.ctx.stroke();
+    
+                // Title
+                this.ctx.fillStyle = "#2d3748";
+                this.ctx.font = "bold 14px sans-serif";
+                this.ctx.textAlign = "center";
+                this.ctx.fillText("LUT (Memory)", this.lutX + this.lutW/2, this.lutY + 25);
+    
+                // Draw the "Array" look
+                const listX = this.lutX + 40;
+                const listY = this.lutY + 60;
+                const itemH = 24;
+                const listW = 120;
+                
+                // If animating, show specific values, otherwise show generic representation
+                let showIndex = this.isAnimating ? this.animSequence.inputVal : 128;
+                
+                // Draw 5 rows: [...], idx-1, idx, idx+1, [...]
+                const rows = [
+                    { text: "...", val: null },
+                    { text: `[${Math.max(0, showIndex-1)}]`, val: this.lut[Math.max(0, showIndex-1)] },
+                    { text: `[${showIndex}]`, val: this.lut[showIndex], highlight: true },
+                    { text: `[${Math.min(255, showIndex+1)}]`, val: this.lut[Math.min(255, showIndex+1)] },
+                    { text: "...", val: null }
+                ];
+    
+                rows.forEach((row, i) => {
+                    let y = listY + (i * 35);
+                    
+                    // Box
+                    this.ctx.fillStyle = row.highlight && this.isAnimating && (this.animSequence.phase === 'highlighting' || this.animSequence.phase === 'to_output') 
+                        ? "#e0e7ff" : "#f8fafc"; // Highlight color
+                    if (row.highlight && this.isAnimating) this.ctx.strokeStyle = "#667eea";
+                    else this.ctx.strokeStyle = "#e2e8f0";
+                    
+                    this.ctx.beginPath();
+                    this.ctx.roundRect(listX, y, listW, 30, 4);
+                    this.ctx.fill();
+                    this.ctx.stroke();
+    
+                    // Text
+                    this.ctx.fillStyle = "#475569";
+                    this.ctx.textAlign = "left";
+                    this.ctx.font = "12px monospace";
+                    
+                    if (row.val !== null) {
+                        this.ctx.fillText(row.text, listX + 10, y + 19);
+                        this.ctx.textAlign = "right";
+                        this.ctx.font = "bold 12px monospace";
+                        this.ctx.fillStyle = row.highlight && this.isAnimating ? "#4c1d95" : "#475569";
+                        this.ctx.fillText(`-> ${row.val}`, listX + listW - 10, y + 19);
+                    } else {
+                        this.ctx.textAlign = "center";
+                        this.ctx.fillText("...", listX + listW/2, y + 19);
+                    }
+                });
+            }
+    
+            drawAnimationStep() {
+                const now = Date.now();
+                const elapsed = now - this.animSequence.startTime;
+                
+                const durationMove = 600;
+                const durationPause = 600;
+    
+                let progress = 0;
+                let curX, curY;
+    
+                if (elapsed < durationMove) {
+                    // Phase 1: Input to LUT
+                    this.animSequence.phase = 'to_lut';
+                    progress = easeInOut(elapsed / durationMove);
+                    curX = lerp(this.animSequence.startPos.x, this.animSequence.lutPos.x - 60, progress); // Stop a bit before
+                    curY = lerp(this.animSequence.startPos.y, this.animSequence.lutPos.y, progress);
+                    
+                    this.drawPacket(curX, curY, this.animSequence.inputVal, false);
+    
+                } else if (elapsed < durationMove + durationPause) {
+                    // Phase 2: Highlight
+                    this.animSequence.phase = 'highlighting';
+                    
+                    // Keep the input packet visible at the LUT entry
+                    this.drawPacket(this.animSequence.lutPos.x - 60, this.animSequence.lutPos.y, this.animSequence.inputVal, false);
+
+                    // Draw connecting line from left side of array box
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.animSequence.lutPos.x - 60, this.animSequence.lutPos.y);
+                    this.ctx.lineTo(this.animSequence.lutPos.x, this.animSequence.lutPos.y);
+                    this.ctx.strokeStyle = "#667eea";
+                    this.ctx.lineWidth = 3;
+                    this.ctx.stroke();
+
+                } else if (elapsed < (durationMove * 2) + durationPause) {
+                    // Phase 3: LUT to Output
+                    this.animSequence.phase = 'to_output';
+                    let localElapsed = elapsed - (durationMove + durationPause);
+                    progress = easeInOut(localElapsed / durationMove);
+                    
+                    curX = lerp(this.animSequence.lutPos.x + 80, this.animSequence.endPos.x, progress);
+                    curY = lerp(this.animSequence.lutPos.y, this.animSequence.endPos.y, progress);
+                    
+                    this.drawPacket(curX, curY, this.animSequence.outputVal, true);
+    
+                } else {
+                    // Finished
+                    this.outputData[this.animSequence.inputIndex] = this.animSequence.outputVal;
+                    this.isAnimating = false;
+                    this.draw(); // Final redraw
+                    return;
+                }
+            }
+    
+            drawPacket(x, y, val, isProcessed) {
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, 12, 0, Math.PI * 2);
+                this.ctx.fillStyle = isProcessed ? `rgb(${val},${val},${val})` : "#cbd5e1";
+                this.ctx.fill();
+                this.ctx.strokeStyle = isProcessed ? "#667eea" : "#475569";
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+    
+                // Text inside
+                this.ctx.fillStyle = val < 128 ? "white" : "black";
+                if (!isProcessed && val === null) this.ctx.fillStyle = "black";
+                
+                this.ctx.font = "10px sans-serif";
+                this.ctx.textAlign = "center";
+                this.ctx.fillText(val, x, y + 3);
+            }
+    
+            animate() {
+                if (this.isAnimating) {
+                    this.draw();
+                }
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+    
+        // Helpers
+        function lerp(start, end, t) {
+            return start * (1 - t) + end * t;
+        }
+        
+        function easeInOut(t) {
+            return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        }
+    
+        // Initialize
+        const lutSim = new LUTSimulator();
+        </script>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16: FAQ -->
+<section id="section16">
+    <div class="why-it-matters">
+        <h3>Frequently Asked</h3>
+        <p><strong>What happens if my formula gives a decimal number like 150.7?</strong></p>
+        <p>Good question! Digital images usually require integers. We typically round the result to the nearest whole number (151) or simply chop off the decimal (floor). This rounding happens when we fill the Look-Up Table.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- Section 17: Review -->
+<section id="section17">
+    <h2>Review and Reflect</h2>
+    <p>We've laid the groundwork for image modification.</p>
+    <p>In this lesson, you learned that modifying pixel values isn't just aesthetic—it's essential for helping humans, robots, and AI understand visual data.</p>
+    <p>We defined the general transformation function \(f(g)\) and learned how <strong>Normalization</strong> keeps our math within the boundaries of a digital image (0-255). Finally, we discovered the <strong>Look-Up Table (LUT)</strong>, the computational trick that makes these modifications instant, even on huge images.</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- Section 18: Final Quiz & Complete -->
+<section id="section18">
+    <p>In the next lesson, we will start using this framework to actually change the look of an image, starting with the basics: Brightness and Contrast.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following best describes the benefit of using a Look-Up Table (LUT)?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'LUTs don\'t compress the image file; they speed up the processing.')">It makes the image file size smaller.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! Instead of millions of math operations, we do 256 operations and millions of memory reads.')">It reduces the number of calculations from "Number of Pixels" to "Number of Gray Levels" (256).</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'A LUT is just a tool to apply a function. It doesn\'t know what \'white balance\' is unless you program that specific function into it.')">It automatically fixes the white balance of the image.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-q3" onclick="finishLesson()" style="display: none;">Continue</div>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 18;
+
+updateProgress();
+// In case the lesson starts as already completed or fully viewed (optional logic)
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    
+    // Hide the button that was clicked
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    // Auto-scroll
+    setTimeout(() => { 
+        nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    }, 200);
+}
+
+// Special case for the last section to reveal the complete button
+function finishLesson() {
+    const currentButton = event && event.target;
+    if (currentButton) currentButton.style.display = 'none';
+    
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) {
+        completedButton.classList.add('show');
+        // Scroll to the bottom
+        setTimeout(() => { 
+            completedButton.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+        }, 200);
+    }
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    // Deselect siblings
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+
+    // Select clicked
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+    // Add explanation
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button if parent is a specific section
+    // Section 5 (Q1)
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section5') {
+        const continueButton = document.getElementById('continue-after-q1');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+    // Section 11 (Q2)
+    if (parentSection && parentSection.id === 'section11') {
+        const continueButton = document.getElementById('continue-after-q2');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+    // Section 18 (Q3)
+    if (parentSection && parentSection.id === 'section18') {
+        const continueButton = document.getElementById('continue-after-q3');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Attempt LMS integration
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // These IDs should ideally be dynamic or based on URL, keeping placeholders
+                let courseId = 'computer-vision';
+                let pathId = 'image-processing-basics';
+                let moduleId = 'cv-ch02-modification';
+                let lessonId = 'cv-ch02-l1-why-how-modifying-pixels';
+                
+                // Try to grab from parent route or URL
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch02-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '🖼️', '💾'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+// Check completion on load
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check LMS
+    if (window.parent && window.parent.ProgressTracker) {
+        // ... (Similar ID retrieval logic as toggleCompleted)
+        let courseId = 'computer-vision';
+        let pathId = 'image-processing-basics';
+        let moduleId = 'cv-ch02-modification';
+        let lessonId = 'cv-ch02-l1-why-how-modifying-pixels';
+        
+        // ... (URL/Route checking omitted for brevity, similar to above)
+        
+        try {
+            const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+            if (progress && progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+                button.classList.add('completed');
+                button.innerHTML = '✅ Completed!';
+                return;
+            }
+        } catch(e) {}
+    }
+    
+    // Check LocalStorage
+    const isCompleted = localStorage.getItem('lesson_cv-ch02-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

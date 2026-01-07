@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Anatomy of a Winner – The Architecture</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <div class="visual-placeholder">
+        <img src="images/1.jpg" alt="Comic strip comparing Sigmoid struggling uphill with vanishing gradients versus ReLU speeding on a rocket sled">
+        <p class="image-caption">The great activation showdown: Why ReLU left Sigmoid in the dust.</p>
+    </div>
+    <h1>Anatomy of a Winner – The Architecture</h1>
+    <h2>Opening the Black Box</h2>
+    <p>In previous lessons, we looked at the history and the data. Now, it's time to open the hood. How exactly was AlexNet wired to shatter the status quo?</p>
+
+    <p>The architecture of AlexNet was a beast for its time: 60 million parameters and 650,000 neurons. It wasn't just 'bigger' than previous networks; it introduced specific structural changes that made training such a deep network possible.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Layer Structure Part 1 -->
+<section id="section2">
+    <h2>The Layer Structure</h2>
+    <p>AlexNet consists of eight learned layers: five convolutional layers followed by three fully connected layers.</p>
+    <p>Let's trace the path of an image as it flows through this artificial brain.</p>
+    <div class="alexnet-interactive-container">
+        <div class="network-canvas-wrapper" id="canvasContainer">
+            <canvas id="alexNetCanvas"></canvas>
+            <div class="info-overlay" id="infoPanel">
+                <div class="info-title" id="layerName">Input Image</div>
+                <div class="info-stat">Size: <span class="stat-value" id="layerSize">224x224</span></div>
+                <div class="info-stat">Depth: <span class="stat-value" id="layerDepth">3</span></div>
+            </div>
+            <div class="instruction-text">Drag slider to trace the signal ↓</div>
+        </div>
+    
+        <div class="controls-sidebar">
+            <div class="slider-track" id="sliderTrack">
+                <div class="slider-fill" id="sliderFill"></div>
+                <div class="slider-thumb" id="sliderThumb"></div>
+            </div>
+        </div>
+    
+        <script>
+        (function() {
+            // --- Configuration ---
+            const layers = [
+                { name: "Input Image", size: 224, depth: 3, type: "input" },
+                { name: "Conv 1 (11x11)", size: 55, depth: 96, type: "conv" },
+                { name: "Max Pool 1", size: 27, depth: 96, type: "pool" },
+                { name: "Conv 2 (5x5)", size: 27, depth: 256, type: "conv" },
+                { name: "Max Pool 2", size: 13, depth: 256, type: "pool" },
+                { name: "Conv 3 (3x3)", size: 13, depth: 384, type: "conv" },
+                { name: "Conv 4 (3x3)", size: 13, depth: 384, type: "conv" },
+                { name: "Conv 5 (3x3)", size: 13, depth: 256, type: "conv" },
+                { name: "Max Pool 3", size: 6, depth: 256, type: "pool" },
+                { name: "FC 1", size: 1, depth: 4096, type: "fc" }, // Size 1 for abstract vector representation
+                { name: "FC 2", size: 1, depth: 4096, type: "fc" },
+                { name: "Output", size: 1, depth: 1000, type: "fc" }
+            ];
+    
+            // --- Elements ---
+            const canvas = document.getElementById('alexNetCanvas');
+            const ctx = canvas.getContext('2d');
+            const sliderTrack = document.getElementById('sliderTrack');
+            const sliderThumb = document.getElementById('sliderThumb');
+            const sliderFill = document.getElementById('sliderFill');
+            const infoName = document.getElementById('layerName');
+            const infoSize = document.getElementById('layerSize');
+            const infoDepth = document.getElementById('layerDepth');
+    
+            // --- State ---
+            let progress = 0; // 0.0 to 1.0
+            let isDragging = false;
+            let containerHeight, containerWidth;
+    
+            // --- Resize Handler ---
+            function resize() {
+                const container = document.getElementById('canvasContainer');
+                if (!container) return;
+                
+                containerWidth = container.clientWidth;
+                containerHeight = container.clientHeight;
+                
+                // Ensure we have valid dimensions
+                if (containerWidth <= 0 || containerHeight <= 0) {
+                    // Retry after a short delay if dimensions aren't ready
+                    setTimeout(resize, 100);
+                    return;
+                }
+                
+                // Handle High DPI
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = containerWidth * dpr;
+                canvas.height = containerHeight * dpr;
+                ctx.scale(dpr, dpr);
+                canvas.style.width = containerWidth + 'px';
+                canvas.style.height = containerHeight + 'px';
+                
+                draw();
+            }
+    
+            // --- Drawing Logic ---
+            function draw() {
+                if (!containerWidth || !containerHeight) return; // Safety check
+                
+                // Clear
+                ctx.clearRect(0, 0, containerWidth, containerHeight);
+                
+                const paddingY = 50;
+                const availableHeight = Math.max(containerHeight - (paddingY * 2), layers.length * 20);
+                const gap = availableHeight / (layers.length - 1);
+                
+                // Draw Connections First (Background)
+                ctx.beginPath();
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 2;
+                
+                for (let i = 0; i < layers.length - 1; i++) {
+                    const currY = paddingY + (i * gap);
+                    const nextY = paddingY + ((i + 1) * gap);
+                    const currW = getVisualWidth(layers[i].size);
+                    const nextW = getVisualWidth(layers[i+1].size);
+                    
+                    // Draw connecting trapezoid lines
+                    ctx.moveTo(containerWidth/2 - currW/2, currY);
+                    ctx.lineTo(containerWidth/2 - nextW/2, nextY);
+                    ctx.moveTo(containerWidth/2 + currW/2, currY);
+                    ctx.lineTo(containerWidth/2 + nextW/2, nextY);
+                }
+                ctx.stroke();
+    
+                // Draw Layers
+                // Map progress (0-1) to layer indices (0 to layers.length-1)
+                // Distribute progress evenly across all layers
+                // When progress = 1.0, we want the last layer (index layers.length - 1)
+                let activeLayerIndex = Math.min(Math.floor(progress * layers.length), layers.length - 1);
+                // Ensure we can reach the last layer even if progress is slightly less than 1.0
+                if (progress >= 0.99) activeLayerIndex = layers.length - 1;
+                
+                layers.forEach((layer, index) => {
+                    const y = paddingY + (index * gap);
+                    const w = getVisualWidth(layer.size);
+                    const h = 18; // Fixed height for visual consistency
+                    
+                    // Color Logic: Interpolate Blue -> Purple based on depth
+                    // Logarithmic scale for color because depth jumps from 3 to 4096
+                    const maxDepthLog = Math.log(4096);
+                    const depthLog = Math.log(Math.max(layer.depth, 10)); // Floor at 10 for color vis
+                    const intensity = (depthLog / maxDepthLog); 
+                    
+                    // Base colors
+                    let r, g, b;
+                    // Interpolate between #4facfe (79, 172, 254) and #764ba2 (118, 75, 162)
+                    r = 79 + (118 - 79) * intensity;
+                    g = 172 + (75 - 172) * intensity;
+                    b = 254 + (162 - 254) * intensity;
+    
+                    const isActive = index === activeLayerIndex;
+    
+                    // Draw Box
+                    ctx.fillStyle = isActive ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, 0.3)`;
+                    ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
+                    ctx.lineWidth = isActive ? 2 : 1;
+                    
+                    // Shadow for active
+                    if (isActive) {
+                        ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.6)`;
+                        ctx.shadowBlur = 15;
+                    } else {
+                        ctx.shadowBlur = 0;
+                    }
+    
+                    // Draw Rect
+                    const x = containerWidth/2 - w/2;
+                    roundRect(ctx, x, y - h/2, w, h, 4);
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    // Draw Layer Label
+                    ctx.save();
+                    ctx.fillStyle = isActive ? '#ffffff' : '#64748b';
+                    ctx.font = isActive ? 'bold 10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : '9px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const labelText = layer.name.length > 15 ? layer.name.substring(0, 12) + '...' : layer.name;
+                    ctx.fillText(labelText, containerWidth/2, y);
+                    ctx.restore();
+                    
+                    // Reset shadow
+                    ctx.shadowBlur = 0;
+                });
+    
+                // Draw Pulse (The Data Packet)
+                const pulseY = paddingY + (progress * (availableHeight));
+                ctx.beginPath();
+                ctx.fillStyle = '#10b981'; // Green pulse
+                ctx.arc(containerWidth/2, pulseY, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowColor = '#10b981';
+                ctx.shadowBlur = 10;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+    
+                // Update Info Panel
+                updateInfoPanel(activeLayerIndex);
+            }
+    
+            // Helper: Calculate visual width based on spatial size
+            // We use a non-linear scale so 1x1 is still visible compared to 224x224
+            function getVisualWidth(realSize) {
+                const minVisSize = 40;
+                const maxVisSize = 200; // Max width in px
+                if (realSize === 1) return minVisSize; // FC layers
+                // Linear map
+                return minVisSize + ((realSize / 224) * (maxVisSize - minVisSize));
+            }
+    
+            // Helper: Round Rect
+            function roundRect(ctx, x, y, width, height, radius) {
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + width - radius, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                ctx.lineTo(x + width, y + height - radius);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                ctx.lineTo(x + radius, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+            }
+    
+            function updateInfoPanel(index) {
+                const layer = layers[index];
+                infoName.textContent = layer.name;
+                infoSize.textContent = layer.type === 'fc' ? 'Vector (1x1)' : `${layer.size} x ${layer.size}`;
+                infoDepth.textContent = `${layer.depth} Channels`;
+            }
+    
+            // --- Interaction Logic ---
+            function updateSliderFromEvent(e) {
+                const rect = sliderTrack.getBoundingClientRect();
+                let y = e.clientY - rect.top;
+                y = Math.max(0, Math.min(y, rect.height));
+                
+                const percentage = y / rect.height;
+                progress = percentage;
+                
+                // Update UI
+                sliderThumb.style.top = `${percentage * 100}%`;
+                sliderFill.style.height = `${percentage * 100}%`;
+                
+                // Redraw Canvas
+                requestAnimationFrame(draw);
+            }
+    
+            sliderThumb.addEventListener('mousedown', () => isDragging = true);
+            document.addEventListener('mouseup', () => isDragging = false);
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) updateSliderFromEvent(e);
+            });
+            
+            // Click on track to jump
+            sliderTrack.addEventListener('click', updateSliderFromEvent);
+    
+            // Mobile Touch Support
+            sliderThumb.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                e.preventDefault(); 
+            }, {passive: false});
+            document.addEventListener('touchend', () => isDragging = false);
+            document.addEventListener('touchmove', (e) => {
+                if (isDragging) {
+                    const touch = e.touches[0];
+                    updateSliderFromEvent(touch);
+                    e.preventDefault(); 
+                }
+            }, {passive: false});
+    
+            // Init
+            window.addEventListener('resize', resize);
+            
+            // Wait for section to be visible before initializing
+            const initInteractive = () => {
+                const section2 = document.getElementById('section2');
+                if (section2 && section2.classList.contains('visible')) {
+                    resize(); // Initial draw
+                } else {
+                    // Use MutationObserver to detect when section becomes visible
+                    const observer = new MutationObserver((mutations) => {
+                        if (section2 && section2.classList.contains('visible')) {
+                            setTimeout(resize, 100); // Small delay to ensure layout is complete
+                            observer.disconnect();
+                        }
+                    });
+                    if (section2) {
+                        observer.observe(section2, { attributes: true, attributeFilter: ['class'] });
+                    }
+                    // Fallback: try immediately and also after a delay
+                    setTimeout(resize, 100);
+                }
+            };
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initInteractive);
+            } else {
+                initInteractive();
+            }
+        })();
+        </script>
+    </div>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Layer Structure Part 2 (Vocab) -->
+<section id="section3">
+    <p>The first five layers act as the 'eyes' of the network, extracting visual features. The last three layers act as the 'brain', interpreting those features to make a decision.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Fully Connected Layer</h4>
+        <p>A layer where every neuron is connected to every neuron in the previous layer. In CNNs, these are typically placed at the end of the network to perform high-level reasoning and classification based on the features extracted by convolutional layers.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Layer Structure Part 3 (Quiz) -->
+<section id="section4">
+    <p>Notice the shape of the data as it moves through the network. The spatial dimensions (width and height) get smaller, but the depth (number of channels) gets larger.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Why does the network structure shrink the image size (e.g., from 224x224 to 13x13) but increase the depth (e.g., from 3 to 256 channels) as it goes deeper?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'While preventing overfitting is important, resizing isn\'t the primary mechanism for that.')">To confuse the computer so it doesn't overfit.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Early layers need high resolution to see edges. Later layers don\'t care exactly *where* a dog\'s ear is, just *that* there is a \'dog ear\' feature detected. The depth increases to allow the network to represent more complex combinations of features.')">To trade spatial detail for semantic richness.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Actually, increasing the channel depth (e.g., to 256 or 384 filters) consumes a significant amount of memory.')">To save memory.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge-1" onclick="showNextSection(5)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 5: ReLU Intro -->
+<section id="section5">
+    <h2>The Speed Demon: ReLU</h2>
+    <p>Perhaps the most critical innovation in AlexNet wasn't the layers themselves, but what happened <em>inside</em> the neurons. Previous networks used activation functions like Tanh or Sigmoid.</p>
+    <p>These 'squashing' functions take any input number and squash it between -1 and 1 (or 0 and 1).</p>
+    <p>The problem? When inputs are very high or very low, the curve becomes flat. In calculus terms, the slope (derivative) approaches zero.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Vanishing Gradient</h4>
+        <p>A problem in training deep networks where the gradients (signals used to update the network) become so small that the network stops learning. This often happens with Tanh or Sigmoid activation functions in deep layers.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: ReLU Math -->
+<section id="section6">
+    <p>AlexNet replaced these with the <strong>Rectified Linear Unit (ReLU)</strong>.</p>
+    <p>The math is deceptively simple:</p>
+    <p>$$f(x) = \max(0, x)$$</p>
+    <p>If the input is positive, pass it through unchanged. If it's negative, output zero.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: ReLU Interactive -->
+<section id="section7">
+    <p>Let's compare them directly.</p>
+    <div class="activation-playground-container">
+        <div class="ap-header">
+            <button class="ap-toggle-btn" id="btnTanh" onclick="switchMode('tanh')">Tanh</button>
+            <button class="ap-toggle-btn active" id="btnRelu" onclick="switchMode('relu')">ReLU</button>
+        </div>
+    
+        <div class="ap-canvas-wrapper">
+            <canvas id="activationCanvas"></canvas>
+            
+            <div class="ap-dashboard">
+                <div class="ap-stat-row">
+                    <div class="ap-label">Input (x)</div>
+                    <div class="ap-value" id="valX">0.00</div>
+                </div>
+                <div class="ap-stat-row">
+                    <div class="ap-label">Output (Activation)</div>
+                    <div class="ap-value" id="valY">0.00</div>
+                </div>
+                <div class="gradient-meter-container">
+                    <div class="ap-label">Gradient (Slope)</div>
+                    <div class="ap-value" id="valGrad">0.00</div>
+                    <div class="gradient-bar-bg">
+                        <div class="gradient-bar-fill" id="gradBar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <div class="ap-controls">
+            <input type="range" min="-5" max="5" step="0.1" value="1.0" id="inputSlider">
+            <div class="slider-labels">
+                <span>-5 (Negative)</span>
+                <span>0</span>
+                <span>+5 (Positive)</span>
+            </div>
+        </div>
+    
+        <script>
+        (function() {
+            // --- State ---
+            let mode = 'relu'; // 'tanh' or 'relu'
+            let inputX = 1.0;
+            
+            // --- Elements ---
+            const canvas = document.getElementById('activationCanvas');
+            const ctx = canvas.getContext('2d');
+            const slider = document.getElementById('inputSlider');
+            const btnTanh = document.getElementById('btnTanh');
+            const btnRelu = document.getElementById('btnRelu');
+            
+            // Display Elements
+            const dispX = document.getElementById('valX');
+            const dispY = document.getElementById('valY');
+            const dispGrad = document.getElementById('valGrad');
+            const barGrad = document.getElementById('gradBar');
+    
+            // --- Math Helpers ---
+            function getActivation(x) {
+                if (mode === 'tanh') return Math.tanh(x);
+                if (mode === 'relu') return Math.max(0, x);
+                return 0;
+            }
+    
+            function getGradient(x) {
+                if (mode === 'tanh') {
+                    const t = Math.tanh(x);
+                    return 1 - t*t;
+                }
+                if (mode === 'relu') {
+                    return x > 0 ? 1 : 0;
+                }
+                return 0;
+            }
+    
+            // --- Drawing Logic ---
+            function draw() {
+                if (!canvas.width || !canvas.height) return; // Safety check
+                
+                // Setup Canvas Scaling
+                const width = canvas.width;
+                const height = canvas.height;
+                const scaleX = width / 10; // Range -5 to 5 = 10 units
+                
+                // Adjust scaleY and offsetY based on mode
+                let scaleY, offsetY;
+                if (mode === 'tanh') {
+                    // Tanh ranges from -1 to 1, so we need about 2.5 units of vertical space
+                    scaleY = height / 2.5;
+                    offsetY = height / 2; // Center vertically
+                } else {
+                    // ReLU ranges from 0 to 5 (max input), so we need about 6 units
+                    scaleY = height / 6;
+                    offsetY = height - (height / 6); // Bottom-aligned
+                }
+                
+                const offsetX = width / 2;
+
+                // Clear
+                ctx.clearRect(0, 0, width, height);
+    
+                // Draw Grid
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1;
+                
+                // Draw horizontal grid lines (at major intervals)
+                for (let i = -4; i <= 4; i += 2) {
+                    const y = offsetY - (i * scaleY);
+                    if (y >= 0 && y <= height) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, y);
+                        ctx.lineTo(width, y);
+                        ctx.stroke();
+                    }
+                }
+                
+                // Draw vertical grid lines (at major intervals)
+                for (let i = -4; i <= 4; i += 2) {
+                    const x = offsetX + (i * scaleX);
+                    if (x >= 0 && x <= width) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, 0);
+                        ctx.lineTo(x, height);
+                        ctx.stroke();
+                    }
+                }
+                
+                // X-axis (thicker)
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, offsetY);
+                ctx.lineTo(width, offsetY);
+                ctx.stroke();
+                
+                // Y-axis (thicker)
+                ctx.beginPath();
+                ctx.moveTo(offsetX, 0);
+                ctx.lineTo(offsetX, height);
+                ctx.stroke();
+                
+                // Reset stroke style
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1;
+    
+                // Draw Function Curve
+                ctx.beginPath();
+                ctx.strokeStyle = mode === 'tanh' ? '#4facfe' : '#764ba2';
+                ctx.lineWidth = 4;
+                
+                // Plot points
+                for (let px = 0; px <= width; px+=2) {
+                    // px to logical x
+                    const lx = (px - offsetX) / scaleX;
+                    const ly = getActivation(lx);
+                    
+                    // logical y to py
+                    const py = offsetY - (ly * scaleY);
+                    
+                    if (px === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+    
+                // Calculate current point
+                const currentY = getActivation(inputX);
+                const currentGrad = getGradient(inputX);
+                
+                const px = offsetX + (inputX * scaleX);
+                const py = offsetY - (currentY * scaleY);
+    
+                // Draw Tangent Line (Visualizing Gradient)
+                const tangentLength = 60; // in pixels
+                // Slope in canvas space requires flipping Y and accounting for aspect ratio
+                // Canvas Slope = -MathematicalSlope * (scaleY / scaleX)
+                // But visually, we just want a line passing through (px, py)
+                
+                ctx.beginPath();
+                ctx.strokeStyle = '#f59e0b'; // Orange for tangent
+                ctx.lineWidth = 2;
+                const m = -currentGrad * (scaleY / scaleX); 
+                
+                // Point 1
+                const dx = 40; // visual delta x
+                const dy = dx * m; // visual delta y
+                ctx.moveTo(px - dx, py - dy);
+                ctx.lineTo(px + dx, py + dy);
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+    
+                // Draw Point
+                ctx.beginPath();
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = '#2d3748';
+                ctx.lineWidth = 3;
+                ctx.arc(px, py, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+    
+                // Update Dashboard
+                updateDashboard(currentY, currentGrad);
+            }
+    
+            function updateDashboard(y, grad) {
+                dispX.textContent = inputX.toFixed(2);
+                dispY.textContent = y.toFixed(2);
+                dispGrad.textContent = grad.toFixed(3);
+    
+                // Animate Meter
+                // Max gradient is 1.0
+                const percentage = Math.min(Math.max(grad, 0), 1) * 100;
+                barGrad.style.width = `${percentage}%`;
+                
+                // Color code meter
+                if (grad < 0.1) {
+                    barGrad.style.backgroundColor = '#ef4444'; // Red (Vanishing)
+                } else if (grad >= 0.9) {
+                    barGrad.style.backgroundColor = '#10b981'; // Green (Healthy)
+                } else {
+                    barGrad.style.backgroundColor = '#f59e0b'; // Orange
+                }
+            }
+    
+            // --- Interaction ---
+            window.switchMode = function(newMode) {
+                mode = newMode;
+                if (mode === 'tanh') {
+                    btnTanh.classList.add('active');
+                    btnRelu.classList.remove('active');
+                } else {
+                    btnRelu.classList.add('active');
+                    btnTanh.classList.remove('active');
+                }
+                draw();
+            };
+    
+            slider.addEventListener('input', (e) => {
+                inputX = parseFloat(e.target.value);
+                draw();
+            });
+    
+            // Resize Handling
+            function resize() {
+                const container = canvas.parentElement;
+                if (!container) return;
+                
+                const containerWidth = container.clientWidth;
+                const containerHeight = container.clientHeight;
+                
+                // Ensure we have valid dimensions
+                if (containerWidth <= 0 || containerHeight <= 0) {
+                    // Retry after a short delay if dimensions aren't ready
+                    setTimeout(resize, 100);
+                    return;
+                }
+                
+                // Handle High DPI
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = containerWidth * dpr;
+                canvas.height = containerHeight * dpr;
+                ctx.scale(dpr, dpr);
+                canvas.style.width = containerWidth + 'px';
+                canvas.style.height = containerHeight + 'px';
+                
+                draw();
+            }
+            
+            window.addEventListener('resize', resize);
+            
+            // Wait for section to be visible before initializing
+            const initInteractive = () => {
+                const section7 = document.getElementById('section7');
+                if (section7 && section7.classList.contains('visible')) {
+                    resize(); // Initial draw
+                    switchMode('relu'); // Start with ReLU per lesson flow
+                } else {
+                    // Use MutationObserver to detect when section becomes visible
+                    const observer = new MutationObserver((mutations) => {
+                        if (section7 && section7.classList.contains('visible')) {
+                            setTimeout(() => {
+                                resize();
+                                switchMode('relu');
+                            }, 100); // Small delay to ensure layout is complete
+                            observer.disconnect();
+                        }
+                    });
+                    if (section7) {
+                        observer.observe(section7, { attributes: true, attributeFilter: ['class'] });
+                    }
+                    // Fallback: try immediately and also after a delay
+                    setTimeout(() => {
+                        resize();
+                        switchMode('relu');
+                    }, 100);
+                }
+            };
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initInteractive);
+            } else {
+                initInteractive();
+            }
+        })();
+        </script>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: ReLU Conclusion -->
+<section id="section8">
+    <p>Because the gradient of ReLU is always 1 for positive inputs, the error signal doesn't vanish as it travels back through the deep layers. This allowed AlexNet to train <strong>six times faster</strong> than if it had used Tanh.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>ReLU</h4>
+        <p>Rectified Linear Unit. An activation function defined as \(f(x) = \max(0, x)\). It is computationally efficient and helps prevent the vanishing gradient problem.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: LRN Intro -->
+<section id="section9">
+    <h2>The Forgotten Innovation: LRN</h2>
+    <p>Another trick AlexNet used is called <strong>Local Response Normalization (LRN)</strong>. The idea was inspired by biology.</p>
+    <p>In the brain, excited neurons often inhibit their neighbors. This creates 'competition,' making the most active neurons stand out even more. This is called <strong>Lateral Inhibition</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: LRN Detail -->
+<section id="section10">
+    <p>AlexNet implemented this mathematically by normalizing a neuron's output based on the activity of its neighbors in adjacent feature maps.</p>
+    <p>While this was helpful in 2012, it's worth noting that LRN has largely been replaced in modern networks by a technique called <em>Batch Normalization</em>. However, understanding LRN helps us see how biological inspiration drove early deep learning design.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop & Think</h3>
+        <h4>Look back at the first layer of AlexNet. It uses huge 11x11 filters with a 'stride' of 4 (meaning the filter skips 4 pixels at a time). Later layers use small 3x3 filters. Why start so big and fast?</h4>
+        <div id="cuy-lrn-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> Think about how you view an image. At first glance, you see broad patches of color and light. Large filters capture these low-frequency features quickly. Once the image is downsampled, the later layers can focus on fine-grained details using smaller filters.</div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-lrn-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Why It Matters -->
+<section id="section11">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>The architecture of AlexNet defined the standard blueprint for Computer Vision for years to come: a series of Convolutional layers to learn features, followed by Fully Connected layers to classify them, all powered by ReLU.</p>
+    </div>
+    <p>Without the switch to ReLU, training a network of this depth might have taken months instead of days, potentially stalling the AI revolution before it began.</p>
+    <div class="check-your-knowledge">
+        <h3>Frequently Asked Question</h3>
+        <h4>What happens if the input to ReLU is negative?</h4>
+        <div id="cuy-faq-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> The output is exactly zero! This acts as a gate mechanism. It means that certain features can be completely 'turned off' if they aren't relevant. This leads to what we call 'sparse representations,' where only a subset of neurons are active at any given time—efficient and effective.</div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-faq-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Final Quiz -->
+<section id="section12">
+    <p>Before we move on to how they actually trained this beast, let's make sure you've got the blueprints memorized.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following was NOT a reason for AlexNet's success?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This was a major reason. ReLU made convergence much faster.')">The use of ReLU to speed up training.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! They explicitly abandoned Sigmoid/Tanh in favor of ReLU to avoid vanishing gradients.')">The use of Sigmoid activation functions for smooth gradients.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The depth was crucial for learning complex hierarchies of features.')">The deep architecture with 8 learned layers.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This did contribute to the performance, even if it is less common today.')">Biological inspiration via Local Response Normalization.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge-2" onclick="showNextSection(13)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 13: Review -->
+<section id="section13">
+    <h2>Review and Reflect</h2>
+    <p>In this lesson, we dissected the anatomy of AlexNet:</p>
+    <ul>
+        <li>We mapped out the <strong>8-layer structure</strong> (5 Conv, 3 FC).</li>
+        <li>We saw how <strong>ReLU</strong> solved the vanishing gradient problem, enabling deep learning.</li>
+        <li>We touched on <strong>Local Response Normalization</strong>, a biological nod to how eyes sharpen contrast.</li>
+    </ul>
+    <p>Now we have a powerful engine, but an engine needs fuel and a driver. In the next lesson, we will learn about the <strong>training recipe</strong>—how the creators used GPUs, data augmentation, and Dropout to train this massive network without overfitting.</p>
+
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 13;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Check if we need to reveal a continue button
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        const continueBtn = parentSection.querySelector('.continue-button[style*="display: none"]');
+        // Specific logic for quiz sections
+        if (continueBtn && (parentSection.id === 'section4' || parentSection.id === 'section12')) {
+             setTimeout(() => {
+                continueBtn.style.display = 'block';
+                continueBtn.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Mock IDs for the generated lesson context
+                let courseId = 'computer-vision';
+                let pathId = 'cnn-architectures';
+                let moduleId = 'alexnet-deep-dive';
+                let lessonId = 'alexnet-architecture';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_alexnet-architecture_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_alexnet-architecture_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

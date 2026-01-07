@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>A Detour into Language (The RNN Bottleneck)</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <figure class="image-placeholder">
+        <img src="images/1.jpg" alt="Student staring at overlapping text and vision icons, wondering why language lessons appear in a vision course" loading="lazy">
+        <figcaption>That “wait, why are we reading text?” moment sets the stage for this detour into language and the RNN bottleneck.</figcaption>
+    </figure>
+    <h1>A Detour into Language</h1>
+    <p>Welcome to Lesson 2! You might be wondering: 'I signed up for Computer Vision, why are we talking about text?' It's a fair question. The truth is, the breakthrough that revolutionized how computers 'see' images—the Transformer—was actually invented to help them read better.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>Reading Like a Robot</h2>
+    <p>To understand the solution (Attention), we first have to understand the problem it solved. Let's look at <strong>Sentiment Analysis</strong>. Imagine you want to train an AI to read movie reviews and decide if they are Positive or Negative.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>Traditionally, we used <strong>Recurrent Neural Networks (RNNs)</strong> for this. An RNN reads a sentence much like you do: one word at a time, from left to right.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Recurrent Neural Network (RNN)</h4>
+        <p>A class of neural networks designed for sequential data. It processes inputs one by one, maintaining a 'hidden state' vector that gets updated at each step to carry context forward.</p>
+    </div>
+    <p>As it reads, it maintains a <strong>Hidden State</strong>—a vector of numbers that acts as its short-term memory. It tries to summarize everything it has read so far.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>Let's look at the math briefly to see how this memory works. At every step $t$, the hidden state $h_t$ is updated based on the current word $x_t$ and the <em>previous</em> hidden state $h_{t-1}$.</p>
+    <p>Mathematically, it looks like this:</p>
+    <p>$$h_t = \tanh(W_h \cdot h_{t-1} + W_x \cdot x_t)$$</p>
+    <p>Here is what is happening step-by-step:</p>
+    <ol>
+        <li><strong>$h_{t-1}$</strong>: Take the memory from the previous word.</li>
+        <li><strong>$x_t$</strong>: Take the current word.</li>
+        <li><strong>Combine</strong>: Mix them together using weight matrices ($W_h, W_x$) and a non-linear activation function ($\tanh$).</li>
+        <li><strong>$h_t$</strong>: Output the new, updated memory.</li>
+    </ol>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>This updated $h_t$ is then passed to the next step. It's like a game of 'Telephone'—the message gets passed along the line, modified slightly by each person (word).</p>
+    <!-- RNN Interaction Module Start -->
+<div class="interactive-module-container">
+    
+  <div class="canvas-wrapper" style="height: 300px; background: transparent;">
+      <canvas id="rnnCanvas" width="800" height="300"></canvas>
+  </div>
+  
+  <div class="interactive-controls">
+      <p id="rnnStatusText" style="min-height: 1.5em; font-weight: 600; color: #4a5568; margin-bottom: 15px; width: 100%; text-align: center;">
+          Click Play to start processing
+      </p>
+      <button id="rnnPlayBtn" class="mode-btn active">▶ Play Animation</button>
+      <button id="rnnResetBtn" class="mode-btn" style="display: none;">↺ Reset</button>
+  </div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('rnnCanvas');
+  const ctx = canvas.getContext('2d');
+  const playBtn = document.getElementById('rnnPlayBtn');
+  const resetBtn = document.getElementById('rnnResetBtn');
+  const statusText = document.getElementById('rnnStatusText');
+
+  // Configuration
+  const words = ["The", "movie", "was", "great"];
+  // Colors matching the lesson theme: Light Blue -> Medium -> Purple -> Dark Purple
+  const colors = ["#e0e7ff", "#4facfe", "#667eea", "#764ba2"];
+  
+  let step = -1; // -1 = start, 0..3 = words
+  let progress = 0; // 0.0 to 1.0 for animation between steps
+  let isAnimating = false;
+  let rnnState = {
+      x: 50,
+      y: 100,
+      size: 60,
+      color: "#cbd5e1", // Initial neutral grey
+      targetColor: "#cbd5e1"
+  };
+
+  // Layout calculations
+  const startX = 100;
+  const spacing = 180;
+  const wordY = 220;
+  
+  function draw() {
+      // Clear Canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // 1. Draw Connecting Lines (The "History" trail)
+      ctx.beginPath();
+      ctx.moveTo(startX, 100);
+      // Draw line up to current RNN position
+      if (step >= 0) {
+          const currentX = startX + (step * spacing) + (progress * spacing);
+          // Clamp X to not exceed final position
+          const finalX = startX + ((words.length-1) * spacing);
+          ctx.lineTo(Math.min(currentX, finalX), 100);
+      }
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.setLineDash([10, 10]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 2. Draw Words (Inputs)
+      ctx.font = "bold 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      ctx.textAlign = "center";
+      
+      words.forEach((word, index) => {
+          const wx = startX + (index * spacing);
+          
+          // Draw input connection line if processed or currently processing
+          if (index <= step) {
+              let opacity = 1;
+              if (index === step) opacity = progress; // Fade in connection
+              
+              ctx.beginPath();
+              ctx.moveTo(wx, wordY - 30);
+              ctx.lineTo(wx, 130); // Bottom of RNN path
+              ctx.strokeStyle = `rgba(102, 126, 234, ${opacity})`;
+              ctx.lineWidth = 3;
+              ctx.stroke();
+              
+              // Draw arrow head
+              if (opacity > 0.5) {
+                  ctx.beginPath();
+                  ctx.fillStyle = `rgba(102, 126, 234, ${opacity})`;
+                  ctx.moveTo(wx - 6, 135);
+                  ctx.lineTo(wx + 6, 135);
+                  ctx.lineTo(wx, 125);
+                  ctx.fill();
+              }
+          }
+
+          // Draw Word Text
+          ctx.fillStyle = (index <= step) ? "#2d3748" : "#a0aec0";
+          ctx.fillText(word, wx, wordY);
+          
+          // Draw Input Box around word
+          ctx.strokeStyle = (index <= step) ? "#4facfe" : "#e2e8f0";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(wx - 40, wordY - 40, 80, 50);
+      });
+
+      // 3. Draw RNN Box (Hidden State)
+      // Calculate current position
+      let currentX = startX;
+      
+      if (step >= 0) {
+          // Lerp between steps
+          let prevX = (step === 0) ? startX : startX + (step * spacing);
+          
+          // If we are moving TO a step (animation phase)
+          if (isAnimating) {
+              // If step is 0, we move from left off-screen/start to 0
+              // For simplicity in this demo, we animate from word to word
+               currentX = startX + (step * spacing);
+          } else {
+               currentX = startX + (step * spacing);
+          }
+      }
+
+      // Draw the Box
+      ctx.shadowColor = "rgba(0,0,0,0.2)";
+      ctx.shadowBlur = 15;
+      ctx.shadowOffsetY = 5;
+      
+      ctx.fillStyle = rnnState.color;
+      
+      // Draw rounded rectangle for RNN
+      const rx = currentX - 30;
+      const ry = 70;
+      const rw = 60;
+      const rh = 60;
+      const radius = 10;
+      
+      ctx.beginPath();
+      ctx.moveTo(rx + radius, ry);
+      ctx.lineTo(rx + rw - radius, ry);
+      ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + radius);
+      ctx.lineTo(rx + rw, ry + rh - radius);
+      ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - radius, ry + rh);
+      ctx.lineTo(rx + radius, ry + rh);
+      ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - radius);
+      ctx.lineTo(rx, ry + radius);
+      ctx.quadraticCurveTo(rx, ry, rx + radius, ry);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.shadowColor = "transparent"; // Reset shadow
+      
+      // Label inside RNN
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px sans-serif";
+      ctx.fillText("h" + (step >= 0 ? step + 1 : "0"), currentX, 105);
+
+      requestAnimationFrame(draw);
+  }
+
+  // Color interpolation helper
+  function lerpColor(a, b, amount) { 
+      var ah = parseInt(a.replace(/#/g, ''), 16),
+          bh = parseInt(b.replace(/#/g, ''), 16),
+          ar = ah >> 16, ag = ah >> 8 & 0xff, ab = ah & 0xff,
+          br = bh >> 16, bg = bh >> 8 & 0xff, bb = bh & 0xff,
+          rr = ar + amount * (br - ar),
+          rg = ag + amount * (bg - ag),
+          rb = ab + amount * (bb - ab);
+      return '#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb | 0).toString(16).slice(1);
+  }
+
+  function animateStep() {
+      if (step >= words.length - 1) {
+          statusText.innerHTML = "Processing Complete. Final state contains context from all words.";
+          playBtn.style.display = "none";
+          resetBtn.style.display = "inline-block";
+          return;
+      }
+
+      isAnimating = true;
+      step++;
+      
+      // UI Updates
+      playBtn.disabled = true;
+      playBtn.style.opacity = "0.5";
+      
+      let startColor = rnnState.color;
+      let endColor = colors[step];
+      let animationProgress = 0;
+      
+      statusText.innerHTML = `Step ${step + 1}: Combining previous memory with <em>"${words[step]}"</em>...`;
+
+      // Animation Loop for this specific step
+      function loop() {
+          animationProgress += 0.02; // Speed of animation
+          progress = animationProgress; // Global progress for drawing
+
+          if (animationProgress >= 1) {
+              rnnState.color = endColor;
+              isAnimating = false;
+              playBtn.disabled = false;
+              playBtn.style.opacity = "1";
+              progress = 0;
+              
+              if(step < words.length - 1) {
+                  statusText.innerHTML = "State updated. Ready for next word.";
+              } else {
+                  animateStep(); // Trigger finish check
+              }
+              return;
+          }
+
+          rnnState.color = lerpColor(startColor, endColor, animationProgress);
+          rnnState.x = startX + (step * spacing); // Keep position locked during mix
+          
+          requestAnimationFrame(loop);
+      }
+      loop();
+  }
+
+  function reset() {
+      step = -1;
+      progress = 0;
+      rnnState.color = "#cbd5e1";
+      statusText.innerHTML = "Click Play to start processing";
+      playBtn.style.display = "inline-block";
+      playBtn.disabled = false;
+      playBtn.style.opacity = "1";
+      resetBtn.style.display = "none";
+      draw(); // Force redraw
+  }
+
+  // Event Listeners
+  playBtn.addEventListener('click', animateStep);
+  resetBtn.addEventListener('click', reset);
+
+  // Initial Draw
+  draw();
+
+})();
+</script>
+</div>
+<!-- RNN Interaction Module End -->
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <h2>The Bottleneck</h2>
+    <p>This sequential approach works fine for short, simple sentences like "I love this movie." The memory is fresh. But what happens when the sentence gets long and complex?</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Sequential Bottleneck</h4>
+        <p>The limitation in RNNs where all information from a long sequence must be compressed into a single fixed-size hidden state, leading to loss of information from early steps.</p>
+    </div>
+    <p>Every time the RNN steps forward, the old information gets squashed and mixed with the new information. If the sequence is long, information from the beginning of the sentence gets diluted by the time the RNN reaches the end.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>We call this the <strong>RNN Bottleneck</strong>. The model tends to have a 'recency bias'—it focuses heavily on the words it just saw and forgets the words from the start.</p>
+    <!-- RNN Fading Memory Interactive Start -->
+<div class="interactive-module-container">
+    
+  <div class="feedback-panel neutral" style="margin-bottom: 15px;">
+      <div class="feedback-content" style="text-align: center;">
+          <span class="feedback-title">Context Signal Strength: <span id="signalValue">0</span>%</span>
+          <div style="width: 100%; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; margin-top: 10px;">
+              <div id="signalBar" style="width: 0%; height: 100%; background: #f56565; transition: width 0.3s ease;"></div>
+          </div>
+      </div>
+  </div>
+
+  <div class="canvas-wrapper" style="height: 200px; background: transparent;">
+      <canvas id="fadingCanvas" width="800" height="200"></canvas>
+  </div>
+  
+  <div class="interactive-controls">
+      <button id="fadePlayBtn" class="mode-btn active">▶ Run Simulation</button>
+      <button id="fadeResetBtn" class="mode-btn" style="display: none;">↺ Reset</button>
+  </div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('fadingCanvas');
+  const ctx = canvas.getContext('2d');
+  const playBtn = document.getElementById('fadePlayBtn');
+  const resetBtn = document.getElementById('fadeResetBtn');
+  const signalBar = document.getElementById('signalBar');
+  const signalText = document.getElementById('signalValue');
+
+  // Config
+  const numNodes = 10;
+  const spacing = 70;
+  const startX = 50;
+  const groundY = 140;
+  const boxY = 80;
+  
+  // Colors
+  const colorSignal = { r: 245, g: 101, b: 101 }; // #f56565 Red
+  const colorNoise = { r: 203, g: 213, b: 225 };  // #cbd5e1 Grey
+  
+  // State
+  let rnnX = startX;
+  let currentStep = -1; // -1 = start
+  let rnnColor = { ...colorNoise }; // Start grey (empty)
+  let signalStrength = 0; // 0 to 1
+  let isRunning = false;
+  let animationId = null;
+
+  function rgbToHex(c) {
+      return "#" + ((1 << 24) + (Math.round(c.r) << 16) + (Math.round(c.g) << 8) + Math.round(c.b)).toString(16).slice(1);
+  }
+
+  function lerpColor(c1, c2, t) {
+      return {
+          r: c1.r + (c2.r - c1.r) * t,
+          g: c1.g + (c2.g - c1.g) * t,
+          b: c1.b + (c2.b - c1.b) * t
+      };
+  }
+
+  function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. Draw Connecting Line (The Sequence)
+      ctx.beginPath();
+      ctx.moveTo(startX, groundY);
+      ctx.lineTo(startX + (numNodes - 1) * spacing, groundY);
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      // 2. Draw Nodes
+      for (let i = 0; i < numNodes; i++) {
+          const nx = startX + i * spacing;
+          
+          // Draw Circle
+          ctx.beginPath();
+          ctx.arc(nx, groundY, 15, 0, Math.PI * 2);
+          
+          // First node is RED (Signal), others GREY (Noise)
+          if (i === 0) {
+              ctx.fillStyle = rgbToHex(colorSignal);
+              ctx.strokeStyle = "#c53030";
+          } else {
+              ctx.fillStyle = "#fff";
+              ctx.strokeStyle = "#cbd5e1";
+          }
+          
+          // Highlight current node being processed
+          if (i === currentStep) {
+              ctx.lineWidth = 3;
+              ctx.shadowColor = "rgba(0,0,0,0.2)";
+              ctx.shadowBlur = 10;
+          } else {
+              ctx.lineWidth = 2;
+              ctx.shadowColor = "transparent";
+          }
+          
+          ctx.fill();
+          ctx.stroke();
+          ctx.shadowColor = "transparent";
+
+          // Labels
+          ctx.fillStyle = "#718096";
+          ctx.font = "12px sans-serif";
+          ctx.textAlign = "center";
+          if (i === 0) ctx.fillText("START", nx, groundY + 35);
+          if (i === numNodes - 1) ctx.fillText("END", nx, groundY + 35);
+      }
+
+      // 3. Draw RNN Box
+      // Smoothly interpolate X position based on currentStep
+      // Note: In a real app we'd animate X smoothly, here we just snap to step for clarity of the color mix logic
+      // But let's draw it at the current active node
+      
+      let drawX = startX;
+      if (currentStep >= 0) drawX = startX + currentStep * spacing;
+
+      ctx.fillStyle = rgbToHex(rnnColor);
+      ctx.strokeStyle = "#4a5568";
+      ctx.lineWidth = 2;
+      
+      // Rounded Box
+      const bs = 50; // box size
+      const by = groundY - bs - 15;
+      const bx = drawX - bs/2;
+      
+      ctx.beginPath();
+      ctx.roundRect(bx, by, bs, bs, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      // Text inside RNN
+      ctx.fillStyle = (signalStrength > 0.5) ? "#fff" : "#2d3748";
+      ctx.font = "bold 14px sans-serif";
+      ctx.fillText("h", drawX, by + 30);
+  }
+
+  function updateStats() {
+      // Update Bar
+      const pct = Math.round(signalStrength * 100);
+      signalBar.style.width = `${pct}%`;
+      signalText.innerText = pct;
+      
+      // Color bar based on strength
+      if (pct > 60) signalBar.style.background = "#f56565"; // Red
+      else if (pct > 30) signalBar.style.background = "#ed8936"; // Orange
+      else signalBar.style.background = "#a0aec0"; // Grey
+  }
+
+  function processStep(step) {
+      currentStep = step;
+      
+      // Logic: RNN update
+      // h_t = tanh(W*h_{t-1} + U*x_t)
+      // Simplified: New Color = Mix(Old Color, Input Color)
+      
+      let inputColor = (step === 0) ? colorSignal : colorNoise;
+      
+      if (step === 0) {
+          // First step: pure absorption of signal
+          rnnColor = colorSignal;
+          signalStrength = 1.0;
+      } else {
+          // Subsequent steps: Dilution
+          // We give "Recency Bias" -> It remembers 30% of history, 70% of new input (Extreme case for demo)
+          // Or typically RNNs are better than that, but let's show the fading:
+          // Let's say it keeps 80% history, adds 20% noise.
+          // Actually, to show fading, we mix noise IN.
+          
+          // Mix: 75% Current State, 25% New Input (Noise)
+          rnnColor = lerpColor(rnnColor, inputColor, 0.25);
+          
+          // Signal strength decays similarly
+          signalStrength = signalStrength * 0.75; 
+      }
+
+      draw();
+      updateStats();
+
+      if (step < numNodes - 1) {
+          animationId = setTimeout(() => {
+              processStep(step + 1);
+          }, 600); // Wait 600ms per step
+      } else {
+          isRunning = false;
+          playBtn.style.display = "none";
+          resetBtn.style.display = "inline-block";
+      }
+  }
+
+  function startSimulation() {
+      if (isRunning) return;
+      isRunning = true;
+      playBtn.style.display = "none";
+      
+      // Reset state
+      currentStep = -1;
+      rnnColor = { ...colorNoise };
+      signalStrength = 0;
+      updateStats();
+      draw();
+
+      // Start delay
+      setTimeout(() => processStep(0), 500);
+  }
+
+  function reset() {
+      clearTimeout(animationId);
+      isRunning = false;
+      currentStep = -1;
+      rnnColor = { ...colorNoise };
+      signalStrength = 0;
+      
+      playBtn.style.display = "inline-block";
+      resetBtn.style.display = "none";
+      updateStats();
+      draw();
+  }
+
+  playBtn.addEventListener('click', startSimulation);
+  resetBtn.addEventListener('click', reset);
+
+  // Initial draw
+  draw();
+
+})();
+</script>
+</div>
+<!-- RNN Fading Memory Interactive End -->
+    <p>Notice how the red signal (the context from the start) barely survives to the end?</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>Let's see why this ruins our Sentiment Analysis with a specific example. Consider this review:</p>
+    <p><strong>"I can not say that I, despite the great actors, the amazing visuals, and the huge budget, think the movie was good."</strong></p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>The core meaning relies on the relationship between <strong>"not"</strong> (at the start) and <strong>"good"</strong> (at the end).</p>
+    <!-- RNN Sentiment Slider Interactive Start -->
+<div class="interactive-module-container">
+    
+  <!-- Canvas for Text and Gauge -->
+  <div class="canvas-wrapper" style="height: 280px; background: transparent;">
+      <canvas id="sentimentCanvas" width="800" height="280"></canvas>
+  </div>
+  
+  <!-- Controls -->
+  <div class="interactive-controls" style="flex-direction: column; align-items: stretch;">
+      <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #718096; margin-bottom: 5px;">
+          <span>Start</span>
+          <span id="currentWordLabel" style="font-weight: bold; color: #4a5568;">Drag the slider ↘</span>
+          <span>End</span>
+      </div>
+      <input type="range" id="timeSlider" min="0" max="23" value="0" step="1">
+  </div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('sentimentCanvas');
+  const ctx = canvas.getContext('2d');
+  const slider = document.getElementById('timeSlider');
+  const label = document.getElementById('currentWordLabel');
+
+  // The Data
+  const sentence = "I can not say that I, despite the great actors, the amazing visuals, and the huge budget, think the movie was good.";
+  const words = sentence.split(' ');
+  
+  // Manual "Sentiment Profile" to tell the story of the bottleneck
+  // -1 = Negative (Red), 0 = Neutral, 1 = Positive (Green)
+  const sentimentProfile = [
+      0.0,   // I
+      0.0,   // can
+      -0.9,  // not (Strong Negative)
+      -0.8,  // say (Remembering...)
+      -0.6,  // that (Fading...)
+      -0.4,  // I,
+      -0.3,  // despite
+      -0.2,  // the
+      0.3,   // great (Oh look, positive stuff! -0.2 -> 0.3)
+      0.4,   // actors,
+      0.3,   // the
+      0.7,   // amazing (Getting happier)
+      0.75,  // visuals,
+      0.6,   // and
+      0.6,   // the
+      0.8,   // huge
+      0.7,   // budget,
+      0.6,   // think
+      0.6,   // the
+      0.6,   // movie
+      0.6,   // was
+      0.9    // good. (Final Fail: Totally positive)
+  ];
+
+  // Ensure slider matches word count
+  slider.max = words.length - 1;
+
+  // Config
+  const fontSize = 24;
+  const lineHeight = 40;
+  const gaugeRadius = 70;
+  
+  function draw() {
+      // Clear
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const currentIndex = parseInt(slider.value);
+      const currentSentiment = sentimentProfile[currentIndex];
+      
+      // --- 1. Draw Gauge (Right Side) ---
+      const gaugeX = canvas.width - 100;
+      const gaugeY = 100;
+      
+      // Gauge Background Arc
+      ctx.beginPath();
+      ctx.arc(gaugeX, gaugeY, gaugeRadius, Math.PI, 0); // Half circle
+      ctx.lineWidth = 15;
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.stroke();
+      
+      // Gauge Color Arc (Gradient)
+      const grad = ctx.createLinearGradient(gaugeX - gaugeRadius, gaugeY, gaugeX + gaugeRadius, gaugeY);
+      grad.addColorStop(0, "#f56565"); // Red
+      grad.addColorStop(0.5, "#ecc94b"); // Yellow
+      grad.addColorStop(1, "#48bb78"); // Green
+      
+      ctx.beginPath();
+      ctx.arc(gaugeX, gaugeY, gaugeRadius, Math.PI, 0);
+      ctx.strokeStyle = grad;
+      ctx.stroke();
+
+      // Needle
+      const angle = Math.PI + (currentSentiment + 1) * (Math.PI / 2); // Map -1..1 to PI..2PI? No, map -1..1 to PI..0
+      // Correct mapping: -1 -> PI (Left), 0 -> 1.5PI (Up), 1 -> 0 (Right) -> Wait, 0 is 3 o'clock.
+      // Let's stick to standard math: Left is PI, Right is 0 (or 2PI).
+      // Range: -1 (Red/Left) to 1 (Green/Right).
+      // If val is -1, angle = PI. If val is 1, angle = 0.
+      // Formula: PI - ((val + 1) / 2) * PI
+      
+      const needleAngle = Math.PI - ((currentSentiment + 1) / 2) * Math.PI;
+      
+      ctx.save();
+      ctx.translate(gaugeX, gaugeY);
+      ctx.rotate(needleAngle);
+      
+      // Draw Needle
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(10, 0); // Back bit
+      ctx.lineTo(0, -gaugeRadius + 5); // Tip
+      ctx.lineTo(-10, 0);
+      ctx.fillStyle = "#2d3748";
+      ctx.fill();
+      
+      // Pivot circle
+      ctx.beginPath();
+      ctx.arc(0, 0, 8, 0, Math.PI * 2);
+      ctx.fillStyle = "#2d3748";
+      ctx.fill();
+      ctx.restore();
+      
+      // Gauge Label
+      ctx.font = "bold 14px sans-serif";
+      ctx.fillStyle = "#4a5568";
+      ctx.textAlign = "center";
+      ctx.fillText("PREDICTED SENTIMENT", gaugeX, gaugeY + 40);
+      
+      let sentText = "NEUTRAL";
+      let sentColor = "#a0aec0";
+      if (currentSentiment > 0.3) { sentText = "POSITIVE"; sentColor = "#48bb78"; }
+      else if (currentSentiment < -0.3) { sentText = "NEGATIVE"; sentColor = "#f56565"; }
+      
+      ctx.font = "bold 18px sans-serif";
+      ctx.fillStyle = sentColor;
+      ctx.fillText(sentText, gaugeX, gaugeY + 65);
+
+
+      // --- 2. Draw Text (Left Side / Wrap) ---
+      ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      
+      const startX = 20;
+      const startY = 60;
+      const maxWidth = canvas.width - 220; // Leave room for gauge
+      
+      let x = startX;
+      let y = startY;
+      
+      words.forEach((word, index) => {
+          const width = ctx.measureText(word + " ").width;
+          
+          // Line wrap
+          if (x + width > maxWidth) {
+              x = startX;
+              y += lineHeight;
+          }
+          
+          // Highlight current word
+          if (index === currentIndex) {
+              // Draw Box
+              ctx.fillStyle = "#ebf8ff";
+              ctx.strokeStyle = "#4facfe";
+              ctx.lineWidth = 2;
+              
+              // Box coords
+              const pad = 4;
+              ctx.beginPath();
+              ctx.roundRect(x - pad, y - fontSize/2 - pad, width - (pad*2), fontSize + (pad*2), 4);
+              ctx.fill();
+              ctx.stroke();
+              
+              // Update Label below
+              label.innerText = `Processing: "${word}"`;
+              label.style.color = sentColor;
+          } else if (index < currentIndex) {
+               // Already read words
+               ctx.fillStyle = "#718096"; 
+          } else {
+               // Future words
+               ctx.fillStyle = "#cbd5e1";
+          }
+          
+          // Special Color for "not" and "good" to emphasize them visually
+          if (index === 2) ctx.fillStyle = (index > currentIndex) ? "#feb2b2" : "#c53030"; // Red-ish
+          if (index === words.length - 1) ctx.fillStyle = (index > currentIndex) ? "#9ae6b4" : "#2f855a"; // Green-ish
+          
+          // Draw text
+          // If active, ensure contrast
+          if (index === currentIndex) ctx.fillStyle = "#2b6cb0";
+
+          ctx.fillText(word, x, y);
+          
+          x += width;
+      });
+  }
+
+  // Event Listener
+  slider.addEventListener('input', draw);
+
+  // Initial Draw
+  draw();
+
+})();
+</script>
+</div>
+<!-- RNN Sentiment Slider Interactive End -->
+    <p>Did you see that? By the time the model reached the word "good", it had forgotten the "not". It saw "actors", "visuals", and "good" and incorrectly classified the review as Positive.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why is it mathematically difficult for the word 'not' to influence the word 'good' in this architecture?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Because the signal from 'not' has to survive dozens of matrix multiplications and non-linear updates. In deep learning, gradients (signals) tend to vanish over long chains of operations.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>This inability to connect the word "not" with the word "good" because they are far apart is a failure to capture <strong>Long-range Dependencies</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Long-Range Dependencies</h4>
+        <p>Relationships between data points (like words or pixels) that are far apart in the sequence or space but are semantically connected.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <h2>Why This Matters for Vision</h2>
+    <p>You might still be thinking, 'Okay, but images aren't sentences.'</p>
+    <p>Actually, the problem is surprisingly similar. In a Convolutional Neural Network (CNN), a pixel in the top-left corner is very far from a pixel in the bottom-right. If your model processes the image in small local steps (convolutions), it struggles to relate those two distant pixels until very deep in the network.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p>Whether it's words in a book or pixels in a photo, relying on local, sequential, or step-by-step processing limits our ability to see the <strong>Global Context</strong>.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Understanding the failure of RNNs explains why the Transformer (and its Self-Attention mechanism) was invented. We needed a way to stop processing sequentially and start letting every piece of data talk to every other piece instantly.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <p>Before we move on, let's address a common idea that students often have.</p>
+    <div class="faq-section">
+        <h3>Frequently Asked Question</h3>
+        <h4>Why can't we just make the hidden state vector huge? Like, 10,000 numbers long?</h4>
+        <p>Great question! Two reasons:</p>
+        <ol>
+            <li><strong>Computational Cost:</strong> A massive vector means massive weight matrices ($W_h$), making the model incredibly slow to train.</li>
+            <li><strong>Overfitting:</strong> A huge state might just memorize the specific training sentences rather than learning the general rules of language. We need a smarter architecture, not just a bigger bucket.</li>
+        </ol>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following sentences is an RNN most likely to misinterpret due to the bottleneck problem?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is a short sentence. The RNN can easily remember \'fantastic\'.')">The movie was fantastic.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The negative words are clear and consistent throughout. The RNN will likely get this right.')">It was a terrible, boring, and long film.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The negation (\'not\') is at the start, and the sentiment (\'recommend\') is at the end, separated by a long distracting clause.')">I do not, despite the hype and the awards it won last year, recommend this.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Short and simple. No long-range dependency issues here.')">The acting was okay.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(17)" style="display: none;">Continue</div>
+</section>
+
+<section id="section17">
+    <h2>Review and Reflect</h2>
+    <p>In this lesson, we took a detour into Natural Language Processing to identify the flaws of sequential processing.</p>
+    
+    <p>Here is what we covered:</p>
+    <ul>
+        <li><strong>Sequential Processing:</strong> RNNs process data one step at a time, updating a hidden state.</li>
+        <li><strong>The Bottleneck:</strong> Compressing a long history into a single vector leads to information loss.</li>
+        <li><strong>Long-Range Dependencies:</strong> Sequential models struggle to connect distant but related data points (like 'not' ... 'good').</li>
+    </ul>
+    <p>In the next lesson, we will introduce the mechanism that solved this problem by throwing away the hidden state entirely: <strong>Self-Attention</strong>.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 17;
+
+updateProgress();
+// Check if page loaded with all sections already finished (unlikely for linear flow but good safety)
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    
+    if (!nextSectionElement) return;
+    
+    // Hide button used to trigger this
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+
+    // Smooth scroll to the new section
+    setTimeout(() => { 
+        nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    // Reset other choices
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+
+    // Style clicked choice
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+    // Add explanation
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // If correct (or if it's the quiz section), show continue button
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section16') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+// Keyboard navigation (Space/ArrowRight)
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Try LMS integration
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Update these IDs for the new lesson
+                let courseId = 'computer-vision';
+                let pathId = 'generative-adversarial-networks';
+                let moduleId = 'cv-ch21-m1-foundations';
+                let lessonId = 'cv-ch21-l2-rnn-bottleneck'; // Unique ID for Lesson 2
+
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    // lessonId overrides here for standalone testing usually
+                }
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch21-m1-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🤖', '📚'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    
+    setTimeout(() => { 
+        if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); 
+    }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { 
+        if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); 
+    }, 2500);
+}
+
+// Check completion status on load
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+
+    // Check LMS
+    if (window.parent && window.parent.ProgressTracker) {
+        // Mock ID check matching toggleCompleted
+        let lessonId = 'cv-ch21-l2-rnn-bottleneck'; 
+        // ... (simplified logic for LMS check, assuming similar to lesson 1) ...
+    }
+
+    // Check Local Storage
+    const isCompleted = localStorage.getItem('lesson_cv-ch21-m1-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

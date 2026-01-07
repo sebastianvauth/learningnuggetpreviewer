@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Measuring Contrast – Variance & Standard Deviation</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: The Mean Value Trap -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Comparison of Mean Value across different images" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    </div>
+    <h1>Measuring Contrast – Variance & Standard Deviation</h1>
+    <h2>The Mean Value Trap</h2>
+    <p>In the last lesson, we hit a bit of a wall. We discovered that the Mean Value (average brightness) is a useful metric, but it can be easily fooled.</p>
+    
+    
+
+    <p>Recall our 'Stop & Think' moment: a flat gray wall and a chessboard seen from a distance might have the exact same average brightness. But they look completely different! One is smooth; the other is sharp and contrasty.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Calculating the Spread -->
+<section id="section2">
+    <p>If the Mean Value ($m_s$) only tells us the center point of pixel intensities, we are missing a huge part of the story. We need to know how far the pixels wander away from that center.</p>
+    <p>We need to measure the <strong>spread</strong> of the values. In image processing terms, this spread is what we call <strong>Contrast</strong>.</p>
+    
+    <h2>Calculating the Spread</h2>
+    <p>To distinguish between our uniform gray image and the checkerboard, we need to look at the deviation of each pixel from the mean.</p>
+    <p>Let's look at the math. For every pixel $s(x,y)$, we calculate its distance from the mean brightness $m_s$:</p>
+    <p>$$ \text{Deviation} = s(x,y) - m_s $$</p>
+
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Variance & Std Dev Logic -->
+<section id="section3">
+    <p>In the uniform gray image, every pixel is exactly 176. Since the mean is also 176, the deviation is $176 - 176 = 0$. Zero spread.</p>
+    <p>In the checkerboard, however, pixels are either very dark (0) or very bright (255). The deviations are huge! $(-176)$ and $(+79)$.</p>
+    <p>So, simply averaging these deviations would be a problem because the negatives and positives would cancel each other out, leading us back to zero. To fix this, we square the differences.</p>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Mean Square Deviation (MSD)</h4>
+        <p>Also known as <strong>Variance</strong> ($q_s^2$). It is the average of the squared differences from the mean. It quantifies how spread out the pixel values are.</p>
+    </div>
+
+    <p>This gives us the <strong>Variance</strong> (or MSD). Here is the formula:</p>
+    <p>$$ q_s^2 = \frac{1}{M} \sum_{x=0}^{L-1} \sum_{y=0}^{R-1} (s(x,y) - m_s)^2 $$</p>
+    <p>By squaring the differences, we make sure that negative deviations (pixels darker than average) count just as much as positive ones (pixels brighter than average).</p>
+    
+    <p>However, there is a catch. Variance is measured in "squared pixels." That isn't very intuitive. To get back to a unit we understand (intensity levels), we take the square root.</p>
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Standard Deviation ($\sigma_s$)</h4>
+        <p>The square root of the variance. It measures the spread of pixel values in the same units as the pixel intensity itself. High standard deviation implies high contrast.</p>
+    </div>
+    
+    <p>$$ \sigma_s = \sqrt{q_s^2} $$</p>
+    <p>In summary:</p>
+    <ul>
+        <li><strong>Low $\sigma_s$:</strong> Pixels are clustered near the mean (Low Contrast, foggy, flat).</li>
+        <li><strong>High $\sigma_s$:</strong> Pixels are spread far apart (High Contrast, sharp edges, black & white).</li>
+    </ul>
+
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Crunching the Numbers -->
+<section id="section4">
+    <h2>Crunching the Numbers</h2>
+    <p>Let's prove this works with a real calculation. We will use the same 4x4 image patch from the previous lesson.</p>
+    
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="4x4 grid of pixel values" style="width: 100%; max-width: 500px; display: block; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    </div>
+
+    <p>Recall that the Mean ($m_s$) of this patch was approx <strong>74</strong>.</p>
+    <p>To find the Variance ($q_s^2$), we sum the squared differences for each group of pixels:</p>
+    <ul>
+        <li><strong>7 pixels at 0:</strong> $7 \times (0 - 74)^2 = 7 \times 5476 = 38,332$</li>
+        <li><strong>5 pixels at 85:</strong> $5 \times (85 - 74)^2 = 5 \times 121 = 605$</li>
+        <li><strong>3 pixels at 170:</strong> $3 \times (170 - 74)^2 = 3 \times 9216 = 27,648$</li>
+        <li><strong>1 pixel at 255:</strong> $1 \times (255 - 74)^2 = 1 \times 32,761 = 32,761$</li>
+    </ul>
+
+    <p>Now, sum them up and divide by the total number of pixels (16):</p>
+    <p>$$ \text{Sum} = 99,346 $$</p>
+    <p>$$ q_s^2 = \frac{99,346}{16} \approx 6,209.1 $$</p>
+    <p>Finally, take the square root to find the Standard Deviation:</p>
+    <p>$$ \sigma_s = \sqrt{6,209.1} \approx 78.8 $$</p>
+    <p>A standard deviation of <strong>78.8</strong> is quite high for an 8-bit image (0-255). This tells us mathematically that this small patch has a very high contrast, spanning from pitch black to pure white.</p>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following images would likely have the lowest Standard Deviation?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This would have high contrast (deviation) between the black background and bright stars.')">A photo of a starry night sky (black sky, bright stars)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Black and white stripes create maximum deviation from the mean gray.')">A photo of a zebra</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Bright highlights and dark shadows create high variance.')">A photo of a distinct face in bright sunlight</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! In a foggy image, everything is a similar shade of gray. The pixels are clustered tightly around the mean, resulting in a low Standard Deviation.')">A photo of heavy fog over a lake</div>
+        </div>
+    </div>
+    
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(5)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 5: Visualizing Contrast & Review -->
+<section id="section5">
+    <h2>Visualizing Contrast</h2>
+    <p>Let's see how changing the pixel spread changes the image appearance in real-time.</p>
+    
+        <!-- START INTERACTIVE MODULE -->
+<div class="interactive-wrapper">
+    <div class="interactive-columns">
+        <!-- Left Col: Image -->
+        <div class="canvas-container">
+            <canvas id="imgCanvas" width="250" height="250"></canvas>
+            <div class="graph-label">Processed Image</div>
+        </div>
+  
+        <!-- Right Col: Controls & Graph -->
+        <div class="controls-container">
+            <div class="stat-box">
+                <span>Mean Value ($m_s$):</span>
+                <span class="stat-value" id="meanValDisplay">127</span>
+            </div>
+            <div class="stat-box">
+                <span>Std Deviation ($\sigma_s$):</span>
+                <span class="stat-value" id="stdDevDisplay">--</span>
+            </div>
+            
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>Contrast Factor</span>
+                    <span id="contrastValDisplay" style="color:#667eea">1.0x</span>
+                </div>
+                <input type="range" id="contrastSlider" min="0" max="3" step="0.1" value="1">
+            </div>
+  
+            <!-- Live Graph -->
+            <div class="canvas-container">
+                <canvas id="graphCanvas" width="260" height="120"></canvas>
+                <div class="graph-label">Graph: Std Dev vs. Contrast</div>
+            </div>
+        </div>
+    </div>
+  </div>
+  
+  <script>
+  (function() {
+    // 1. Setup Canvas and Contexts
+    const imgCanvas = document.getElementById('imgCanvas');
+    const ctx = imgCanvas.getContext('2d');
+    const graphCanvas = document.getElementById('graphCanvas');
+    const graphCtx = graphCanvas.getContext('2d');
+    
+    const slider = document.getElementById('contrastSlider');
+    const contrastDisplay = document.getElementById('contrastValDisplay');
+    const stdDevDisplay = document.getElementById('stdDevDisplay');
+    const meanValDisplay = document.getElementById('meanValDisplay');
+  
+    // 2. Generate Base Image (Synthetic Portrait)
+    // We create an offscreen canvas to hold the original pixel data
+    const size = 250;
+    const originalData = new Float32Array(size * size);
+    let globalMean = 0;
+  
+    function generateImage() {
+        let sum = 0;
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                // Normalize coordinates -1 to 1
+                let nx = (x / size) * 2 - 1;
+                let ny = (y / size) * 2 - 1;
+                
+                // Create a "Face" like distribution: 
+                // A bright center blob (face)
+                let dist = Math.sqrt(nx*nx + ny*ny);
+                let face = Math.max(0, 1 - dist); 
+                
+                // Add some noise (texture)
+                let noise = Math.random() * 0.2;
+                
+                // Add a gradient (lighting)
+                let light = (nx + 1) * 0.2;
+  
+                // Combine: Base gray (0.3) + Face blob + lighting + noise
+                let val = 0.2 + (face * 0.6) + light + noise;
+                
+                // Scale to 0-255
+                val = Math.floor(val * 255);
+                val = Math.max(0, Math.min(255, val));
+                
+                originalData[y * size + x] = val;
+                sum += val;
+            }
+        }
+        globalMean = sum / (size * size);
+        meanValDisplay.textContent = globalMean.toFixed(1);
+    }
+  
+    // 3. Image Processing Logic
+    function update() {
+        const factor = parseFloat(slider.value);
+        contrastDisplay.textContent = factor.toFixed(1) + 'x';
+  
+        const imageData = ctx.createImageData(size, size);
+        const data = imageData.data; // RGBA array
+        
+        let sumSqDiff = 0;
+        let count = size * size;
+  
+        for (let i = 0; i < count; i++) {
+            let oldVal = originalData[i];
+            
+            // Contrast Formula: New = Mean + Factor * (Old - Mean)
+            let deviation = oldVal - globalMean;
+            let newVal = globalMean + (factor * deviation);
+            
+            // Clipping (essential for visual accuracy)
+            if (newVal > 255) newVal = 255;
+            if (newVal < 0) newVal = 0;
+            
+            // Calculate Variance parts on the fly
+            let currentDev = newVal - globalMean;
+            sumSqDiff += (currentDev * currentDev);
+  
+            // Set Pixel (Grayscale)
+            let pixelIndex = i * 4;
+            data[pixelIndex] = newVal;     // R
+            data[pixelIndex + 1] = newVal; // G
+            data[pixelIndex + 2] = newVal; // B
+            data[pixelIndex + 3] = 255;    // Alpha
+        }
+  
+        // Render Image
+        ctx.putImageData(imageData, 0, 0);
+  
+        // Calculate Stats
+        const variance = sumSqDiff / count;
+        const stdDev = Math.sqrt(variance);
+        stdDevDisplay.textContent = stdDev.toFixed(1);
+  
+        // Update Graph
+        drawGraph(factor, stdDev);
+    }
+  
+    // 4. Graph Drawing Logic
+    function drawGraph(currentFactor, currentStdDev) {
+        const w = graphCanvas.width;
+        const h = graphCanvas.height;
+        
+        // Clear
+        graphCtx.clearRect(0, 0, w, h);
+        
+        // Background Grid
+        graphCtx.strokeStyle = '#e2e8f0';
+        graphCtx.lineWidth = 1;
+        graphCtx.beginPath();
+        graphCtx.moveTo(0, h/2); graphCtx.lineTo(w, h/2); // Mid line
+        graphCtx.stroke();
+  
+        // Plot Curve
+        // We simulate the curve by calculating std dev for factors 0.0 to 3.0
+        graphCtx.beginPath();
+        graphCtx.strokeStyle = '#667eea';
+        graphCtx.lineWidth = 2;
+  
+        for (let x = 0; x < w; x+=5) {
+            // Map x pixels to Factor (0 to 3)
+            let f = (x / w) * 3;
+            
+            // Theoretical Linear Std Dev (Before Clipping): StdNew = Factor * StdOld
+            // But we want the visual curve (flattening at top). 
+            // Approximation: Sigmoid-ish or linear then clamp.
+            // For visualization, simple linear growth is usually what we teach, 
+            // but let's show the "clipping effect" if we want to be fancy. 
+            // For this lesson, let's keep it simple: Map current StdDev relative to max.
+            
+            // Let's just plot the linear relationship shown in the lesson math:
+            // sigma_new = factor * sigma_old.
+            // Wait, the lesson implies linear growth. But clipping stops it.
+            // Let's rely on the real calculated dot position.
+            
+            // Draw a reference line (Linear)
+            // Initial StdDev (at factor 1) is approx 45.
+            // Max Y is 100.
+            let linearY = h - ((f * 45) / 140 * h); 
+            if (x===0) graphCtx.moveTo(x, linearY);
+            else graphCtx.lineTo(x, linearY);
+        }
+        // graphCtx.stroke(); // Uncomment to see theoretical linear line
+  
+        // Draw Axes Labels
+        graphCtx.fillStyle = '#718096';
+        graphCtx.font = '10px sans-serif';
+        graphCtx.fillText("0", 5, h-5);
+        graphCtx.fillText("Factor 3.0", w-50, h-5);
+  
+        // Draw Current Point
+        // X = map factor 0..3 to 0..w
+        let px = (currentFactor / 3) * w;
+        // Y = map stdDev 0..140 to h..0 (140 is arbitrary max for visualization)
+        let py = h - (currentStdDev / 140 * h);
+  
+        // Draw connection line to axis
+        graphCtx.setLineDash([2, 2]);
+        graphCtx.strokeStyle = '#cbd5e1';
+        graphCtx.beginPath();
+        graphCtx.moveTo(px, h);
+        graphCtx.lineTo(px, py);
+        graphCtx.lineTo(0, py);
+        graphCtx.stroke();
+        graphCtx.setLineDash([]);
+  
+        // Draw Dot
+        graphCtx.beginPath();
+        graphCtx.arc(px, py, 6, 0, Math.PI * 2);
+        graphCtx.fillStyle = '#eb4034'; // Red dot
+        graphCtx.fill();
+        graphCtx.strokeStyle = '#fff';
+        graphCtx.lineWidth = 2;
+        graphCtx.stroke();
+    }
+  
+    // Initialize
+    generateImage();
+    update();
+    
+    // Listeners
+    slider.addEventListener('input', update);
+  
+  })();
+  </script>
+  <!-- END INTERACTIVE MODULE -->
+
+    <p>Use the slider above. Notice that as you increase the contrast, the mid-tones disappear. The image becomes more binary (black and white), and the Standard Deviation value shoots up.</p>
+    
+    <div class="visual-placeholder">
+        <img src="images/3.jpg" alt="Comic illustrating Variance and Standard Deviation" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    </div>
+
+    <p>Think of it like this comic. The average (mean) might be the same in both scenarios, but the experience (texture/contrast) is wildly different depending on the variance.</p>
+
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If you take an image and apply a filter that makes every single pixel exactly equal to the Mean Value (e.g., every pixel becomes 128), what happens to the Standard Deviation?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. That is the intensity value, not the deviation.')">It becomes 128</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! If every pixel equals the mean, the difference (s(x,y) - m) is always 0. Therefore, the sum is 0, and the Standard Deviation is 0.')">It becomes 0</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. You have removed all contrast.')">It stays the same</div>
+        </div>
+    </div>
+
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Standard Deviation is the 'scaling factor' for neural networks. When we feed images into an AI, we usually want them to have a standard deviation of 1. This process, called Standardization, forces different images into a similar numerical range so the AI can learn efficiently.</p>
+    </div>
+
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <h4>Why do we square the differences? Why not just take the absolute value?</h4>
+        <p>Great question! Taking the absolute value (Mean Absolute Deviation) is valid, but squaring the differences (Variance) is preferred for two reasons:</p>
+        <ol style="margin-left: 1.5rem;">
+            <li>It penalizes large outliers more heavily (an error of 10 becomes 100, while an error of 2 becomes 4).</li>
+            <li>The squared function is mathematically smooth and differentiable, which makes the calculus used in optimizing machine learning algorithms much easier.</li>
+        </ol>
+    </div>
+
+    <h2>Review and Reflect</h2>
+    <p>We have solved the mystery of the 'Mean Value Trap.'</p>
+    <p>We learned that while the Mean tells us how bright an image is, the <strong>Standard Deviation</strong> tells us how much contrast it has.</p>
+    <ul>
+        <li><strong>Variance ($q_s^2$):</strong> The average squared distance from the mean.</li>
+        <li><strong>Standard Deviation ($\sigma_s$):</strong> The square root of variance, describing contrast in pixel units.</li>
+    </ul>
+    <p>By combining Mean and Standard Deviation, we can distinguish between a gray wall and a checkerboard, even if they share the same average brightness.</p>
+    <p>But we are still describing the image with just two numbers. Is that enough to reconstruct the image? Definitely not. In the next lesson, we will look at the <strong>Histogram</strong>, which gives us the complete fingerprint of the image's intensity distribution.</p>
+
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 5;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic for Section 4 Continue button reveal
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section4') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs aligned to the Image Characteristics track
+                let courseId = 'computer-vision';
+                let pathId = 'image-characteristics';
+                let moduleId = 'cv-ch07-l2-variance-contrast';
+                let lessonId = 'cv-ch07-l2-main';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch07-l2-main_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    // Check local storage or parent tracker
+    const isCompleted = localStorage.getItem('lesson_cv-ch07-l2-main_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

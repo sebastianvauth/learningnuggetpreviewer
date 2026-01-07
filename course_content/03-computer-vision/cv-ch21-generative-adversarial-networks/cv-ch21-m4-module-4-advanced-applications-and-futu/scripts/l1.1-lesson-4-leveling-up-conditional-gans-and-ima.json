@@ -1,0 +1,108 @@
+{
+    "lesson": {
+      "title": "Leveling Up: Conditional GANs and Image Translation",
+      "sections": [
+        {
+          "title": "Intro Section: Taking Control of Creation",
+          "content": "# Leveling Up: Conditional GANs and Image Translation",
+          "image": {
+            "description": "A cartoon showing a chaotic artist robot (the standard Generator) flinging paint randomly. Next to it, a calm, focused artist robot (a Conditional Generator) is taking a written order from a customer that says 'A cat, please!' and is carefully painting a cat."
+          },
+          "text": "Our standard GAN is a powerful but wild artist. It can create beautiful images, but we have no control over *what* it decides to create. It's like having a magical painting machine that only has a 'surprise me' button. What if we want to be more specific? What if we want to ask for a '7', or turn a boring map into a satellite photo, or transform a summer scene into a winter wonderland? It's time to give our Generator some directions."
+        },
+        {
+          "title": "Conditional GANs (cGANs): Giving Our GAN a Command",
+          "content": "The first step in controlling our GAN is remarkably simple. Instead of just giving the Generator random noise, we give it the noise **plus** a piece of information about what we want. This extra information is called a **condition** or a **label**.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "Crucially, we don't just give this label to the Generator. We also give it to the Discriminator. This changes the game:\n- **The Generator's new job:** 'Given this noise AND the label 'cat', create a convincing cat.'\n- **The Discriminator's new job:** 'Given this image AND the label 'cat', is this a realistic picture of a cat?'",
+              "interactive": {
+                "description": "An interactive diagram based on Figure 21.5. On the left is a panel with buttons for digits 0 through 9.\n- When a student clicks the '7' button, a one-hot vector `[0,0,0,0,0,0,0,1,0,0]` is highlighted. This vector is shown being fed, alongside random noise, into the 'Generator' block.\n- The same '7' vector is also shown being fed into the 'Discriminator' block.\n- The Generator's output grid updates to show a variety of newly generated images, all of which are variations of the digit '7'. The student can click other buttons ('2', '5', etc.) to see the condition and the generated output change in real-time."
+              },
+              "textAfterInteractive": "By providing this condition to both players, we force the Generator to create images that are not just realistic, but realistic *with respect to the given label*. We've given our artist a specific assignment.",
+              "buildYourVocab": {
+                "term": "Conditional GAN (cGAN)",
+                "definition": "A type of GAN that incorporates additional information (a condition, such as a class label) into both the Generator and Discriminator, allowing for control over the generation process."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Pix2Pix: Image-to-Image Translation with Paired Data",
+          "content": "What if our 'condition' isn't just a simple label, but an entire, complex image? This is the powerful idea behind a family of models known as **Pix2Pix**. They are designed for **image-to-image translation** tasks.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "Imagine you want to turn architectural blueprints into photorealistic images of buildings. Or turn satellite photos into street maps. Or automatically colorize black and white photos. Pix2Pix can learn these mappings!",
+              "image": {
+                "description": "An engaging before-and-after slider interactive. The left side shows a semantic segmentation map of a street scene (e.g., road is purple, cars are blue, buildings are red). As the user drags the slider to the right, it reveals a photorealistic version of the exact same scene. A caption reads: 'Pix2Pix: Translating labels to photos.'"
+              },
+              "textAfterInteractive": "There's one big catch, however. To train a Pix2Pix model, you need a dataset of **perfectly paired images**. For every blueprint, you need a photo of the *exact same building* from the *exact same angle*. For every satellite photo, you need its corresponding map. This kind of paired data can be very expensive or even impossible to collect.",
+              "checkYourUnderstanding": {
+                "question": "If you wanted to build a model that turns sketches of shoes into product photos, and you had a dataset of thousands of sketches each with its corresponding final photo, which model would be a good choice?",
+                "answer": "Pix2Pix would be an excellent choice because you have a large dataset of paired input (sketch) and output (photo) images."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "CycleGAN: The Magic of Unpaired Translation",
+          "content": "So, what do we do when we don't have paired data? You probably have thousands of photos of horses and thousands of photos of zebras, but it's unlikely you have a single photo of a horse and a zebra in the exact same pose. This is where the magic of **CycleGAN** comes in.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "CycleGAN's brilliant insight is that even without direct pairs, we can enforce a rule: if you translate from domain A to domain B, and then translate back from B to A, you should get back where you started! This is called **cycle-consistency loss**.",
+              "whyItMatters": {
+                "text": "CycleGAN was a game-changer. By removing the need for paired data, it unlocked a vast range of creative possibilities that were previously out of reach. It made tasks like style transfer (photo ↔ Monet painting), object transfiguration (horse ↔ zebra), and season transfer (summer ↔ winter) practical for the first time."
+              },
+              "visualAid": {
+                "description": "An animated diagram illustrating the CycleGAN process. \n1. A photo of a horse (from 'Domain A') enters a box labeled 'G_AtoB'. A photo of a zebra comes out. \n2. This *fake* zebra immediately enters a second box labeled 'G_BtoA'. A reconstructed horse photo comes out. \n3. The original horse and the reconstructed horse are shown side-by-side with a red arrow between them labeled 'Cycle-Consistency Loss'. The caption reads: 'The reconstructed horse should look identical to the original!'\n4. The animation then runs in reverse: A real zebra from 'Domain B' is translated to a fake horse and then back to a reconstructed zebra, again with a loss calculated between the original and the reconstruction."
+              },
+              "textAfterInteractive": "The model has two Generators: one that turns horses into zebras (G_AtoB), and one that turns zebras into horses (G_BtoA). By training them to not only create realistic images but also to satisfy this cycle-consistency rule, the network learns the underlying mapping between the two domains without ever seeing a single matched pair.",
+              "buildYourVocab": {
+                "term": "Cycle-Consistency Loss",
+                "definition": "A loss function used in models like CycleGAN that enforces the idea that a translated sample, when translated back to its original domain, should match the original input. For example, `photo -> painting -> photo` should result in the original photo."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "Let's recap how we gave our GANs a sense of direction.",
+          "image": {
+            "description": "A triptych showing the evolution of GANs. Left: The wild artist GAN throwing paint. Center: A cGAN taking a specific order ('a 3!'). Right: A CycleGAN looking at a photo of a summer day and painting a winter version of it."
+          },
+          "text": "In this lesson, we moved beyond basic GANs to architectures that offer control and tackle complex translation tasks. We learned about:\n- **Conditional GANs (cGANs):** Which use labels to direct the generation process, allowing us to ask for specific outputs.\n- **Pix2Pix:** An architecture for image-to-image translation that requires perfectly aligned, **paired** training data.\n- **CycleGAN:** A revolutionary architecture that performs image-to-image translation with **unpaired** data by using a clever cycle-consistency loss.\n\nThese advancements made GANs dramatically more useful and versatile. But the story doesn't end here. In our final lesson, we'll look at the current landscape of generative models and reflect on the incredible legacy of GANs.",
+          "testYourKnowledge": {
+            "question": "You want to create a model that turns your personal vacation photos into paintings in the style of Van Gogh. You have many of your photos and many images of Van Gogh's paintings. What is the most appropriate architecture for this task?",
+            "options": [
+              {
+                "option": "A standard GAN, because it's the simplest.",
+                "explanation": "Incorrect. A standard GAN would learn to generate either vacation photos or Van Gogh paintings, but it wouldn't know how to translate between them.",
+                "correct": false
+              },
+              {
+                "option": "Pix2Pix, because it's an image-to-image translation task.",
+                "explanation": "Incorrect. Pix2Pix would require that for every one of your vacation photos, you have an existing painting by Van Gogh of that exact same scene, which is impossible. You have unpaired data.",
+                "correct": false
+              },
+              {
+                "option": "CycleGAN, because you have two collections of unpaired images.",
+                "explanation": "Correct! CycleGAN is perfectly designed for this. It can learn the mapping from 'photo domain' to 'Van Gogh domain' using two separate, unpaired collections of images.",
+                "correct": true
+              },
+              {
+                "option": "A Conditional GAN (cGAN), because you can use 'Van Gogh' as the condition.",
+                "explanation": "Incorrect. A cGAN could generate new, random Van Gogh-style paintings if you give it the label 'Van Gogh', but it wouldn't know how to apply that style to a specific input photo.",
+                "correct": false
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }

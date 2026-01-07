@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Data Hunger Games – Inductive Bias</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/1.jpg" alt="Cartoon of a data-hungry ViT robot staring at a tiny stack of images while a confident CNN robot efficiently sorts through a larger pile" loading="lazy">
+            <figcaption>Vision Transformers begin as blank slates, while CNNs arrive with inductive biases that make small datasets feel plentiful.</figcaption>
+        </figure>
+    </div>
+    <h1>The Data Hunger Games – Inductive Bias</h1>
+    <h2>Introduction: The Blank Slate</h2>
+    <p>In the last lesson, we successfully transformed an image into a sequence of patches, effectively teaching a Transformer to digest visual data. But here is the catch: if you take that standard Vision Transformer (ViT) and train it on a "regular" dataset like ImageNet-1k (which has 1.3 million images), it actually performs <strong>worse</strong> than a standard CNN like ResNet.</p>
+    
+    <p>It seems counterintuitive. Transformers are more powerful and flexible, so why do they struggle with smaller datasets? The answer lies in how much 'innate knowledge' the model starts with. This concept is known as <strong>Inductive Bias</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>Born with Knowledge: CNNs</h2>
+    <p>To understand why ViTs are so data-hungry, we first need to look at what they are competing against. Convolutional Neural Networks (CNNs) are not 'blank slates'. They are architecturally designed with two very specific assumptions about images:</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p><strong>1. Locality:</strong> CNNs use small kernels (e.g., $3 \times 3$). This assumes that pixels right next to each other are highly related, while distant pixels are not immediately important.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p><strong>2. Translation Equivariance:</strong> Because the same kernel slides across the entire image, a feature (like a vertical edge or a cat's eye) is detected regardless of where it appears in the image. $(f * g)(x+a) = (f * g)(x)$.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>These assumptions are called <strong>Inductive Biases</strong>. They are like 'cheat codes' hard-wired into the network structure. The CNN doesn't need to learn that a cat in the top-left is the same as a cat in the bottom-right; the architecture guarantees it.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Inductive Bias</h4>
+        <p>The set of assumptions a model makes about the underlying data structure to facilitate learning. For example, CNNs assume local spatial correlation and translation invariance.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>The Blank Slate: Transformers</h2>
+    <p>Now, consider the Vision Transformer. It treats the image as a sequence of flattened patches. The self-attention mechanism connects every patch to every other patch from the very first layer.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>Because of this flexibility, the ViT does <strong>not</strong> assume Locality or Translation Equivariance. It has much less Inductive Bias. It has to <strong>learn</strong> from scratch that:</p>
+    <ul>
+        <li>"Hey, patch 1 is actually a neighbor of patch 2."</li>
+        <li>"The texture in this corner is the same kind of object as the texture in that corner."</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>Since it has to learn these fundamental spatial rules purely from the data, it needs significantly more examples to reach the same level of performance as a CNN. It is playing catch-up.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If Inductive Bias helps CNNs learn faster on small data, is it always a good thing? Why might having strict assumptions be a disadvantage?</h4>
+        <div id="cuy-bias-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Strict assumptions limit the model. If the data doesn't fit the assumptions (or if there are complex, long-range relationships that violate locality), the model hits a performance ceiling. Less bias means a higher potential ceiling, provided you have enough data to fill the gap.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-bias-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <h2>The Crossover Point</h2>
+    <p>So, is the ViT a failure? Absolutely not. It just changes the rules of the game. Let's look at how performance scales with data size.</p>
+    <div class="visual-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/2.jpg" alt="Line chart showing ResNet accuracy starting higher but plateauing while ViT accuracy climbs steadily and overtakes it beyond roughly one hundred million images" loading="lazy">
+            <figcaption>As datasets scale into the hundreds of millions, ViT accuracy keeps climbing while traditional CNNs plateau.</figcaption>
+        </figure>
+    </div>
+    <p>This graph illustrates the trade-off perfectly. On 'small' datasets like ImageNet-1k (1M images), the CNN wins because of its efficient Inductive Bias. But as we feed the models massive datasets (like Google's JFT-300M), the CNN plateaus—its rigid assumptions become a bottleneck.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>The ViT, lacking those constraints, keeps improving. It learns more complex, global patterns that the CNN simply cannot see.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <h2>The Superpower: Global Receptive Field</h2>
+    <p>What are these 'complex patterns' that ViT captures? It stems from the <strong>Global Receptive Field</strong>.</p>
+    <p>In a CNN, a neuron in the first layer only sees a tiny $3 \times 3$ window. It takes many layers of stacking for a neuron to 'see' the whole image. In a ViT, via Self-Attention, every patch can attend to every other patch immediately.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Global Receptive Field</h4>
+        <p>The ability of a model to relate parts of the input across the entire spatial extent of the image, regardless of distance, typically achievable in a single layer of a Transformer.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>We can see this superpower in action with <strong>DINO</strong> (a method for training ViTs without labels). Look at the attention maps below.</p>
+    <div class="visual-placeholder">
+        <figure class="lesson-figure">
+            <img src="images/3.jpg" alt="DINO attention map highlighting a boat in a harbor, demonstrating how a ViT segments the object without supervision" loading="lazy">
+            <figcaption>DINO’s attention map zeroes in on the boat instantly, proving how a global receptive field teases objects out of cluttered scenes.</figcaption>
+        </figure>
+    </div>
+    <p>The model automatically learned to separate the object from the background because it looks at the global context of the image. It understands 'object-ness' better than CNNs, which focus more on local textures.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <h2>Scenario: X-Ray Vision</h2>
+    <p>Let's apply this to a real-world problem to check your intuition.</p>
+    <div class="test-your-knowledge">
+        <h3>Scenario Challenge</h3>
+        <h4>You are a medical researcher. You have a dataset of 2,000 rare lung X-rays and you need to build a classifier to detect a specific disease. You have limited compute and time. Based on what you know about Inductive Bias, which architecture should you choose to train from scratch?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. Remember, ViTs are \'data hungry\'. With only 2,000 images, a ViT trained from scratch will likely fail to learn the basic spatial structures and will overfit or underperform.')">A Vision Transformer (ViT)</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! With a tiny dataset like 2,000 images, the CNN\'s Inductive Bias (Locality and Translation Equivariance) is a lifesaver. It already knows how to process visual structures, so it requires much less data to learn the specific features of the disease.')">A Convolutional Neural Network (CNN)</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <h2>Summary & FAQ</h2>
+    <p>Choosing between a CNN and a ViT is often a decision based on your resource constraints—specifically, data.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Understanding Inductive Bias prevents you from using the 'latest and greatest' tool in the wrong context. Using a pure ViT on a small dataset without adjustments is a recipe for poor performance.</p>
+    </div>
+    <h3>Frequently Asked Questions</h3>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <p><strong>Q: Does this mean I can never use ViT on small datasets?</strong></p>
+    <p><strong>A:</strong> No! You can use <strong>Transfer Learning</strong>. You can take a ViT that has already been pre-trained on a massive dataset (like JFT-300M or ImageNet-21k). It has already gone through the 'data hungry' phase and learned the spatial rules. You can then fine-tune it on your small X-ray dataset with excellent results.</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>In this lesson, we explored the trade-off between the 'hard-coded' wisdom of CNNs and the flexible potential of Vision Transformers.</p>
+    <p>We learned that:</p>
+    <ul>
+        <li><strong>Inductive Bias</strong> (Locality, Translation Equivariance) helps CNNs learn efficiently on smaller data.</li>
+        <li><strong>ViTs</strong> lack this bias, making them <strong>data-hungry</strong>, but they scale better on massive datasets due to their <strong>Global Receptive Field</strong>.</li>
+        <li>For small data tasks, a CNN (or a pre-trained ViT) is usually the safer bet.</li>
+    </ul>
+    <p>In the next lesson, we will look at the <strong>Swin Transformer</strong>, an architecture designed to bring the best of both worlds—CNN-like hierarchy and Transformer flexibility—together.</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following best describes the relationship between dataset size and ViT performance compared to CNNs?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. On small datasets, ViTs often underperform due to a lack of inductive bias.')">ViT always outperforms CNNs regardless of data size.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. While CNNs are better on small data, their performance tends to plateau on massive datasets where ViTs continue to improve.')">CNNs always outperform ViTs because of their inductive bias.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. ViTs need large amounts of data to learn spatial relationships, but once they do, their global receptive field allows them to surpass CNNs.')">ViTs underperform on small data but outperform CNNs on massive data.</div>
+        </div>
+    </div>
+    
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Default placeholders - actual IDs would be dynamically injected in a real LMS
+                let courseId = 'computer-vision';
+                let pathId = 'vision-transformers';
+                let moduleId = 'cv-vit-advanced';
+                let lessonId = 'cv-vit-inductive-bias';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv_inductive_bias_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check LMS status
+    if (window.parent && window.parent.ProgressTracker) {
+        // ... (logic to check progress from parent would go here)
+    }
+    
+    const isCompleted = localStorage.getItem('lesson_cv_inductive_bias_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

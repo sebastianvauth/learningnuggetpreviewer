@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Hunting for Edges (Sobel and Gradients)</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: THE MYSTERY OF BOUNDARIES -->
+<section id="section1" class="visible">
+    <img src="images/1.jpg" alt="Reality vs. Computer Representation: A coin on a dark background contrasted with its edge-detected circular outline">
+    <h1>Hunting for Edges (Sobel and Gradients)</h1>
+    <h2>The Mystery of Boundaries</h2>
+    <p>Imagine looking at a simple photo of a coin sitting on a dark table. To you, the boundary between the coin and the table is obvious. Your brain instantly recognizes the shape.</p>
+    
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>But to a computer, that image is just a massive grid of numbers—pixels ranging from 0 to 255. The computer doesn't know what a 'coin' is. So, how does it figure out where the table ends and the coin begins?</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>The answer lies in detecting changes. In computer vision, an <strong>Edge</strong> is defined as a significant local change in image intensity.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>Think of an image as a terrain map. A flat color is a plateau. A gradual shadow is a gentle slope. But an edge? An edge is a cliff—a sudden drop or jump in brightness values.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Gradient</h4>
+        <p>In image processing, the gradient measures the directional change in the intensity or color in an image. It tells us how fast pixel values are changing and in which direction.</p>
+    </div>
+    <p>To find these cliffs, we need a tool that measures the steepness of the terrain. We call this the <strong>Gradient</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 2: THE SOBEL OPERATOR -->
+<section id="section5">
+    <h2>The Sobel Operator</h2>
+    <p>In previous lessons, we used kernels to blur or sharpen. Now, we will use a kernel designed specifically to mathematically hunt down these gradients. This is the <strong>Sobel Filter</strong> (or Sobel Operator).</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>The Sobel Operator is actually a dynamic duo. It uses two separate \(3 \times 3\) kernels to find edges in two different directions.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>First, meet <strong>\(H_x\)</strong>. This kernel is an expert at finding <strong>Vertical Edges</strong>.</p>
+    <img src="images/2.jpg" alt="H_x Kernel Matrix diagram: Detects vertical edges by comparing left to right for each center pixel">
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>Let's break down the math inside \(H_x\):</p>
+    <p>$$ H_x = \begin{pmatrix} -1 & 0 & 1 \\ -2 & 0 & 2 \\ -1 & 0 & 1 \end{pmatrix} $$</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>Notice the pattern? The right column is positive (\(1, 2, 1\)) and the left column is negative (\(-1, -2, -1\)). When we slide this over an image, it subtracts the pixels on the left from the pixels on the right.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>If the left and right neighbors are identical (a flat wall), the result is \(0\). But if the right side is bright and the left is dark, the result is a large positive number. That's a vertical edge!</p>
+    <div class="stop-and-think">
+        <h3>Stop and Think</h3>
+        <h4>Look at the center row of \(H_x\): \([-2, 0, 2]\). Why do you think the middle row uses 2 and -2 instead of 1 and -1?</h4>
+        <div id="sat-sobel-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> The 2 gives more weight to the pixels directly next to the center pixel. This effectively incorporates a bit of 'Gaussian smoothing' into the edge detection, making it less sensitive to random noise.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('sat-sobel-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>Next, meet the partner, <strong>\(H_y\)</strong>. This kernel looks for <strong>Horizontal Edges</strong>.</p>
+    <img src="images/3.jpg" alt="H_y Kernel Matrix diagram: Detects horizontal edges by comparing the pixel row below to the pixel row above">
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>$$ H_y = \begin{pmatrix} -1 & -2 & -1 \\ 0 & 0 & 0 \\ 1 & 2 & 1 \end{pmatrix} $$</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>This is simply \(H_x\) rotated by 90 degrees. It compares the bottom neighbors against the top neighbors to find horizontal lines.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 3: DECOMPOSING THE IMAGE -->
+<section id="section14">
+    <h2>Decomposing the Image</h2>
+    <p>When we run these two kernels over an image, we don't get a single 'edge image' immediately. We get two separate component images.</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <p>Let's look at an example using a portrait photo.</p>
+    <img src="images/4.jpg" alt="Comparison of Original Face Image, H_x (Gradient X) Output, and H_y (Gradient Y) Output">
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <p>The output of applying \(H_x\) is called the horizontal gradient image, \(G_x\). The output of \(H_y\) is the vertical gradient image, \(G_y\).</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If you applied the \(H_y\) (Horizontal) filter to an image of a perfectly vertical pole, what would the result look like?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. \\(H_y\\) looks for changes from top to bottom. A vertical pole looks the same as you move down it.')">A bright white line</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Since the pixel values don\'t change as you move vertically down the pole, the top-minus-bottom difference is zero.')">Mostly black/zero</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Unlikely, unless the pole has a specific texture.')">A checkerboard pattern</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-check1" onclick="showNextSection(17)" style="display: none;">Continue</div>
+</section>
+
+<section id="section17">
+    <p>So we have the pieces of the puzzle, but we need to put them together to see the full outline.</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- SECTION 4: MAGNITUDE AND ORIENTATION -->
+<section id="section18">
+    <h2>Magnitude and Orientation</h2>
+    <p>To reconstruct the complete edge map, we need to combine \(G_x\) and \(G_y\). We can treat these as vectors.</p>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <p>At every single pixel, we have a 'Vertical Strength' (\(G_y\)) and a 'Horizontal Strength' (\(G_x\)). To find the total strength of the edge, we use the Pythagorean theorem.</p>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<section id="section20">
+    <p>The <strong>Gradient Magnitude</strong> (\(G\)) is calculated as:</p>
+    <p>$$ G = \sqrt{G_x^2 + G_y^2} $$</p>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<section id="section21">
+    <p>This formula gives us the total intensity of the edge, regardless of its direction. This creates the final, glowing edge map we usually see.</p>
+    <div class="continue-button" onclick="showNextSection(22)">Continue</div>
+</section>
+
+<section id="section22">
+    <p>But we can go further! We can also calculate exactly which way the edge is pointing using trigonometry. This is the <strong>Gradient Orientation</strong> (\(\theta\)):</p>
+    <div class="continue-button" onclick="showNextSection(23)">Continue</div>
+</section>
+
+<section id="section23">
+    <p>$$ \theta = \text{atan2}(G_y, G_x) $$</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Knowing the orientation is crucial for advanced algorithms like Canny Edge Detection, which traces along the edge direction to connect broken lines.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(24)">Continue</div>
+</section>
+
+<section id="section24">
+    <p>Let's try to visualize how these two values work together.</p>
+    <div class="interactive-container" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; max-width: 600px; margin: 0 auto;">
+    
+        <!-- Canvas Area -->
+        <div style="position: relative; width: 300px; height: 300px; margin: 0 auto;">
+            <canvas id="compassCanvas" width="300" height="300" style="width: 100%; height: 100%; border-radius: 50%; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); background: white;"></canvas>
+            <!-- Overlay Labels for Axes -->
+            <div style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); font-size: 0.8rem; color: #64748b; font-weight: bold;">+Gx</div>
+            <div style="position: absolute; top: 50%; left: 10px; transform: translateY(-50%); font-size: 0.8rem; color: #64748b; font-weight: bold;">-Gx</div>
+            <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: #64748b; font-weight: bold;">+Gy</div>
+            <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: #64748b; font-weight: bold;">-Gy</div>
+        </div>
+    
+        <!-- Readout Display -->
+        <div style="display: flex; justify-content: space-around; margin-top: 20px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div style="text-align: center;">
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;">Magnitude</div>
+                <div id="magReadout" style="font-size: 1.25rem; font-weight: 700; color: #2d3748;">0.0</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;">Orientation</div>
+                <div id="angleReadout" style="font-size: 1.25rem; font-weight: 700; color: #2d3748;">0°</div>
+            </div>
+        </div>
+    
+        <!-- Sliders Control Area -->
+        <div style="margin-top: 20px;">
+            <!-- Gx Slider -->
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <label for="gxSlider" style="font-weight: 600; color: #4a5568;">Gx (Vertical Edge)</label>
+                    <span id="gxValue" style="font-family: monospace; color: #667eea;">0</span>
+                </div>
+                <input type="range" id="gxSlider" min="-255" max="255" value="0" 
+                    style="width: 100%; -webkit-appearance: none; appearance: none; height: 8px; border-radius: 5px; background: #cbd5e1; outline: none;">
+            </div>
+    
+            <!-- Gy Slider -->
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <label for="gySlider" style="font-weight: 600; color: #4a5568;">Gy (Horizontal Edge)</label>
+                    <span id="gyValue" style="font-family: monospace; color: #667eea;">0</span>
+                </div>
+                <input type="range" id="gySlider" min="-255" max="255" value="0" 
+                    style="width: 100%; -webkit-appearance: none; appearance: none; height: 8px; border-radius: 5px; background: #cbd5e1; outline: none;">
+            </div>
+        </div>
+    
+        <script>
+        (function() {
+            const canvas = document.getElementById('compassCanvas');
+            const ctx = canvas.getContext('2d');
+            const gxSlider = document.getElementById('gxSlider');
+            const gySlider = document.getElementById('gySlider');
+            const gxDisplay = document.getElementById('gxValue');
+            const gyDisplay = document.getElementById('gyValue');
+            const magDisplay = document.getElementById('magReadout');
+            const angleDisplay = document.getElementById('angleReadout');
+    
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const maxRadius = (width / 2) - 20; // Padding
+    
+            // Draw the static color wheel background
+            function drawColorWheel() {
+                // Using lines to create the wheel
+                for(let angle = 0; angle < 360; angle++) {
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    // Convert degrees to radians
+                    const rad = angle * (Math.PI / 180);
+                    const x = centerX + Math.cos(rad) * maxRadius;
+                    const y = centerY + Math.sin(rad) * maxRadius;
+                    ctx.lineTo(x, y);
+                    // HSL color wheel
+                    ctx.strokeStyle = `hsla(${angle}, 100%, 50%, 0.15)`; // Low opacity for background
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                
+                // Draw axes
+                ctx.beginPath();
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1;
+                ctx.moveTo(centerX, 0); ctx.lineTo(centerX, height);
+                ctx.moveTo(0, centerY); ctx.lineTo(width, centerY);
+                ctx.stroke();
+            }
+    
+            function update() {
+                // 1. Get Values
+                const gx = parseInt(gxSlider.value);
+                const gy = parseInt(gySlider.value); // In Image coords, Positive Y is Down
+    
+                // Update Text Displays
+                gxDisplay.textContent = gx;
+                gyDisplay.textContent = gy;
+    
+                // 2. Calculate Math
+                // Magnitude = Sqrt(Gx^2 + Gy^2)
+                const magnitude = Math.sqrt(gx * gx + gy * gy);
+                
+                // Angle = atan2(y, x). 
+                // Result is in radians between -PI and PI.
+                let angleRad = Math.atan2(gy, gx);
+                
+                // Convert to degrees for display (0 to 360)
+                let angleDeg = angleRad * (180 / Math.PI);
+                if (angleDeg < 0) angleDeg += 360;
+    
+                // Update Readouts
+                magDisplay.textContent = magnitude.toFixed(1);
+                angleDisplay.textContent = Math.round(angleDeg) + '°';
+    
+                // 3. Draw
+                ctx.clearRect(0, 0, width, height);
+                drawColorWheel();
+    
+                // Visualize Components (The Rectangle)
+                // Normalize mapping: Max magnitude is approx 360 (sqrt(255^2+255^2))
+                // Map 360 magnitude to maxRadius
+                const scale = maxRadius / 360;
+                
+                const vecX = gx * scale;
+                const vecY = gy * scale; // Canvas Y is down, consistent with image processing Y
+    
+                // Draw dotted component lines
+                ctx.beginPath();
+                ctx.setLineDash([5, 3]);
+                ctx.strokeStyle = '#94a3b8';
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(centerX + vecX, centerY); // Horizontal Component
+                ctx.lineTo(centerX + vecX, centerY + vecY); // Vertical connection
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(centerX, centerY + vecY); // Vertical Component
+                ctx.lineTo(centerX + vecX, centerY + vecY); // Horizontal connection
+                ctx.stroke();
+                ctx.setLineDash([]); // Reset dash
+    
+                // Draw Main Arrow
+                if (magnitude > 5) { // Only draw if there's significant magnitude
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.lineTo(centerX + vecX, centerY + vecY);
+                    
+                    // Color the arrow based on angle
+                    ctx.strokeStyle = `hsl(${angleDeg}, 100%, 45%)`;
+                    ctx.lineWidth = 6;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+    
+                    // Draw Arrowhead
+                    const headLen = 15;
+                    ctx.beginPath();
+                    ctx.fillStyle = `hsl(${angleDeg}, 100%, 45%)`;
+                    // Move to tip
+                    const tipX = centerX + vecX;
+                    const tipY = centerY + vecY;
+                    
+                    // Calculate arrowhead points
+                    ctx.moveTo(tipX, tipY);
+                    ctx.lineTo(
+                        tipX - headLen * Math.cos(angleRad - Math.PI / 6),
+                        tipY - headLen * Math.sin(angleRad - Math.PI / 6)
+                    );
+                    ctx.lineTo(
+                        tipX - headLen * Math.cos(angleRad + Math.PI / 6),
+                        tipY - headLen * Math.sin(angleRad + Math.PI / 6)
+                    );
+                    ctx.fill();
+                }
+    
+                // Draw Center Dot
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#2d3748';
+                ctx.fill();
+            }
+    
+            // Initialize Slider Styles for Webkit
+            const style = document.createElement('style');
+            style.innerHTML = `
+                input[type=range]::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    height: 20px;
+                    width: 20px;
+                    border-radius: 50%;
+                    background: #667eea;
+                    cursor: pointer;
+                    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+                    margin-top: -6px;
+                }
+                input[type=range]::-moz-range-thumb {
+                    height: 20px;
+                    width: 20px;
+                    border-radius: 50%;
+                    background: #667eea;
+                    cursor: pointer;
+                    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+                    border: none;
+                }
+                input[type=range]::-webkit-slider-runnable-track {
+                    width: 100%;
+                    height: 8px;
+                    cursor: pointer;
+                    background: #e2e8f0;
+                    border-radius: 5px;
+                }
+            `;
+            document.head.appendChild(style);
+    
+            // Listeners
+            gxSlider.addEventListener('input', update);
+            gySlider.addEventListener('input', update);
+    
+            // Initial Draw
+            // Set initial values to something interesting (diagonal)
+            gxSlider.value = 150;
+            gySlider.value = 150;
+            update();
+        })();
+        </script>
+    </div>
+    <div class="continue-button" onclick="showNextSection(25)">Continue</div>
+</section>
+
+<section id="section25">
+    <p>Notice that if \(G_x\) is high and \(G_y\) is 0, the edge is purely vertical. If both are equal, the edge is diagonal (45 degrees).</p>
+    <div class="continue-button" onclick="showNextSection(26)">Continue</div>
+</section>
+
+<!-- SECTION 5: CALCULATE IT YOURSELF -->
+<section id="section26">
+    <h2>Calculate it Yourself</h2>
+    <p>Let's prove we can do the computer's job. We are going to calculate the \(H_x\) value for a specific pixel.</p>
+    <div class="continue-button" onclick="showNextSection(27)">Continue</div>
+</section>
+
+<section id="section27">
+    <p>Here is a \(3 \times 3\) patch of an image. We want to find the vertical edge score for the center pixel.</p>
+    <p>Image Patch:</p>
+    <p>$$ \begin{bmatrix} 10 & 50 & 50 \\ 10 & 50 & 50 \\ 10 & 50 & 50 \end{bmatrix} $$</p>
+    <div class="continue-button" onclick="showNextSection(28)">Continue</div>
+</section>
+
+<section id="section28">
+    <p>We apply the \(H_x\) kernel:</p>
+    <p>$$ \begin{bmatrix} -1 & 0 & 1 \\ -2 & 0 & 2 \\ -1 & 0 & 1 \end{bmatrix} $$</p>
+    <div class="continue-button" onclick="showNextSection(29)">Continue</div>
+</section>
+
+<section id="section29">
+    <p>We multiply the kernel weights with the image pixels and sum them up. Let's do it row by row:</p>
+    <p>
+    <strong>Top Row:</strong> \((-1 \cdot 10) + (0 \cdot 50) + (1 \cdot 50) = 40\)<br>
+    <strong>Middle Row:</strong> \((-2 \cdot 10) + (0 \cdot 50) + (2 \cdot 50) = 80\)<br>
+    <strong>Bottom Row:</strong> \((-1 \cdot 10) + (0 \cdot 50) + (1 \cdot 50) = 40\)
+    </p>
+    <div class="continue-button" onclick="showNextSection(30)">Continue</div>
+</section>
+
+<section id="section30">
+    <p>Now, sum them up:</p>
+    <p>$$ 40 + 80 + 40 = 160 $$</p>
+    <p>The result is 160! Since this is a high positive number, it tells us there is a strong vertical edge here, transitioning from dark (left) to bright (right).</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Using the same image patch above, what would be the result if we applied the \(H_y\) (Horizontal) kernel?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Check the rows. Does the brightness change from top to bottom?')">160</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The top row (10, 50, 50) is identical to the bottom row (10, 50, 50). When \\(H_y\\) subtracts the top from the bottom, everything cancels out. There is no horizontal edge.')">0</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Negative would imply it gets darker as we go down, but the values are constant.')">-160</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test1" onclick="showNextSection(31)" style="display: none;">Continue</div>
+</section>
+
+<section id="section31">
+    <p>Excellent. You've just performed the core mathematical operation behind detecting structure in images.</p>
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <h4>Can the gradient result be negative?</h4>
+        <p>Yes! If the image goes from Bright to Dark (instead of Dark to Bright), the result will be negative. However, when we view the final 'Magnitude' image, we square the values (\(G^2\)), which makes everything positive. We usually only care that an edge <em>exists</em>, not whether it's 'positive' or 'negative'.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(32)">Continue</div>
+</section>
+
+<!-- SECTION 6: REVIEW AND REFLECT -->
+<section id="section32">
+    <h2>Review and Reflect</h2>
+    <p>You've successfully added edge detection to your computer vision toolkit. We learned that edges are just steep gradients in pixel intensity.</p>
+    
+    <p>By using the Sobel Operator, we split the image into vertical (\(H_x\)) and horizontal (\(H_y\)) components. We then used the Pythagorean theorem to combine them into a Gradient Magnitude map, revealing the structure of the world—like that coin on the table—without needing color or texture.</p>
+    <p>In the next and final lesson of this chapter, we will zoom out and see how modern Artificial Intelligence doesn't just use Sobel filters—it actually <em>invents</em> its own filters to see the world.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 32;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show Continue button after interaction
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        // Look for hidden continue button in this section
+        const continueButton = parentSection.querySelector('.continue-button[style*="none"]');
+        if (continueButton) {
+             setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs customized for this lesson context
+                let courseId = 'computer-vision';
+                let pathId = 'simple-filters-kernels';
+                let moduleId = 'cv-ch09-l4-sobel-gradients';
+                let lessonId = 'cv-ch09-l4-main';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                // Fallback to URL params
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch09-l4-main_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check Parent LMS
+    if (window.parent && window.parent.ProgressTracker) {
+        // Reuse IDs from toggleCompleted
+        let courseId = 'computer-vision';
+        let pathId = 'simple-filters-kernels';
+        let moduleId = 'cv-ch09-l4-sobel-gradients';
+        let lessonId = 'cv-ch09-l4-main';
+        
+        if (window.parent.currentRoute) {
+            const route = window.parent.currentRoute;
+            if (route.courseId) courseId = route.courseId;
+            if (route.pathId) pathId = route.pathId;
+            if (route.moduleId) moduleId = route.moduleId;
+            if (route.lessonId) lessonId = route.lessonId;
+        }
+         const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('course')) courseId = urlParams.get('course');
+        if (urlParams.get('path')) pathId = urlParams.get('path');
+        if (urlParams.get('module')) moduleId = urlParams.get('module');
+        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+
+        const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+        if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+            button.classList.add('completed');
+            button.innerHTML = '✅ Completed!';
+            return;
+        }
+    }
+    
+    // Check LocalStorage
+    const isCompleted = localStorage.getItem('lesson_cv-ch09-l4-main_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

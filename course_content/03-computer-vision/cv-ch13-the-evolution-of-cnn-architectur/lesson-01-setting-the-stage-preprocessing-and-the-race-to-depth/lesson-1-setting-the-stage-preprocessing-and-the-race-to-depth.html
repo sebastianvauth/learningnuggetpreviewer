@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Lesson 1: Setting the Stage – Preprocessing & The "Race to Depth"</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Timeline of CNN architectures: AlexNet, VGG, ResNet, EfficientNet">
+    </div>
+    <h1>Setting the Stage – Preprocessing & The "Race to Depth"</h1>
+    <h2>The "Vegetables" of Deep Learning</h2>
+    <p>Welcome to the ImageNet era! In this chapter, we are going to trace the fascinating evolution of Convolutional Neural Networks (CNNs) from the early 2010s to today.</p>
+
+    <p>We are about to look at some shiny, powerful architectures like VGG, ResNet, and Inception. But before we get to the dessert, we have to eat our vegetables.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Preprocessing Hook -->
+<section id="section2">
+    <p>Even the most sophisticated architecture will fail if the data isn't prepared correctly. We call this <strong>Data Preprocessing</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Analogy -->
+<section id="section3">
+    <p>Think of it this way: You wouldn't try to run a Ferrari on crude oil, right? Similarly, deep networks need refined, standardized fuel (data) to perform.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Race to Depth -->
+<section id="section4">
+    <h2>The Race to Go Deeper</h2>
+    <p>Following the explosion of Deep Learning in 2012 with AlexNet, a clear trend emerged: deeper networks perform better.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: History Cycle -->
+<section id="section5">
+    <p>However, history isn't just a straight line of stacking more layers. It follows a specific cycle:</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Cycle Steps -->
+<section id="section6">
+    <ul>
+        <li><strong>Architecture:</strong> A new model achieves better performance by going deeper.</li>
+        <li><strong>Problem:</strong> A new issue arises (e.g., computational cost, vanishing gradients, or degradation).</li>
+        <li><strong>Innovation:</strong> A clever architectural trick is invented to solve that specific problem, allowing us to go deeper still.</li>
+    </ul>
+    <p>In this course, we will track this cycle. But first, let's look at the three critical preprocessing steps universally applied to image data.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Concept 1 Intro -->
+<section id="section7">
+    <h2>Concept 1: Consistent Input Size</h2>
+    <p>Real-world images come in all shapes and sizes—panorama landscapes, square Instagram posts, portrait selfies. However, CNNs are notoriously picky eaters.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Fixed Dimensions -->
+<section id="section8">
+    <p>Most classic architectures, like VGG or ResNet, require a fixed input dimension, typically \( 224 \times 224 \) pixels.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Why FC Layers -->
+<section id="section9">
+    <p>Why? It's not the Convolutional layers—they can handle any size. It's the <strong>Fully Connected (FC) layers</strong> at the end.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Plug Analogy -->
+<section id="section10">
+    <p>The connection between the last pooling layer and the first FC layer has a fixed number of weights. If you change the input image size, the feature map dimensions change, and the connection breaks. It's like trying to plug a 3-prong plug into a 2-prong outlet.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Solutions Diagram -->
+<section id="section11">
+    <p>So, how do we fix this? We generally use two methods:</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Diagram comparing Center Cropping vs. Squashing/Stretching methods for resizing images">
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: List of Methods -->
+<section id="section12">
+    <ul>
+        <li><strong>Center Cropping:</strong> We take a square patch from the center. We keep the aspect ratio but lose data on the edges.</li>
+        <li><strong>Stretching/Squeezing:</strong> We force the image into a square. We keep all the data, but the aspect ratio is distorted.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Vocab - Center Cropping -->
+<section id="section13">
+    <p>Surprisingly, networks are often robust enough to handle the distortion from squeezing!</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Center Cropping</h4>
+        <p>A preprocessing technique where a central patch of a specific size is cut from an image to match the neural network's input requirements, discarding the outer edges.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Concept 2 Intro -->
+<section id="section14">
+    <h2>Concept 2: Normalization</h2>
+    <p>You learned in Chapter 7 that neural networks prefer inputs centered around zero. Raw image pixels are typically integers between \( [0, 255] \).</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Instability -->
+<section id="section15">
+    <p>Feeding raw large values into a network causes features to have vastly different ranges, which can destabilize the gradient descent process.</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16: Saturation -->
+<section id="section16">
+    <p>Furthermore, if inputs are too large, they can push activation functions (like sigmoid or tanh) into their 'saturated' regions where the gradient is nearly zero, causing learning to stall.</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- Section 17: Standardization -->
+<section id="section17">
+    <p>To fix this, we apply <strong>Standardization</strong>:</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- Section 18: Mean Subtraction Formula -->
+<section id="section18">
+    <p>First, we perform <strong>Mean Subtraction</strong>: We calculate the average pixel value \( \mu \) across the entire training set and subtract it from every pixel \( x \):</p>
+    <p>$$ x' = x - \mu $$</p>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<!-- Section 19: Vocab - Mean Subtraction -->
+<section id="section19">
+    <p>This centers the data around 0. Often, we also divide by the standard deviation \( \sigma \) to get unit variance:</p>
+    <p>$$ x_{final} = \frac{x'}{\sigma} $$</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Mean Subtraction</h4>
+        <p>The process of subtracting the average value of the dataset from each data point, centering the data distribution around zero to aid neural network training.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<!-- Section 20: Concept 3 Intro -->
+<section id="section20">
+    <h2>Concept 3: Data Augmentation</h2>
+    <p>Here is the paradox of Deep Learning: We have models with millions of parameters (VGG-19 has 144 million!), but we often have limited labeled data.</p>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<!-- Section 21: Overfitting -->
+<section id="section21">
+    <p>In a 144-million-dimensional space, even 1.2 million images (like ImageNet) is incredibly sparse. The network can easily memorize the training examples without learning the actual concepts. We call this <strong>Overfitting</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(22)">Continue</div>
+</section>
+
+<!-- Section 22: Augmentation Solution + Meme -->
+<section id="section22">
+    <p>The solution? <strong>Data Augmentation</strong>. We artificially expand our dataset by creating modified versions of our images.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Doge Meme: Much variance. Such robust.">
+    </div>
+    <p>By rotating, flipping, zooming, or changing the colors, we teach the network that a 'dog' is still a 'dog' whether it's facing left, right, or looks a bit blurry.</p>
+    <div class="continue-button" onclick="showNextSection(23)">Continue</div>
+</section>
+
+<!-- Section 23: Interactive Augmentator -->
+<section id="section23">
+        <h2>Interactive: The Augmentator</h2>
+        <p>Use the sliders below to apply transformations. This simulates how we take one image and turn it into many different training examples.</p>
+        
+        <div class="augmentator-wrapper">
+            <div class="canvas-container">
+                <canvas id="augCanvas" width="400" height="300"></canvas>
+                <div class="dataset-badge" id="variationCounter">Variations Created: 0</div>
+            </div>
+    
+            <div class="controls-grid">
+                <!-- Rotation -->
+                <div class="control-row">
+                    <span class="control-label">Rotation</span>
+                    <div class="slider-container">
+                        <input type="range" id="rotSlider" min="0" max="360" value="0">
+                    </div>
+                    <span class="value-display" id="rotVal">0°</span>
+                </div>
+    
+                <!-- Zoom -->
+                <div class="control-row">
+                    <span class="control-label">Zoom</span>
+                    <div class="slider-container">
+                        <input type="range" id="zoomSlider" min="100" max="200" value="100">
+                    </div>
+                    <span class="value-display" id="zoomVal">1.0x</span>
+                </div>
+    
+                <!-- Noise -->
+                <div class="control-row">
+                    <span class="control-label">Noise</span>
+                    <div class="slider-container">
+                        <input type="range" id="noiseSlider" min="0" max="100" value="0">
+                    </div>
+                    <span class="value-display" id="noiseVal">0%</span>
+                </div>
+            </div>
+    
+            <div class="file-controls">
+                <button class="file-btn" onclick="resetAugmentator()">Reset Sliders</button>
+                <button class="file-btn primary" onclick="document.getElementById('imgUpload').click()">Upload Image</button>
+                <input type="file" id="imgUpload" accept="image/*" style="display: none" onchange="handleImageUpload(this)">
+            </div>
+        </div>
+    
+        <script>
+            // Module Scope
+            (function() {
+                const canvas = document.getElementById('augCanvas');
+                const ctx = canvas.getContext('2d');
+                
+                // State
+                let currentImage = null;
+                let rotation = 0;
+                let zoom = 1.0;
+                let noise = 0;
+                let variationCount = 0;
+                let isDragging = false; // To throttle variation counter
+    
+                // Elements
+                const rotSlider = document.getElementById('rotSlider');
+                const zoomSlider = document.getElementById('zoomSlider');
+                const noiseSlider = document.getElementById('noiseSlider');
+                const rotVal = document.getElementById('rotVal');
+                const zoomVal = document.getElementById('zoomVal');
+                const noiseVal = document.getElementById('noiseVal');
+                const variationBadge = document.getElementById('variationCounter');
+    
+                // Initialize
+                function init() {
+                    // Generate default "Robot" image programmatically
+                    createDefaultImage();
+                    setupListeners();
+                    draw();
+                }
+    
+                function createDefaultImage() {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = 400;
+                    tempCanvas.height = 300;
+                    const tCtx = tempCanvas.getContext('2d');
+    
+                    // Draw background
+                    tCtx.fillStyle = '#f1f5f9';
+                    tCtx.fillRect(0, 0, 400, 300);
+    
+                    // Draw Robot Face
+                    // Head
+                    tCtx.fillStyle = '#667eea';
+                    tCtx.strokeStyle = '#2d3748';
+                    tCtx.lineWidth = 4;
+                    tCtx.beginPath();
+                    tCtx.roundRect(125, 75, 150, 150, 20);
+                    tCtx.fill();
+                    tCtx.stroke();
+    
+                    // Eyes
+                    tCtx.fillStyle = '#ffffff';
+                    tCtx.beginPath();
+                    tCtx.arc(170, 130, 20, 0, Math.PI * 2); // Left
+                    tCtx.arc(230, 130, 20, 0, Math.PI * 2); // Right
+                    tCtx.fill();
+                    tCtx.fillStyle = '#2d3748';
+                    tCtx.beginPath();
+                    tCtx.arc(170, 130, 8, 0, Math.PI * 2); // Left Pupil
+                    tCtx.arc(230, 130, 8, 0, Math.PI * 2); // Right Pupil
+                    tCtx.fill();
+    
+                    // Mouth
+                    tCtx.fillStyle = '#2d3748';
+                    tCtx.fillRect(165, 180, 70, 10);
+    
+                    // Antenna
+                    tCtx.beginPath();
+                    tCtx.moveTo(200, 75);
+                    tCtx.lineTo(200, 40);
+                    tCtx.stroke();
+                    tCtx.fillStyle = '#f56565';
+                    tCtx.beginPath();
+                    tCtx.arc(200, 30, 10, 0, Math.PI * 2);
+                    tCtx.fill();
+                    tCtx.stroke();
+    
+                    // Save as image object
+                    currentImage = new Image();
+                    currentImage.src = tempCanvas.toDataURL();
+                    currentImage.onload = () => draw();
+                }
+    
+                function draw() {
+                    if (!currentImage) return;
+    
+                    // 1. Clear Canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // 2. Transformations
+                    ctx.save();
+                    
+                    // Move to center
+                    const centerX = canvas.width / 2;
+                    const centerY = canvas.height / 2;
+                    ctx.translate(centerX, centerY);
+    
+                    // Rotate
+                    ctx.rotate(rotation * Math.PI / 180);
+    
+                    // Scale (Zoom)
+                    ctx.scale(zoom, zoom);
+    
+                    // Draw Image (Centered)
+                    // We keep the image fitting within 300x300 roughly initially
+                    const aspect = currentImage.width / currentImage.height;
+                    let drawWidth = 300;
+                    let drawHeight = 300 / aspect;
+                    
+                    // Draw centered relative to translation point
+                    ctx.drawImage(currentImage, -drawWidth/2, -drawHeight/2, drawWidth, drawHeight);
+    
+                    ctx.restore();
+    
+                    // 3. Apply Noise
+                    if (noise > 0) {
+                        applyNoise(noise);
+                    }
+                }
+    
+                function applyNoise(amount) {
+                    // Optimization: Instead of manipulating pixel data (slow on mobile),
+                    // we draw tiny random rectangles.
+                    const intensity = amount / 100;
+                    const particleCount = (canvas.width * canvas.height) * 0.05 * intensity; // 5% coverage at max
+                    
+                    for(let i=0; i < particleCount; i++) {
+                        const x = Math.random() * canvas.width;
+                        const y = Math.random() * canvas.height;
+                        const size = Math.random() * 2 + 1; // 1 to 3px grain
+                        
+                        // Random black or white grain
+                        ctx.fillStyle = Math.random() > 0.5 
+                            ? `rgba(255,255,255, ${Math.random() * 0.5})` 
+                            : `rgba(0,0,0, ${Math.random() * 0.5})`;
+                        
+                        ctx.fillRect(x, y, size, size);
+                    }
+                }
+    
+                function setupListeners() {
+                    rotSlider.addEventListener('input', (e) => {
+                        rotation = parseInt(e.target.value);
+                        rotVal.textContent = rotation + '°';
+                        incrementVariation();
+                        draw();
+                    });
+    
+                    zoomSlider.addEventListener('input', (e) => {
+                        zoom = parseInt(e.target.value) / 100;
+                        zoomVal.textContent = zoom.toFixed(1) + 'x';
+                        incrementVariation();
+                        draw();
+                    });
+    
+                    noiseSlider.addEventListener('input', (e) => {
+                        noise = parseInt(e.target.value);
+                        noiseVal.textContent = noise + '%';
+                        incrementVariation();
+                        draw();
+                    });
+                }
+    
+                function incrementVariation() {
+                    // Throttle the counter so it doesn't spin wildly
+                    if(Math.random() > 0.8) {
+                        variationCount++;
+                        variationBadge.textContent = `Variations Created: ${variationCount}`;
+                        variationBadge.style.transform = "scale(1.1)";
+                        setTimeout(() => variationBadge.style.transform = "scale(1)", 100);
+                    }
+                }
+    
+                // Expose global functions for the buttons
+                window.resetAugmentator = function() {
+                    rotation = 0;
+                    zoom = 1.0;
+                    noise = 0;
+                    
+                    rotSlider.value = 0;
+                    zoomSlider.value = 100;
+                    noiseSlider.value = 0;
+                    
+                    rotVal.textContent = "0°";
+                    zoomVal.textContent = "1.0x";
+                    noiseVal.textContent = "0%";
+                    
+                    draw();
+                };
+    
+                window.handleImageUpload = function(input) {
+                    if (input.files && input.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            currentImage = new Image();
+                            currentImage.src = e.target.result;
+                            currentImage.onload = () => {
+                                resetAugmentator();
+                                variationCount = 0;
+                                variationBadge.textContent = "Variations Created: 0";
+                            };
+                        }
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                };
+    
+                // Start
+                init();
+            })();
+        </script>
+    <div class="continue-button" onclick="showNextSection(24)">Continue</div>
+</section>
+
+<!-- Section 24: Check Knowledge - Flipping -->
+<section id="section24">
+    <p>You have to be careful, though. Augmentations must preserve the <strong>semantic meaning</strong> (the class label).</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Why might 'Vertical Flipping' be a bad augmentation strategy for a dataset of handwritten digits?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Flipping doesn\'t blur the image, it just mirrors it.')">It makes the images too blurry.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! If you flip a 6 upside down, it looks like a 9. The network would get confused because the label says \'6\' but the image looks like a \'9\'.')">It changes the class label (e.g., a 6 becomes a 9).</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Computers are just processing arrays of numbers; they don\'t care about orientation. But the meaning of those numbers matters.')">Computers cannot process upside-down images.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-flip-quiz" style="display:none;" onclick="showNextSection(25)">Continue</div>
+</section>
+
+<!-- Section 25: Vocab - Augmentation -->
+<section id="section25">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Data Augmentation</h4>
+        <p>A technique to artificially increase the size of a training dataset by applying transformations like rotation, flipping, and cropping to existing images, helping to reduce overfitting.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(26)">Continue</div>
+</section>
+
+<!-- Section 26: Review & Reflect -->
+<section id="section26">
+    <h2>Review and Reflect</h2>
+    <p>Great start! You've learned that before we can train massive architectures, we need to resize our inputs, normalize our pixel values, and augment our data to prevent overfitting.</p>
+    
+    <!-- Stop and Think -->
+    <div class="check-your-knowledge" style="background: linear-gradient(135deg, #fff3e0 0%, #fff8e1 100%); border-left-color: #ffb74d;">
+        <h3 style="color: #f57c00;">Stop and Think</h3>
+        <h4>When performing normalization, we calculate the mean \( \mu \) and standard deviation \( \sigma \). Why must we calculate these ONLY on the training set, and not on the whole dataset including the test set?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> If you calculate statistics using the test set, you are technically 'peeking' at the answers. Information from the test set (the mean) leaks into your training process. This is called <strong>Data Leakage</strong> and gives you a false sense of how good your model actually is.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(27)">Continue</div>
+</section>
+
+<!-- Section 27: Why it matters -->
+<section id="section27">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Standardization ensures your training is mathematically stable, preventing vanishing gradients. Data Augmentation ensures your model generalizes to the real world instead of just memorizing the training photos.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(28)">Continue</div>
+</section>
+
+<!-- Section 28: FAQ -->
+<section id="section28">
+    <div class="check-your-knowledge">
+        <h3>Frequently Asked Question</h3>
+        <h4>Does stretching an image to make it square hurt the model's accuracy?</h4>
+        <div id="faq-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Ideally, we want to preserve aspect ratios. However, deep networks are surprisingly robust. If you train them on stretched images, they learn to recognize 'stretched' dogs as dogs. While Center Cropping is cleaner, Squashing ensures you don't throw away any pixels at the edges.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('faq-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(29)">Continue</div>
+</section>
+
+<!-- Section 29: Test Knowledge 1 -->
+<section id="section29">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following is NOT a reason to normalize image data?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is a valid reason. Large features can skew the learning process.')">To prevent large input values from dominating the gradient.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is a valid reason. It helps avoid vanishing gradients.')">To keep inputs in the active region of activation functions like sigmoid.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Normalization changes the range of values, but it does not change the color space.')">To convert the image from RGB to Grayscale.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test1" style="display:none;" onclick="showNextSection(30)">Continue</div>
+</section>
+
+<!-- Section 30: Test Knowledge 2 -->
+<section id="section30">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Why do CNNs with Fully Connected layers require a fixed input size?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Convolution filters slide over the image and can work on any input size.')">Because the convolution filters are fixed size.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Spot on. The matrix multiplication in the FC layer requires a specific input vector size. Changing the image size changes that vector size, breaking the matrix multiplication.')">Because the number of weights between the last pooling layer and the first FC layer is fixed.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Memory is a constraint, but not the structural reason for the fixed size requirement.')">Because the GPU runs out of memory otherwise.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test2" style="display:none;" onclick="showNextSection(31)">Continue</div>
+</section>
+
+<!-- Section 31: Outro -->
+<section id="section31">
+    <p>Now that our data is prepped and ready, we are ready to look at the first modern Deep Learning architecture. See you in the next lesson where we meet VGG!</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 31;
+
+updateProgress();
+// Initialize first section
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    
+    // Hide the button that was clicked
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    // Deselect siblings
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    
+    // Select clicked
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    
+    // Show explanation
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic for revealing continue buttons based on specific section IDs
+    // Section 24 (Flip Quiz)
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section24') {
+        const continueButton = document.getElementById('continue-after-flip-quiz');
+        if (continueButton && continueButton.style.display === 'none') {
+             setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+    // Section 29 (Test 1)
+    if (parentSection && parentSection.id === 'section29') {
+        const continueButton = document.getElementById('continue-after-test1');
+        if (continueButton && continueButton.style.display === 'none') {
+             setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+    // Section 30 (Test 2)
+    if (parentSection && parentSection.id === 'section30') {
+        const continueButton = document.getElementById('continue-after-test2');
+        if (continueButton && continueButton.style.display === 'none') {
+             setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Attempt LMS integration
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs adjusted for this specific lesson context if available
+                let courseId = 'computer-vision'; 
+                let pathId = 'cnn-architectures';
+                let moduleId = 'cv-ch08-m1-intro';
+                let lessonId = 'cv-ch08-l1-preprocessing';
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch08-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch08-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

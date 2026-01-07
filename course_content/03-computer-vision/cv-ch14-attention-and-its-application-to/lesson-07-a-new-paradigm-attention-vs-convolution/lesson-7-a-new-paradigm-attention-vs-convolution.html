@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>A New Paradigm (Attention vs. Convolution)</title>
+<script>
+window.MathJax = {
+tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+<div class="image-placeholder">
+<img src="images/1.jpg" alt="Stylized boxing match poster comparing a rigid CNN robot arm against a flexible Transformer light web with the tagline Locality vs Flexibility.">
+<p class="image-caption">Locality (CNN) squares off against flexible global attention (Transformer).</p>
+</div>
+<h1>A New Paradigm</h1>
+<h2>The Clash of Architectures</h2>
+<p>We have reached a pivotal moment in our computer vision journey. For a long time, the Convolutional Neural Network (CNN) was the undisputed king of image processing. But now, the Transformer—borrowed from the world of language processing—has entered the ring.</p>
+<div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+<h2>The Inductive Bias of Locality</h2>
+<p>To understand the difference, we need to revisit a concept we touched on earlier: <strong>Inductive Bias</strong>.</p>
+<div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+<p>Think of Inductive Bias as a set of assumptions a model makes about the data before it even starts learning. It's like 'prior knowledge' hard-coded into the architecture.</p>
+<div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+<p>CNNs have a strong <strong>Inductive Bias for Locality</strong>. They assume that pixels close to each other are related, and pixels far apart are less likely to form a single feature (at least in early layers).</p>
+<div class="image-placeholder">
+<img src="images/2.jpg" alt="Illustration of a 3x3 convolution kernel scanning an image grid and highlighting immediate neighbor pixels.">
+<p class="image-caption">A 3×3 kernel only gathers evidence from nearby pixels in early CNN layers.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+<p>Transformers, on the other hand, have very little inductive bias regarding space. A Vision Transformer (ViT) chops an image into patches and treats them like a bag of words. It doesn't inherently 'know' that the top-left corner is far away from the bottom-right corner.</p>
+<div class="vocab-section">
+<h3>Build Your Vocab</h3>
+<h4>Inductive Bias</h4>
+<p>The set of assumptions a learning algorithm makes to predict outputs for inputs it has not encountered. For CNNs, this includes 'locality' and 'translation invariance' (a cat in the corner is still a cat).</p>
+</div>
+<div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+<p>The Transformer has to <em>learn</em> spatial relationships from scratch using the Attention mechanism. This is a trade-off: it is less rigid, but it has to work harder to understand basic geometry.</p>
+<div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+<h2>Connectivity: Grid vs. Web</h2>
+<p>Let's visualize how these two architectures 'see' the world by looking at how information flows between pixels.</p>
+<!-- Interactive Architecture Comparison -->
+<div class="interactive-module-container">
+  <div class="interactive-controls" style="border-bottom: 1px solid #e2e8f0; border-top: none;">
+      <button class="mode-btn active" data-mode="cnn" onclick="setMode('cnn', event)">CNN (Local)</button>
+      <button class="mode-btn" data-mode="fc" onclick="setMode('fc', event)">Fully Connected</button>
+      <button class="mode-btn" data-mode="attention" onclick="setMode('attention', event)">Attention</button>
+  </div>
+  
+  <div class="canvas-wrapper" style="height: 300px;">
+      <canvas id="archCanvas"></canvas>
+  </div>
+  
+  <div class="feedback-panel neutral">
+      <p id="interactive-description" class="feedback-text" style="text-align: center;">
+          Hover over the nodes to see how the architecture processes information.
+      </p>
+  </div>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('archCanvas');
+  const ctx = canvas.getContext('2d');
+  const descText = document.getElementById('interactive-description');
+  
+  // Config
+  let mode = 'cnn'; // 'cnn', 'fc', 'attention'
+  const gridCols = 10;
+  const gridRows = 6;
+  let nodes = [];
+  let mouse = { x: -100, y: -100, active: false };
+  
+  // Colors
+  const colors = {
+      cnn: '#667eea',      // Purple/Blue
+      fc: '#f6ad55',       // Orange
+      attention: '#48bb78', // Green
+      base: '#cbd5e1'      // Grey
+  };
+
+  // Descriptions
+  const descriptions = {
+      cnn: "<strong>CNN (Local):</strong> Hovering affects only immediate neighbors. Information moves slowly, step-by-step.",
+      fc: "<strong>Fully Connected:</strong> Every pixel connects to every other pixel. It's dense, chaotic, and computationally expensive.",
+      attention: "<strong>Attention (Global & Sparse):</strong> The node focuses on specific, relevant distant parts of the image (represented by thicker lines)."
+  };
+
+  // Resize Handler
+  function resize() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // reset any previous scaling
+      ctx.scale(dpr, dpr);
+      initGrid(rect.width, rect.height);
+      draw(); // render immediately after size change
+  }
+
+  // Node Class
+  class Node {
+      constructor(x, y, col, row) {
+          this.x = x;
+          this.y = y;
+          this.col = col;
+          this.row = row;
+          // Pre-calculate attention targets (3-4 random other nodes)
+          this.attentionTargets = [];
+      }
+
+      assignTargets(allNodes) {
+          const numTargets = 3 + Math.floor(Math.random() * 2);
+          for(let i=0; i<numTargets; i++) {
+              const target = allNodes[Math.floor(Math.random() * allNodes.length)];
+              // Random weight for line thickness
+              const weight = 0.2 + Math.random() * 0.8; 
+              this.attentionTargets.push({ node: target, weight: weight });
+          }
+      }
+  }
+
+  function initGrid(w, h) {
+      nodes = [];
+      const padding = 40;
+      const cellW = (w - padding * 2) / (gridCols - 1);
+      const cellH = (h - padding * 2) / (gridRows - 1);
+
+      for (let r = 0; r < gridRows; r++) {
+          for (let c = 0; c < gridCols; c++) {
+              nodes.push(new Node(
+                  padding + c * cellW,
+                  padding + r * cellH,
+                  c, r
+              ));
+          }
+      }
+
+      // Second pass to assign attention targets now that all nodes exist
+      nodes.forEach(n => n.assignTargets(nodes));
+  }
+
+  // Interaction
+  canvas.addEventListener('mousemove', e => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+      mouse.active = true;
+      draw();
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+      mouse.active = false;
+      draw();
+  });
+
+  // Global function to switch tabs
+  window.setMode = function(newMode, evt) {
+      mode = newMode;
+      
+      // Update UI
+      document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => btn.classList.remove('active'));
+      const target = evt && evt.target ? evt.target : document.querySelector(`.mode-btn[data-mode="${newMode}"]`);
+      if (target) target.classList.add('active');
+      
+      // Update Text
+      descText.innerHTML = descriptions[newMode];
+      
+      draw();
+  };
+
+  function draw() {
+      const w = canvas.width / 2;
+      const h = canvas.height / 2;
+      
+      ctx.clearRect(0, 0, w, h);
+
+      // Find closest node to mouse
+      let activeNode = null;
+      let minDist = 30; // Hit radius
+
+      if (mouse.active) {
+          for (let n of nodes) {
+              const dx = n.x - mouse.x;
+              const dy = n.y - mouse.y;
+              const dist = Math.sqrt(dx*dx + dy*dy);
+              if (dist < minDist) {
+                  minDist = dist;
+                  activeNode = n;
+              }
+          }
+      }
+
+      // Draw connections FIRST (so they are behind nodes)
+      if (activeNode) {
+          if (mode === 'cnn') {
+              drawCNN(activeNode);
+          } else if (mode === 'fc') {
+              drawFC(activeNode);
+          } else if (mode === 'attention') {
+              drawAttention(activeNode);
+          }
+      } else {
+          // Idle animation or static state
+          if (mode === 'fc') drawStaticFCNoise();
+      }
+
+      // Draw Nodes
+      nodes.forEach(n => {
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+          
+          // Highlight logic
+          if (activeNode && n === activeNode) {
+              ctx.fillStyle = colors[mode];
+              ctx.fill();
+              // Glow effect
+              ctx.shadowColor = colors[mode];
+              ctx.shadowBlur = 10;
+              ctx.stroke();
+              ctx.shadowBlur = 0;
+          } else if (isNeighbor(activeNode, n) && mode === 'cnn') {
+              ctx.fillStyle = colors.cnn;
+              ctx.fill();
+          } else if (isAttentionTarget(activeNode, n) && mode === 'attention') {
+               ctx.fillStyle = colors.attention;
+               ctx.fill();
+          } else {
+              ctx.fillStyle = colors.base;
+              ctx.fill();
+          }
+      });
+  }
+
+  // --- Mode Specific Logic ---
+
+  // CNN: Highlight 3x3 grid
+  function isNeighbor(center, target) {
+      if (!center) return false;
+      const dx = Math.abs(center.col - target.col);
+      const dy = Math.abs(center.row - target.row);
+      return dx <= 1 && dy <= 1; // Immediate neighbors
+  }
+
+  function drawCNN(node) {
+      ctx.strokeStyle = colors.cnn;
+      ctx.lineWidth = 2;
+      
+      // Draw a box around the kernel
+      // We know the neighbors. Let's just draw lines to them or a box.
+      // Drawing lines to neighbors looks cleaner:
+      nodes.forEach(n => {
+          if (isNeighbor(node, n) && n !== node) {
+              ctx.beginPath();
+              ctx.moveTo(node.x, node.y);
+              ctx.lineTo(n.x, n.y);
+              ctx.stroke();
+          }
+      });
+  }
+
+  // FC: Connect to EVERYTHING
+  function drawStaticFCNoise() {
+      // Draw faint mess in background
+      ctx.strokeStyle = colors.fc;
+      ctx.lineWidth = 0.5;
+      ctx.globalAlpha = 0.1;
+      ctx.beginPath();
+      // Just draw a few random lines to imply density
+      for(let i=0; i<50; i++) {
+          const n1 = nodes[Math.floor(Math.random() * nodes.length)];
+          const n2 = nodes[Math.floor(Math.random() * nodes.length)];
+          ctx.moveTo(n1.x, n1.y);
+          ctx.lineTo(n2.x, n2.y);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 1.0;
+  }
+
+  function drawFC(node) {
+      // Connect active node to ALL other nodes
+      ctx.strokeStyle = colors.fc;
+      ctx.lineWidth = 0.5;
+      
+      nodes.forEach(n => {
+          if (n !== node) {
+              ctx.globalAlpha = 0.2; // Faint
+              ctx.beginPath();
+              ctx.moveTo(node.x, node.y);
+              ctx.lineTo(n.x, n.y);
+              ctx.stroke();
+          }
+      });
+      ctx.globalAlpha = 1.0;
+  }
+
+  // Attention: Specific Targets
+  function isAttentionTarget(center, target) {
+      if (!center) return false;
+      return center.attentionTargets.some(t => t.node === target);
+  }
+
+  function drawAttention(node) {
+      node.attentionTargets.forEach(t => {
+          const target = t.node;
+          const weight = t.weight;
+
+          ctx.beginPath();
+          ctx.moveTo(node.x, node.y);
+          
+          // Bezier curve for organic "web" feel
+          // Control point is midpoint + random offset
+          const cx = (node.x + target.x) / 2; 
+          const cy = (node.y + target.y) / 2 - 20; 
+
+          ctx.quadraticCurveTo(cx, cy, target.x, target.y);
+          
+          ctx.strokeStyle = colors.attention;
+          ctx.lineWidth = weight * 3; // Thickness based on weight
+          ctx.globalAlpha = 0.8;
+          ctx.stroke();
+      });
+      ctx.globalAlpha = 1.0;
+  }
+
+  // Init
+  const visibilityObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+          if (entry.isIntersecting) {
+              resize();
+          }
+      });
+  }, { threshold: 0.25 });
+  visibilityObserver.observe(canvas);
+
+  window.addEventListener('load', resize);
+  window.addEventListener('resize', resize);
+  
+  // Initial call in case window is already loaded
+  setTimeout(resize, 100);
+
+})();
+</script>
+<!-- END INTERACTIVE MODULE -->
+<p>Notice the difference? The CNN is locked to the grid. The Attention mechanism forms a <strong>Global yet Sparse</strong> web.</p>
+<div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+<p>In a CNN, for a pixel at position \((x, y)\) to influence a pixel at \((x+50, y+50)\), the information must pass through many layers, slowly expanding the receptive field.</p>
+<div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+<p>In a Transformer, thanks to the Self-Attention formula we learned (\( \text{softmax}(\frac{QK^T}{\sqrt{d_k}})V \)), any patch can attend to any other patch in the very first layer. The connection is direct.</p>
+<div class="vocab-section">
+<h3>Build Your Vocab</h3>
+<h4>Global vs. Local</h4>
+<p>Local operations (CNN) are restricted to a small neighborhood of input. Global operations (Attention) have access to the entire input simultaneously.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+<p>This allows the Transformer to understand <strong>Global Context</strong> immediately. It can link a car to the road, or a boat to the water, regardless of how far apart they are in the image.</p>
+<div class="vocab-section">
+<h3>Build Your Vocab</h3>
+<h4>Sparse vs. Dense</h4>
+<p>A 'Dense' connection (like a Fully Connected layer) connects everything to everything with equal potential. A 'Sparse' connection (like learned Attention) connects only the relevant parts, ignoring the noise.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+<h2>The Cost of Freedom: Data Efficiency</h2>
+<p>So, if Transformers are so flexible and can see everything at once, why do we still use CNNs?</p>
+<div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+<p>The answer lies in <strong>Data Efficiency</strong>. Because CNNs already 'know' the rules of geometry (locality), they can learn very quickly from fewer images.</p>
+<div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+<p>Transformers start with a blank slate. They need to see massive amounts of data just to figure out that pixels next to each other usually form edges and shapes. They are <strong>Data-Hungry</strong>.</p>
+<div class="check-your-knowledge">
+<h3>Stop &amp; Think</h3>
+<h4>Imagine you are building a system to detect a rare disease in X-rays, and you only have 1,000 labeled images. Should you use a pure Transformer or a CNN? Why?</h4>
+<div id="cuy-xray-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> You should likely use a CNN. With only 1,000 images, a Transformer would struggle to learn the basic spatial rules of the images. The CNN comes pre-equipped with the knowledge of locality, making it much more effective on small datasets.</div>
+<button class="reveal-button" onclick="revealAnswer('cuy-xray-answer')">Reveal Answer</button>
+</div>
+<div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+<p>This is a classic engineering trade-off. Do you want a model that is efficient but biased (CNN), or a model that is flexible but expensive to train (Transformer)?</p>
+<div class="vocab-section">
+<h3>Build Your Vocab</h3>
+<h4>Data Efficiency</h4>
+<p>A measure of how much data a model requires to reach a certain level of performance. Models with high inductive bias (CNNs) are usually more data-efficient than models with low inductive bias (Transformers).</p>
+</div>
+<div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+<h2>The Future: Hybrid Models</h2>
+<p>We have painted a picture of rivalry, but the reality of modern Computer Vision is often collaboration.</p>
+<div class="faq-section">
+<h3>Frequently Asked</h3>
+<h4>Will Transformers replace CNNs completely?</h4>
+<p>Unlikely in the immediate future. While Transformers dominate on massive datasets (like JFT-300M or ImageNet-21k), CNNs are still superior for small data regimes and are much more efficient on edge devices (like mobile phones) due to hardware optimization.</p>
+<p>The current trend is <strong>Hybrid Models</strong>: using Convolutions for the early layers to gather local features, and Transformers in the deep layers to understand global context.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+<p>By understanding the strengths and weaknesses of both, you can choose the right architecture for your specific problem.</p>
+<div class="why-it-matters">
+<h3>Why It Matters</h3>
+<p>There is no 'one algorithm to rule them all.' Understanding the trade-off between Inductive Bias (CNNs) and Flexibility (Transformers) is what separates a code-monkey from a true Computer Vision engineer.</p>
+</div>
+<div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+<div class="test-your-knowledge">
+<h3>Test Your Knowledge</h3>
+<h4>Which of the following statements correctly compares CNNs and Vision Transformers?</h4>
+<div class="multiple-choice">
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. It is the reverse. CNNs are Local; Transformers are Global.')">CNNs have a Global Receptive Field in the first layer, while Transformers are Local.</div>
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. Transformers lack this bias, making them data-hungry.')">Transformers have a strong Inductive Bias for locality, making them data efficient.</div>
+<div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! CNNs rely on fixed geometry, while Transformers use Attention to connect relevant parts regardless of distance.')">CNNs assume locality (pixels nearby are related), whereas Transformers learn relationships dynamically between any parts of the image.</div>
+<div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. Transformers are usually more expensive and harder to train on small data.')">Transformers are computationally cheaper and faster to train on small datasets than CNNs.</div>
+</div>
+</div>
+<div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(18)" style="display: none;">Continue</div>
+</section>
+
+<section id="section18">
+<h2>Review and Reflect</h2>
+<p>We have completed our deep dive into Attention.</p>
+<p>In this lesson, we compared the rigid, local structure of <strong>Convolutions</strong> with the flexible, global nature of <strong>Attention</strong>.</p>
+<ul>
+<li><strong>CNNs</strong> excel when data is scarce because they rely on the <strong>Inductive Bias</strong> of locality.</li>
+<li><strong>Transformers</strong> excel when data is abundant, as they can learn complex, <strong>Global</strong> relationships that CNNs might miss.</li>
+</ul>
+<p>You now possess the knowledge to navigate the two dominant paradigms in modern Computer Vision. Whether you choose the grid or the web depends on the data you have and the problem you need to solve.</p>
+</section>
+
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 18;
+
+updateProgress();
+if (currentSection === totalSections) {
+const completedButton = document.getElementById('markCompletedBtn');
+if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+const currentButton = event && event.target;
+if (!nextSectionElement) return;
+if (currentButton && currentButton.classList.contains('continue-button')) {
+currentButton.style.display = 'none';
+}
+nextSectionElement.classList.add('visible');
+currentSection = nextSectionId;
+updateProgress();
+if (currentSection === totalSections) {
+const completedButton = document.getElementById('markCompletedBtn');
+if (completedButton) completedButton.classList.add('show');
+}
+setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+const progressBar = document.getElementById('progressBar');
+const progress = (currentSection / totalSections) * 100;
+progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+const revealText = document.getElementById(id);
+const revealButton = event && event.target;
+if (revealText) {
+revealText.style.display = "block";
+revealText.classList.add('animate-in');
+}
+if (revealButton) {
+revealButton.style.display = "none";
+}
+}
+
+function selectChoice(element, isCorrect, explanation) {
+const choices = element.parentNode.querySelectorAll('.choice-option');
+choices.forEach(choice => {
+choice.classList.remove('selected', 'correct', 'incorrect');
+const existing = choice.querySelector('.choice-explanation');
+if (existing) existing.remove();
+});
+element.classList.add('selected');
+element.classList.add(isCorrect ? 'correct' : 'incorrect');
+const explanationDiv = document.createElement('div');
+explanationDiv.className = 'choice-explanation';
+explanationDiv.style.display = 'block';
+explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+const parentSection = element.closest('section');
+if (parentSection && parentSection.id === 'section17') {
+const continueButton = document.getElementById('continue-after-test-knowledge');
+if (continueButton && continueButton.style.display === 'none') {
+setTimeout(() => {
+continueButton.style.display = 'block';
+continueButton.classList.add('show-with-animation');
+}, 800);
+}
+}
+}
+
+document.addEventListener('keydown', function(e) {
+if (e.key === 'ArrowRight' || e.key === ' ') {
+const btn = document.querySelector(`#section${currentSection} .continue-button`);
+if (btn && btn.style.display !== 'none') {
+e.preventDefault();
+btn.click();
+}
+}
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+const button = document.getElementById('markCompletedBtn');
+if (!button) return;
+const isCompleted = button.classList.contains('completed');
+if (!isCompleted) {
+try {
+if (window.parent && window.parent.ProgressTracker) {
+// Update these IDs for the specific lesson structure
+let courseId = 'computer-vision';
+let pathId = 'transformers-attention';
+let moduleId = 'cv-ch22-m1-attention-mechanisms';
+let lessonId = 'cv-ch22-l1-new-paradigm';
+
+if (window.parent.currentRoute) {
+const route = window.parent.currentRoute;
+if (route.courseId) courseId = route.courseId;
+if (route.pathId) pathId = route.pathId;
+if (route.moduleId) moduleId = route.moduleId;
+if (route.lessonId) lessonId = route.lessonId;
+}
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('course')) courseId = urlParams.get('course');
+if (urlParams.get('path')) pathId = urlParams.get('path');
+if (urlParams.get('module')) moduleId = urlParams.get('module');
+if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+}
+} catch (error) {
+console.error('Error with ProgressTracker:', error);
+}
+button.classList.add('completed');
+button.innerHTML = '✅ Completed!';
+triggerCelebration();
+localStorage.setItem('lesson_cv-ch22-m1-l1_completed', 'true');
+}
+}
+
+function triggerCelebration() {
+createConfetti();
+showSuccessMessage();
+}
+
+function createConfetti() {
+const confettiContainer = document.createElement('div');
+confettiContainer.className = 'confetti-container';
+document.body.appendChild(confettiContainer);
+const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+for (let i = 0; i < 40; i++) {
+setTimeout(() => {
+const confetti = document.createElement('div');
+confetti.className = 'confetti';
+if (Math.random() > 0.6) {
+confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+} else {
+confetti.innerHTML = '●';
+confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+}
+confetti.style.left = Math.random() * 100 + '%';
+confetti.style.animationDelay = Math.random() * 2 + 's';
+document.querySelector('.confetti-container').appendChild(confetti);
+}, i * 50);
+}
+setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+const successMessage = document.createElement('div');
+successMessage.className = 'success-message';
+successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+document.body.appendChild(successMessage);
+setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+const button = document.getElementById('markCompletedBtn');
+if (!button) return;
+if (window.parent && window.parent.ProgressTracker) {
+// Fallback IDs if route info is missing
+let courseId = 'computer-vision';
+let pathId = 'transformers-attention';
+let moduleId = 'cv-ch22-m1-attention-mechanisms';
+let lessonId = 'cv-ch22-l1-new-paradigm';
+
+if (window.parent.currentRoute) {
+const route = window.parent.currentRoute;
+if (route.courseId) courseId = route.courseId;
+if (route.pathId) pathId = route.pathId;
+if (route.moduleId) moduleId = route.moduleId;
+if (route.lessonId) lessonId = route.lessonId;
+}
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('course')) courseId = urlParams.get('course');
+if (urlParams.get('path')) pathId = urlParams.get('path');
+if (urlParams.get('module')) moduleId = urlParams.get('module');
+if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+button.classList.add('completed');
+button.innerHTML = '✅ Completed!';
+return;
+}
+}
+const isCompleted = localStorage.getItem('lesson_cv-ch22-m1-l1_completed') === 'true';
+if (isCompleted) {
+button.classList.add('completed');
+button.innerHTML = '✅ Completed!';
+}
+});
+</script>
+
+</body>
+</html>

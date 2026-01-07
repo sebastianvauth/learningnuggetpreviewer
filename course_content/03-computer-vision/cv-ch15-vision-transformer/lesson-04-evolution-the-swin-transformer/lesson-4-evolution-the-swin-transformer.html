@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Evolution – The Swin Transformer</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <figure>
+            <img src="images/1.jpg" alt="Side-by-side comparison of the ViT cylinder architecture and the Swin Transformer feature pyramid" loading="lazy">
+            <figcaption>ViT keeps feature maps cylindrical while Swin builds a pyramid of features.</figcaption>
+        </figure>
+    </div>
+    <h1>Evolution – The Swin Transformer</h1>
+    <h2>Introduction: The ViT Bottleneck</h2>
+    
+    <p>Welcome to the final lesson of this module! In the last lesson, we marveled at the Vision Transformer (ViT) and its ability to see the 'big picture' using a Global Receptive Field. But we also discovered that ViT is a bit of a diva—it demands massive amounts of data to perform well.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>Two Big Problems</h2>
+    <p>ViT is powerful, but for practical engineers, it has two glaring issues.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>First, the math we did in Lesson 2 haunts us. Self-attention compares every pixel (or patch) to every other pixel. That quadratic complexity \( O(n^2) \) means that if you double the image resolution, the computational cost doesn't just double—it quadruples.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>Second, ViT produces feature maps of the same size throughout the network. It's like a cylinder. But for tasks like Object Detection, we need a <strong>Feature Pyramid</strong>—high resolution at the start to find edges, and low resolution at the end to identify objects.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>To solve this, researchers looked back at CNNs and created an evolutionary step forward: The <strong>Swin Transformer</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>Hierarchy and Windows</h2>
+    <p>The name 'Swin' stands for <strong>S</strong>hifted <strong>Win</strong>dow. This name hints at the two main strategies it uses to fix ViT's problems.</p>
+    <p>Strategy 1 is <strong>Local Windows</strong>. Instead of letting every patch attend to every other patch in the image (Global Attention), we divide the image into small, non-overlapping windows.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>We only compute self-attention <em>inside</em> these windows. If a window contains a fixed number of patches (say, \( M \times M \)), the complexity becomes linear \( O(n) \) with respect to the image size, rather than quadratic.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Shifted Window</h4>
+        <p>A mechanism in Swin Transformers where the partitioning of the image into local windows is shifted between consecutive layers. This shift allows information to cross the boundaries of the previous windows, bridging local attention to create global understanding.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>Let's use an analogy to visualize this difference.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p><strong>The ViT Cocktail Party:</strong> Imagine a massive party where everyone is shouting at everyone else simultaneously. It's chaotic and hard to process. That's Global Attention.</p>
+    <div class="image-placeholder">
+        <figure>
+            <img src="images/2.jpg" alt="Illustration of a chaotic cocktail party where everyone talks over one another" loading="lazy">
+            <figcaption>Global attention behaves like a noisy party where every patch talks to every other one.</figcaption>
+        </figure>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p><strong>The Swin Dinner Party:</strong> Now, imagine everyone is seated at small, separate tables. You only talk to the people at your table. It's much quieter and more efficient. That's Window-based Attention.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <h2>The Magic of Shifting</h2>
+    <p>But wait—if you only talk to your table, how do you learn the gossip from the other side of the room? How do we get that Global Receptive Field back?</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>This is where <strong>Strategy 2</strong> comes in: <strong>Shifting</strong>. In the next layer of the network, we change the seating arrangement.</p>
+    <p>We shift the window grid so that your new table includes people who were at different tables in the previous round. By mixing the groups layer after layer, information eventually propagates across the entire image.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <!-- START: Swin Transformer Interactive Module -->
+<div class="swin-interactive-container">
+    <div class="canvas-wrapper">
+        <canvas id="swinCanvas"></canvas>
+        <div class="overlay-badge" id="layerBadge">Layer l (Standard)</div>
+    </div>
+    
+    <div class="controls-area">
+        <p id="explanation-text">
+            <strong>State A:</strong> The four colored patches are isolated in different windows (thick lines). They cannot communicate.
+        </p>
+        <button class="action-button" id="shiftBtn" onclick="toggleSwinShift()">
+            Perform Shift Operation
+        </button>
+    </div>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('swinCanvas');
+    const ctx = canvas.getContext('2d');
+    const btn = document.getElementById('shiftBtn');
+    const text = document.getElementById('explanation-text');
+    const badge = document.getElementById('layerBadge');
+
+    // Configuration
+    const GRID_SIZE = 8; // 8x8 patches
+    const WINDOW_SIZE = 4; // 4x4 patches per window
+    const PATCH_SIZE = 50; // Logical pixels
+    const CANVAS_SIZE = GRID_SIZE * PATCH_SIZE; // 400x400
+    
+    // State
+    let isShifted = false;
+    let animationProgress = 0; // 0.0 to 1.0
+    let targetProgress = 0;
+    
+    // High DPI Setup
+    function setupCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = CANVAS_SIZE * dpr;
+        canvas.height = CANVAS_SIZE * dpr;
+        canvas.style.width = `${CANVAS_SIZE}px`;
+        canvas.style.height = `${CANVAS_SIZE}px`;
+        ctx.scale(dpr, dpr);
+    }
+
+    // Animation Loop
+    function animate() {
+        // Linear interpolation for smooth slide
+        const speed = 0.1;
+        if (Math.abs(animationProgress - targetProgress) > 0.001) {
+            animationProgress += (targetProgress - animationProgress) * speed;
+        } else {
+            animationProgress = targetProgress;
+        }
+
+        draw();
+        requestAnimationFrame(animate);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+        // 1. Draw Patch Grid (Background - Static)
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        
+        for (let i = 0; i <= GRID_SIZE; i++) {
+            // Vertical
+            ctx.beginPath();
+            ctx.moveTo(i * PATCH_SIZE, 0);
+            ctx.lineTo(i * PATCH_SIZE, CANVAS_SIZE);
+            ctx.stroke();
+            
+            // Horizontal
+            ctx.beginPath();
+            ctx.moveTo(0, i * PATCH_SIZE);
+            ctx.lineTo(CANVAS_SIZE, i * PATCH_SIZE);
+            ctx.stroke();
+        }
+
+        // 2. Draw "Information Patches" (The center 4 patches)
+        // These highlight the concept: Isolated in state A, Connected in state B
+        const center = GRID_SIZE / 2;
+        const highlightPatches = [
+            {x: center-1, y: center-1, color: '#fed7aa'}, // Top Left
+            {x: center,   y: center-1, color: '#fecaca'}, // Top Right
+            {x: center-1, y: center,   color: '#bbf7d0'}, // Bottom Left
+            {x: center,   y: center,   color: '#bfdbfe'}  // Bottom Right
+        ];
+
+        highlightPatches.forEach(p => {
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x * PATCH_SIZE + 2, p.y * PATCH_SIZE + 2, PATCH_SIZE - 4, PATCH_SIZE - 4);
+            
+            // Add small text or icon
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Data', (p.x + 0.5) * PATCH_SIZE, (p.y + 0.5) * PATCH_SIZE);
+        });
+
+        // 3. Draw Window Boundaries (Dynamic/Moving)
+        // Shift amount: Half window size (2 patches) * Progress
+        const shiftPx = (WINDOW_SIZE / 2) * PATCH_SIZE * animationProgress;
+        
+        ctx.strokeStyle = isShifted ? '#764ba2' : '#2563eb'; // Purple when shifted, Blue when standard
+        ctx.lineWidth = 4;
+        
+        // Save context to handle the grid drawing
+        ctx.save();
+        
+        // We simulate the grid moving by offsetting the starting drawing point
+        // In a real Swin, the grid is fixed and the partitioning logic changes, 
+        // but visually, moving the lines is clearer.
+        const effectiveOffset = -shiftPx; 
+
+        // Draw vertical window lines
+        for (let i = 0; i <= GRID_SIZE + (WINDOW_SIZE/2); i += WINDOW_SIZE) {
+            let x = (i * PATCH_SIZE) + effectiveOffset;
+            
+            // Only draw if visible or partially visible
+            ctx.beginPath();
+            // Dashed lines for the shift visual
+            ctx.setLineDash(isShifted ? [10, 5] : []); 
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, CANVAS_SIZE);
+            ctx.stroke();
+        }
+
+        // Draw horizontal window lines
+        for (let i = 0; i <= GRID_SIZE + (WINDOW_SIZE/2); i += WINDOW_SIZE) {
+            let y = (i * PATCH_SIZE) + effectiveOffset;
+            
+            ctx.beginPath();
+            ctx.setLineDash(isShifted ? [10, 5] : []);
+            ctx.moveTo(0, y);
+            ctx.lineTo(CANVAS_SIZE, y);
+            ctx.stroke();
+        }
+        
+        ctx.restore();
+
+        // 4. Draw Intersection Point (Visual Anchor)
+        // In State A, the intersection is exactly in the center (400/2 = 200)
+        // In State B, that intersection moves away
+        ctx.fillStyle = '#2d3748';
+        ctx.beginPath();
+        ctx.arc(CANVAS_SIZE/2, CANVAS_SIZE/2, 6, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Toggle Function exposed globally
+    window.toggleSwinShift = function() {
+        isShifted = !isShifted;
+        targetProgress = isShifted ? 1 : 0;
+        
+        if (isShifted) {
+            btn.innerHTML = "Reset to Layer l";
+            badge.innerHTML = "Layer l+1 (Shifted Windows)";
+            badge.style.color = "#764ba2";
+            badge.style.borderColor = "#d6bcfa";
+            text.innerHTML = "<strong>State B:</strong> The grid shifted down-right. The four center patches are now together in the <em>same</em> window. Information can now flow between them!";
+        } else {
+            btn.innerHTML = "Perform Shift Operation";
+            badge.innerHTML = "Layer l (Standard Windows)";
+            badge.style.color = "#4a5568";
+            badge.style.borderColor = "#cbd5e1";
+            text.innerHTML = "<strong>State A:</strong> The four colored patches are isolated in different windows (thick lines). They cannot communicate.";
+        }
+    };
+
+    // Initialize
+    setupCanvas();
+    animate();
+})();
+</script>
+<!-- END: Swin Transformer Interactive Module -->
+    <p>By shifting the windows, the Swin Transformer bridges the gap between efficiency (local windows) and understanding (global context).</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Why is the 'Shifting' step in Swin Transformers necessary?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, shifting itself doesn\'t change the resolution; patch merging does that later.')">It reduces the resolution of the image.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! Without shifting, the windows would be isolated islands of information. Shifting creates bridges between them.')">It allows information to flow between different local windows.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Shifting is a structural change in how inputs are grouped, not an addition of learnable parameters.')">It increases the number of parameters in the model.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(15)" style="display: none;">Continue</div>
+</section>
+
+<section id="section15">
+    <h2>Building the Pyramid</h2>
+    <p>The second major innovation of Swin is its structure. Unlike ViT, which keeps the same resolution, Swin builds a <strong>Hierarchical Structure</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <p>As the data moves deeper into the network, Swin merges patches together. It starts with small patches (4x4 pixels) and gradually merges them into larger distinct areas.</p>
+    <p>This reduces the spatial resolution (height and width) while increasing the channel dimension (depth). This creates a feature pyramid, exactly like a ResNet or VGG.</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why does the Swin Transformer look more like a CNN than the original ViT?</h4>
+        <div id="check-resnet-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> Because it reduces resolution and increases channels stage-by-stage (Pyramidal structure), just like a ResNet. This makes it better for dense prediction tasks like Object Detection.</div>
+        <button class="reveal-button" onclick="revealAnswer('check-resnet-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <p>This hierarchy is crucial for <strong>Dense Prediction</strong> tasks like segmentation, where you need to know <em>what</em> the object is (deep, semantic features) and exactly <em>where</em> it is (shallow, high-res features).</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Feature Pyramid</h4>
+        <p>A structure in neural networks where feature maps are generated at different scales (resolutions). It allows the model to detect objects of various sizes and is essential for tasks like object detection.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <h2>The Final Verdict</h2>
+    <p>We've covered a lot of ground. We started with the original Transformer for language, adapted it to ViT for images, and refined it with Swin for efficiency.</p>
+    <p>So, are CNNs dead?</p>
+    <div class="image-placeholder">
+        <figure>
+            <img src="images/3.jpg" alt="Playful meme showing a CNN tombstone with a zombie hand labeled EfficientNet rising from the ground" loading="lazy">
+            <figcaption>CNNs still rise to the occasion when efficiency and small data really matter.</figcaption>
+        </figure>
+    </div>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<section id="section20">
+    <p>Not at all! The choice depends on your needs:</p>
+    <ul>
+        <li><strong>Use CNNs (like ResNet/EfficientNet)</strong> if you have limited data, need extreme inference speed on mobile devices, or are working on simple classification.</li>
+        <li><strong>Use Vision Transformers (ViT/Swin)</strong> if you have massive datasets, high-performance computing budgets, or are working on multi-modal tasks (combining text and images).</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<section id="section21">
+    <div class="why-it-matters">
+        <h3>Frequently Asked</h3>
+        <p><strong>Is Swin always better than ViT?</strong></p>
+        <p>Ideally yes, for efficiency and dense tasks (like segmentation) because of its hierarchical nature. However, for simple image classification on massive datasets, the standard ViT is still a very powerful and simple baseline.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(22)">Continue</div>
+</section>
+
+<section id="section22">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following best describes the computational complexity of the Swin Transformer compared to ViT?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Swin was specifically designed to avoid this quadratic cost.')">Swin is Quadratic \( O(n^2) \), same as ViT.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! By restricting attention to local windows, complexity grows linearly with the number of pixels, not quadratically.')">Swin is Linear \( O(n) \), making it much more efficient for high-res images.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That would be nice, but processing more pixels will always take more time!')">Swin is Constant \( O(1) \).</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge-2" onclick="showNextSection(23)" style="display: none;">Continue</div>
+</section>
+
+<section id="section23">
+    <h2>Review and Reflect</h2>
+
+    <p>You have completed the module on Vision Transformers!</p>
+    <p>In this lesson, you learned how the Swin Transformer reintroduced <strong>Locality</strong> and <strong>Hierarchy</strong>—concepts borrowed from CNNs—to make Transformers efficient and versatile.</p>
+    <ul>
+        <li>You visualized how <strong>Shifted Windows</strong> allow for global communication without the heavy cost.</li>
+        <li>You understood the importance of the <strong>Feature Pyramid</strong> for detecting objects at different scales.</li>
+    </ul>
+    <p>You are now equipped to navigate the modern landscape of Deep Learning for Computer Vision. Great work!</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 23;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after answering
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        const continueBtnId = parentSection.id === 'section14' ? 'continue-after-test-knowledge' : 
+                              parentSection.id === 'section22' ? 'continue-after-test-knowledge-2' : null;
+        
+        if (continueBtnId) {
+            const continueButton = document.getElementById(continueBtnId);
+            if (continueButton && continueButton.style.display === 'none') {
+                setTimeout(() => {
+                    continueButton.style.display = 'block';
+                    continueButton.classList.add('show-with-animation');
+                }, 800);
+            }
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Values would typically be dynamic, hardcoded here for this specific template request context
+                let courseId = 'computer-vision';
+                let pathId = 'transformers';
+                let moduleId = 'cv-ch22-m1-swin';
+                let lessonId = 'cv-ch22-l2-swin-evolution';
+                
+                // Try to grab from URL if available
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-swin-evolution_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    // Check local storage for completion
+    const isCompleted = localStorage.getItem('lesson_cv-swin-evolution_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>
