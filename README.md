@@ -4,18 +4,36 @@ An interactive, multi-modal learning platform for teaching Computer Vision conce
 
 ## 🚀 Quick Start
 
+### Development Without Build Tools (Current Setup)
+
 ```bash
 # 1. Clone repository
 git clone https://github.com/sebastianvauth/learningnuggetpreviewer.git
 cd learningnuggetpreviewer
 
 # 2. Set up environment variables
-cp .env.example .env
-# Edit .env with your Supabase credentials
+cp env-loader.example.js env-loader.js
+# Edit env-loader.js with your Supabase credentials
 
 # 3. Start local server
 npx http-server -p 8000
 # Open http://localhost:8000
+```
+
+### Production Setup (Recommended)
+
+For production deployments, use a build tool like Vite:
+
+```bash
+# 1. Set up environment variables
+cp .env.example .env
+# Edit .env with your Supabase credentials
+
+# 2. Install dependencies and build
+npm install
+npm run build
+
+# 3. Deploy the dist/ folder
 ```
 
 **📖 Full Setup Instructions**: See [SETUP.md](SETUP.md)
@@ -84,6 +102,8 @@ npx http-server -p 8000
 ```
 learning-nugget/
 ├── config.js                  # Secure configuration loader
+├── env-loader.js              # Runtime environment vars (dev only, git-ignored)
+├── env-loader.example.js      # Template for env-loader.js
 ├── script.js                  # Main application (3,724 lines)
 ├── style.css                  # Global styles
 ├── index.html                 # Entry point
@@ -93,7 +113,7 @@ learning-nugget/
 │       ├── styles/lesson.css  # Shared lesson styles
 │       └── cv-ch*/            # Chapter folders
 ├── tests/                     # Test suite
-├── .env.example               # Environment template
+├── .env.example               # Environment template (production)
 ├── .gitignore                 # Excludes credentials
 └── SETUP.md                   # Setup instructions
 ```
@@ -133,10 +153,20 @@ Open `tests/test_runner.html` in your browser to run the test suite.
 
 **⚠️ Important**: Never commit credentials to git!
 
+### Development (Without Build Tools)
+- Credentials stored in `env-loader.js` (excluded by `.gitignore`)
+- Runtime environment injection via `window.ENV`
+- Copy `env-loader.example.js` to `env-loader.js` and add your credentials
+
+### Production (With Build Tools)
 - Environment variables stored in `.env` (excluded by `.gitignore`)
+- Build-time injection via Vite or similar bundler
 - Supabase credentials loaded via `config.js`
+
+### Security Best Practices
 - Row Level Security enabled on all database tables
 - CSP headers recommended for production
+- Use Supabase publishable keys (format: `sb_publishable_...`)
 
 See [SECURITY_CREDENTIAL_ROTATION.md](SECURITY_CREDENTIAL_ROTATION.md) for credential management.
 
