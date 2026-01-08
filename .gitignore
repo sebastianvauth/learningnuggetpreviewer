@@ -6,6 +6,7 @@
 
 # Config files with secrets (only ignore local overrides, not the main config.js)
 config.local.js
+env-loader.js
 
 # Node modules
 node_modules/

@@ -3,7 +3,7 @@
 
 /**
  * Get environment variable with fallback
- * Supports both Vite (import.meta.env) and plain environments
+ * Supports Vite (import.meta.env), runtime injection (window.ENV), and hardcoded fallbacks
  */
 function getEnvVar(key, fallback = '') {
     // Try Vite environment variables first (build time)
@@ -16,20 +16,23 @@ function getEnvVar(key, fallback = '') {
         return window.ENV[key];
     }
 
-    // Development fallback (only in dev mode)
-    if (fallback && (!import.meta.env || import.meta.env.DEV)) {
-        console.warn(`Environment variable ${key} not found, using fallback`);
+    // Development fallback - use provided fallback value
+    if (fallback) {
+        console.warn(`Environment variable ${key} not found, using fallback. In production, set this via build process.`);
         return fallback;
     }
 
-    throw new Error(`Missing required environment variable: ${key}`);
+    throw new Error(`Missing required environment variable: ${key}. Please set up your .env file or use a build tool like Vite.`);
 }
 
 // Export configuration object
 export const config = {
     supabase: {
-        url: getEnvVar('VITE_SUPABASE_URL'),
-        anonKey: getEnvVar('VITE_SUPABASE_ANON_KEY')
+        // IMPORTANT: In development without a build tool, you need to manually set these
+        // Option 1: Use window.ENV (see index.html for example)
+        // Option 2: Use a build tool like Vite to inject from .env file
+        url: getEnvVar('VITE_SUPABASE_URL', 'https://hvfbibsjabcuqjmrdmtd.supabase.co'),
+        anonKey: getEnvVar('VITE_SUPABASE_ANON_KEY', 'sb_publishable_A7gRfKBZZt0k_GPuLVWa_A_SwvWuq5b')
     },
 
     features: {
@@ -37,7 +40,7 @@ export const config = {
         autoCompleteOnLoad: getEnvVar('VITE_AUTO_COMPLETE_ON_LOAD', 'false') === 'true'
     },
 
-    environment: getEnvVar('VITE_ENVIRONMENT', 'production'),
+    environment: getEnvVar('VITE_ENVIRONMENT', 'development'),
 
     // Helper to check if we're in development
     isDev() {
