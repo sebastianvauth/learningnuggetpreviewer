@@ -2,25 +2,36 @@
 console.log("Learning Nugget Previewer script loaded.");
 
 // ===========================
+// CONFIGURATION IMPORT
+// ===========================
+
+import { config, validateConfig } from './config.js';
+
+// Validate configuration on startup
+try {
+    validateConfig();
+} catch (error) {
+    console.error('Configuration error:', error.message);
+    // You may want to show a user-friendly error message here
+}
+
+// ===========================
 // SUPABASE CONFIGURATION
 // ===========================
 
-// Initialize Supabase client
-const SUPABASE_URL = 'https://hvfbibsjabcuqjmrdmtd.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2ZmJpYnNqYWJjdXFqbXJkbXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MTk5OTYsImV4cCI6MjA2OTM5NTk5Nn0.piwg5dlJRMz9P6LDje_yKZ2MZznm5wpj2VElnyhPFz4';
-
+// Initialize Supabase client using secure configuration
 let supabase;
 if (typeof window !== 'undefined' && window.supabase) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    supabase = window.supabase.createClient(config.supabase.url, config.supabase.anonKey);
     console.log('Supabase client initialized successfully');
 } else {
     console.warn('Supabase not available - running in offline mode');
 }
 
-// Feature flags
+// Feature flags (loaded from environment)
 const FEATURE_FLAGS = {
-    ALPHA_LOGIN_ONLY: true,
-    AUTO_COMPLETE_ON_LOAD: false
+    ALPHA_LOGIN_ONLY: config.features.alphaLoginOnly,
+    AUTO_COMPLETE_ON_LOAD: config.features.autoCompleteOnLoad
 };
 
 // ===========================
@@ -1922,7 +1933,7 @@ function getChapterNumberFromFolder(folderPath) {
     }
 }
 
-const UNLOCKED_LEARNING_PATH_COUNT = 4;
+const UNLOCKED_LEARNING_PATH_COUNT = Number.MAX_SAFE_INTEGER;
 const unlockedChapterFloorCache = new WeakMap();
 
 function getUnlockedChapterFloor(course) {

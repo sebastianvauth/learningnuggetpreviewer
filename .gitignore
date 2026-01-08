@@ -1,0 +1,38 @@
+# Environment variables (contains sensitive credentials)
+.env
+.env.local
+.env.production
+.env.development
+
+# Config files with secrets (only ignore local overrides, not the main config.js)
+config.local.js
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+
+# Temporary files
+*.tmp
+temp/
