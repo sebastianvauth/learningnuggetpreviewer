@@ -36,7 +36,7 @@ export const config = {
     },
 
     features: {
-        alphaLoginOnly: getEnvVar('VITE_ALPHA_LOGIN_ONLY', 'true') === 'true',
+        alphaLoginOnly: getEnvVar('VITE_ALPHA_LOGIN_ONLY', 'true') === 'true', // Login required
         autoCompleteOnLoad: getEnvVar('VITE_AUTO_COMPLETE_ON_LOAD', 'false') === 'true'
     },
 

@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>From 1D Signals to 2D Images</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="1D sine wave morphing into a 2D spatial ripple, representing the transition from 1D signals to 2D image processing.">
+    </div>
+    <h1>From 1D Signals to 2D Images</h1>
+    <h2>From Waves to Pixels</h2>
+    <p>Welcome back! We have spent the last few lessons mastering the math of 1D waves, delving into complex numbers, and summing up sine waves. But this is a Computer Vision course, not an audio engineering class.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Discrete Reality Intro -->
+<section id="section2">
+    <h2>The Discrete Reality</h2>
+    <p>You might be wondering: How does a squiggly line on a graph relate to a photograph of a cat or a street scene?</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Bridge the Gap -->
+<section id="section3">
+    <p>To bridge this gap, we need to make two jumps. First, we need to move from continuous math (integrals) to discrete math (sums). Second, we need to add a dimension.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Continuous Math -->
+<section id="section4">
+    <p>In the previous lessons, we defined the Continuous Fourier Transform using an integral:</p>
+    <p>$$F(\omega) = \int_{-\\infty}^{\\infty} f(t)e^{-j\omega t} dt$$</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Discrete Math Intro + Vocab -->
+<section id="section5">
+    <p>But digital images aren't continuous; they are grids of pixels. We can't integrate over pixels, but we <em>can</em> sum them up. This brings us to the <strong>Discrete Fourier Transform (DFT)</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>DFT (Discrete Fourier Transform)</h4>
+        <p>The Discrete Fourier Transform converts a finite sequence of equally-spaced samples of a function into a same-length sequence of equally-spaced samples of the discrete-time Fourier transform (DTFT), which is a complex-valued function of frequency.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Discrete Formula -->
+<section id="section6">
+    <p>The math looks scary, but the concept is identical. We just replace the integral sign with a summation sigma:</p>
+    <p>$$F[k] = \sum_{n=0}^{N-1} x[n] e^{-j2\pi k n / N}$$</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: FFT -->
+<section id="section7">
+    <p>Calculating this directly for large images is slow ($O(N^2)$). Luckily, there is a legendary algorithm called the <strong>Fast Fourier Transform (FFT)</strong> which computes this in $O(N \log N)$ time. Without FFT, modern image compression like JPEG wouldn't be feasible.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>FFT (Fast Fourier Transform)</h4>
+        <p>The Fast Fourier Transform is an algorithm that computes the Discrete Fourier Transform (DFT) of a sequence, or its inverse (IDFT). It rapidly reduces the computational complexity from O(N^2) to O(N log N).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Spatial Frequency Intro -->
+<section id="section8">
+    <h2>Understanding Spatial Frequency</h2>
+    <p>Now, let's talk about the second jump: adding a dimension. An image $I(x,y)$ is just a signal where intensity varies over spatial coordinates $(x,y)$ instead of time $(t)$.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Visualization -->
+<section id="section9">
+    <p>This means we can analyze <strong>Spatial Frequency</strong>. Just as a high-frequency sound is a high-pitched screech, a high spatial frequency represents rapid changes in an image.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Spatial Frequency Comparison: Low frequency represented by a smooth gradient sky, and high frequency represented by a sharp checkered shirt pattern.">
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Definition -->
+<section id="section10">
+    <p>Let's break it down:</p>
+    <ul>
+        <li><strong>Low Spatial Frequencies:</strong> correspond to large-scale, smooth variations. Think of a clear blue sky, a smooth wall, or the general shape of an object.</li>
+        <li><strong>High Spatial Frequencies:</strong> correspond to rapid changes in intensity. Think of hair, blades of grass, sharp edges, or noise.</li>
+    </ul>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Spatial Frequency</h4>
+        <p>In image processing, spatial frequency refers to the rate of change in pixel intensity values across an image. High frequency indicates detailed changes (edges), while low frequency indicates broad, gradual changes.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Lena Filter -->
+<section id="section11">
+    <p>We can visualize this by taking an image and filtering out certain frequencies. Let's look at a standard test image.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Frequency Domain Filtering: Showing the original Lena photo, a blurred version (low-pass filtered), and a sketch-like version showing outlines (high-pass filtered).">
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Quiz 1 -->
+<section id="section12">
+    <p>When we keep only the <strong>Low Frequencies</strong> (Low-Pass Filter), the image becomes blurry because we removed the sharp edges. When we keep only the <strong>High Frequencies</strong> (High-Pass Filter), we lose the colors and smooth shapes, leaving only the sharp outlines.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Imagine you are looking at a photo of a brick wall. The mortar lines between the bricks represent what kind of frequency?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Low frequency represents smooth changes. The transition from red brick to white mortar is a very sudden, sharp change in color.')">Low Frequency</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The sharp edge where the brick ends and the mortar begins is a rapid change in intensity, which corresponds to high spatial frequency.')">High Frequency</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The DC component represents the average brightness of the whole image, not the specific details of the lines.')">DC Component</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-quiz-1" onclick="showNextSection(13)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 13: 2D Filter Playground Intro -->
+<section id="section13">
+    <h2>The 2D Filter Playground</h2>
+    <p>To really understand this, we need to see the 2D Frequency Spectrum. It is often visualized as a starburst pattern, where the center represents low frequencies and the outer edges represent high frequencies.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Interactive -->
+<section id="section14">
+    <p>Let's try manipulating an image by editing its frequency spectrum directly.</p>
+    <div class="interactive-playground">
+        <div class="playground-header">
+            <div class="tool-label">
+                <span class="icon">🖼️</span>
+                <strong>Spatial Domain</strong>
+                <small>(The Result)</small>
+            </div>
+            <div class="tool-controls">
+                <button class="reset-btn" onclick="filterPlayground.reset()">
+                    ↺ Reset Spectrum
+                </button>
+            </div>
+            <div class="tool-label">
+                <span class="icon">📊</span>
+                <strong>Frequency Domain</strong>
+                <small>(The Spectrum)</small>
+            </div>
+        </div>
+    
+        <div class="canvas-container">
+            <!-- Result Canvas -->
+            <div class="canvas-wrapper">
+                <canvas id="resultCanvas" width="300" height="300"></canvas>
+                <div class="freq-indicator">
+                    <div>Low Freq: <span id="lf-val">100%</span></div>
+                    <div>High Freq: <span id="hf-val">100%</span></div>
+                </div>
+            </div>
+    
+            <!-- Spectrum Canvas -->
+            <div class="canvas-wrapper">
+                <canvas id="spectrumCanvas" width="300" height="300"></canvas>
+                <div class="instruction-overlay" id="instructionOverlay">
+                    <div class="hand-icon">👆</div>
+                    <span>Drag to Erase</span>
+                </div>
+            </div>
+        </div>
+    
+        <p class="playground-caption">
+            <strong>Try this:</strong> 
+            1. Erase the <em>outer edges</em> of the spectrum (keep the center) to see the blur. 
+            2. Erase the <em>bright center</em> dot to see the edges.
+        </p>
+    </div>
+    
+    <script>
+    const filterPlayground = (function() {
+        // Config
+        const SIZE = 300;
+        const CENTER_RADIUS = 40; // Pixels defining "Low Frequency" area
+        
+        // DOM Elements
+        const resultCanvas = document.getElementById('resultCanvas');
+        const spectrumCanvas = document.getElementById('spectrumCanvas');
+        const lfDisplay = document.getElementById('lf-val');
+        const hfDisplay = document.getElementById('hf-val');
+        const overlay = document.getElementById('instructionOverlay');
+    
+        const ctxResult = resultCanvas.getContext('2d');
+        const ctxSpectrum = spectrumCanvas.getContext('2d');
+    
+        // Offscreen Canvases for Layers
+        const layers = {
+            base: document.createElement('canvas'), // Original Scene
+            blur: document.createElement('canvas'), // Low Pass
+            edge: document.createElement('canvas'), // High Pass
+            spectrumBase: document.createElement('canvas') // The starburst
+        };
+    
+        // State
+        let isDrawing = false;
+        let isInitialized = false;
+        let lfHealth = 1.0;
+        let hfHealth = 1.0;
+    
+        // --- Initialization ---
+        function init() {
+            if (isInitialized) return;
+            if (!resultCanvas || !spectrumCanvas || !lfDisplay || !hfDisplay || !overlay) return;
+
+            isInitialized = true;
+            // Set dimensions
+            Object.values(layers).forEach(c => { c.width = SIZE; c.height = SIZE; });
+    
+            generateScene();
+            generateSpectrumBase();
+            
+            // Draw initial state
+            reset();
+            
+            // Event Listeners
+            setupInteraction();
+            
+            // Start Render Loop
+            requestAnimationFrame(renderLoop);
+        }
+    
+        // --- Asset Generation ---
+        function generateScene() {
+            const ctx = layers.base.getContext('2d');
+            
+            // 1. Background (Gradient)
+            const grad = ctx.createLinearGradient(0, 0, SIZE, SIZE);
+            grad.addColorStop(0, '#8EC5FC');
+            grad.addColorStop(1, '#E0C3FC');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, SIZE, SIZE);
+    
+            // 2. Checkerboard (High Freq)
+            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            const checkSize = 20;
+            for(let y=0; y<SIZE; y+=checkSize) {
+                for(let x=0; x<SIZE; x+=checkSize) {
+                    if((x/checkSize + y/checkSize) % 2 === 0) ctx.fillRect(x,y,checkSize,checkSize);
+                }
+            }
+    
+            // 3. Shapes (Mixed)
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(SIZE/2, SIZE/2, 60, 0, Math.PI*2);
+            ctx.fill();
+    
+            // 4. Text (Sharp Edges)
+            ctx.fillStyle = '#2d3748';
+            ctx.font = 'bold 80px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('FFT', SIZE/2, SIZE/2);
+    
+            // --- Create Low Pass Layer (Blur) ---
+            const ctxBlur = layers.blur.getContext('2d');
+            ctxBlur.filter = 'blur(8px)';
+            ctxBlur.drawImage(layers.base, 0, 0);
+            ctxBlur.filter = 'none';
+    
+            // --- Create High Pass Layer (Edges) ---
+            // High Pass = Original - Low Pass (roughly)
+            // We simulate a "sketch" look
+            const ctxEdge = layers.edge.getContext('2d');
+            
+            // Draw white background
+            ctxEdge.fillStyle = '#fff';
+            ctxEdge.fillRect(0,0,SIZE,SIZE);
+            
+            // We need pixel manipulation for a good difference effect
+            const baseData = ctx.getImageData(0,0,SIZE,SIZE);
+            const blurData = ctxBlur.getImageData(0,0,SIZE,SIZE);
+            const edgeData = ctxEdge.createImageData(SIZE,SIZE);
+    
+            for(let i=0; i<baseData.data.length; i+=4) {
+                // Calculate difference
+                let rDiff = Math.abs(baseData.data[i] - blurData.data[i]);
+                let gDiff = Math.abs(baseData.data[i+1] - blurData.data[i+1]);
+                let bDiff = Math.abs(baseData.data[i+2] - blurData.data[i+2]);
+                
+                // Invert and contrast boost for sketch look
+                // Edges should be black (0), smooth should be white (255)
+                // Current diff: 0 is smooth, high is edge.
+                let mag = (rDiff + gDiff + bDiff) / 3;
+                mag = Math.min(255, mag * 5); // Boost contrast
+                let val = 255 - mag;
+    
+                edgeData.data[i] = val; // R
+                edgeData.data[i+1] = val; // G
+                edgeData.data[i+2] = val; // B
+                edgeData.data[i+3] = 255; // Alpha
+            }
+            ctxEdge.putImageData(edgeData, 0, 0);
+        }
+    
+        function generateSpectrumBase() {
+            const ctx = layers.spectrumBase.getContext('2d');
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0,0,SIZE,SIZE);
+    
+            const cx = SIZE/2;
+            const cy = SIZE/2;
+    
+            // Draw Center (DC Component)
+            const radGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, SIZE/1.5);
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.1, '#ffeb3b'); // Yellowish center
+            radGrad.addColorStop(0.3, '#4facfe'); // Blueish mid
+            radGrad.addColorStop(1, '#000000');
+            
+            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = radGrad;
+            ctx.fillRect(0,0,SIZE,SIZE);
+    
+            // Add "Starburst" lines (Noise)
+            ctx.globalCompositeOperation = 'screen';
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            for(let i=0; i<100; i++) {
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * SIZE * 0.8;
+                ctx.lineTo(cx + Math.cos(angle)*dist, cy + Math.sin(angle)*dist);
+                ctx.stroke();
+            }
+            ctx.globalCompositeOperation = 'source-over';
+        }
+    
+        // --- Interaction ---
+        function setupInteraction() {
+            const startDraw = (e) => {
+                isDrawing = true;
+                drawOnSpectrum(e);
+                overlay.classList.add('hidden');
+            };
+            const stopDraw = () => isDrawing = false;
+            const moveDraw = (e) => {
+                if(!isDrawing) return;
+                drawOnSpectrum(e);
+            };
+    
+            spectrumCanvas.addEventListener('mousedown', startDraw);
+            spectrumCanvas.addEventListener('mousemove', moveDraw);
+            window.addEventListener('mouseup', stopDraw);
+    
+            // Touch support
+            spectrumCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e.touches[0]); });
+            spectrumCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); moveDraw(e.touches[0]); });
+            window.addEventListener('touchend', stopDraw);
+        }
+    
+        function drawOnSpectrum(e) {
+            const rect = spectrumCanvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (SIZE / rect.width);
+            const y = (e.clientY - rect.top) * (SIZE / rect.height);
+    
+            ctxSpectrum.globalCompositeOperation = 'destination-out';
+            ctxSpectrum.beginPath();
+            ctxSpectrum.arc(x, y, 25, 0, Math.PI * 2);
+            ctxSpectrum.fill();
+            ctxSpectrum.globalCompositeOperation = 'source-over';
+            
+            analyzeSpectrum();
+        }
+    
+        function reset() {
+            // Draw the base spectrum onto the visible canvas
+            ctxSpectrum.globalCompositeOperation = 'source-over';
+            ctxSpectrum.drawImage(layers.spectrumBase, 0, 0);
+            
+            // Reset analysis
+            analyzeSpectrum();
+            
+            // Show overlay again if hidden
+            overlay.classList.remove('hidden');
+        }
+    
+        // --- Analysis & Rendering ---
+        function analyzeSpectrum() {
+            // To save performance, we only sample pixels occasionally or use a lower res, 
+            // but for 300x300 it's fast enough on modern devices.
+            
+            // We define a center radius for Low Freq.
+            const cx = SIZE/2;
+            const cy = SIZE/2;
+            
+            // Create an offscreen buffer to read pixel data is slow. 
+            // Actually, we can read directly from the canvas context.
+            // Optimization: Read only a cross-section or random sample points?
+            // Let's read the whole thing but only every 4th pixel to speed up.
+            
+            try {
+                const imgData = ctxSpectrum.getImageData(0, 0, SIZE, SIZE);
+                const data = imgData.data;
+                
+                let centerTotal = 0;
+                let centerActive = 0;
+                let outerTotal = 0;
+                let outerActive = 0;
+    
+                // Simple integration
+                for(let y=0; y<SIZE; y+=4) {
+                    for(let x=0; x<SIZE; x+=4) {
+                        const i = (y * SIZE + x) * 4;
+                        const alpha = data[i+3]; // Alpha channel tells us if it's erased
+                        
+                        // Distance from center
+                        const dx = x - cx;
+                        const dy = y - cy;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        
+                        if(dist < CENTER_RADIUS) {
+                            centerTotal++;
+                            if(alpha > 128) centerActive++; // Threshold
+                        } else if (dist < SIZE/1.5) {
+                            outerTotal++;
+                            if(alpha > 128) outerActive++;
+                        }
+                    }
+                }
+                
+                lfHealth = centerActive / (centerTotal || 1);
+                hfHealth = outerActive / (outerTotal || 1);
+    
+                // Update UI
+                lfDisplay.innerText = Math.round(lfHealth * 100) + '%';
+                hfDisplay.innerText = Math.round(hfHealth * 100) + '%';
+                
+                // Color code UI
+                lfDisplay.style.color = lfHealth < 0.5 ? '#e53e3e' : '#2d3748';
+                hfDisplay.style.color = hfHealth < 0.5 ? '#e53e3e' : '#2d3748';
+    
+            } catch(e) {
+                console.error("Canvas read error", e);
+            }
+        }
+    
+        function renderLoop() {
+            // Reconstruct Result Image based on Health
+            
+            // 1. Clear
+            ctxResult.fillStyle = 'white';
+            ctxResult.fillRect(0,0,SIZE,SIZE);
+    
+            // 2. Draw Low Pass (Blur) based on LF Health
+            // If LF is 100%, we want the full base image (sharp).
+            // If LF is 0%, we want NO image (black/white)?
+            // Wait, logic check:
+            // Center = Structure. Edges = Detail.
+            // Base = Blur + Detail.
+            
+            // Let's compose:
+            // Result = (BlurryLayer * LF_Health) + (EdgeLayer * HF_Health)
+            // But EdgeLayer is white-background with black lines. 
+            // We need to multiply/darken.
+            
+            // Better blend strategy for simulation:
+            // Draw Blurry Layer first. Opacity = LF_Health.
+            ctxResult.save();
+            ctxResult.globalAlpha = lfHealth;
+            ctxResult.drawImage(layers.blur, 0, 0);
+            ctxResult.restore();
+            
+            // Draw Edge Layer. 
+            // We want to Multiply the edges onto the result.
+            // But we want opacity controlled by HF_Health.
+            // If HF is 0, we don't draw edges -> result is just blurry layer.
+            // If HF is 1, we draw edges -> result becomes sharp.
+            
+            if (hfHealth > 0.01) {
+                ctxResult.save();
+                ctxResult.globalCompositeOperation = 'multiply';
+                ctxResult.globalAlpha = hfHealth; 
+                ctxResult.drawImage(layers.edge, 0, 0);
+                ctxResult.restore();
+            }
+    
+            // Special Case: If LF is 0 but HF is 1, we get just edges on white (Sketch).
+            // The logic above: 
+            // 1. Draw Blur * 0 -> Transparent/White (Canvas is white).
+            // 2. Draw Edge * 1 -> Edges on White. 
+            // Result: Sketch. Correct.
+            
+            // Special Case: LF 1, HF 1.
+            // 1. Draw Blur * 1.
+            // 2. Multiply Edges * 1.
+            // Result: Blur * Edges ~= Sharp Image. (Approximation).
+            
+            requestAnimationFrame(renderLoop);
+        }
+    
+        // Public API
+        return {
+            init: init,
+            reset: reset
+        };
+    })();
+    
+    // Initialize when visible
+    // In the context of the lesson, we might wait for the section to be visible,
+    // but for now we'll init when the section becomes visible.
+    
+    </script>
+    <p>Notice what happened? When you erased the center (Low Freq), the 'meat' of the image disappeared, leaving only the 'bones' (edges). When you erased the edges (High Freq), the details vanished, leaving a smooth blur.</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Stop and Think -->
+<section id="section15">
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If you were trying to teach a computer to automatically detect the outline of a standardized part on a conveyor belt, which type of frequency information is more important?</h4>
+        <div id="cuy-conveyor-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> The High Frequency information is more important, as it contains the sharp edges and boundaries that define the outline of the object.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-conveyor-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16: Why It Matters Intro -->
+<section id="section16">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>This isn't just abstract math. This concept is running on your phone right now.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- Section 17: JPEG Part 1 -->
+<section id="section17">
+    <p>This is the foundation of <strong>JPEG Compression</strong>. The human eye is very good at seeing low-frequency changes (like subtle shading on a face) but bad at seeing high-frequency changes (like exact pixel noise).</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- Section 18: JPEG Part 2 -->
+<section id="section18">
+    <p>JPEG works by transforming image blocks into the frequency domain and throwing away the high-frequency data that you probably won't notice anyway. That's why highly compressed images look 'blocky'—you're seeing the artifacts of the math!</p>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<!-- Section 19: Edge Detection + Quiz 2 -->
+<section id="section19">
+    <p>It is also the basis for <strong>Edge Detection</strong>, a crucial first step in many computer vision pipelines to find where objects start and stop.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following image features would contain the most High Frequency energy?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'A clear sky is very smooth with almost no rapid changes. This is almost entirely low frequency.')">A clear blue sky</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Gradients are slow, gradual changes in intensity. This is low frequency.')">A soft gradient background</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Spot on! A checkerboard has many sharp transitions from black to white. These sharp edges are pure high frequency energy.')">A checkerboard pattern</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Being out of focus effectively removes high frequencies, leaving only the low ones.')">An out-of-focus portrait</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-quiz-2" onclick="showNextSection(20)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 20: FAQ -->
+<section id="section20">
+    <div class="frequently-asked">
+        <h3>Frequently Asked</h3>
+        <h4>Why is the center of the frequency spectrum usually the brightest part?</h4>
+        <p>Great observation! The center of the spectrum (coordinate 0,0) represents the frequency of 0. This is known as the <strong>DC Component</strong>. It corresponds to the average brightness of the entire image. Since most images have a significant amount of light in them (they aren't pitch black), this value is usually very high compared to the amplitude of specific textures.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<!-- Section 21: Review -->
+<section id="section21">
+    <h2>Review and Reflect</h2>
+    <p>You have successfully bridged the gap between 1D signals and 2D images. We've seen that:</p>
+    
+    <ul>
+        <li><strong>DFT & FFT</strong> allow us to analyze digital signals by summing samples instead of integrating functions.</li>
+        <li><strong>Spatial Frequency</strong> describes how fast pixel values change.</li>
+        <li><strong>Low Frequencies</strong> hold the structure and smooth areas; <strong>High Frequencies</strong> hold the details and edges.</li>
+    </ul>
+    <p>This concludes our deep dive into the General Fourier Transform. In the next chapter, we will leave the frequency domain and return to the spatial domain to look at how we can apply filters directly to pixels using Convolution.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 21;
+
+updateProgress();
+// Initialize progress if user scrolled or reloaded (simplified for this demo)
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    
+    if (!nextSectionElement) return;
+
+    // Hide the button that was just clicked
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+
+    // Reveal next section
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+
+    // Initialize playground if entering section 14
+    if (nextSectionId === 14 && typeof filterPlayground !== 'undefined') {
+        filterPlayground.init();
+    }
+
+    // Check for completion
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+
+    // Smooth scroll
+    setTimeout(() => { 
+        nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    // Reset siblings
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+
+    // Style clicked element
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+    // Add explanation
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after quiz interaction
+    // We check the parent section ID to find the specific continue button
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        const sectionId = parentSection.id;
+        let continueBtnId = null;
+        
+        if (sectionId === 'section12') continueBtnId = 'continue-after-quiz-1';
+        if (sectionId === 'section19') continueBtnId = 'continue-after-quiz-2';
+
+        if (continueBtnId) {
+            const continueButton = document.getElementById(continueBtnId);
+            if (continueButton && continueButton.style.display === 'none') {
+                setTimeout(() => {
+                    continueButton.style.display = 'block';
+                    continueButton.classList.add('show-with-animation');
+                }, 800);
+            }
+        }
+    }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none' && btn.offsetParent !== null) {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Try integration with parent LMS
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Mock IDs for this new lesson
+                let courseId = 'computer-vision';
+                let pathId = 'fourier-transform'; 
+                let moduleId = 'cv-ch2-m1-signals';
+                let lessonId = 'cv-ch2-l2-1d-to-2d';
+                
+                // Use URL params if available
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch2-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '📷', '🌊'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage for completion
+    const isCompleted = localStorage.getItem('lesson_cv-ch2-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

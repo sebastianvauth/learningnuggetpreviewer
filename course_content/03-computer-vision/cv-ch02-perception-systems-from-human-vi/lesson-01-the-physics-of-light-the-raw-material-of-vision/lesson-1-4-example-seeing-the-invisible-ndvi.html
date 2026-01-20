@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Example Lesson: Seeing the Invisible (NDVI)</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+.ndvi-formula {
+    background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+    border-radius: 12px;
+    padding: 25px;
+    margin: 2rem 0;
+    text-align: center;
+    color: white;
+}
+.ndvi-formula .formula {
+    font-size: 1.4rem;
+    margin: 15px 0;
+}
+.ndvi-formula .legend {
+    font-size: 0.9rem;
+    color: #a0aec0;
+    margin-top: 15px;
+}
+.scenario-box {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 1.5rem 0;
+    border-left: 4px solid #48bb78;
+}
+.scenario-box.healthy {
+    border-left-color: #48bb78;
+}
+.scenario-box.unhealthy {
+    border-left-color: #ed8936;
+}
+.scenario-box h4 {
+    margin: 0 0 10px 0;
+    color: #e2e8f0;
+}
+.calculation {
+    background: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-family: 'Courier New', monospace;
+}
+.ndvi-scale {
+    display: flex;
+    margin: 2rem 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.ndvi-scale-segment {
+    flex: 1;
+    padding: 15px 10px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+.interactive-placeholder {
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    border: 2px dashed #4a5568;
+    border-radius: 12px;
+    padding: 40px 20px;
+    margin: 2rem 0;
+    text-align: center;
+    color: #a0aec0;
+}
+.interactive-placeholder h4 {
+    color: #e2e8f0;
+    margin-bottom: 15px;
+}
+.interactive-placeholder p {
+    margin: 10px 0;
+    font-size: 0.95rem;
+}
+</style>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <div style="background: linear-gradient(135deg, #2d5016 0%, #1a202c 50%, #c53030 100%); height: 250px; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative;">
+            <div style="position: absolute; left: 0; width: 50%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">RGB View</div>
+            <div style="position: absolute; right: 0; width: 50%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">NDVI View</div>
+            <div style="position: absolute; width: 2px; height: 100%; background: white; left: 50%;"></div>
+        </div>
+        <p style="text-align: center; font-size: 0.85rem; color: #a0aec0; margin-top: 10px;">Split view: Standard photo (left) vs NDVI false-color map (right) revealing hidden plant stress</p>
+    </div>
+    <h1>Seeing the Invisible</h1>
+    <h2>Beyond Green</h2>
+    <p>As we learned in the previous lesson, human vision is limited to a tiny slice of the electromagnetic spectrum. We rely heavily on this visible slice to make decisions. For example, if you are a farmer, you look at your crops. If they are green, they are healthy, right?</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>Not necessarily. By the time a plant turns yellow or brown, it's often too late to save it. But plants start screaming for help long before our eyes can see it—they just do it in a 'color' we can't see: <strong>Infrared</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>In this real-world example, we will explore <strong>NDVI</strong> (Normalized Difference Vegetation Index), a technique used by satellites and drones to monitor the health of the planet by seeing the invisible.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>This is a perfect example of why computer vision is more than just mimicking the human eye. By designing sensors that capture data <em>outside</em> the visible spectrum (like Infrared), we can build systems that possess 'superhuman' perception.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <h2>The Physics of Photosynthesis</h2>
+    <p>To understand NDVI, we need to look at how a plant interacts with sunlight. Sunlight contains Visible Light (Blue, Green, Red) and invisible Infrared light.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>Plants are smart biological machines. They need energy to grow, but they also need to avoid overheating.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <ol>
+        <li><strong>Visible Red Light:</strong> Plants <strong>absorb</strong> this greedily for photosynthesis. It's their fuel.</li>
+        <li><strong>Near-Infrared (NIR):</strong> This carries a lot of heat but isn't useful for photosynthesis. So, healthy plants strongly <strong>reflect</strong> NIR to stay cool.</li>
+    </ol>
+    <div class="image-placeholder">
+        <div style="background: linear-gradient(to right, #1a365d, #2d3748); height: 200px; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; padding: 20px;">
+            <svg viewBox="0 0 400 150" style="width: 100%; max-width: 400px;">
+                <!-- X axis -->
+                <line x1="50" y1="120" x2="380" y2="120" stroke="#a0aec0" stroke-width="2"/>
+                <!-- Y axis -->
+                <line x1="50" y1="120" x2="50" y2="20" stroke="#a0aec0" stroke-width="2"/>
+                <!-- Spectral curve -->
+                <path d="M60,110 Q100,100 120,105 Q140,110 160,90 Q180,70 200,100 Q220,110 240,108 Q280,30 320,35 Q360,40 370,45" fill="none" stroke="#48bb78" stroke-width="3"/>
+                <!-- Labels -->
+                <text x="90" y="140" fill="#a0aec0" font-size="10">Blue</text>
+                <text x="150" y="140" fill="#a0aec0" font-size="10">Green</text>
+                <text x="210" y="140" fill="#a0aec0" font-size="10">Red</text>
+                <text x="300" y="140" fill="#a0aec0" font-size="10">NIR</text>
+                <text x="10" y="70" fill="#a0aec0" font-size="10" transform="rotate(-90, 20, 70)">Reflectance</text>
+            </svg>
+        </div>
+        <p style="text-align: center; font-size: 0.85rem; color: #a0aec0; margin-top: 10px;">Spectral reflectance curve of a healthy leaf: low in Blue/Red (absorption), high in NIR (reflection)</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>Here is the key takeaway:</p>
+    <ul>
+        <li><strong>Healthy Plant:</strong> Absorbs Red, Reflects NIR.</li>
+        <li><strong>Sick/Dead Plant:</strong> Stops absorbing Red (reflects it), Stops reflecting NIR (absorbs it).</li>
+    </ul>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If you took a photo of a healthy forest using a camera that ONLY captures Near-Infrared light, would the trees look dark or bright?</h4>
+        <div id="nir-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> They would look very <strong>bright</strong>! Since healthy leaves reflect almost all NIR light, they would appear effectively white in an infrared photo. Water, on the other hand, absorbs NIR, so it would look pitch black.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('nir-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <h2>The NDVI Formula</h2>
+    <p>Satellites like NASA's Landsat or the European Sentinel mission carry multispectral cameras. They don't just capture R, G, and B; they capture a dedicated <strong>NIR</strong> channel.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>We can combine these channels using a simple mathematical formula to calculate the <strong>Normalized Difference Vegetation Index (NDVI)</strong>:</p>
+    <div class="ndvi-formula">
+        <div class="formula">
+            $$ \text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}} $$
+        </div>
+        <div class="legend">
+            NIR = Near-Infrared light intensity | Red = Visible Red light intensity
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>Let's break down the math. This formula compares the difference between NIR and Red to the sum of both.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>The result is always a number between <strong>-1.0</strong> and <strong>+1.0</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Multispectral Imaging</h4>
+        <p>A technique where image sensors capture image data within specific wavelength ranges across the electromagnetic spectrum, including wavelengths invisible to the human eye (like Infrared or Ultraviolet).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>Let's try a calculation. Imagine a satellite sensor measures light intensity on a scale of 0.0 to 1.0.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <div class="scenario-box healthy">
+        <h4>Scenario A: A Healthy Tree</h4>
+        <p>It reflects a lot of NIR (0.8) and absorbs most Red (reflects only 0.1).</p>
+        <div class="calculation">
+            $$ \text{NDVI} = \frac{0.8 - 0.1}{0.8 + 0.1} = \frac{0.7}{0.9} \approx \mathbf{0.78} $$
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p>A high positive value (close to 1) indicates dense, healthy vegetation.</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <div class="scenario-box unhealthy">
+        <h4>Scenario B: Dry Soil / Dead Grass</h4>
+        <p>It reflects Red (0.3) and NIR (0.35) roughly equally.</p>
+        <div class="calculation">
+            $$ \text{NDVI} = \frac{0.35 - 0.3}{0.35 + 0.3} = \frac{0.05}{0.65} \approx \mathbf{0.08} $$
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <p>A value close to zero means there is no green vegetation. If the value is negative (e.g., -0.2), it usually indicates water.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>You are analyzing satellite data for a vineyard. You calculate an NDVI value of 0.15 for a specific patch of land. What does this likely tell the farmer?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. Healthy vegetation usually has an NDVI above 0.5.')">The vines are extremely healthy and lush.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, water typically results in negative NDVI values.')">There is standing water or a lake there.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'A low positive value (0.1 to 0.2) suggests bare soil or very unhealthy, sparse vegetation.')">The plants are stressed, sparse, or dying.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <h2>Interactive Analysis</h2>
+    <p>Now it's your turn to be the satellite.</p>
+
+    <div class="ndvi-simulation-container">
+        <div class="ndvi-header">
+            <span class="satellite-icon">🛰️</span>
+            <span class="ndvi-title">Satellite Crop Analysis</span>
+        </div>
+
+        <div class="ndvi-canvas-wrapper">
+            <canvas id="ndviCanvas"></canvas>
+            <div class="ndvi-tooltip" id="ndviTooltip"></div>
+        </div>
+
+        <div class="ndvi-controls">
+            <div class="view-labels">
+                <span class="view-label rgb-label">RGB (Human Vision)</span>
+                <span class="view-label ndvi-label">NDVI Analysis</span>
+            </div>
+            <input type="range" id="ndviSlider" min="0" max="100" value="0" class="ndvi-slider">
+            <div class="slider-hint">Drag slider to reveal what the human eye cannot see</div>
+        </div>
+
+        <div class="ndvi-legend">
+            <div class="legend-title">NDVI Scale</div>
+            <div class="legend-bar">
+                <div class="legend-gradient"></div>
+                <div class="legend-labels">
+                    <span>-1.0<br><small>Water</small></span>
+                    <span>0.0<br><small>Soil</small></span>
+                    <span>0.2<br><small>Stress</small></span>
+                    <span>0.5<br><small>Sparse</small></span>
+                    <span>1.0<br><small>Healthy</small></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ndvi-status" id="ndviStatus">
+            <strong>RGB View:</strong> The field appears uniformly green and healthy. No problems visible to the naked eye.
+        </div>
+    </div>
+
+    <style>
+    .ndvi-simulation-container {
+        background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 2rem 0;
+        color: white;
+    }
+    .ndvi-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .satellite-icon {
+        font-size: 1.5rem;
+    }
+    .ndvi-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #e2e8f0;
+    }
+    .ndvi-canvas-wrapper {
+        position: relative;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    #ndviCanvas {
+        width: 100%;
+        height: 350px;
+        background: #000;
+        border-radius: 8px;
+        cursor: crosshair;
+    }
+    .ndvi-tooltip {
+        position: absolute;
+        background: rgba(0,0,0,0.9);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        z-index: 10;
+        white-space: nowrap;
+    }
+    .ndvi-tooltip.visible {
+        opacity: 1;
+    }
+    .ndvi-controls {
+        margin-bottom: 20px;
+    }
+    .view-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .view-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: color 0.3s, opacity 0.3s;
+    }
+    .view-label.rgb-label {
+        color: #68d391;
+    }
+    .view-label.ndvi-label {
+        color: #a0aec0;
+    }
+    .view-label.active {
+        opacity: 1;
+    }
+    .view-label.inactive {
+        opacity: 0.4;
+    }
+    .ndvi-slider {
+        width: 100%;
+        height: 8px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: linear-gradient(to right, #48bb78, #ecc94b, #ed8936, #e53e3e);
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+    }
+    .ndvi-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        background: white;
+        border-radius: 50%;
+        cursor: grab;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        transition: transform 0.2s;
+    }
+    .ndvi-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+    }
+    .ndvi-slider::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        background: white;
+        border-radius: 50%;
+        cursor: grab;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        border: none;
+    }
+    .slider-hint {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #a0aec0;
+        margin-top: 8px;
+        font-style: italic;
+    }
+    .ndvi-legend {
+        background: rgba(0,0,0,0.2);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    .legend-title {
+        font-size: 0.85rem;
+        color: #a0aec0;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .legend-bar {
+        position: relative;
+    }
+    .legend-gradient {
+        height: 20px;
+        border-radius: 4px;
+        background: linear-gradient(to right,
+            #1a365d 0%,
+            #2b6cb0 10%,
+            #c4b5a0 20%,
+            #ed8936 35%,
+            #ecc94b 50%,
+            #9ae6b4 70%,
+            #276749 100%
+        );
+    }
+    .legend-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+        font-size: 0.75rem;
+        color: #a0aec0;
+    }
+    .legend-labels span {
+        text-align: center;
+    }
+    .legend-labels small {
+        display: block;
+        font-size: 0.65rem;
+        opacity: 0.7;
+    }
+    .ndvi-status {
+        background: rgba(255,255,255,0.05);
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #48bb78;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        transition: border-color 0.3s;
+    }
+    .ndvi-status.warning {
+        border-left-color: #ed8936;
+    }
+    .ndvi-status.alert {
+        border-left-color: #e53e3e;
+    }
+    </style>
+
+    <script>
+    (function() {
+        const canvas = document.getElementById('ndviCanvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('ndviSlider');
+        const tooltip = document.getElementById('ndviTooltip');
+        const statusBox = document.getElementById('ndviStatus');
+        const rgbLabel = document.querySelector('.rgb-label');
+        const ndviLabel = document.querySelector('.ndvi-label');
+
+        let ndviAmount = 0;
+        let mouseX = 0, mouseY = 0;
+        let isHovering = false;
+
+        // Field configuration
+        const ROWS = 12;
+        const COLS = 16;
+        const STRESS_CENTER_X = 0.55;
+        const STRESS_CENTER_Y = 0.5;
+        const STRESS_RADIUS = 0.22;
+
+        // Generate field data with NDVI values
+        const fieldData = [];
+        for (let row = 0; row < ROWS; row++) {
+            fieldData[row] = [];
+            for (let col = 0; col < COLS; col++) {
+                const nx = col / COLS;
+                const ny = row / ROWS;
+
+                // Calculate distance from stress center
+                const dx = nx - STRESS_CENTER_X;
+                const dy = ny - STRESS_CENTER_Y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+
+                // Create radial stress pattern (irrigation leak)
+                let ndvi;
+                if (dist < STRESS_RADIUS * 0.4) {
+                    // Center of stress - very low NDVI
+                    ndvi = 0.1 + Math.random() * 0.1;
+                } else if (dist < STRESS_RADIUS * 0.7) {
+                    // Transition zone
+                    const t = (dist - STRESS_RADIUS * 0.4) / (STRESS_RADIUS * 0.3);
+                    ndvi = 0.15 + t * 0.35 + Math.random() * 0.1;
+                } else if (dist < STRESS_RADIUS) {
+                    // Outer stress zone
+                    const t = (dist - STRESS_RADIUS * 0.7) / (STRESS_RADIUS * 0.3);
+                    ndvi = 0.5 + t * 0.25 + Math.random() * 0.1;
+                } else {
+                    // Healthy vegetation
+                    ndvi = 0.7 + Math.random() * 0.2;
+                }
+
+                // Add some natural variation
+                ndvi += (Math.random() - 0.5) * 0.05;
+                ndvi = Math.max(0.05, Math.min(0.95, ndvi));
+
+                fieldData[row][col] = {
+                    ndvi: ndvi,
+                    variation: Math.random() * 0.3
+                };
+            }
+        }
+
+        // Color functions
+        function ndviToColor(ndvi) {
+            // NDVI color scale: blue (water) -> brown (soil) -> yellow/orange (stress) -> green (healthy)
+            if (ndvi < 0) {
+                // Water - blue
+                return { r: 26, g: 54, b: 93 };
+            } else if (ndvi < 0.2) {
+                // Bare soil / severe stress - brown/red
+                const t = ndvi / 0.2;
+                return {
+                    r: Math.floor(196 + (237 - 196) * t),
+                    g: Math.floor(140 + (137 - 140) * t),
+                    b: Math.floor(100 + (54 - 100) * t)
+                };
+            } else if (ndvi < 0.4) {
+                // Moderate stress - orange/yellow
+                const t = (ndvi - 0.2) / 0.2;
+                return {
+                    r: Math.floor(237 - (237 - 236) * t),
+                    g: Math.floor(137 + (201 - 137) * t),
+                    b: Math.floor(54 + (75 - 54) * t)
+                };
+            } else if (ndvi < 0.6) {
+                // Light vegetation - yellow-green
+                const t = (ndvi - 0.4) / 0.2;
+                return {
+                    r: Math.floor(236 - (154 - 236) * t),
+                    g: Math.floor(201 + (230 - 201) * t),
+                    b: Math.floor(75 + (180 - 75) * t)
+                };
+            } else {
+                // Healthy vegetation - green
+                const t = Math.min(1, (ndvi - 0.6) / 0.4);
+                return {
+                    r: Math.floor(154 - (39 - 154) * t),
+                    g: Math.floor(230 - (103 - 230) * t),
+                    b: Math.floor(180 - (73 - 180) * t)
+                };
+            }
+        }
+
+        function rgbColor(ndvi, variation) {
+            // In RGB, everything looks green (human can't see stress)
+            const base = 80 + variation * 40;
+            return {
+                r: Math.floor(40 + variation * 20),
+                g: Math.floor(base + 60 + variation * 30),
+                b: Math.floor(30 + variation * 15)
+            };
+        }
+
+        function lerpColor(c1, c2, t) {
+            return {
+                r: Math.floor(c1.r + (c2.r - c1.r) * t),
+                g: Math.floor(c1.g + (c2.g - c1.g) * t),
+                b: Math.floor(c1.b + (c2.b - c1.b) * t)
+            };
+        }
+
+        // Resize handler
+        function resize() {
+            const displayWidth = canvas.clientWidth;
+            if (displayWidth === 0) return;
+            canvas.width = displayWidth;
+            canvas.height = 350;
+            draw();
+        }
+
+        window.addEventListener('resize', resize);
+        const observer = new ResizeObserver(() => resize());
+        observer.observe(canvas);
+
+        // Draw the field
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const cellW = canvas.width / COLS;
+            const cellH = canvas.height / ROWS;
+            const padding = 2;
+
+            // Draw each crop cell
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    const cell = fieldData[row][col];
+                    const x = col * cellW;
+                    const y = row * cellH;
+
+                    // Get colors for both views
+                    const rgbC = rgbColor(cell.ndvi, cell.variation);
+                    const ndviC = ndviToColor(cell.ndvi);
+
+                    // Interpolate based on slider
+                    const finalColor = lerpColor(rgbC, ndviC, ndviAmount);
+
+                    // Draw cell background
+                    ctx.fillStyle = `rgb(${finalColor.r}, ${finalColor.g}, ${finalColor.b})`;
+                    ctx.fillRect(x + padding, y + padding, cellW - padding * 2, cellH - padding * 2);
+
+                    // Add crop row texture
+                    ctx.strokeStyle = `rgba(0,0,0,0.15)`;
+                    ctx.lineWidth = 1;
+                    for (let i = 1; i < 3; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(x + padding, y + (cellH / 3) * i);
+                        ctx.lineTo(x + cellW - padding, y + (cellH / 3) * i);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Draw grid lines
+            ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+            ctx.lineWidth = 1;
+            for (let row = 0; row <= ROWS; row++) {
+                ctx.beginPath();
+                ctx.moveTo(0, row * cellH);
+                ctx.lineTo(canvas.width, row * cellH);
+                ctx.stroke();
+            }
+            for (let col = 0; col <= COLS; col++) {
+                ctx.beginPath();
+                ctx.moveTo(col * cellW, 0);
+                ctx.lineTo(col * cellW, canvas.height);
+                ctx.stroke();
+            }
+
+            // Draw stress zone indicator when in NDVI mode
+            if (ndviAmount > 0.5) {
+                const alpha = (ndviAmount - 0.5) * 2 * 0.6;
+                ctx.strokeStyle = `rgba(255, 100, 100, ${alpha})`;
+                ctx.lineWidth = 3;
+                ctx.setLineDash([10, 5]);
+                ctx.beginPath();
+                ctx.ellipse(
+                    STRESS_CENTER_X * canvas.width,
+                    STRESS_CENTER_Y * canvas.height,
+                    STRESS_RADIUS * canvas.width,
+                    STRESS_RADIUS * canvas.height,
+                    0, 0, Math.PI * 2
+                );
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Label
+                ctx.font = 'bold 14px Arial';
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.textAlign = 'center';
+                ctx.fillText('⚠ Irrigation Leak Detected', STRESS_CENTER_X * canvas.width, STRESS_CENTER_Y * canvas.height - STRESS_RADIUS * canvas.height - 10);
+            }
+
+            // Draw satellite frame overlay
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+            // Corner brackets
+            const bracketSize = 30;
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 3;
+
+            // Top-left
+            ctx.beginPath();
+            ctx.moveTo(0, bracketSize);
+            ctx.lineTo(0, 0);
+            ctx.lineTo(bracketSize, 0);
+            ctx.stroke();
+
+            // Top-right
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - bracketSize, 0);
+            ctx.lineTo(canvas.width, 0);
+            ctx.lineTo(canvas.width, bracketSize);
+            ctx.stroke();
+
+            // Bottom-left
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - bracketSize);
+            ctx.lineTo(0, canvas.height);
+            ctx.lineTo(bracketSize, canvas.height);
+            ctx.stroke();
+
+            // Bottom-right
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - bracketSize, canvas.height);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(canvas.width, canvas.height - bracketSize);
+            ctx.stroke();
+
+            // View mode indicator
+            ctx.font = '12px monospace';
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.textAlign = 'left';
+            const modeText = ndviAmount < 0.5 ? 'MODE: RGB' : 'MODE: NDVI';
+            ctx.fillText(modeText, 10, canvas.height - 10);
+
+            // Coordinates display
+            ctx.textAlign = 'right';
+            ctx.fillText(`LAT: 38.5449° N  LON: 121.7405° W`, canvas.width - 10, canvas.height - 10);
+        }
+
+        // Slider handler
+        slider.addEventListener('input', function() {
+            ndviAmount = this.value / 100;
+
+            // Update labels
+            if (ndviAmount < 0.5) {
+                rgbLabel.classList.add('active');
+                rgbLabel.classList.remove('inactive');
+                ndviLabel.classList.add('inactive');
+                ndviLabel.classList.remove('active');
+            } else {
+                ndviLabel.classList.add('active');
+                ndviLabel.classList.remove('inactive');
+                rgbLabel.classList.add('inactive');
+                rgbLabel.classList.remove('active');
+            }
+
+            // Update status text
+            if (ndviAmount < 0.3) {
+                statusBox.innerHTML = '<strong>RGB View:</strong> The field appears uniformly green and healthy. No problems visible to the naked eye.';
+                statusBox.className = 'ndvi-status';
+            } else if (ndviAmount < 0.6) {
+                statusBox.innerHTML = '<strong>Transitioning...</strong> As we shift to NDVI analysis, color variations begin to emerge. Some areas show different signatures.';
+                statusBox.className = 'ndvi-status warning';
+            } else {
+                statusBox.innerHTML = '<strong>NDVI Analysis:</strong> <span style="color:#ed8936">⚠ Problem detected!</span> A circular pattern of stressed vegetation (orange/red) is visible in the center-right area. This radial pattern is characteristic of an <strong>irrigation system malfunction</strong> or underground water leak causing root damage.';
+                statusBox.className = 'ndvi-status alert';
+            }
+
+            draw();
+        });
+
+        // Mouse hover for tooltip
+        canvas.addEventListener('mousemove', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+
+            const col = Math.floor((mouseX / canvas.width) * COLS);
+            const row = Math.floor((mouseY / canvas.height) * ROWS);
+
+            if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
+                const cell = fieldData[row][col];
+
+                let status = '';
+                if (cell.ndvi < 0.2) status = 'Severe Stress';
+                else if (cell.ndvi < 0.4) status = 'Moderate Stress';
+                else if (cell.ndvi < 0.6) status = 'Light Stress';
+                else if (cell.ndvi < 0.8) status = 'Healthy';
+                else status = 'Very Healthy';
+
+                tooltip.innerHTML = `<strong>NDVI: ${cell.ndvi.toFixed(2)}</strong><br>${status}`;
+                tooltip.style.left = (mouseX + 15) + 'px';
+                tooltip.style.top = (mouseY - 10) + 'px';
+                tooltip.classList.add('visible');
+            }
+        });
+
+        canvas.addEventListener('mouseleave', function() {
+            tooltip.classList.remove('visible');
+        });
+
+        // Initialize
+        resize();
+        rgbLabel.classList.add('active');
+        ndviLabel.classList.add('inactive');
+
+    })();
+    </script>
+
+    <p>Notice how the RGB image can deceive you? The field looks perfectly green. But the NDVI view reveals a 'red' patch of low values in the center where the plants are stressed, likely due to a pest or water issue.</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <div class="faq-section">
+        <h3>Frequently Asked Question</h3>
+        <h4>Can I do this with my smartphone camera?</h4>
+        <p>Not easily! Standard cameras have an 'IR Cut Filter' physically installed over the sensor to block infrared light (because IR makes normal photos look blurry and pink). To shoot NDVI, you actually have to surgically remove that filter and replace it with a special blue-filter, or buy a specialized multispectral camera.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <h2>Review and Reflect</h2>
+    <div class="image-placeholder">
+        <div style="background: linear-gradient(135deg, #1a365d 0%, #234e52 50%, #2d3748 100%); height: 180px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 30px; padding: 20px;">
+            <div style="text-align: center; color: white;">
+                <div style="font-size: 2.5rem;">🛰️</div>
+                <div style="font-size: 0.8rem; margin-top: 5px;">Satellite</div>
+            </div>
+            <div style="font-size: 2rem; color: #a0aec0;">→</div>
+            <div style="text-align: center; color: white;">
+                <div style="font-size: 2.5rem;">📊</div>
+                <div style="font-size: 0.8rem; margin-top: 5px;">Spectral Data</div>
+            </div>
+            <div style="font-size: 2rem; color: #a0aec0;">→</div>
+            <div style="text-align: center; color: white;">
+                <div style="font-size: 2.5rem;">🗺️</div>
+                <div style="font-size: 0.8rem; margin-top: 5px;">NDVI Map</div>
+            </div>
+        </div>
+        <p style="text-align: center; font-size: 0.85rem; color: #a0aec0; margin-top: 10px;">The pipeline: from sensor technology to data analysis to global monitoring</p>
+    </div>
+    <p>By understanding the physics of light—specifically that 'Red' is absorbed for energy and 'Infrared' is reflected for cooling—we can build mathematical tools like NDVI to see things the human eye cannot.</p>
+    <h3>Key Takeaways:</h3>
+    <ul>
+        <li><strong>Visible light</strong> is just one type of data.</li>
+        <li><strong>NDVI</strong> uses the formula $(NIR - Red) / (NIR + Red)$.</li>
+        <li><strong>High NDVI</strong> = Healthy Plants; <strong>Low NDVI</strong> = Stress or Soil.</li>
+    </ul>
+    <p>In the next lesson, we will go back to the lab and experiment with splitting light using a virtual prism!</p>
+
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 19;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = (window.event && window.event.target) || null;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = (window.event && window.event.target) || null;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                let courseId = 'computer-vision';
+                let pathId = 'foundations-of-vision';
+                let moduleId = 'cv-ch2-m1-physics';
+                let lessonId = 'cv-ch2-l4-ndvi-example';
+
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch2-l4-ndvi_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '💡', '🌈'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch2-l4-ndvi_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

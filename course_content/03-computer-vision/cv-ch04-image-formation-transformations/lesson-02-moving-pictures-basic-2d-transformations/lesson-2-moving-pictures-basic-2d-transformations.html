@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Moving Pictures – Basic 2D Transformations</title>
+<style>
+    /* Sandbox Specific Styles */
+    .sandbox-wrapper {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        margin: 2rem 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    .sandbox-header {
+        padding: 1rem 1.5rem;
+        background: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .status-badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    .reset-btn {
+        padding: 8px 16px;
+        background: white;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #4a5568;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .reset-btn:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+        transform: translateY(-1px);
+    }
+    .sandbox-content {
+        display: flex;
+        flex-wrap: wrap;
+        background: white;
+    }
+    .canvas-container {
+        flex: 1;
+        min-width: 300px;
+        height: 400px; /* Force height to match canvas */
+        background: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+        border-right: 1px solid #e2e8f0;
+        cursor: default; /* Override crosshair from lesson.css */
+    }
+    #transformCanvas {
+        display: block;
+        background: white;
+    }
+    .controls-container {
+        flex: 0 0 350px;
+        padding: 1.5rem;
+        background: #f8fafc;
+    }
+    @media (max-width: 768px) {
+        .controls-container {
+            flex: 1 0 100%;
+        }
+        .canvas-container {
+            border-right: none;
+            border-bottom: 1px solid #e2e8f0;
+            width: 100%;
+        }
+    }
+    .matrix-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2rem;
+        font-family: 'Courier New', Courier, monospace;
+        background: #1a202c;
+        padding: 1.5rem;
+        border-radius: 8px;
+        color: #e2e8f0;
+    }
+    .matrix-bracket {
+        width: 12px;
+        height: 70px;
+        border: 2px solid #a0aec0;
+    }
+    .matrix-bracket.left { border-right: none; }
+    .matrix-bracket.right { border-left: none; }
+    .matrix-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem 1rem;
+        padding: 0 1.5rem;
+        text-align: right;
+        font-size: 1.1rem;
+    }
+    .matrix-grid span { min-width: 3ch; }
+    .highlight-t { color: #fc8181; font-weight: bold; }
+    .dim { color: #4a5568; }
+    .slider-group {
+        margin-bottom: 1.25rem;
+    }
+    .slider-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #4a5568;
+        display: flex;
+        justify-content: space-between;
+    }
+    .slider-group input[type="range"] {
+        width: 100%;
+        cursor: pointer;
+    }
+</style>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <h1>Moving Pictures – Basic 2D Transformations</h1>
+    <h2>Introduction: The Rigid World</h2>
+    <p>Welcome back! In the previous lesson, we unlocked the "hidden dimension" of Homogeneous Coordinates. We learned that adding a simple \( w \) (usually set to 1) allows us to do some powerful math.</p>
+    <p>Now that we speak the language of homogeneous coordinates, we can start actually moving images around.</p>
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Diagram showing rigid body motion: a solid block sliding across a surface and rotating without changing its shape or size." style="width: 100%; border-radius: 12px;">
+    </div>
+    <p>We are going to start with the <strong>Rigid World</strong>. These are movements where objects don't stretch, squash, or warp—just like solid objects in real life. If you slide your phone across the table or spin it around, the phone doesn't get bigger or smaller. That's exactly what we are modeling here.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Translation Start -->
+<section id="section2">
+    <h2>Translation: The Slide</h2>
+    <p>The simplest movement is <strong>Translation</strong>. This is just a fancy word for shifting an image left, right, up, or down.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Translation Math -->
+<section id="section3">
+    <p>Let's say we want to shift a point \( \tilde{\mathbf{x}} \) by a vector \( \mathbf{t} = (t_x, t_y)^T \). In standard algebra, you'd just add \( t_x \) to \( x \) and \( t_y \) to \( y \). But in Computer Vision, we want to do everything with <strong>Matrix Multiplication</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Translation Matrix Intro -->
+<section id="section4">
+    <p>This is where our homogeneous coordinates shine. We can represent this shift using a \( 3 \times 3 \) Identity Matrix, but we put our shift values in the last column:</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Translation Matrix LaTeX -->
+<section id="section5">
+    <p>$$ \mathbf{M}_{trans} = \begin{pmatrix} 1 & 0 & t_x \\ 0 & 1 & t_y \\ 0 & 0 & 1 \end{pmatrix} $$</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Translation Multiplication -->
+<section id="section6">
+    <p>Watch what happens when we multiply this matrix by our point \( (x, y, 1)^T \):</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Translation Calculation -->
+<section id="section7">
+    <p>$$ \begin{pmatrix} 1 & 0 & t_x \\ 0 & 1 & t_y \\ 0 & 0 & 1 \end{pmatrix} \begin{pmatrix} x \\ y \\ 1 \end{pmatrix} = \begin{pmatrix} 1\cdot x + 0\cdot y + t_x \cdot 1 \\ 0\cdot x + 1\cdot y + t_y \cdot 1 \\ 0\cdot x + 0\cdot y + 1\cdot 1 \end{pmatrix} = \begin{pmatrix} x + t_x \\ y + t_y \\ 1 \end{pmatrix} $$</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Translation Wrap up & Quiz -->
+<section id="section8">
+    <p>See that? The math does the addition for us automatically. We get our new coordinates \( x' = x + t_x \) and \( y' = y + t_y \).</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>What is the minimum number of parameters needed to define a 2D translation?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. We need to know how much to move horizontally AND vertically.')">1</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! We need \\( t_x \\) (horizontal shift) and \\( t_y \\) (vertical shift).')">2</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'In 3D space, yes. But for a 2D image, we only need x and y shifts.')">3</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That\'s the number of elements in the matrix, but most of them are 0 or 1. We only need to define 2 variables.')">9</div>
+        </div>
+    </div>
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Translation</h4>
+        <p>A geometric transformation that moves every point of a figure or a space by the same distance in a given direction.</p>
+    </div>
+
+    <div class="continue-button" id="continue-section-8" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Euclidean Intro -->
+<section id="section9">
+    <h2>Euclidean Transformation: The Twist</h2>
+    <p>Now let's add rotation. When we combine Rotation and Translation, we get a <strong>Euclidean Transformation</strong> (also known as Rigid Body Motion).</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Euclidean Properties -->
+<section id="section10">
+    <p>This transformation preserves lengths and angles. If you rotate a picture of a cat, the cat doesn't stretch, and its ears don't get skewed.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If I rotate an image 90 degrees, do the distances between pixels change?</h4>
+        <div id="cuy-euclid-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> No. Euclidean transformations preserve distance (isometry).
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-euclid-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Euclidean Visual -->
+<section id="section11">
+    <p>To rotate points, we use sine and cosine. But where does the matrix come from? Let's look at the derivation using polar coordinates.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Trigonometric derivation of rotation: A point on a unit circle is rotated by angle theta, showing the relationship between polar and Cartesian coordinates." style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Euclidean Matrix Intro -->
+<section id="section12">
+    <p>Using the logic in the diagram above, we arrive at the <strong>Rotation Matrix</strong> \( \mathbf{R} \). When we combine it with translation, our matrix looks like this:</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Euclidean Matrix LaTeX -->
+<section id="section13">
+    <p>$$ \mathbf{M}_{euc} = \begin{pmatrix} \cos\theta & -\sin\theta & t_x \\ \sin\theta & \cos\theta & t_y \\ 0 & 0 & 1 \end{pmatrix} $$</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Euclidean Wrap Up -->
+<section id="section14">
+    <p>The top-left \( 2 \times 2 \) block handles the rotation, and the right column handles the translation. This is the beauty of linear algebra: we can pack multiple operations into a single grid of numbers.</p>
+    
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <h4>Why are there black corners when I rotate the image?</h4>
+        <p>Great observation! Digital images are squares made of pixels. When you rotate that square inside the frame, the corners of the original image move inward, leaving empty space behind. Since we don't have data for those new empty areas, the computer usually fills them with 0 (black).</p>
+    </div>
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Euclidean Transformation</h4>
+        <p>A transformation that combines rotation and translation. It represents rigid body motion, preserving both lengths and angles.</p>
+    </div>
+
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Similarity Intro -->
+<section id="section15">
+    <h2>Similarity Transformation: The Resize</h2>
+    <p>We have one more "simple" transformation to cover. What if we want to zoom in or out? We need to add a <strong>Scale Factor</strong> \( s \).</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16: Similarity Definition -->
+<section id="section16">
+    <p>This is called a <strong>Similarity Transformation</strong>. It's called that because the resulting shape is geometrically "similar" to the original—same angles, same shape, just a different size.</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- Section 17: Similarity Math -->
+<section id="section17">
+    <p>We simply multiply our rotation block by \( s \):</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- Section 18: Similarity Matrix LaTeX -->
+<section id="section18">
+    <p>$$ \mathbf{M}_{sim} = \begin{pmatrix} s\cos\theta & -s\sin\theta & t_x \\ s\sin\theta & s\cos\theta & t_y \\ 0 & 0 & 1 \end{pmatrix} $$</p>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<!-- Section 19: Similarity Visual -->
+<section id="section19">
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Three panel cat comic: Panel 1 is the original cat, Panel 2 shows Euclidean transformation (rotation), and Panel 3 shows Similarity transformation (rotation and scaling)." style="width: 100%; border-radius: 12px;">
+    </div>
+    <p>As you can see with the cat above, a Similarity transformation keeps the "vibe" (shape/angles) but changes the size.</p>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<!-- Section 20: Similarity Interactive -->
+<section id="section20">
+    <p>Now, it's your turn to try it out. I've set up a sandbox below where you can manipulate an image using these matrices directly.</p>
+    <!-- START INTERACTIVE SANDBOX -->
+<div class="sandbox-wrapper">
+    <div class="sandbox-header">
+        <div class="status-badge" id="transformType">Type: Identity</div>
+        <button class="reset-btn" onclick="resetSandbox()">Reset</button>
+    </div>
+
+    <div class="sandbox-content">
+        <!-- Canvas Area -->
+        <div class="canvas-container">
+            <canvas id="transformCanvas" width="400" height="400"></canvas>
+        </div>
+
+        <!-- Controls & Matrix Area -->
+        <div class="controls-container">
+            
+            <!-- Live Matrix Display -->
+            <div class="matrix-box">
+                <div class="matrix-bracket left"></div>
+                <div class="matrix-grid">
+                    <span id="m00">1.00</span> <span id="m01">0.00</span> <span id="m02" class="highlight-t">0</span>
+                    <span id="m10">0.00</span> <span id="m11">1.00</span> <span id="m12" class="highlight-t">0</span>
+                    <span class="dim">0</span> <span class="dim">0</span> <span class="dim">1</span>
+                </div>
+                <div class="matrix-bracket right"></div>
+            </div>
+
+            <!-- Sliders -->
+            <div class="slider-group">
+                <label>Translation X (<span id="val-tx">0</span>)</label>
+                <input type="range" id="input-tx" min="-150" max="150" value="0" step="1">
+            </div>
+            <div class="slider-group">
+                <label>Translation Y (<span id="val-ty">0</span>)</label>
+                <input type="range" id="input-ty" min="-150" max="150" value="0" step="1">
+            </div>
+            <div class="slider-group">
+                <label>Rotation (<span id="val-rot">0</span>°)</label>
+                <input type="range" id="input-rot" min="-180" max="180" value="0" step="1">
+            </div>
+            <div class="slider-group">
+                <label>Scale (<span id="val-scale">1.0</span>x)</label>
+                <input type="range" id="input-scale" min="0.1" max="3.0" value="1" step="0.1">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Sandbox State
+const state = { tx: 0, ty: 0, rot: 0, scale: 1 };
+const canvas = document.getElementById('transformCanvas');
+const ctx = canvas.getContext('2d');
+
+// DOM Elements
+const inputs = {
+    tx: document.getElementById('input-tx'),
+    ty: document.getElementById('input-ty'),
+    rot: document.getElementById('input-rot'),
+    scale: document.getElementById('input-scale')
+};
+const displays = {
+    tx: document.getElementById('val-tx'),
+    ty: document.getElementById('val-ty'),
+    rot: document.getElementById('val-rot'),
+    scale: document.getElementById('val-scale')
+};
+const matrixEls = {
+    m00: document.getElementById('m00'),
+    m01: document.getElementById('m01'),
+    m02: document.getElementById('m02'),
+    m10: document.getElementById('m10'),
+    m11: document.getElementById('m11'),
+    m12: document.getElementById('m12')
+};
+const statusBadge = document.getElementById('transformType');
+
+// Initialization
+function initSandbox() {
+    // Add listeners
+    Object.keys(inputs).forEach(key => {
+        inputs[key].addEventListener('input', (e) => {
+            state[key] = parseFloat(e.target.value);
+            displays[key].innerText = state[key];
+            update();
+        });
+    });
+    
+    // Initial draw
+    update();
+}
+
+function resetSandbox() {
+    state.tx = 0; state.ty = 0; state.rot = 0; state.scale = 1;
+    inputs.tx.value = 0; inputs.ty.value = 0; inputs.rot.value = 0; inputs.scale.value = 1;
+    displays.tx.innerText = "0"; displays.ty.innerText = "0"; displays.rot.innerText = "0"; displays.scale.innerText = "1";
+    update();
+}
+
+// Drawing Logic
+function drawGrid() {
+    const w = canvas.width;
+    const h = canvas.height;
+    const step = 40;
+    
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 1;
+    
+    // Vertical lines
+    for (let x = 0; x <= w; x += step) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+    // Horizontal lines
+    for (let y = 0; y <= h; y += step) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+    
+    // Axes
+    ctx.strokeStyle = "#cbd5e1";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h); ctx.stroke(); // Y Axis
+    ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); ctx.stroke(); // X Axis
+}
+
+function drawFace() {
+    // Draw a face at 0,0
+    const size = 60;
+    
+    // Face Base
+    ctx.fillStyle = "#F6E05E"; // Yellow-300
+    ctx.strokeStyle = "#D69E2E"; // Yellow-600
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Eyes
+    ctx.fillStyle = "#2D3748";
+    ctx.beginPath();
+    ctx.arc(-20, -15, 8, 0, Math.PI * 2); // Left Eye
+    ctx.arc(20, -15, 8, 0, Math.PI * 2);  // Right Eye
+    ctx.fill();
+    
+    // Smile (Arc)
+    ctx.strokeStyle = "#2D3748";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, 35, 0.2 * Math.PI, 0.8 * Math.PI);
+    ctx.stroke();
+    
+    // Nose (Triangle) - helps see rotation better
+    ctx.fillStyle = "#D69E2E";
+    ctx.beginPath();
+    ctx.moveTo(0, -5);
+    ctx.lineTo(-5, 15);
+    ctx.lineTo(5, 15);
+    ctx.fill();
+}
+
+function update() {
+    // 1. Clear Canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // 2. Draw Background Grid
+    drawGrid();
+    
+    // 3. Calculate Math
+    const rad = state.rot * Math.PI / 180;
+    const s = state.scale;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    
+    // 4. Update Matrix Display
+    // Matrix: [[s*cos, -s*sin, tx], [s*sin, s*cos, ty]]
+    const m00 = s * cos;
+    const m01 = -s * sin;
+    const m10 = s * sin;
+    const m11 = s * cos;
+    
+    matrixEls.m00.innerText = m00.toFixed(2);
+    matrixEls.m01.innerText = m01.toFixed(2);
+    matrixEls.m02.innerText = state.tx;
+    matrixEls.m10.innerText = m10.toFixed(2);
+    matrixEls.m11.innerText = m11.toFixed(2);
+    matrixEls.m12.innerText = state.ty; // Note: In canvas Y is down, usually ty is positive down.
+    
+    // 5. Update Status Label
+    let type = "Identity";
+    let color = "#e6fffa"; // Greenish
+    let border = "#b2f5ea";
+    let textCol = "#2c7a7b";
+    
+    const isTrans = state.tx !== 0 || state.ty !== 0;
+    const isRot = state.rot !== 0;
+    const isScale = state.scale !== 1;
+    
+    if (isScale) {
+        type = "Similarity";
+        color = "#ebf8ff"; // Blueish
+        border = "#bee3f8";
+        textCol = "#2b6cb0";
+    } else if (isRot) {
+        type = "Euclidean (Rigid)";
+        color = "#faf5ff"; // Purpleish
+        border = "#e9d8fd";
+        textCol = "#553c9a";
+    } else if (isTrans) {
+        type = "Translation";
+        color = "#fffff0"; // Yellowish
+        border = "#fefcbf";
+        textCol = "#975a16";
+    }
+    
+    statusBadge.innerText = `Type: ${type}`;
+    statusBadge.style.backgroundColor = color;
+    statusBadge.style.borderColor = border;
+    statusBadge.style.color = textCol;
+
+    // 6. Draw Transformed Object
+    ctx.save();
+    
+    // Move origin to center of canvas
+    ctx.translate(canvas.width/2, canvas.height/2);
+    
+    // Apply Transformation Matrix Order: Translate -> Rotate -> Scale
+    // Note: Canvas applies transforms in reverse stack order conceptually, 
+    // but sequentially in code.
+    // We want: x' = (s*R)*x + t.
+    // In Canvas: translate(tx, ty), then rotate(th), then scale(s,s) 
+    // applies operations such that the object is scaled, then rotated, then moved.
+    
+    ctx.translate(state.tx, state.ty);
+    ctx.rotate(rad);
+    ctx.scale(s, s);
+    
+    drawFace();
+    
+    ctx.restore();
+}
+
+// Start
+initSandbox();
+</script>
+<!-- END INTERACTIVE SANDBOX -->
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which property does a Similarity transformation NOT preserve?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Similarity transformations preserve angles. A 90-degree corner on a square remains 90 degrees even if the square is tiny.')">Angles</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Parallel lines remain parallel in a similarity transformation.')">Parallelism</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Because we are scaling the image (zooming in or out), the distance between points changes.')">Lengths</div>
+        </div>
+    </div>
+    
+    <div class="continue-button" id="continue-section-20" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<!-- Section 21: Review -->
+<section id="section21">
+    <h2>Review and Reflect</h2>
+    <p>You've just mastered the hierarchy of basic 2D transformations! We started with <strong>Translation</strong> (shifting), added <strong>Rotation</strong> to get <strong>Euclidean</strong> (rigid) movement, and finally added <strong>Scaling</strong> to get <strong>Similarity</strong> transformations.</p>
+    
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>These aren't just abstract math concepts. These matrices are the building blocks for everything from image stabilization in your phone camera (counteracting your shaky hands) to aligning satellite imagery to create maps.</p>
+    </div>
+
+    <p>In the next lesson, we're going to break the rules. We'll look at transformations that <em>don't</em> preserve angles or lengths—transformations that warp reality and introduce perspective.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 21;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Auto-show continue button on correct answer for quiz sections if it's hidden
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        const continueButton = parentSection.querySelector('.continue-button');
+        if (continueButton && continueButton.style.display === 'none' && isCorrect) {
+             // Logic to reshow button could be added here if desired, 
+             // but current UX pattern hides button only when clicked.
+             // If the button was hidden because this section was already completed, 
+             // we typically don't hide the continue button until it's clicked to go to the NEXT section.
+             // However, for the very last quiz in a section before a continue, the button is usually visible.
+             
+             // Special case for 'Test Your Knowledge' blocking progress:
+             if (continueButton.id === 'continue-section-8' || continueButton.id === 'continue-section-20') {
+                 // In this design pattern, the continue button is usually already visible below the quiz.
+             }
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Update these IDs based on specific curriculum structure if needed
+                let courseId = 'computer-vision';
+                let pathId = 'geometry-transformations'; 
+                let moduleId = 'cv-ch02-basic-transforms';
+                let lessonId = 'cv-ch02-l2-moving-pictures';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch02-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+        // LMS Integration Check
+        let courseId = 'computer-vision';
+        let pathId = 'geometry-transformations';
+        let moduleId = 'cv-ch02-basic-transforms';
+        let lessonId = 'cv-ch02-l2-moving-pictures';
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('course')) courseId = urlParams.get('course');
+        if (urlParams.get('path')) pathId = urlParams.get('path');
+        if (urlParams.get('module')) moduleId = urlParams.get('module');
+        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+
+        try {
+            const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+            if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+                button.classList.add('completed');
+                button.innerHTML = '✅ Completed!';
+                return;
+            }
+        } catch(e) { console.log("Progress tracker not available"); }
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch02-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

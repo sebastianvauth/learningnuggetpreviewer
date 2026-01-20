@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Experiment: The Virtual Spectrometer</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+.interactive-placeholder {
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    border-radius: 12px;
+    padding: 30px;
+    margin: 2rem 0;
+    color: white;
+    border: 2px dashed #4a5568;
+    text-align: center;
+}
+.interactive-placeholder h4 {
+    color: #4facfe;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+.interactive-placeholder p {
+    color: #a0aec0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    text-align: left;
+}
+.interactive-placeholder .placeholder-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+.secret-message-demo {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 1rem 0;
+    text-align: center;
+}
+.secret-message-demo .message {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e53e3e;
+    font-family: 'Courier New', monospace;
+}
+
+/* Interactive Simulation Styles */
+.interactive-container {
+    background: #0a0a0f;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 2rem 0;
+    color: white;
+}
+.interactive-container h4 {
+    color: #4facfe;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    text-align: center;
+}
+.interactive-canvas {
+    width: 100%;
+    border-radius: 8px;
+    cursor: default;
+    touch-action: none;
+}
+.interactive-controls {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+    justify-content: center;
+    align-items: center;
+}
+.draggable-item {
+    background: linear-gradient(135deg, #2d3748, #4a5568);
+    border: 2px solid #718096;
+    border-radius: 8px;
+    padding: 10px 15px;
+    cursor: grab;
+    user-select: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.draggable-item:hover {
+    border-color: #4facfe;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+}
+.draggable-item:active {
+    cursor: grabbing;
+}
+.draggable-item.placed {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.filter-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+}
+.sim-status {
+    background: rgba(255,255,255,0.05);
+    padding: 12px 15px;
+    border-radius: 8px;
+    border-left: 4px solid #4facfe;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    text-align: left;
+    margin-top: 15px;
+}
+.sim-status.success {
+    border-left-color: #48bb78;
+    background: rgba(72, 187, 120, 0.1);
+}
+.reset-btn {
+    background: #4a5568;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+.reset-btn:hover {
+    background: #718096;
+}
+
+/* Camouflage Interactive Styles */
+.color-slider-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+.color-slider {
+    width: 100%;
+    height: 30px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right, #ffffff, #ff4444, #44ff44, #4488ff);
+    border-radius: 15px;
+    outline: none;
+    cursor: pointer;
+}
+.color-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 30px;
+    height: 30px;
+    background: white;
+    border-radius: 50%;
+    border: 3px solid #333;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.color-slider::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
+    background: white;
+    border-radius: 50%;
+    border: 3px solid #333;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.color-labels {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 0.8rem;
+    color: #a0aec0;
+}
+.current-color-display {
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: 8px 20px;
+    border-radius: 20px;
+    margin-top: 5px;
+}
+</style>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/spectrometer_lab.jpg" alt="A clean, high-tech laboratory workbench with a glowing white beam of light emitting from a device on the left, passing through a glass prism in the center, and fanning out into a vibrant rainbow spectrum on a back screen." style="width: 100%; border-radius: 12px;">
+    </div>
+    <h1>Experiment: The Virtual Spectrometer</h1>
+    <h2>Welcome to the Light Lab</h2>
+    <p>Theory is great, but seeing is believing. In this experiment, you will step into a virtual 'Light Lab' to manipulate the fundamental building blocks of color.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>We've learned that 'White' light is actually a mixture of all visible wavelengths. But what happens when we start removing pieces of that mixture? In this lesson, you will use a <strong>Prism</strong> and a set of <strong>Optical Filters</strong> to decompose light and solve a camouflage puzzle.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <h2>Tool 1: The Prism</h2>
+    <p>First, let's verify Newton's discovery. We need to see the components of our white light source.</p>
+    <div class="interactive-container" id="prismSimContainer">
+        <h4>Drag the Prism into the Light Beam</h4>
+        <canvas id="prismCanvas" class="interactive-canvas" height="320"></canvas>
+        <div class="interactive-controls">
+            <div class="draggable-item" id="prismDraggable" draggable="true">
+                <span style="font-size: 1.5rem;">🔺</span>
+                <span>Glass Prism</span>
+            </div>
+            <button class="reset-btn" onclick="resetPrismSim()">Reset</button>
+        </div>
+        <div class="sim-status" id="prismStatus">
+            <strong>Waiting...</strong> Drag the prism into the white light beam to see what happens.
+        </div>
+    </div>
+    <script>
+    (function() {
+        const canvas = document.getElementById('prismCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('prismSimContainer');
+        const draggable = document.getElementById('prismDraggable');
+        const status = document.getElementById('prismStatus');
+
+        let prismPlaced = false;
+        let prismX = 0, prismY = 0;
+        let isDragging = false;
+        let animationProgress = 0;
+
+        const spectrumColors = [
+            {color: '#ff0000', name: 'Red', angle: 0},
+            {color: '#ff7f00', name: 'Orange', angle: 1},
+            {color: '#ffff00', name: 'Yellow', angle: 2},
+            {color: '#00ff00', name: 'Green', angle: 3},
+            {color: '#0066ff', name: 'Blue', angle: 4},
+            {color: '#4b0082', name: 'Indigo', angle: 5},
+            {color: '#8f00ff', name: 'Violet', angle: 6}
+        ];
+
+        function resize() {
+            const rect = container.getBoundingClientRect();
+            // Only resize if container has valid dimensions (section is visible)
+            if (rect.width > 50) {
+                canvas.width = rect.width - 40;
+                if (canvas.width < 300) canvas.width = 300;
+                draw();
+            }
+        }
+
+        // Use ResizeObserver for reliable sizing when section becomes visible
+        if (typeof ResizeObserver !== 'undefined') {
+            const resizeObserver = new ResizeObserver(() => {
+                resize();
+            });
+            resizeObserver.observe(container);
+        }
+
+        function draw() {
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Dark background
+            ctx.fillStyle = '#0d1117';
+            ctx.fillRect(0, 0, w, h);
+
+            // Light source
+            const sourceX = 50;
+            const sourceY = h / 2;
+            drawLightSource(sourceX, sourceY);
+
+            // Screen on right
+            const screenX = w - 60;
+            drawScreen(screenX, h);
+
+            const prismCenterX = w * 0.45;
+            const prismCenterY = h / 2;
+
+            if (!prismPlaced) {
+                // Just white beam going straight
+                drawBeam(sourceX + 30, sourceY, screenX, sourceY, '#ffffff', 0.8, 8);
+
+                // Drop zone hint
+                ctx.strokeStyle = 'rgba(79, 172, 254, 0.3)';
+                ctx.setLineDash([5, 5]);
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(prismCenterX, prismCenterY, 50, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = 'rgba(79, 172, 254, 0.5)';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Drop Here', prismCenterX, prismCenterY + 70);
+            } else {
+                // Beam to prism
+                drawBeam(sourceX + 30, sourceY, prismCenterX - 40, sourceY, '#ffffff', 0.8, 8);
+
+                // Draw prism
+                drawPrism(prismCenterX, prismCenterY, 70);
+
+                // Draw spectrum rays with animation
+                const progress = Math.min(animationProgress, 1);
+                spectrumColors.forEach((spec, i) => {
+                    const spreadAngle = (i - 3) * 4 * (Math.PI / 180);
+                    const startX = prismCenterX + 35;
+                    const startY = prismCenterY;
+                    const rayLength = (screenX - startX) * progress;
+                    const endX = startX + rayLength * Math.cos(spreadAngle);
+                    const endY = startY + rayLength * Math.sin(spreadAngle);
+
+                    if (progress > 0) {
+                        drawBeam(startX, startY, endX, endY, spec.color, 0.7 * progress, 4);
+                    }
+                });
+
+                // Draw spectrum bands on screen
+                if (progress > 0.5) {
+                    const bandProgress = (progress - 0.5) * 2;
+                    spectrumColors.forEach((spec, i) => {
+                        const bandY = sourceY + (i - 3) * 25;
+                        const bandHeight = 20 * bandProgress;
+                        ctx.fillStyle = spec.color;
+                        ctx.globalAlpha = bandProgress;
+                        ctx.fillRect(screenX + 5, bandY - bandHeight/2, 30, bandHeight);
+
+                        // Label
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '10px sans-serif';
+                        ctx.textAlign = 'left';
+                        ctx.fillText(spec.name, screenX + 40, bandY + 4);
+                    });
+                    ctx.globalAlpha = 1;
+                }
+
+                if (animationProgress < 1.2) {
+                    animationProgress += 0.03;
+                    requestAnimationFrame(draw);
+                }
+            }
+        }
+
+        function drawLightSource(x, y) {
+            // Flashlight body
+            ctx.fillStyle = '#4a5568';
+            ctx.fillRect(x - 25, y - 12, 35, 24);
+
+            // Lens
+            ctx.fillStyle = '#718096';
+            ctx.beginPath();
+            ctx.moveTo(x + 10, y - 12);
+            ctx.lineTo(x + 25, y - 18);
+            ctx.lineTo(x + 25, y + 18);
+            ctx.lineTo(x + 10, y + 12);
+            ctx.closePath();
+            ctx.fill();
+
+            // Glow
+            const glow = ctx.createRadialGradient(x + 25, y, 0, x + 25, y, 20);
+            glow.addColorStop(0, 'rgba(255,255,255,0.8)');
+            glow.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(x + 25, y, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#a0aec0';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Light Source', x, y + 35);
+        }
+
+        function drawScreen(x, h) {
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(x, 20, 8, h - 40);
+
+            ctx.fillStyle = '#2d2d44';
+            ctx.fillRect(x + 8, 20, 40, h - 40);
+
+            ctx.fillStyle = '#a0aec0';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Screen', x + 25, h - 5);
+        }
+
+        function drawPrism(x, y, size) {
+            const h = size * 0.866;
+
+            // Glass effect with gradient
+            const grad = ctx.createLinearGradient(x - size/2, y, x + size/2, y);
+            grad.addColorStop(0, 'rgba(200, 220, 255, 0.3)');
+            grad.addColorStop(0.5, 'rgba(255, 255, 255, 0.4)');
+            grad.addColorStop(1, 'rgba(200, 220, 255, 0.3)');
+
+            ctx.fillStyle = grad;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(x, y - h/2);
+            ctx.lineTo(x + size/2, y + h/2);
+            ctx.lineTo(x - size/2, y + h/2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Inner highlight
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, y - h/2 + 10);
+            ctx.lineTo(x + size/2 - 10, y + h/2 - 5);
+            ctx.stroke();
+        }
+
+        function drawBeam(x1, y1, x2, y2, color, alpha, width) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalAlpha = alpha;
+
+            // Glow
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width + 6;
+            ctx.lineCap = 'round';
+            ctx.filter = 'blur(4px)';
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Core
+            ctx.filter = 'none';
+            ctx.lineWidth = width;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Drag and drop handling
+        draggable.addEventListener('dragstart', (e) => {
+            if (prismPlaced) {
+                e.preventDefault();
+                return;
+            }
+            e.dataTransfer.setData('text/plain', 'prism');
+            isDragging = true;
+        });
+
+        canvas.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (prismPlaced) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const dropZoneX = canvas.width * 0.45;
+            const dropZoneY = canvas.height / 2;
+            const distance = Math.sqrt((x - dropZoneX)**2 + (y - dropZoneY)**2);
+
+            if (distance < 80) {
+                prismPlaced = true;
+                animationProgress = 0;
+                draggable.classList.add('placed');
+                status.innerHTML = '<strong>Amazing!</strong> The prism separates white light into its component wavelengths. Blue light bends more than red because it has a shorter wavelength.';
+                status.classList.add('success');
+                draw();
+            }
+        });
+
+        // Touch support
+        let touchStartX, touchStartY;
+        draggable.addEventListener('touchstart', (e) => {
+            if (prismPlaced) return;
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            isDragging = true;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging || prismPlaced) return;
+            e.preventDefault();
+        }, {passive: false});
+
+        document.addEventListener('touchend', (e) => {
+            if (!isDragging || prismPlaced) return;
+            isDragging = false;
+
+            const touch = e.changedTouches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            if (x > 0 && x < canvas.width && y > 0 && y < canvas.height) {
+                const dropZoneX = canvas.width * 0.45;
+                const dropZoneY = canvas.height / 2;
+                const distance = Math.sqrt((x - dropZoneX)**2 + (y - dropZoneY)**2);
+
+                if (distance < 100) {
+                    prismPlaced = true;
+                    animationProgress = 0;
+                    draggable.classList.add('placed');
+                    status.innerHTML = '<strong>Amazing!</strong> The prism separates white light into its component wavelengths. Blue light bends more than red because it has a shorter wavelength.';
+                    status.classList.add('success');
+                    draw();
+                }
+            }
+        });
+
+        window.resetPrismSim = function() {
+            prismPlaced = false;
+            animationProgress = 0;
+            draggable.classList.remove('placed');
+            status.innerHTML = '<strong>Waiting...</strong> Drag the prism into the white light beam to see what happens.';
+            status.classList.remove('success');
+            draw();
+        };
+
+        window.addEventListener('resize', resize);
+        resize();
+    })();
+    </script>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>Notice how the single white beam was hiding all these colors inside it? The prism separates them because different wavelengths bend (refract) at slightly different angles. <strong>Blue bends more than Red.</strong></p>
+
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If we used a laser pointer (which emits only one specific wavelength, like pure green) instead of a white flashlight, would the prism still create a rainbow?</h4>
+        <div id="prism-laser-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> No! A laser is <strong>monochromatic</strong> (one color). The prism would bend the green beam, but since there are no other wavelengths to separate out, it would just remain a single green beam. You can't split what isn't mixed.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('prism-laser-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <h2>Tool 2: Optical Filters</h2>
+    <p>Now, let's start subtracting. An optical filter works by <strong>absorbing</strong> certain wavelengths and letting others pass through. It is a gatekeeper.</p>
+    <div class="interactive-container" id="filterSimContainer">
+        <h4>Drag a Filter into the Light Beam (Before the Prism)</h4>
+        <canvas id="filterCanvas" class="interactive-canvas" height="320"></canvas>
+        <div class="interactive-controls">
+            <div class="draggable-item" id="redFilterDrag" draggable="true">
+                <div class="filter-icon" style="background: rgba(255,0,0,0.7);"></div>
+                <span>Red Filter</span>
+            </div>
+            <div class="draggable-item" id="cyanFilterDrag" draggable="true">
+                <div class="filter-icon" style="background: rgba(0,255,255,0.7);"></div>
+                <span>Cyan Filter</span>
+            </div>
+            <button class="reset-btn" onclick="resetFilterSim()">Reset</button>
+        </div>
+        <div class="sim-status" id="filterStatus">
+            <strong>Experiment:</strong> The prism is ready. Drag a colored filter into the beam path to see which wavelengths pass through.
+        </div>
+    </div>
+    <script>
+    (function() {
+        const canvas = document.getElementById('filterCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('filterSimContainer');
+        const redDrag = document.getElementById('redFilterDrag');
+        const cyanDrag = document.getElementById('cyanFilterDrag');
+        const status = document.getElementById('filterStatus');
+
+        let activeFilter = null; // 'red', 'cyan', or null
+        let animationProgress = 0;
+
+        const spectrumColors = [
+            {color: '#ff0000', name: 'Red', passRed: true, passCyan: false},
+            {color: '#ff7f00', name: 'Orange', passRed: true, passCyan: false},
+            {color: '#ffff00', name: 'Yellow', passRed: true, passCyan: false},
+            {color: '#00ff00', name: 'Green', passRed: false, passCyan: true},
+            {color: '#0066ff', name: 'Blue', passRed: false, passCyan: true},
+            {color: '#4b0082', name: 'Indigo', passRed: false, passCyan: true},
+            {color: '#8f00ff', name: 'Violet', passRed: false, passCyan: true}
+        ];
+
+        function resize() {
+            const rect = container.getBoundingClientRect();
+            // Only resize if container has valid dimensions (section is visible)
+            if (rect.width > 50) {
+                canvas.width = rect.width - 40;
+                if (canvas.width < 300) canvas.width = 300;
+                draw();
+            }
+        }
+
+        // Use ResizeObserver for reliable sizing when section becomes visible
+        if (typeof ResizeObserver !== 'undefined') {
+            const resizeObserver = new ResizeObserver(() => {
+                resize();
+            });
+            resizeObserver.observe(container);
+        }
+
+        function draw() {
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.fillStyle = '#0d1117';
+            ctx.fillRect(0, 0, w, h);
+
+            const sourceX = 50;
+            const sourceY = h / 2;
+            const filterX = w * 0.25;
+            const prismX = w * 0.5;
+            const screenX = w - 60;
+
+            // Light source
+            drawLightSource(sourceX, sourceY);
+
+            // Screen
+            drawScreen(screenX, h);
+
+            // Prism (always visible)
+            drawPrism(prismX, sourceY, 60);
+
+            // Filter drop zone
+            if (!activeFilter) {
+                ctx.strokeStyle = 'rgba(79, 172, 254, 0.4)';
+                ctx.setLineDash([5, 5]);
+                ctx.lineWidth = 2;
+                ctx.strokeRect(filterX - 20, sourceY - 50, 40, 100);
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = 'rgba(79, 172, 254, 0.5)';
+                ctx.font = '11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Drop Filter', filterX, sourceY + 70);
+            }
+
+            // Determine beam colors based on filter
+            let beamColor = '#ffffff';
+            let filterColor = null;
+
+            if (activeFilter === 'red') {
+                beamColor = '#ff4444';
+                filterColor = 'rgba(255, 0, 0, 0.5)';
+            } else if (activeFilter === 'cyan') {
+                beamColor = '#44ffff';
+                filterColor = 'rgba(0, 255, 255, 0.5)';
+            }
+
+            // Draw filter if active
+            if (activeFilter) {
+                ctx.fillStyle = filterColor;
+                ctx.fillRect(filterX - 15, sourceY - 45, 30, 90);
+                ctx.strokeStyle = activeFilter === 'red' ? '#ff6666' : '#66ffff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(filterX - 15, sourceY - 45, 30, 90);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '10px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.save();
+                ctx.translate(filterX, sourceY);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText(activeFilter === 'red' ? 'RED FILTER' : 'CYAN FILTER', 0, 4);
+                ctx.restore();
+            }
+
+            // Beam from source to filter/prism
+            if (!activeFilter) {
+                drawBeam(sourceX + 30, sourceY, prismX - 30, sourceY, '#ffffff', 0.8, 8);
+            } else {
+                // White beam to filter
+                drawBeam(sourceX + 30, sourceY, filterX - 15, sourceY, '#ffffff', 0.8, 8);
+                // Filtered beam to prism
+                drawBeam(filterX + 15, sourceY, prismX - 30, sourceY, beamColor, 0.8, 8);
+            }
+
+            // Spectrum rays
+            const progress = Math.min(animationProgress, 1);
+            spectrumColors.forEach((spec, i) => {
+                let shouldShow = true;
+                let alpha = 0.7;
+
+                if (activeFilter === 'red' && !spec.passRed) {
+                    shouldShow = false;
+                } else if (activeFilter === 'cyan' && !spec.passCyan) {
+                    shouldShow = false;
+                }
+
+                const spreadAngle = (i - 3) * 4 * (Math.PI / 180);
+                const startX = prismX + 30;
+                const startY = sourceY;
+                const rayLength = (screenX - startX) * progress;
+                const endX = startX + rayLength * Math.cos(spreadAngle);
+                const endY = startY + rayLength * Math.sin(spreadAngle);
+
+                if (shouldShow && progress > 0) {
+                    drawBeam(startX, startY, endX, endY, spec.color, alpha * progress, 4);
+                }
+            });
+
+            // Spectrum bands on screen
+            if (progress > 0.5) {
+                const bandProgress = (progress - 0.5) * 2;
+                spectrumColors.forEach((spec, i) => {
+                    let shouldShow = true;
+                    if (activeFilter === 'red' && !spec.passRed) shouldShow = false;
+                    if (activeFilter === 'cyan' && !spec.passCyan) shouldShow = false;
+
+                    const bandY = sourceY + (i - 3) * 22;
+                    const bandHeight = 18 * bandProgress;
+
+                    if (shouldShow) {
+                        ctx.fillStyle = spec.color;
+                        ctx.globalAlpha = bandProgress;
+                    } else {
+                        ctx.fillStyle = '#1a1a1a';
+                        ctx.globalAlpha = bandProgress * 0.5;
+                    }
+                    ctx.fillRect(screenX + 5, bandY - bandHeight/2, 25, bandHeight);
+
+                    ctx.globalAlpha = shouldShow ? bandProgress : bandProgress * 0.3;
+                    ctx.fillStyle = shouldShow ? '#ffffff' : '#555555';
+                    ctx.font = '9px sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(spec.name, screenX + 33, bandY + 3);
+                });
+                ctx.globalAlpha = 1;
+            }
+
+            if (animationProgress < 1.2) {
+                animationProgress += 0.04;
+                requestAnimationFrame(draw);
+            }
+        }
+
+        function drawLightSource(x, y) {
+            ctx.fillStyle = '#4a5568';
+            ctx.fillRect(x - 25, y - 12, 35, 24);
+            ctx.fillStyle = '#718096';
+            ctx.beginPath();
+            ctx.moveTo(x + 10, y - 12);
+            ctx.lineTo(x + 25, y - 18);
+            ctx.lineTo(x + 25, y + 18);
+            ctx.lineTo(x + 10, y + 12);
+            ctx.closePath();
+            ctx.fill();
+
+            const glow = ctx.createRadialGradient(x + 25, y, 0, x + 25, y, 20);
+            glow.addColorStop(0, 'rgba(255,255,255,0.8)');
+            glow.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(x + 25, y, 20, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawScreen(x, h) {
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(x, 20, 8, h - 40);
+            ctx.fillStyle = '#2d2d44';
+            ctx.fillRect(x + 8, 20, 35, h - 40);
+            ctx.fillStyle = '#a0aec0';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Screen', x + 20, h - 5);
+        }
+
+        function drawPrism(x, y, size) {
+            const h = size * 0.866;
+            const grad = ctx.createLinearGradient(x - size/2, y, x + size/2, y);
+            grad.addColorStop(0, 'rgba(200, 220, 255, 0.3)');
+            grad.addColorStop(0.5, 'rgba(255, 255, 255, 0.4)');
+            grad.addColorStop(1, 'rgba(200, 220, 255, 0.3)');
+
+            ctx.fillStyle = grad;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, y - h/2);
+            ctx.lineTo(x + size/2, y + h/2);
+            ctx.lineTo(x - size/2, y + h/2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function drawBeam(x1, y1, x2, y2, color, alpha, width) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width + 6;
+            ctx.lineCap = 'round';
+            ctx.filter = 'blur(4px)';
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.filter = 'none';
+            ctx.lineWidth = width;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function handleDrop(filterType) {
+            activeFilter = filterType;
+            animationProgress = 0;
+
+            redDrag.classList.toggle('placed', filterType === 'red');
+            cyanDrag.classList.toggle('placed', filterType === 'cyan');
+
+            if (filterType === 'red') {
+                status.innerHTML = '<strong>Red Filter Applied!</strong> The red filter absorbs Green and Blue wavelengths. Only Red, Orange, and Yellow light passes through to hit the prism.';
+                status.classList.add('success');
+            } else if (filterType === 'cyan') {
+                status.innerHTML = '<strong>Cyan Filter Applied!</strong> Cyan = Green + Blue. The cyan filter absorbs Red light. Only Green, Blue, Indigo, and Violet pass through.';
+                status.classList.add('success');
+            }
+            draw();
+        }
+
+        // Drag handlers
+        [redDrag, cyanDrag].forEach(drag => {
+            drag.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', drag.id.includes('red') ? 'red' : 'cyan');
+            });
+        });
+
+        canvas.addEventListener('dragover', (e) => e.preventDefault());
+
+        canvas.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const filterType = e.dataTransfer.getData('text/plain');
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const dropZoneX = canvas.width * 0.25;
+
+            if (Math.abs(x - dropZoneX) < 60) {
+                handleDrop(filterType);
+            }
+        });
+
+        // Touch support
+        let touchFilter = null;
+        [redDrag, cyanDrag].forEach(drag => {
+            drag.addEventListener('touchstart', (e) => {
+                touchFilter = drag.id.includes('red') ? 'red' : 'cyan';
+            });
+        });
+
+        document.addEventListener('touchend', (e) => {
+            if (!touchFilter) return;
+            const touch = e.changedTouches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            if (x > 0 && x < canvas.width && y > 0 && y < canvas.height) {
+                const dropZoneX = canvas.width * 0.25;
+                if (Math.abs(x - dropZoneX) < 80) {
+                    handleDrop(touchFilter);
+                }
+            }
+            touchFilter = null;
+        });
+
+        window.resetFilterSim = function() {
+            activeFilter = null;
+            animationProgress = 0;
+            redDrag.classList.remove('placed');
+            cyanDrag.classList.remove('placed');
+            status.innerHTML = '<strong>Experiment:</strong> The prism is ready. Drag a colored filter into the beam path to see which wavelengths pass through.';
+            status.classList.remove('success');
+            draw();
+        };
+
+        window.addEventListener('resize', resize);
+        setTimeout(resize, 100);
+    })();
+    </script>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>Did you see that? The Red Filter didn't 'dye' the light red. It <strong>killed</strong> the Green and Blue wavelengths. It absorbed them. The only thing left to hit the prism was the Red light, so only the Red band appeared on the screen.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>Now, let's try a <strong>'Cyan'</strong> filter. In color theory, Cyan is the opposite of Red. It is a mix of Green and Blue.</p>
+    <div class="why-it-matters" style="background: linear-gradient(135deg, rgba(0,255,255,0.1), rgba(0,100,150,0.1)); border-left-color: #00ffff;">
+        <h3>Try It Above!</h3>
+        <p>Go back to the filter simulation above and drag the <strong>Cyan Filter</strong> into the beam. Notice how:</p>
+        <ul style="margin-top: 10px;">
+            <li>The beam turns Cyan (light blue-green)</li>
+            <li>The <strong>Red band disappears</strong> on the screen</li>
+            <li>Green, Blue, Indigo, and Violet bands remain visible</li>
+        </ul>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Based on this experiment, what does a Cyan filter actually do?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, filters cannot add light; they can only subtract (absorb) it.')">It adds cyan color to the white light.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Cyan is essentially a No Red filter.')">It blocks (absorbs) Red light and transmits Green and Blue.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, filters generally cannot change the frequency of a photon; they just block the ones they do not like.')">It changes the frequency of red light to make it blue.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <h2>Task 3: The Camouflage Puzzle</h2>
+    <p>Now for a challenge. Understanding how light reflects off ink and paper can help you hide information in plain sight.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>You have a secret message written in <strong>Red Ink</strong> on a piece of <strong>White Paper</strong>.</p>
+    <ul>
+        <li><strong>White Paper:</strong> Reflects ALL colors (Red, Green, Blue).</li>
+        <li><strong>Red Ink:</strong> Reflects RED, but absorbs Green and Blue.</li>
+    </ul>
+    <div class="secret-message-demo">
+        <p class="message">TOP SECRET</p>
+        <p style="color: #666; font-size: 0.85rem; margin-top: 10px;">Red text on white paper</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <div class="interactive-container" id="camoSimContainer">
+        <h4>Find the Light Color That Hides the Message</h4>
+        <canvas id="camoCanvas" class="interactive-canvas" height="300"></canvas>
+        <div class="color-slider-container">
+            <input type="range" min="0" max="3" value="0" class="color-slider" id="lightColorSlider">
+            <div class="color-labels">
+                <span>White</span>
+                <span>Red</span>
+                <span>Green</span>
+                <span>Blue</span>
+            </div>
+            <div class="current-color-display" id="currentColorDisplay" style="background: #ffffff; color: #333;">White Light</div>
+        </div>
+        <div class="sim-status" id="camoStatus">
+            <strong>Challenge:</strong> The secret message is written in RED ink on WHITE paper. Use the slider to change the flashlight color and find which one makes the text disappear!
+        </div>
+    </div>
+    <script>
+    (function() {
+        const canvas = document.getElementById('camoCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('camoSimContainer');
+        const slider = document.getElementById('lightColorSlider');
+        const colorDisplay = document.getElementById('currentColorDisplay');
+        const status = document.getElementById('camoStatus');
+
+        const lightColors = [
+            {name: 'White', rgb: [255, 255, 255], hex: '#ffffff', textColor: '#333'},
+            {name: 'Red', rgb: [255, 0, 0], hex: '#ff0000', textColor: '#fff'},
+            {name: 'Green', rgb: [0, 255, 0], hex: '#00ff00', textColor: '#000'},
+            {name: 'Blue', rgb: [0, 100, 255], hex: '#0064ff', textColor: '#fff'}
+        ];
+
+        // Red ink: reflects R, absorbs G and B
+        // White paper: reflects all
+
+        function resize() {
+            const rect = container.getBoundingClientRect();
+            // Only resize if container has valid dimensions (section is visible)
+            if (rect.width > 50) {
+                canvas.width = rect.width - 40;
+                if (canvas.width < 300) canvas.width = 300;
+                draw();
+            }
+        }
+
+        // Use ResizeObserver for reliable sizing when section becomes visible
+        if (typeof ResizeObserver !== 'undefined') {
+            const resizeObserver = new ResizeObserver(() => {
+                resize();
+            });
+            resizeObserver.observe(container);
+        }
+
+        function draw() {
+            const w = canvas.width;
+            const h = canvas.height;
+            const lightIndex = parseInt(slider.value);
+            const light = lightColors[lightIndex];
+
+            // Dark room background
+            ctx.fillStyle = '#0a0a0f';
+            ctx.fillRect(0, 0, w, h);
+
+            // Flashlight on left
+            const flashX = 60;
+            const flashY = h / 2;
+            drawFlashlight(flashX, flashY, light);
+
+            // Paper in center
+            const paperX = w / 2;
+            const paperY = h / 2;
+            const paperW = 200;
+            const paperH = 140;
+
+            // Physics calculation:
+            // Paper (white) reflects whatever light hits it
+            // Red ink reflects ONLY red component, absorbs green and blue
+
+            let paperColor, inkColor;
+
+            if (lightIndex === 0) { // White light
+                paperColor = 'rgb(255, 255, 255)';
+                inkColor = 'rgb(220, 40, 40)'; // Red ink visible
+            } else if (lightIndex === 1) { // Red light - CAMOUFLAGE!
+                // Both paper and ink reflect red equally
+                paperColor = 'rgb(255, 80, 80)';
+                inkColor = 'rgb(255, 80, 80)'; // Same as paper = invisible!
+            } else if (lightIndex === 2) { // Green light
+                paperColor = 'rgb(80, 255, 80)'; // Paper reflects green
+                inkColor = 'rgb(5, 5, 5)'; // Red ink absorbs green = black
+            } else { // Blue light
+                paperColor = 'rgb(80, 150, 255)'; // Paper reflects blue
+                inkColor = 'rgb(5, 5, 5)'; // Red ink absorbs blue = black
+            }
+
+            const paperReflection = light.rgb;
+
+            // Draw light cone from flashlight to paper
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            const gradient = ctx.createRadialGradient(flashX + 30, flashY, 10, paperX, paperY, paperW);
+            gradient.addColorStop(0, `rgba(${light.rgb[0]}, ${light.rgb[1]}, ${light.rgb[2]}, 0.4)`);
+            gradient.addColorStop(0.5, `rgba(${light.rgb[0]}, ${light.rgb[1]}, ${light.rgb[2]}, 0.15)`);
+            gradient.addColorStop(1, `rgba(${light.rgb[0]}, ${light.rgb[1]}, ${light.rgb[2]}, 0.05)`);
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.moveTo(flashX + 30, flashY - 15);
+            ctx.lineTo(paperX + paperW/2 + 30, paperY - paperH/2 - 20);
+            ctx.lineTo(paperX + paperW/2 + 30, paperY + paperH/2 + 20);
+            ctx.lineTo(flashX + 30, flashY + 15);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            // Draw paper with shadow
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 10;
+            ctx.fillStyle = paperColor;
+            ctx.fillRect(paperX - paperW/2, paperY - paperH/2, paperW, paperH);
+            ctx.shadowColor = 'transparent';
+
+            // Paper border
+            ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(paperX - paperW/2, paperY - paperH/2, paperW, paperH);
+
+            // Draw text "TOP SECRET"
+            ctx.fillStyle = inkColor;
+            ctx.font = 'bold 28px "Courier New", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('TOP SECRET', paperX, paperY - 15);
+
+            // Smaller subtitle
+            ctx.font = 'bold 14px "Courier New", monospace';
+            ctx.fillText('CLASSIFIED', paperX, paperY + 20);
+
+            // Eye on right side
+            const eyeX = w - 70;
+            const eyeY = h / 2;
+            drawEye(eyeX, eyeY, paperReflection);
+
+            if (lightIndex === 1) { // Red light
+                status.innerHTML = '<strong>Message Hidden!</strong> Under red light, both the red ink AND the white paper reflect red. Zero contrast = invisible text!';
+                status.classList.add('success');
+            } else if (lightIndex === 2) { // Green light
+                status.innerHTML = '<strong>High Contrast!</strong> The paper reflects green (looks green), but the red ink ABSORBS green (looks black). The message is very visible!';
+                status.classList.remove('success');
+            } else if (lightIndex === 3) { // Blue light
+                status.innerHTML = '<strong>High Contrast!</strong> The paper reflects blue (looks blue), but the red ink ABSORBS blue (looks black). The message stands out!';
+                status.classList.remove('success');
+            } else { // White light
+                status.innerHTML = '<strong>Normal View:</strong> White light contains all colors. The paper reflects all (white), the ink reflects only red. You see red text on white paper.';
+                status.classList.remove('success');
+            }
+        }
+
+        function drawFlashlight(x, y, light) {
+            // Handle
+            ctx.fillStyle = '#3d4852';
+            ctx.beginPath();
+            ctx.roundRect(x - 35, y - 15, 45, 30, 5);
+            ctx.fill();
+
+            // Head
+            ctx.fillStyle = '#5a6672';
+            ctx.beginPath();
+            ctx.moveTo(x + 10, y - 15);
+            ctx.lineTo(x + 30, y - 22);
+            ctx.lineTo(x + 30, y + 22);
+            ctx.lineTo(x + 10, y + 15);
+            ctx.closePath();
+            ctx.fill();
+
+            // Lens glow
+            const glow = ctx.createRadialGradient(x + 30, y, 0, x + 30, y, 25);
+            glow.addColorStop(0, `rgba(${light.rgb[0]}, ${light.rgb[1]}, ${light.rgb[2]}, 1)`);
+            glow.addColorStop(0.5, `rgba(${light.rgb[0]}, ${light.rgb[1]}, ${light.rgb[2]}, 0.5)`);
+            glow.addColorStop(1, `rgba(${light.rgb[0]}, ${light.rgb[1]}, ${light.rgb[2]}, 0)`);
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(x + 30, y, 25, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Label
+            ctx.fillStyle = '#888';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Flashlight', x, y + 45);
+        }
+
+        function drawEye(x, y, seenColor) {
+            // Eye white
+            ctx.fillStyle = '#e8e8e8';
+            ctx.beginPath();
+            ctx.ellipse(x, y, 25, 18, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Iris - color matches what eye sees
+            const irisColor = `rgb(${Math.min(seenColor[0], 200)}, ${Math.min(seenColor[1], 200)}, ${Math.min(seenColor[2], 200)})`;
+            ctx.fillStyle = irisColor;
+            ctx.beginPath();
+            ctx.arc(x, y, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pupil
+            ctx.fillStyle = '#111';
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Glint
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.beginPath();
+            ctx.arc(x - 4, y - 4, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Label
+            ctx.fillStyle = '#888';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Your Eye', x, y + 40);
+        }
+
+        slider.addEventListener('input', () => {
+            const lightIndex = parseInt(slider.value);
+            const light = lightColors[lightIndex];
+            colorDisplay.textContent = light.name + ' Light';
+            colorDisplay.style.background = light.hex;
+            colorDisplay.style.color = light.textColor;
+            draw();
+        });
+
+        window.addEventListener('resize', resize);
+        setTimeout(resize, 100);
+    })();
+    </script>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>Try shining the <strong>Green Light</strong>.</p>
+    <ul>
+        <li>The White paper reflects Green (looks Green).</li>
+        <li>The Red ink <strong>absorbs</strong> Green (looks Black).</li>
+        <li><strong>Result:</strong> High contrast! Black text on Green paper. The message is clearly visible.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>Now, try shining the <strong>Red Light</strong>.</p>
+    <ul>
+        <li>The White paper reflects Red (looks Red).</li>
+        <li>The Red ink reflects Red (looks Red).</li>
+        <li><strong>Result:</strong> Red text on Red paper.</li>
+    </ul>
+    <p>Since the brightness of the ink and the paper is now the same (both reflecting the red light), the contrast vanishes. <strong>The message disappears!</strong></p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Contrast</h4>
+        <p>In computer vision, contrast is the difference in brightness or color that makes an object (like text) distinguishable from the background. If the object and background reflect light exactly the same way, contrast is zero, and the object becomes invisible.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>This isn't just a puzzle; it's a technique used in <strong>Optical Character Recognition (OCR)</strong>. If you are scanning a form that has red guide lines (boxes) but you only want to read the black handwritten text, scanning with a Red light makes the red boxes disappear (turn white), leaving only the black text visible!</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>You have successfully manipulated the physics of light!</p>
+    <p>In this experiment, you proved that:</p>
+    <ol>
+        <li><strong>Prisms</strong> separate white light into its component wavelengths (spectrum).</li>
+        <li><strong>Filters</strong> work subtractively - a Red filter removes Green and Blue light.</li>
+        <li><strong>Camouflage</strong> occurs when the object and the background reflect the incident light in the same way, eliminating contrast.</li>
+    </ol>
+    <p>Next time you look at a colored object, remember: you are seeing the light that 'survived' the absorption process.</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Think about 3D glasses (the old red/blue ones). Based on this lesson, how do you think they show a different image to your left eye (covered by a red filter) vs. your right eye (covered by a blue filter)?</h4>
+        <div id="3d-glasses-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> The movie screen displays two images: one in red and one in blue. The Red filter on your left eye makes the Red image 'invisible' (matches the white screen) but makes the Blue image look dark (black). The Blue filter does the reverse. This ensures each eye sees a completely different image, creating a 3D effect!
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('3d-glasses-answer')">Reveal Answer</button>
+    </div>
+
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 17;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = (window.event && window.event.target) || null;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = (window.event && window.event.target) || null;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                let courseId = 'computer-vision';
+                let pathId = 'foundations-of-vision';
+                let moduleId = 'cv-ch2-m1-physics';
+                let lessonId = 'cv-ch2-l5-virtual-spectrometer';
+
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = 'Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch2-l5-virtual-spectrometer_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '💡', '🌈'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch2-l5-virtual-spectrometer_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = 'Completed!';
+    }
+});
+</script>
+</body>
+</html>

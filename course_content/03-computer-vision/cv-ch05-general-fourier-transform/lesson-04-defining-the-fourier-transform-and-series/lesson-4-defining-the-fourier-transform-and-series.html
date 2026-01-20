@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Defining the Fourier Transform & Series</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #ffffff;
+    min-height: 100vh;
+    color: #2d3748;
+    line-height: 1.6;
+}
+
+/* Progress Bar */
+.progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+}
+
+/* Main Container */
+.lesson-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Sections */
+section {
+    background: transparent;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    display: none;
+    opacity: 0;
+    transition: all 0.6s ease;
+    transform: translateY(20px);
+    text-align: center;
+}
+
+section.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Reset text alignment */
+section > *:not(.continue-button) {
+    text-align: left;
+}
+
+/* Typography */
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 1rem;
+}
+
+p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+li {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+strong {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+em {
+    color: #667eea;
+    font-style: normal;
+    font-weight: 500;
+}
+
+/* Placeholders */
+.image-placeholder, .interactive-placeholder, .visual-placeholder {
+    margin: 1.5rem 0;
+}
+
+.placeholder-box {
+    width: 100%;
+    height: 220px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    background: #f8fafc;
+    font-weight: 600;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Images */
+.lesson-container img {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+/* Content Boxes */
+.why-it-matters, .vocab-section, .check-your-knowledge, .test-your-knowledge {
+    margin: 2rem 0;
+    padding: 2rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+}
+
+.why-it-matters {
+    background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+    border-left-color: #f093fb;
+    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+}
+
+.vocab-section {
+    background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+    border-left-color: #4facfe;
+    box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+}
+
+.vocab-section h4 {
+    color: #2d3748;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+}
+
+.test-your-knowledge, .check-your-knowledge {
+    background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+    border-left-color: #68d391;
+    box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+}
+.test-your-knowledge h3, .check-your-knowledge h3 {
+    color: #10b981;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+.test-your-knowledge h4, .check-your-knowledge h4 {
+    color: #2d3748;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1.5rem 0 1rem 0;
+}
+
+/* Buttons */
+.continue-button, .reveal-button, .check-button {
+    display: inline-block;
+    padding: 16px 32px;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.continue-button:hover, .reveal-button:hover, .check-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+
+.continue-button.show-with-animation {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Multiple Choice */
+.multiple-choice { margin: 1.5rem 0; text-align: left; }
+.choice-option {
+    display: block;
+    margin: 1rem 0;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+.choice-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+.choice-option:hover { transform: translateX(5px); border-color: rgba(102,126,234,0.3); box-shadow: 0 10px 30px rgba(102,126,234,0.15); }
+.choice-option:hover::before { opacity: 0.05; }
+.choice-option.selected, .choice-option.correct { background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%); border-color: #68d391; color: #2d3748; }
+.choice-option.incorrect { background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%); border-color: #f87171; color: #2d3748; }
+.choice-explanation { display: none; margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 8px; font-size: 0.95rem; position: relative; z-index: 1; }
+
+/* Mark as Completed Button */
+.mark-completed-button {
+    display: none;
+    width: 100%;
+    max-width: 400px;
+    margin: 40px auto 20px auto;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+    text-align: center;
+    text-decoration: none;
+}
+.mark-completed-button.show { display: block; }
+.mark-completed-button.completed { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); cursor: default; }
+
+/* Success Message and Confetti */
+.success-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+    z-index: 10000;
+    opacity: 0;
+    animation: success-popup 2.5s ease-out;
+    pointer-events: none;
+}
+@keyframes success-popup {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    40% { transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+.confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+.confetti { position: absolute; font-size: 20px; animation: confetti-fall 3s linear infinite; }
+@keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+/* Animations for reveals */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeIn 0.5s ease-out; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lesson-container { padding: 20px 15px; }
+    section { padding: 15px 0; margin-bottom: 20px; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.75rem; }
+    p, li { font-size: 1rem; }
+    .continue-button { width: 100%; }
+}
+</style>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="visual-placeholder">
+        <img src="images/1.jpg" alt="A dramatic visualization of a messy waveform entering a mathematical machine (The Fourier Transform) and exiting as a neat set of vertical frequency bars.">
+    </div>
+    <h1>Defining the Fourier Transform & Series</h1>
+
+    <h2>The Formula That Changed the World</h2>
+    <p>Welcome back! In the last two lessons, we built a strong intuition: signals are just sums of sine waves, and we can find them by "probing" the signal with specific frequencies. We also added complex numbers and Euler's formula to our toolkit.</p>
+    <p>Now, it's time to stop hand-waving and start writing down the math. We are going to define the equation that underpins everything from the JPEG images on your phone to the noise-canceling in your headphones.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>Let's look at the formal definition of the <strong>Continuous Fourier Transform</strong>. This transforms a signal from the Time Domain \(f(t)\) to the Frequency Domain \(F(\omega)\).</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>$$F(\omega) = \int_{-\infty}^{\infty} f(t) e^{-j\omega t} dt$$</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>It looks intimidating, but let's break down the anatomy of this equation. It is exactly what we described in the previous lesson.</p>
+<!-- Interactive Module: Anatomy of the Fourier Transform -->
+<div class="interactive-container" id="fourier-anatomy-container">
+    <canvas id="fourierCanvas"></canvas>
+    <p class="interaction-hint">👆 Hover or tap the equation parts to analyze them.</p>
+</div>
+
+<style>
+/* Specific styles for this interactive module */
+.interactive-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 2rem 0;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#fourierCanvas {
+    width: 100%;
+    height: 300px; /* Base height */
+    cursor: crosshair;
+    touch-action: none; /* Prevent scrolling while touching canvas */
+}
+
+.interaction-hint {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin: 0;
+    padding: 10px 0;
+    font-style: italic;
+    border-top: 1px solid #f1f5f9;
+    width: 100%;
+    text-align: center;
+    background: #f8fafc;
+}
+</style>
+
+<script>
+(function() {
+    const canvas = document.getElementById('fourierCanvas');
+    const container = document.getElementById('fourier-anatomy-container');
+    const ctx = canvas.getContext('2d');
+    
+    // State
+    let width, height;
+    let hoveredZone = null;
+    let scale = 1;
+
+    // Configuration for the equation parts
+    // Coordinates will be calculated dynamically in resize()
+    const zones = {
+        result: {
+            id: 'result',
+            label: 'The Output',
+            description: 'The amount of frequency ω found in the signal.',
+            color: '#f6993f', // Orange
+            bounds: { x: 0, y: 0, w: 0, h: 0 }
+        },
+        integral: {
+            id: 'integral',
+            label: 'The Correlation Sum',
+            description: 'Sums up the results over all time.',
+            color: '#48bb78', // Green
+            bounds: { x: 0, y: 0, w: 0, h: 0 } 
+        },
+        signal: {
+            id: 'signal',
+            label: 'The Input Signal',
+            description: 'The raw data (audio, image) we are analyzing.',
+            color: '#4facfe', // Blue
+            bounds: { x: 0, y: 0, w: 0, h: 0 }
+        },
+        probe: {
+            id: 'probe',
+            label: 'The Rotating Probe',
+            description: 'A complex oscillator testing for frequency ω.',
+            color: '#764ba2', // Purple
+            bounds: { x: 0, y: 0, w: 0, h: 0 }
+        },
+        differential: {
+            id: 'differential',
+            label: 'Time Step',
+            description: 'The infinitesimal time slice for integration.',
+            color: '#a0aec0', // Gray
+            bounds: { x: 0, y: 0, w: 0, h: 0 }
+        }
+    };
+
+    // Math Font settings
+    const fontMain = "italic 500 42px 'Times New Roman', serif";
+    const fontSub = "italic 500 24px 'Times New Roman', serif";
+    const fontSymbol = "42px 'Times New Roman', serif"; // Non-italic for symbols
+    const fontIntegral = "60px 'Times New Roman', serif";
+
+    function resize() {
+        // Handle High DPI displays
+        const dpr = window.devicePixelRatio || 1;
+        const rect = container.getBoundingClientRect();
+        
+        width = rect.width;
+        height = 300; // Fixed visual height
+
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        
+        ctx.scale(dpr, dpr);
+        scale = 1; // Logic scale is 1:1 with CSS pixels
+
+        calculateLayout();
+        draw();
+    }
+
+    function calculateLayout() {
+        ctx.font = fontMain;
+        const w_lhs = ctx.measureText("F(ω) ").width;
+        const w_eq = ctx.measureText("= ").width;
+        
+        ctx.font = fontIntegral;
+        const w_int = ctx.measureText("∫").width + 10;
+        
+        ctx.font = fontMain;
+        const w_sig = ctx.measureText("f(t)").width;
+        const w_prb_base = ctx.measureText("e").width;
+        
+        ctx.font = fontSub;
+        const w_prb_exp = ctx.measureText("-jωt").width;
+        const w_prb = w_prb_base + w_prb_exp;
+        
+        ctx.font = fontMain;
+        const w_dt = ctx.measureText("dt").width;
+        
+        const w_gap = 15;
+        const totalEqWidth = w_lhs + w_eq + w_int + w_sig + w_prb + w_dt + (w_gap * 5);
+        
+        const centerX = width / 2;
+        const centerY = height / 2 - 20;
+        let currentX = centerX - (totalEqWidth / 2);
+
+        // Result Zone: F(ω)
+        zones.result.bounds = { x: currentX - 5, y: centerY - 30, w: w_lhs + 10, h: 60 };
+        currentX += w_lhs + w_gap;
+
+        // Equals sign (static)
+        zones.eqStart = currentX;
+        currentX += w_eq + w_gap;
+
+        // Integral Zone: ∫
+        zones.integral.bounds = { x: currentX, y: centerY - 40, w: w_int, h: 80 };
+        currentX += w_int + w_gap;
+
+        // Signal Zone: f(t)
+        zones.signal.bounds = { x: currentX, y: centerY - 30, w: w_sig, h: 60 };
+        currentX += w_sig + w_gap;
+
+        // Probe Zone: e^-jωt
+        zones.probe.bounds = { x: currentX, y: centerY - 45, w: w_prb, h: 75 };
+        currentX += w_prb + w_gap;
+
+        // Differential Zone: dt
+        zones.differential.bounds = { x: currentX, y: centerY - 30, w: w_dt, h: 60 };
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+        
+        const centerY = height / 2 - 20;
+
+        // 1. Draw The Equation parts
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+
+        // RESULT: F(ω)
+        ctx.font = fontMain;
+        ctx.fillStyle = hoveredZone === 'result' ? zones.result.color : '#2d3748';
+        ctx.fillText("F(ω)", zones.result.bounds.x + 5, centerY);
+
+        // EQUALS: =
+        ctx.font = fontMain;
+        ctx.fillStyle = '#2d3748';
+        ctx.fillText("=", zones.eqStart, centerY);
+
+        // INTEGRAL: ∫
+        ctx.font = fontIntegral;
+        ctx.fillStyle = hoveredZone === 'integral' ? zones.integral.color : '#2d3748';
+        let intX = zones.integral.bounds.x;
+        let intY = centerY;
+        ctx.fillText("∫", intX, intY);
+        // Limits
+        ctx.font = "16px serif";
+        ctx.fillText("-∞", intX + 5, intY + 35);
+        ctx.fillText("∞", intX + 10, intY - 35);
+
+        // SIGNAL: f(t)
+        ctx.font = fontMain;
+        ctx.fillStyle = hoveredZone === 'signal' ? zones.signal.color : '#2d3748';
+        ctx.fillText("f(t)", zones.signal.bounds.x, centerY);
+
+        // PROBE: e^-jωt
+        ctx.fillStyle = hoveredZone === 'probe' ? zones.probe.color : '#2d3748';
+        let prbX = zones.probe.bounds.x;
+        ctx.font = fontMain;
+        const w_e = ctx.measureText("e").width;
+        ctx.fillText("e", prbX, centerY);
+        // Exponent
+        ctx.font = fontSub;
+        ctx.fillText("-jωt", prbX + w_e - 5, centerY - 20);
+
+        // DIFFERENTIAL: dt
+        ctx.font = fontMain;
+        ctx.fillStyle = hoveredZone === 'differential' ? zones.differential.color : '#2d3748';
+        ctx.fillText("dt", zones.differential.bounds.x, centerY);
+
+
+        // 2. Draw Highlights and Tooltips
+        if (hoveredZone) {
+            const z = zones[hoveredZone];
+            
+            // Highlight Box
+            ctx.save();
+            ctx.strokeStyle = z.color;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 3]);
+            roundRect(ctx, z.bounds.x, z.bounds.y, z.bounds.w, z.bounds.h, 5);
+            ctx.stroke();
+            
+            // Highlight Background (Subtle)
+            ctx.fillStyle = z.color;
+            ctx.globalAlpha = 0.1;
+            ctx.fill();
+            ctx.restore();
+
+            // Tooltip Drawing
+            drawTooltip(z);
+        }
+    }
+
+    function drawTooltip(z) {
+        const boxWidth = 260;
+        const boxHeight = 90;
+        const padding = 15;
+        const arrowHeight = 10;
+        
+        let x = z.bounds.x + (z.bounds.w / 2) - (boxWidth / 2);
+        let y = z.bounds.y + z.bounds.h + 20; // Below by default
+
+        // Ensure inside canvas
+        if (x < 10) x = 10;
+        if (x + boxWidth > width - 10) x = width - boxWidth - 10;
+
+        // Draw Box
+        ctx.save();
+        ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetY = 5;
+
+        ctx.fillStyle = "#ffffff";
+        
+        // Path for box with arrow pointing up
+        ctx.beginPath();
+        ctx.moveTo(x + 10, y);
+        // Top line with arrow
+        const arrowTipX = z.bounds.x + z.bounds.w/2;
+        // Clamp arrow tip
+        const safeArrowX = Math.max(x + 10, Math.min(x + boxWidth - 10, arrowTipX));
+        
+        ctx.lineTo(safeArrowX - 10, y);
+        ctx.lineTo(safeArrowX, y - arrowHeight);
+        ctx.lineTo(safeArrowX + 10, y);
+        ctx.lineTo(x + boxWidth - 10, y);
+        
+        ctx.quadraticCurveTo(x + boxWidth, y, x + boxWidth, y + 10);
+        ctx.lineTo(x + boxWidth, y + boxHeight - 10);
+        ctx.quadraticCurveTo(x + boxWidth, y + boxHeight, x + boxWidth - 10, y + boxHeight);
+        ctx.lineTo(x + 10, y + boxHeight);
+        ctx.quadraticCurveTo(x, y + boxHeight, x, y + boxHeight - 10);
+        ctx.lineTo(x, y + 10);
+        ctx.quadraticCurveTo(x, y, x + 10, y);
+        ctx.closePath();
+        ctx.fill();
+
+        // Border
+        ctx.shadowColor = "transparent";
+        ctx.strokeStyle = z.color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Text
+        ctx.fillStyle = z.color;
+        ctx.font = "bold 16px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(z.label, x + boxWidth/2, y + 12);
+
+        ctx.fillStyle = "#64748b";
+        ctx.font = "14px -apple-system, BlinkMacSystemFont, sans-serif";
+        wrapText(ctx, z.description, x + boxWidth/2, y + 38, boxWidth - 20, 18);
+
+        ctx.restore();
+    }
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        let currentY = y;
+
+        for (let n = 0; n < words.length; n++) {
+            let testLine = line + words[n] + ' ';
+            let metrics = ctx.measureText(testLine);
+            let testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                ctx.fillText(line, x, currentY);
+                line = words[n] + ' ';
+                currentY += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line, x, currentY);
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+    }
+
+    function handleInput(x, y) {
+        let found = null;
+        
+        // Check collision
+        Object.keys(zones).forEach(key => {
+            if (zones[key].bounds) {
+                const b = zones[key].bounds;
+                if (x >= b.x && x <= b.x + b.w &&
+                    y >= b.y && y <= b.y + b.h) {
+                    found = key;
+                }
+            }
+        });
+
+        if (found !== hoveredZone) {
+            hoveredZone = found;
+            draw();
+            // Update cursor
+            canvas.style.cursor = found ? 'pointer' : 'crosshair';
+        }
+    }
+
+    // Event Listeners
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        handleInput(x, y);
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+        hoveredZone = null;
+        draw();
+    });
+
+    // Touch support for mobile
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        handleInput(x, y);
+    }, { passive: false });
+
+    // Initialization
+    window.addEventListener('resize', resize);
+    // Initial load
+    setTimeout(resize, 100);
+})();
+</script>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>Here is how to read it: We take our signal \(f(t)\), multiply it by a rotating complex probe \(e^{-j\omega t}\) at a specific frequency \(\omega\), and sum (integrate) the result over all time.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>If the frequency \(\omega\) exists in the signal, the correlation is high, and \(F(\omega)\) gives us a large non-zero value. If that frequency isn't there, they cancel out, and the result is zero.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>In the equation \(F(\omega) = \int f(t) e^{-j\omega t} dt\), what plays the role of the 'detective' looking for a specific frequency?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, \\(f(t)\\) is the suspect—the signal we are investigating.')">\(f(t)\)</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The complex exponential represents the rotating phasor that tests if frequency \\(\\omega\\) is present.')">\(e^{-j\omega t}\)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is just the differential for the integration.')">\(dt\)</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-section6" onclick="showNextSection(7)" style="display:none;">Continue</div>
+</section>
+
+<section id="section7">
+    <h2>The Fourier Series: A Recipe for Periodic Signals</h2>
+    <p>The integral above works for <em>any</em> signal. But in this course, we often deal with repeating patterns (like textures in images) or finite blocks of data. For periodic signals, we use the <strong>Fourier Series</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>Recall the Superposition Principle: Any periodic signal \(y(t)\) can be built by summing sines and cosines. The Fourier Series is just the recipe card listing the ingredients.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>$$y(t) = a_0 + \sum_{k=1}^{\infty} [a_k \cos(k\omega_0 t) + b_k \sin(k\omega_0 t)]$$</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>Here, \(\omega_0\) is the fundamental frequency. The integers \(k\) represent the harmonics (\(1\omega_0, 2\omega_0, 3\omega_0...\)).</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>The magic lies in finding the <strong>Coefficients</strong>: \(a_0, a_k,\) and \(b_k\). These numbers tell us <em>how much</em> of each sine or cosine we need to mix in.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Fourier Coefficients</h4>
+        <p>The set of numbers (\(a_k, b_k\)) that determine the amplitude (strength) of each harmonic frequency required to reconstruct a specific periodic signal.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <h2>Calculating the Coefficients</h2>
+    <p>So, how do we find these numbers? We use integrals! These integrals mathematically perform the 'probing' we learned about earlier.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>First, the <strong>DC Component</strong> (\(a_0\)). This is simply the average value of the signal over one period \(T\).</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p>$$a_0 = \frac{1}{T} \int_{0}^{T} y(t) dt$$</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <p>If a wave spends equal time above and below zero (like a standard sine wave), the average \(a_0\) is zero. If it's shifted up, \(a_0\) captures that offset.</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <p>Now, for the <strong>Cosine Amplitudes</strong> (\(a_k\)). We multiply our signal by a cosine of harmonic \(k\) and integrate.</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <p>$$a_k = \frac{2}{T} \int_{0}^{T} y(t) \cos(k\omega_0 t) dt$$</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <p>And for the <strong>Sine Amplitudes</strong> (\(b_k\)):</p>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <p>$$b_k = \frac{2}{T} \int_{0}^{T} y(t) \sin(k\omega_0 t) dt$$</p>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<section id="section20">
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why do we calculate \(a_k\) (for cosine) and \(b_k\) (for sine) separately? Why not just have one coefficient per frequency?</h4>
+        <div id="reveal-phase-answer" style="display:none;" class="animate-in">
+            <p><strong>It's about Phase!</strong> A sine wave is just a cosine wave shifted by 90 degrees. By mixing different amounts of sine and cosine at the same frequency, we can create a wave with any phase shift we want. \(a_k\) and \(b_k\) together encode both amplitude and phase.</p>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('reveal-phase-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<section id="section21">
+    <p>This method works because of <strong>Orthogonality</strong>. Sine and Cosine are orthogonal—they don't 'see' each other.</p>
+    <!-- Interactive Module: Orthogonality Visualizer -->
+<div class="interactive-container" id="orthogonality-container">
+    <canvas id="orthoCanvas"></canvas>
+    <div class="ortho-controls">
+        <div class="legend-item">
+            <span class="dot blue"></span> Signal ($\sin$)
+        </div>
+        <div class="legend-item">
+            <span class="dot purple"></span> Probe ($\cos$)
+        </div>
+        <div class="legend-item">
+            <span class="dot green-red"></span> Product Area
+        </div>
+        <div class="sum-display">
+            Current Sum: <span id="currentSumVal">0.00</span>
+        </div>
+    </div>
+    <p class="caption-text">Trying to find a Sine using a Cosine probe results in Zero.</p>
+</div>
+
+<style>
+.interactive-container {
+    width: 100%;
+    margin: 2rem 0;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    text-align: center;
+}
+
+#orthoCanvas {
+    width: 100%;
+    height: 350px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.ortho-controls {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 15px;
+    flex-wrap: wrap;
+    background: #fff;
+    font-size: 0.9rem;
+    align-items: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    display: inline-block;
+}
+.dot.blue { background: #4facfe; }
+.dot.purple { background: #764ba2; }
+.dot.green-red { background: linear-gradient(90deg, #48bb78 50%, #f56565 50%); }
+
+.sum-display {
+    font-family: monospace;
+    font-size: 1rem;
+    background: #edf2f7;
+    padding: 4px 12px;
+    border-radius: 4px;
+    color: #2d3748;
+    border: 1px solid #cbd5e0;
+}
+
+.caption-text {
+    padding: 0 20px 15px 20px;
+    color: #2d3748;
+    font-weight: 600;
+    margin: 0;
+}
+</style>
+
+<script>
+(function() {
+    const canvas = document.getElementById('orthoCanvas');
+    const container = document.getElementById('orthogonality-container');
+    const ctx = canvas.getContext('2d');
+    const sumDisplay = document.getElementById('currentSumVal');
+
+    // Animation State
+    let progress = 0; // 0 to 1
+    let animationSpeed = 0.003;
+    let animationId;
+    let width, height;
+
+    function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = container.getBoundingClientRect();
+        width = rect.width;
+        height = 350;
+
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        
+        ctx.scale(dpr, dpr);
+    }
+
+    function draw() {
+        if (!width || width === 0) {
+            animationId = requestAnimationFrame(draw);
+            return;
+        }
+        ctx.clearRect(0, 0, width, height);
+
+        // Layout Constants
+        const padding = 20;
+        const trackHeight = (height - (padding * 4)) / 3;
+        const axisY1 = padding + trackHeight / 2;       // Signal
+        const axisY2 = padding * 2 + trackHeight * 1.5; // Probe
+        const axisY3 = padding * 3 + trackHeight * 2.5; // Product
+
+        const cycles = 2; // Show 2 full cycles (4PI)
+        
+        // 1. Draw Axes
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        [axisY1, axisY2, axisY3].forEach(y => {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
+        });
+
+        // 2. Draw Labels
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '12px sans-serif';
+        ctx.fillText("Signal: sin(t)", 10, axisY1 - trackHeight/2 + 15);
+        ctx.fillText("Probe: cos(t)", 10, axisY2 - trackHeight/2 + 15);
+        ctx.fillText("Product: sin(t) * cos(t)", 10, axisY3 - trackHeight/2 + 15);
+
+        // 3. Draw Waves
+        let runningSum = 0;
+        
+        ctx.beginPath(); // Start Signal Path
+        
+        // Loop through pixels
+        for (let x = 0; x <= width; x++) {
+            // Map x to angle t
+            const t = (x / width) * (Math.PI * 2 * cycles);
+            
+            const valSin = Math.sin(t);
+            const valCos = Math.cos(t);
+            const valProd = valSin * valCos;
+
+            const amp = trackHeight / 2.2; // Amplitude
+
+            // Only update integration sum if we are behind the progress bar
+            if (x / width <= progress) {
+                runningSum += valProd;
+            }
+
+            // A. Draw Signal (Blue)
+            if (x===0) ctx.moveTo(x, axisY1 - valSin * amp);
+            else ctx.lineTo(x, axisY1 - valSin * amp);
+        }
+        ctx.strokeStyle = '#4facfe';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // B. Draw Probe (Purple)
+        ctx.beginPath();
+        for (let x = 0; x <= width; x++) {
+            const t = (x / width) * (Math.PI * 2 * cycles);
+            const valCos = Math.cos(t);
+            const amp = trackHeight / 2.2;
+            if (x===0) ctx.moveTo(x, axisY2 - valCos * amp);
+            else ctx.lineTo(x, axisY2 - valCos * amp);
+        }
+        ctx.strokeStyle = '#764ba2';
+        ctx.stroke();
+
+        // C. Draw Product Areas (The Integration)
+        const ampProd = trackHeight / 1.1; // Make product taller to see clearly
+
+        // Draw static outline first
+        ctx.beginPath();
+        for (let x = 0; x <= width; x++) {
+            const t = (x / width) * (Math.PI * 2 * cycles);
+            const valProd = Math.sin(t) * Math.cos(t);
+            if (x===0) ctx.moveTo(x, axisY3 - valProd * ampProd);
+            else ctx.lineTo(x, axisY3 - valProd * ampProd);
+        }
+        ctx.strokeStyle = '#cbd5e0'; // Grey outline for future
+        ctx.stroke();
+
+        // Draw Fill (Green/Red) based on progress
+        const currentX = width * progress;
+        
+        // We draw vertical lines for fill to handle color changes easily
+        ctx.lineWidth = 1;
+        for (let x = 0; x <= currentX; x+=1) {
+            const t = (x / width) * (Math.PI * 2 * cycles);
+            const valProd = Math.sin(t) * Math.cos(t);
+            const y = axisY3 - valProd * ampProd;
+
+            ctx.beginPath();
+            ctx.moveTo(x, axisY3);
+            ctx.lineTo(x, y);
+            
+            if (valProd >= 0) {
+                ctx.strokeStyle = "rgba(72, 187, 120, 0.5)"; // Green
+            } else {
+                ctx.strokeStyle = "rgba(245, 101, 101, 0.5)"; // Red
+            }
+            ctx.stroke();
+        }
+
+        // 4. Draw Playhead Line
+        ctx.beginPath();
+        ctx.moveTo(currentX, 0);
+        ctx.lineTo(currentX, height);
+        ctx.strokeStyle = '#2d3748';
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 5. Update UI Stats
+        // Normalize sum for display. 
+        // Real math: integral over 0 to 4PI is 0. 
+        // Our runningSum is discrete pixels. 
+        // We just dampen it to look like a reasonable number.
+        let displaySum = runningSum / 100;
+        
+        // Snap to exactly 0 at end points to enforce the concept
+        if (progress >= 0.99) displaySum = 0.00;
+        
+        sumDisplay.textContent = displaySum.toFixed(2);
+        
+        // Loop Animation
+        progress += animationSpeed;
+        if (progress > 1.2) { // Pause briefly at end
+            progress = 0;
+        }
+        
+        animationId = requestAnimationFrame(draw);
+    }
+
+    // Init
+    window.addEventListener('resize', resize);
+    resize();
+    animationId = requestAnimationFrame(draw);
+
+})();
+</script>
+    <div class="continue-button" onclick="showNextSection(22)">Continue</div>
+</section>
+
+<section id="section22">
+    <p>When we calculate \(a_k\), the integral ignores all the sine parts of the signal (they sum to zero) and measures <em>only</em> the cosine parts. It filters out everything except exactly what we are looking for.</p>
+    <div class="continue-button" onclick="showNextSection(23)">Continue</div>
+</section>
+
+<section id="section23">
+    <h2>Example: The Simple Sine Wave</h2>
+    <p>Let's prove this works with the simplest possible example. Suppose our signal is just a pure sine wave at the fundamental frequency: \(y(t) = \sin(\omega_0 t)\).</p>
+    <div class="continue-button" onclick="showNextSection(24)">Continue</div>
+</section>
+
+<section id="section24">
+    <p>Intuitively, we know the answer should be: "100% sine at frequency 1, and 0% of everything else". Let's see if the math agrees.</p>
+    <div class="continue-button" onclick="showNextSection(25)">Continue</div>
+</section>
+
+<section id="section25">
+    <p><strong>Step 1: Find \(a_0\) (Average)</strong><br>The average of a sine wave over one period is 0. So, \(a_0 = 0\).</p>
+    <div class="continue-button" onclick="showNextSection(26)">Continue</div>
+</section>
+
+<section id="section26">
+    <p><strong>Step 2: Find \(a_k\) (Cosines)</strong><br>We calculate \(\int \sin(\omega_0 t) \cos(k\omega_0 t) dt\). Because sine and cosine are orthogonal, this integral is always 0. So, \(a_k = 0\) for all \(k\). (There are no cosines hidden in a sine wave!)</p>
+    <div class="continue-button" onclick="showNextSection(27)">Continue</div>
+</section>
+
+<section id="section27">
+    <p><strong>Step 3: Find \(b_k\) (Sines)</strong><br>We calculate \(\int \sin(\omega_0 t) \sin(k\omega_0 t) dt\).</p>
+    <div class="continue-button" onclick="showNextSection(28)">Continue</div>
+</section>
+
+<section id="section28">
+    <p>If \(k \neq 1\) (different frequencies), they are orthogonal. The sum is 0.</p>
+    <div class="continue-button" onclick="showNextSection(29)">Continue</div>
+</section>
+
+<section id="section29">
+    <p>But if \(k=1\) (matching frequency), we are integrating \(\sin^2(\omega_0 t)\). A squared number is always positive! The area accumulates.</p>
+    <div class="continue-button" onclick="showNextSection(30)">Continue</div>
+</section>
+
+<section id="section30">
+    <p>The math works out to:</p>
+    <p>$$b_1 = \frac{2}{T} \times \frac{T}{2} = 1$$</p>
+    <div class="continue-button" onclick="showNextSection(31)">Continue</div>
+</section>
+
+<section id="section31">
+    <p>So we get \(b_1 = 1\), and all other coefficients are 0. The math perfectly matches reality.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If our signal was \(y(t) = 3\cos(5\omega_0 t)\), which Fourier coefficient would be non-zero?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, \\(b\\) coefficients are for sine waves.')">\(b_1\)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Close, but the frequency is \\(5\\omega_0\\), not \\(1\\omega_0\\).')">\(a_1\)</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! It is a Cosine wave (\\(a\\)) at the 5th harmonic (\\(k=5\\)). The value of \\(a_5\\) would be 3.')">\(a_5\)</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-section31" onclick="showNextSection(32)" style="display:none;">Continue</div>
+</section>
+
+<section id="section32">
+    <div class="why-it-matters">
+        <h3>FAQ</h3>
+        <h4>What is the difference between the Fourier Transform and the Fourier Series?</h4>
+        <p>Great question! It comes down to what kind of signal you are analyzing. Use the <strong>Fourier Series</strong> when your signal is periodic (it repeats forever, like a continuous tone or a pattern). The result is a discrete list of coefficients (\(a_k, b_k\)).</p>
+        <p>Use the <strong>Fourier Transform</strong> for general, non-periodic signals (like a single clap of thunder or a spoken word). The result is a continuous function \(F(\omega)\) rather than a list of integers.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(33)">Continue</div>
+</section>
+
+<section id="section33">
+    <h2>Review and Reflect</h2>
+    
+    <p>In this lesson, we formalized our intuition into mathematics. We learned:</p>
+    <ul>
+        <li>The <strong>Continuous Fourier Transform</strong> correlates a signal with a complex rotating probe.</li>
+        <li>The <strong>Fourier Series</strong> breaks periodic signals into sums of sines and cosines.</li>
+        <li>We calculate coefficients (\(a_k, b_k\)) by integrating the signal against reference waves. Orthogonality ensures that each coefficient extracts only its specific frequency.</li>
+    </ul>
+    <p>Now that we have the formulas, we are ready to tackle a real challenge. In the next lesson, we will perform a full calculation to break down a Square Wave into its component harmonics.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 33;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    
+    // Trigger resize for interactives that might have been hidden
+    requestAnimationFrame(() => {
+        window.dispatchEvent(new Event('resize'));
+    });
+
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Auto-show continue button for tests
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        const continueBtn = parentSection.querySelector('.continue-button[id^="continue-section"]');
+        if (continueBtn && continueBtn.style.display === 'none') {
+            setTimeout(() => {
+                continueBtn.style.display = 'block';
+                continueBtn.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Placeholder IDs for the Fourier course structure
+                let courseId = 'signal-processing';
+                let pathId = 'frequency-analysis';
+                let moduleId = 'sp-ch02-math-foundations';
+                let lessonId = 'sp-ch02-l3-defining-fourier';
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_sp-ch02-l3_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '🌊', '📈'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check localStorage
+    const isCompleted = localStorage.getItem('lesson_sp-ch02-l3_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

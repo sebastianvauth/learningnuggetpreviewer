@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>From Light to Bytes</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <img src="images/1.jpg" alt="Illustration of a camera lens focusing light onto a digital sensor, transitioning into a stream of binary code (0s and 1s), symbolizing the transformation from physical light to digital data.">
+    <h1>From Light to Bytes</h1>
+    
+    <h2>The Journey of a Pixel</h2>
+    <p>We've reached the end of Part 1 of this course. It's been quite a journey! We have traveled all the way from a physical photon bouncing off an object in the real world to a compressed binary file sitting on your hard drive.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Journey Context -->
+<section id="section2">
+    <p>Before we move on to the next major phase of computer vision—where we actually teach computers to <em>understand</em> what they are looking at—it is crucial to put all the pieces we've learned into a single, coherent picture.</p>
+    <div class="why-it-matters">
+        <h3>Remember</h3>
+        <p>A computer never sees the 'real' world. It only sees a reconstruction based on a long chain of processing steps. If any link in this chain changes, the final image changes.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: The Grand Pipeline Intro + Visual -->
+<section id="section3">
+    <h2>The Grand Pipeline</h2>
+    <p>Let's visualize the complete image generation pipeline. This is the roadmap of everything we have covered in the previous chapters.</p>
+    <img src="images/2.jpg" alt="A scrolling horizontal timeline diagram showing the complete image generation pipeline from photons to JPEG file.">
+    <p>Here is the path data takes to become a JPEG:</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Pipeline Steps 1-4 -->
+<section id="section4">
+    <ul>
+        <li><strong>1. The Physical World:</strong> Light reflects off an object (like an apple).</li>
+        <li><strong>2. Optics:</strong> The lens focuses this light onto the sensor.</li>
+        <li><strong>3. Analog-to-Digital:</strong> Photodiodes convert light intensity into electricity, and the Bayer filter ensures we capture color information.</li>
+        <li><strong>4. Preprocessing:</strong> The camera demosaics the raw Bayer data to interpolate full RGB colors for every pixel.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Pipeline Steps 5-7 -->
+<section id="section5">
+    <ul>
+        <li><strong>5. Frequency Transform:</strong> We chop the image into \(8\times8\) blocks and apply the <strong>DCT</strong> to separate low and high frequencies.</li>
+        <li><strong>6. Quantization:</strong> We divide these frequencies by a quantization table and round them integers. <strong>This is where we lose data to save space</strong>.</li>
+        <li><strong>7. Encoding:</strong> We use the Zigzag scan and Huffman coding to pack the zeros efficiently.</li>
+    </ul>
+    <p>It is a lot of work just to save a selfie, isn't it? But understanding this pipeline is the key to understanding the artifacts and limitations of digital images.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Assemble the Pipeline (Interactive) -->
+<section id="section6">
+    <h2>Assemble the Pipeline</h2>
+    <p>Let's see if you can reconstruct the pipeline from memory. This is vital for understanding where errors or artifacts might be introduced in a computer vision system.</p>
+    <!-- REPLACEMENT FOR SECTION 6 INTERACTIVE PLACEHOLDER -->
+<div class="interactive-container" style="width: 100%; margin: 1.5rem 0;">
+    <canvas id="pipelineCanvas" style="display: block; width: 100%; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; touch-action: none; -webkit-tap-highlight-color: transparent;"></canvas>
+    <div id="pipeline-feedback" style="text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 10px; font-weight: 500; min-height: 20px;">
+        Drag the cards to the correct step in the pipeline.
+    </div>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('pipelineCanvas');
+    const ctx = canvas.getContext('2d');
+    const feedbackEl = document.getElementById('pipeline-feedback');
+    const sectionEl = canvas.closest('section');
+    const getContinueBtn = () => sectionEl && sectionEl.querySelector('.continue-button');
+    const getSuccessEl = () => document.getElementById('pipeline-success');
+    
+    // Game Data
+    const items = [
+        { id: 1, label: "Photons" },
+        { id: 2, label: "Bayer Filter" },
+        { id: 3, label: "Demosaicing" },
+        { id: 4, label: "DCT Transform" },
+        { id: 5, label: "Quantization" },
+        { id: 6, label: "Entropy Coding" }
+    ];
+
+    // Configuration
+    const CONFIG = {
+        padding: 15,
+        slotHeight: 70,
+        cardHeight: 60,
+        gap: 10,
+        colors: {
+            bg: '#f8fafc',
+            slotBorder: '#cbd5e1',
+            slotFill: '#f1f5f9',
+            slotText: '#94a3b8',
+            cardBg: '#ffffff',
+            cardBorder: '#667eea', // Purple/Blue tint
+            cardText: '#2d3748',
+            successBg: '#eafaf1',
+            successBorder: '#68d391',
+            successText: '#276749',
+            draggingShadow: 'rgba(102, 126, 234, 0.4)',
+            staticShadow: 'rgba(0,0,0,0.05)'
+        }
+    };
+
+    // State
+    let state = {
+        width: 0,
+        height: 0,
+        dpr: 1,
+        slots: [],
+        cards: [],
+        dragging: null,
+        dragOffset: { x: 0, y: 0 },
+        completed: false
+    };
+    let started = false;
+    
+    function startGame() {
+        if (started) return;
+        started = true;
+        handleResize();
+        requestAnimationFrame(drawLoop);
+    }
+    
+    function waitForVisibilityAndStart() {
+        if (!sectionEl) {
+            startGame();
+            return;
+        }
+        if (sectionEl.classList.contains('visible')) {
+            startGame();
+            return;
+        }
+        
+        const observer = new MutationObserver((mutations, obs) => {
+            if (sectionEl.classList.contains('visible')) {
+                obs.disconnect();
+                startGame();
+            }
+        });
+        observer.observe(sectionEl, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // --- Layout System ---
+
+    function init() {
+        window.addEventListener('resize', handleResize);
+        
+        // Create initial card objects
+        state.cards = items.map(item => ({
+            id: item.id,
+            label: item.label,
+            x: 0, y: 0, w: 0, h: 0,
+            isLocked: false,
+            isDragging: false
+        }));
+
+        waitForVisibilityAndStart();
+    }
+
+    function handleResize() {
+        const container = canvas.parentElement;
+        const rect = container.getBoundingClientRect();
+        if (!rect.width) return; // Section not visible yet
+        
+        state.width = rect.width;
+        state.dpr = window.devicePixelRatio || 1;
+
+        // 1. Determine Grid Layout (Responsive)
+        // If width < 600px, do 2 columns. Else 6 columns.
+        const isMobile = state.width < 700;
+        const cols = isMobile ? 3 : 6;
+        const rows = Math.ceil(items.length / cols);
+
+        // 2. Calculate Slot Metrics
+        const totalGapW = (cols - 1) * CONFIG.gap;
+        const availableW = state.width - (CONFIG.padding * 2);
+        const slotW = (availableW - totalGapW) / cols;
+
+        // 3. Define Slot Positions
+        state.slots = [];
+        let currentY = CONFIG.padding + 30; // +30 for title space if needed
+        
+        for (let i = 0; i < items.length; i++) {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            
+            const x = CONFIG.padding + (col * (slotW + CONFIG.gap));
+            const y = currentY + (row * (CONFIG.slotHeight + 25)); // +25 for label space
+
+            state.slots.push({
+                id: i + 1,
+                x: x, 
+                y: y,
+                w: slotW,
+                h: CONFIG.slotHeight,
+                cx: x + slotW/2,
+                cy: y + CONFIG.slotHeight/2
+            });
+        }
+
+        // 4. Calculate Pool Area
+        // Where the grid ends
+        const gridEndY = state.slots[state.slots.length-1].y + CONFIG.slotHeight + 40;
+        
+        // Pool Layout
+        const poolCols = isMobile ? 2 : 3;
+        const poolRows = Math.ceil(items.length / poolCols);
+        const poolItemW = (availableW - ((poolCols-1)*CONFIG.gap)) / poolCols;
+        
+        // 5. Update Canvas Height
+        // Grid Height + Pool Height + Padding
+        state.height = gridEndY + (poolRows * (CONFIG.cardHeight + 15)) + CONFIG.padding;
+
+        // Apply to Canvas (HiDPI handling)
+        canvas.width = state.width * state.dpr;
+        canvas.height = state.height * state.dpr;
+        canvas.style.width = `${state.width}px`;
+        canvas.style.height = `${state.height}px`;
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset before applying a new scale
+        ctx.scale(state.dpr, state.dpr);
+
+        // 6. Update Card Dimensions & Snap Locked Cards
+        state.cards.forEach(card => {
+            card.w = isMobile ? poolItemW : slotW; // Make cards slightly larger in pool on mobile
+            if(card.isLocked) card.w = slotW; // Match slot if locked
+            card.h = CONFIG.cardHeight;
+
+            if (card.isLocked) {
+                const slot = state.slots.find(s => s.id === card.id);
+                if (slot) {
+                    card.x = slot.x;
+                    card.y = slot.y + (slot.h - card.h)/2;
+                }
+            }
+        });
+        
+        // Store pool boundaries for shuffling
+        state.poolStartY = gridEndY;
+        state.poolItemW = poolItemW;
+        state.poolCols = poolCols;
+        
+        shufflePool(); // Reflow unlocked cards after a resize/visibility change
+    }
+
+    function shufflePool() {
+        // Distribute unlocked cards into the pool area
+        const unlocked = state.cards.filter(c => !c.isLocked);
+        
+        unlocked.forEach((card, index) => {
+            const col = index % state.poolCols;
+            const row = Math.floor(index / state.poolCols);
+            
+            // Center in pool cell
+            const cellX = CONFIG.padding + (col * (state.poolItemW + CONFIG.gap));
+            const cellY = state.poolStartY + (row * (CONFIG.cardHeight + 15));
+            
+            // Add slight randomness
+            const jitterX = (Math.random() * 10) - 5;
+            const jitterY = (Math.random() * 10) - 5;
+
+            card.x = cellX + (state.poolItemW - card.w)/2 + jitterX;
+            card.y = cellY + jitterY;
+        });
+    }
+
+    // --- Logic & Input ---
+
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        // Handle both mouse and touch
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
+    }
+
+    function isInside(x, y, rect) {
+        return x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h;
+    }
+
+    function onStart(e) {
+        if (state.completed) return;
+        
+        // Prevent default only if we are touching the canvas items (prevents scrolling)
+        // We'll return false if we didn't hit anything to allow scrolling on background
+        
+        const pos = getPos(e);
+        
+        // Check cards (reverse order to pick top-most)
+        for (let i = state.cards.length - 1; i >= 0; i--) {
+            const card = state.cards[i];
+            if (!card.isLocked && isInside(pos.x, pos.y, card)) {
+                e.preventDefault(); // Stop scroll
+                state.dragging = card;
+                card.isDragging = true;
+                state.dragOffset.x = pos.x - card.x;
+                state.dragOffset.y = pos.y - card.y;
+                
+                // Move to top of stack
+                state.cards.splice(i, 1);
+                state.cards.push(card);
+                return;
+            }
+        }
+    }
+
+    function onMove(e) {
+        if (!state.dragging) return;
+        e.preventDefault(); // Stop scroll while dragging
+        const pos = getPos(e);
+        state.dragging.x = pos.x - state.dragOffset.x;
+        state.dragging.y = pos.y - state.dragOffset.y;
+    }
+
+    function onEnd(e) {
+        if (!state.dragging) return;
+        
+        const card = state.dragging;
+        const cardCx = card.x + card.w/2;
+        const cardCy = card.y + card.h/2;
+
+        let snapped = false;
+
+        // Hit test slots
+        for (const slot of state.slots) {
+            // Simple distance check or box overlap
+            // Using box overlap with the slot center
+            if (isInside(cardCx, cardCy, slot)) {
+                if (card.id === slot.id) {
+                    // Correct!
+                    card.isLocked = true;
+                    // Snap to center of slot vertical
+                    card.x = slot.x;
+                    card.y = slot.y + (slot.h - card.h)/2;
+                    card.w = slot.w; // Resize to fit slot exactly
+                    snapped = true;
+                    checkWin();
+                } else {
+                    // Wrong slot - feedback?
+                    feedbackEl.textContent = "Not that one! Try again.";
+                    feedbackEl.style.color = "#e53e3e";
+                    setTimeout(() => {
+                        if(!state.completed) {
+                            feedbackEl.textContent = "Drag the cards to the correct step in the pipeline.";
+                            feedbackEl.style.color = "#64748b";
+                        }
+                    }, 1000);
+                }
+                break;
+            }
+        }
+
+        if (!snapped) {
+            // Keep it where it was dropped (in the pool or loose)
+            // Ensure it's inside canvas bounds at least
+            if (card.x < 0) card.x = 0;
+            if (card.y < 0) card.y = 0;
+            if (card.x + card.w > state.width) card.x = state.width - card.w;
+            if (card.y + card.h > state.height) card.y = state.height - card.h;
+        }
+
+        card.isDragging = false;
+        state.dragging = null;
+    }
+
+    function checkWin() {
+        if (state.cards.every(c => c.isLocked)) {
+            state.completed = true;
+            feedbackEl.innerHTML = "<strong>Pipeline Assembled! ✅</strong>";
+            feedbackEl.style.color = "#276749";
+            const successEl = getSuccessEl();
+            const continueBtn = getContinueBtn();
+            if (successEl) successEl.style.display = 'block';
+            if (continueBtn) {
+                continueBtn.style.display = 'inline-block';
+                continueBtn.classList.add('show-with-animation');
+            }
+        }
+    }
+
+    // --- Rendering ---
+
+    function drawRoundRect(x, y, w, h, r, fill, stroke) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+        if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
+    }
+
+    function drawText(text, x, y, maxWidth, color, fontSize = 12) {
+        ctx.fillStyle = color;
+        ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        
+        // Simple word wrap
+        const words = text.split(' ');
+        let line = '';
+        const lines = [];
+        
+        for(let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && n > 0) {
+                lines.push(line);
+                line = words[n] + ' ';
+            } else {
+                line = testLine;
+            }
+        }
+        lines.push(line);
+
+        const lineHeight = fontSize * 1.2;
+        const totalH = lines.length * lineHeight;
+        let startY = y - (totalH/2) + (lineHeight/2);
+
+        lines.forEach((l, i) => {
+            ctx.fillText(l.trim(), x, startY + (i * lineHeight));
+        });
+    }
+
+    function drawLoop() {
+        // Clear Logical Space
+        ctx.clearRect(0, 0, state.width, state.height);
+
+        // Draw Slots
+        state.slots.forEach((slot, i) => {
+            // Draw Connector Arrow
+            if (i < state.slots.length - 1) {
+                const next = state.slots[i+1];
+                // Only draw if on same row
+                if (Math.abs(next.y - slot.y) < 10) {
+                    ctx.beginPath();
+                    ctx.moveTo(slot.x + slot.w + 2, slot.cy);
+                    ctx.lineTo(next.x - 2, next.cy);
+                    ctx.strokeStyle = "#cbd5e1";
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([4, 4]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+
+            // Draw Slot Box
+            drawRoundRect(slot.x, slot.y, slot.w, slot.h, 8, CONFIG.colors.slotFill, CONFIG.colors.slotBorder);
+            
+            // Slot Label (Number)
+            ctx.fillStyle = "rgba(148, 163, 184, 0.3)";
+            ctx.font = "bold 30px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(slot.id, slot.cx, slot.cy);
+        });
+
+        // Draw Cards
+        state.cards.forEach(card => {
+            let bg = CONFIG.colors.cardBg;
+            let border = CONFIG.colors.cardBorder;
+            let text = CONFIG.colors.cardText;
+            
+            if (card.isLocked) {
+                bg = CONFIG.colors.successBg;
+                border = CONFIG.colors.successBorder;
+                text = CONFIG.colors.successText;
+            }
+
+            // Shadow
+            ctx.save();
+            if (card.isDragging) {
+                ctx.shadowColor = CONFIG.colors.draggingShadow;
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetY = 8;
+            } else if (!card.isLocked) {
+                ctx.shadowColor = CONFIG.colors.staticShadow;
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetY = 2;
+            }
+            
+            drawRoundRect(card.x, card.y, card.w, card.h, 6, bg, border);
+            ctx.restore();
+
+            // Text
+            drawText(card.label, card.x + card.w/2, card.y + card.h/2, card.w - 10, text, 12);
+        });
+
+        requestAnimationFrame(drawLoop);
+    }
+
+    // --- Bindings ---
+    canvas.addEventListener('mousedown', onStart);
+    canvas.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    
+    canvas.addEventListener('touchstart', onStart, { passive: false });
+    canvas.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onEnd);
+
+    // Init
+    init();
+
+})();
+</script>
+    <div id="pipeline-success" style="display:none;" class="animate-in">
+        <p>Excellent! You have successfully reconstructed the path from light to file. Notice how 'Quantization' comes <em>after</em> the Transform—we can only compress effectively once we've separated the important frequencies from the unimportant ones.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)" style="display:none;">Continue</div>
+</section>
+
+<!-- Section 7: Do You Trust the Image? -->
+<section id="section7">
+    <h2>Do You Trust the Image?</h2>
+    <p>Now that you have built the pipeline, I want you to consider a philosophical question that has very practical engineering implications.</p>
+    <div class="stop-and-think">
+        <h3>Stop and Think</h3>
+        <h4>Now that you know how much processing happens <em>before</em> you even see the image, do you trust a digital photo as a perfect representation of reality?</h4>
+        <div id="sat-trust-answer" style="display:none;" class="animate-in">
+            <p><strong>Reflect:</strong> You probably shouldn't! Between the interpolation of colors (Demosaicing) and the removal of high-frequency details (Quantization), the image is a <em>reconstruction</em>, not a perfect copy. Artifacts like ringing or color bleeding are mathematical side-effects, not features of the real world.</p>
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('sat-trust-answer')">Reveal Thoughts</button>
+    </div>
+    <p class="animate-in" style="margin-top:2rem;">In Computer Vision, we must always remember that we are analyzing <strong>decoded numbers</strong>, not physical reality. If a compression algorithm removes a texture, our AI models will never see it.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Final Check Q1 -->
+<section id="section8">
+    <h2>Final Check: Chapter 6</h2>
+    <p>Before we conclude Part 1 of the course, let's test your mastery of Frequency Analysis and Compression with a comprehensive quiz.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge 1/5</h3>
+        <h4>Which of the following best describes 'Spatial Frequency' in an image?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, that refers to file size or bandwidth.')">How fast the image loads on a webpage.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Smooth areas have low spatial frequency, while sharp edges and textures have high spatial frequency.')">The rate at which pixel intensity changes across the image.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This refers to the color histogram, not frequency.')">The number of red pixels versus blue pixels.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That is temporal frequency. We are dealing with static 2D images here.')">The frame rate of a video.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)" style="display:none;">Next Question</div>
+</section>
+
+<!-- Section 9: Final Check Q2 -->
+<section id="section9">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge 2/5</h3>
+        <h4>Why is the Discrete Cosine Transform (DCT) preferred over the Discrete Fourier Transform (DFT) for image compression?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Actually, DCT discards phase information, but that is acceptable for images.')">It preserves the phase information perfectly.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'DCT uses only real numbers (cosines), not complex numbers.')">It uses complex numbers, which are more accurate.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Spot on! DCT concentrates the most important image information into fewer coefficients (the low frequencies), making it easier to compress.')">It has better Energy Compaction.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)" style="display:none;">Next Question</div>
+</section>
+
+<!-- Section 10: Final Check Q3 -->
+<section id="section10">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge 3/5</h3>
+        <h4>In the JPEG pipeline, which step is primarily responsible for information loss (making it 'lossy')?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This preserves data, just changes the representation (though chroma subsampling happens here, the main loss is elsewhere).')">Color Space Transformation</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The DCT itself is reversible (mathematically lossless) if we kept infinite precision.')">Discrete Cosine Transform (DCT)</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. Dividing coefficients by integers and rounding them throws away precision that cannot be recovered.')">Quantization</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is just a reordering of data; it does not delete anything.')">Zigzag Scan</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)" style="display:none;">Next Question</div>
+</section>
+
+<!-- Section 11: Final Check Q4 -->
+<section id="section11">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge 4/5</h3>
+        <h4>If you apply a 'High-Pass Filter' to an image in the frequency domain, what is the visual result?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Blurring is caused by a Low-Pass filter (removing high frequencies).')">The image becomes blurry.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. High frequencies correspond to rapid changes in intensity, which occur at edges.')">Only the edges and fine details remain visible.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This would be desaturation, not filtering.')">The image becomes black and white.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)" style="display:none;">Next Question</div>
+</section>
+
+<!-- Section 12: Final Check Q5 -->
+<section id="section12">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge 5/5</h3>
+        <h4>What causes the 'Ringing' or 'Mosquito Noise' artifacts seen in low-quality JPEGs?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This causes \'Blocking\' artifacts (grid lines), not ringing.')">The independent processing of 8x8 blocks.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. When we approximate high-frequency waves too roughly, they create ripples or \'ghosts\' near sharp edges.')">Coarse quantization of high-frequency coefficients.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This conversion is generally safe and doesn\'t cause ringing.')">Converting RGB to YCbCr.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)" style="display:none;">Continue</div>
+</section>
+
+<!-- Section 13: Review and Reflect -->
+<section id="section13">
+    <h2>Review and Reflect</h2>
+    <p>You have done it! You have completed the first major section of this Computer Vision course.</p>
+    <p>Up until now, we've focused on <strong>creating</strong> and <strong>storing</strong> images. We've treated them as data to be captured, transformed, and compressed.</p>
+    <p>After the break, we flip the script. We will stop treating images as just files to be saved, and start treating them as puzzles to be solved. We will move from <strong>Image Processing</strong> to true <strong>Computer Vision</strong>.</p>
+    
+    <p>Next up: How do computers <em>understand</em> what's in the picture? How do they find edges, corners, and eventually, objects like cats and cars? Get ready!</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 13;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Auto-show next button if correct, specifically for the quiz sections
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        const continueButton = parentSection.querySelector('.continue-button');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Tracking IDs inferred from context
+                let courseId = 'computer-vision';
+                let pathId = 'foundations'; 
+                let moduleId = 'cv-ch6-foundations-review'; 
+                let lessonId = 'cv-ch6-l3-from-light-to-bytes'; 
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch6-l3_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '📸', '💾'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Review Completed! Ready for Part 2! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+         // Logic to check status from parent LMS if available
+         // ... (Logic kept similar to template for compatibility)
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch6-l3_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>
+
+
+
+
+

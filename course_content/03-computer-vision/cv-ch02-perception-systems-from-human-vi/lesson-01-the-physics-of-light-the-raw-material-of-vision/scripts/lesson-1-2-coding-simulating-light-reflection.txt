@@ -1,0 +1,186 @@
+Here is the complete content for the **Coding Lesson: Simulating Light Reflection**. It is designed to be run in a Jupyter Notebook, Google Colab, or any Python environment.
+
+---
+
+# 🐍 Coding Lesson: The Physics of Light in Python
+
+### **Introduction**
+Welcome to the simulation! In the previous lesson, we learned that the color you see isn't an inherent property of an object—it's a relationship between the light source and the material.
+
+If you are a Computer Vision engineer, you need to understand how images are formed mathematically. Today, we are going to write a Python function that acts as a "Physics Engine." We will mathematically prove why a red apple looks black under blue light.
+
+### **The Math: The Hadamard Product**
+In computer vision, an image is formed by **element-wise multiplication** (also known as the Hadamard Product).
+
+$$ ObservedColor = LightSource \times Reflectance $$
+
+Here is the catch:
+1.  **Light Source:** Usually defined by intensity (0 to 255).
+2.  **Reflectance:** Physically, this is a *percentage* (0% to 100%). A red apple reflects ~90% red light and absorbs ~10% blue/green.
+
+To make this work in code, we need to:
+1.  **Normalize** our inputs from integers (0-255) to floats (0.0-1.0).
+2.  **Multiply** them channel by channel (Red $\times$ Red, Green $\times$ Green, etc.).
+3.  **Scale** the result back to 0-255 so we can display it as a pixel.
+
+---
+
+### **Step 1: Import the Toolset**
+We will use **NumPy**, the fundamental library for scientific computing in Python. It handles arrays and matrices much faster than standard lists.
+
+```python
+import numpy as np
+
+print("NumPy imported successfully! We are ready to calculate physics.")
+```
+
+---
+
+### **Step 2: Defining the "Observe" Function**
+Let's build our function step-by-step.
+
+**The Logic:**
+1.  Take two inputs: `light_rgb` and `surface_rgb`.
+2.  Divide them by `255.0` to get a range of `0.0` to `1.0`.
+3.  Multiply them together.
+4.  Multiply the result by `255.0`.
+5.  Round to the nearest whole number and convert to an integer.
+
+```python
+def observe_color(light_rgb, surface_rgb):
+    """
+    Simulates the interaction between a light source and a surface material.
+    
+    Args:
+        light_rgb (list): [R, G, B] intensity of the light (0-255)
+        surface_rgb (list): [R, G, B] reflectance of the object (0-255)
+        
+    Returns:
+        numpy.array: The observed color [R, G, B] (0-255)
+    """
+    # 1. Convert lists to NumPy arrays for easy math
+    light = np.array(light_rgb)
+    surface = np.array(surface_rgb)
+    
+    # 2. Normalize to 0.0 - 1.0 (Representing physics 0% to 100%)
+    light_norm = light / 255.0
+    surface_norm = surface / 255.0
+    
+    # 3. Calculate interaction (Element-wise multiplication)
+    # This multiplies Red with Red, Green with Green, Blue with Blue
+    observed_norm = light_norm * surface_norm
+    
+    # 4. Scale back to 0 - 255
+    observed = observed_norm * 255.0
+    
+    # 5. Round to nearest integer and return
+    return np.round(observed).astype(int)
+```
+
+---
+
+### **Step 3: The "Red Apple" Experiment**
+Let's test the scenario we discussed in the lecture. 
+
+We have a **Perfect Red Apple**. It reflects 100% of Red light (`255`) and absorbs all Green and Blue (`0`).
+$$ Surface = [255, 0, 0] $$
+
+#### **Scenario A: Sunlight (White Light)**
+White light contains equal parts Red, Green, and Blue.
+$$ Light = [255, 255, 255] $$
+
+```python
+# Define our objects
+red_apple = [255, 0, 0]
+white_light = [255, 255, 255]
+
+# Run the simulation
+result_A = observe_color(white_light, red_apple)
+
+print(f"Scenario A (White Light on Red Apple): {result_A}")
+```
+
+**Expected Output:** `[255, 0, 0]`
+*Explanation:* The white light provided Red, Green, and Blue energy. The apple absorbed the Green and Blue, but reflected the Red back to your eye.
+
+---
+
+#### **Scenario B: The "Alien Sun" (Blue Light)**
+Now, let's turn off the sun and turn on a pure Blue LED.
+$$ Light = [0, 0, 255] $$
+
+```python
+blue_light = [0, 0, 255]
+
+# Run the simulation
+result_B = observe_color(blue_light, red_apple)
+
+print(f"Scenario B (Blue Light on Red Apple): {result_B}")
+```
+
+**Expected Output:** `[0, 0, 0]` (Black)
+*Explanation:* 
+1. The Blue light sends **0 Red** photons. The apple can *only* reflect Red. Result: 0 reflection.
+2. The Blue light sends **255 Blue** photons. The apple *absorbs* Blue. Result: 0 reflection.
+3. The result is total darkness.
+
+---
+
+### **Step 4: Advanced Mixing**
+Real life isn't just pure Red or Pure Blue. Let's try a complex color.
+
+**The Object:** A **Teal Ball**. Teal is a mix of Green and Blue.
+$$ Surface = [0, 255, 255] $$
+
+**The Light:** A **Yellow Flashlight**. Yellow is a mix of Red and Green.
+$$ Light = [255, 255, 0] $$
+
+**Stop & Think:** Before you run the code, guess the result. 
+*   Red channel: Light(Yes) $\times$ Object(No) = ?
+*   Green channel: Light(Yes) $\times$ Object(Yes) = ?
+*   Blue channel: Light(No) $\times$ Object(Yes) = ?
+
+```python
+teal_ball = [0, 255, 255]
+yellow_light = [255, 255, 0]
+
+result_C = observe_color(yellow_light, teal_ball)
+
+print(f"Scenario C (Yellow Light on Teal Ball): {result_C}")
+```
+
+**Expected Output:** `[0, 255, 0]` (Pure Green)
+*Explanation:* The only color that existed in *both* the light source AND the object's reflectance was **Green**. The Red was absorbed by the ball, and the Blue was missing from the light.
+
+---
+
+### **Challenge: Partial Reflection**
+In the real world, objects are rarely "pure" colors. A real apple isn't `[255, 0, 0]`. It might be `[200, 50, 50]` (mostly red, but reflects a little bit of everything—that's why it looks shiny).
+
+**Task:** 
+Create a variable `real_apple = [200, 50, 50]`. 
+Create a variable `dim_blue_light = [0, 0, 100]`. 
+Calculate the observed color.
+
+```python
+# Try it yourself here!
+real_apple = [200, 50, 50]
+dim_blue_light = [0, 0, 100]
+
+result_D = observe_color(dim_blue_light, real_apple)
+print(f"Challenge Result: {result_D}")
+```
+
+**Interpretation:**
+You should get `[0, 0, 20]`. 
+It's not perfectly black! Because the "Real Apple" reflects a tiny bit of blue (50/255 $\approx$ 20%), and the light source provided some blue, you see a very, very dark blue reflection. This is exactly how realistic lighting works in video games!
+
+---
+
+### **Summary**
+You have just written a function that simulates the fundamental law of visual perception.
+*   **Perception = Light $\times$ Matter**
+*   If the light source doesn't contain a frequency, you can't see it (even if the object is that color).
+*   If the object absorbs a frequency, you can't see it (even if the light source is that color).
+
+In the next lesson, we will look at the **Eye**, and learn how it captures these resulting RGB values!

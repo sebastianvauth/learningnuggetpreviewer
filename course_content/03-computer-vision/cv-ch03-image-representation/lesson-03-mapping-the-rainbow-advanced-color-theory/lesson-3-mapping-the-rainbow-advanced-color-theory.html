@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Mapping the Rainbow (Advanced Color Theory)</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: RGB Limits -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Comparison of two color swatches with different RGB values">
+    </div>
+    <h1>Mapping the Rainbow (Advanced Color Theory)</h1>
+    <h2>RGB: The Hardware Hero, The Math Villain</h2>
+    <p>So far, we've treated color like a recipe: a pinch of Red, a dash of Green, and a splash of Blue. This <strong>RGB model</strong> is fantastic for building hardware like monitors and camera sensors because it matches how we emit and capture light.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: Why RGB Lies -->
+<section id="section2">
+    <h2>Why RGB Lies to You</h2>
+    <p>However, RGB is actually terrible for doing math related to human perception. If you want to ask a computer, "How different are these two colors?", RGB often gives the wrong answer.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3: Perception Distance -->
+<section id="section3">
+    <p>Imagine two colors. To your eye, they look almost identical. But in the RGB number grid (the "RGB Cube"), they might be far apart mathematically. Conversely, two colors that look totally different to you might be mathematically close in RGB.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4: Enter CIE -->
+<section id="section4">
+    <p>To fix this, scientists had to come up with a way to describe color based on <em>how humans actually see it</em>, not just how machines make it. Enter the <strong>CIE</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5: CIE XYZ Intro -->
+<section id="section5">
+    <h2>Standardizing Perception (CIE XYZ)</h2>
+    <p>In 1931, the Commission Internationale de l’Éclairage (CIE) created a mathematical model of human vision. They defined a standard observer using three theoretical values: \(X\), \(Y\), and \(Z\).</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6: Normalization Math -->
+<section id="section6">
+    <p>Think of \(X\), \(Y\), and \(Z\) as the raw ingredients of human vision. However, because brightness often distracts us from the actual 'color' (chromaticity), we usually normalize these values to get a 2D map of all colors.</p>
+    <p>We convert the raw \(X, Y, Z\) values into projective coordinates \(x, y, z\) using this normalization logic:</p>
+    <p>$$ x = \frac{X}{X+Y+Z} $$</p>
+    <p>$$ y = \frac{Y}{X+Y+Z} $$</p>
+    <p>$$ z = 1 - x - y $$</p>
+    <p>Notice that if you know \(x\) and \(y\), you automatically know \(z\) because they must add up to 1. This allows us to plot everything on a 2D graph.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7: CIE Diagram -->
+<section id="section7">
+    <p>When we plot \(x\) against \(y\), we get the famous <strong>CIE 1931 Chromaticity Diagram</strong>, often looking like a horseshoe.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="CIE 1931 Chromaticity Diagram horseshoe shape">
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- SECTION 8: Saturation & Vocab -->
+<section id="section8">
+    <p>In this diagram, the curved edge represents pure, saturated light (like a laser). As you move toward the center, the colors mix and become less saturated, eventually becoming white.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Chromaticity</h4>
+        <p>The quality of a color (hue and saturation) independent of its brightness (luminance).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- SECTION 9: Gamut Intro -->
+<section id="section9">
+    <h2>Gamut: The Trap of Screens</h2>
+    <p>Here is the harsh reality: The screen you are looking at right now cannot display every color in that horseshoe diagram.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- SECTION 10: Gamut Triangle -->
+<section id="section10">
+    <p>Physical devices have limits. A monitor uses specific Red, Green, and Blue LEDs. If you plot the colors of those three LEDs on the CIE diagram and connect the dots, you get a triangle.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="CIE Diagram with sRGB Gamut Triangle Overlay">
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- SECTION 11: Gamut Vocab -->
+<section id="section11">
+    <p>This triangle is called the device's <strong>Gamut</strong>. Any color inside the triangle can be displayed. Any color outside the triangle (like highly saturated cyans or deep crimsons) cannot be displayed accurately.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Gamut</h4>
+        <p>The entire range of colors available on a particular device, such as a monitor or printer. It is usually a subset of the full range of visible human vision.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- SECTION 12: Print vs Screen -->
+<section id="section12">
+    <p>This is why print sometimes looks different from the screen. A printer (CMYK) has a different gamut shape than a monitor (RGB).</p>
+    <div class="image-placeholder">
+        <img src="images/4.jpg" alt="Meme: Expectation vs Reality on Gamut showing color differences">
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- SECTION 13: Perceptual Uniformity Intro -->
+<section id="section13">
+    <h2>Perceptual Uniformity (CIE Lab) & HSV</h2>
+    <p>We established that RGB is bad for calculating color differences. Even the standard CIE diagram (\(x, y\)) has a flaw: distances on the graph don't match perceptual differences.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 14: Lab Details -->
+<section id="section14">
+    <p>To solve this, scientists created <strong>CIE Lab</strong> (or CIELAB). It distorts the color space so that the Euclidean distance (straight line) between two points actually matches the difference perceived by the human eye.</p>
+    <p>In Lab:</p>
+    <ul>
+        <li><strong>L:</strong> Lightness (0 to 100)</li>
+        <li><strong>a:</strong> Green to Red</li>
+        <li><strong>b:</strong> Blue to Yellow</li>
+    </ul>
+    <p>This separation is powerful. It allows computers to compare colors accurately, which is crucial for things like manufacturing or medical imaging.</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- SECTION 15: HSV Intro -->
+<section id="section15">
+    <p>However, for humans editing images, we often use <strong>HSV</strong> (Hue, Saturation, Value).</p>
+    <p>Imagine you want to change a red shirt to blue, but keep the shadows and highlights exactly the same. In RGB, you'd have to change all three numbers. In HSV, you just spin the <strong>Hue</strong> knob and leave <strong>Value</strong> (brightness) alone.</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- SECTION 16: Interactive & 3D Explorer -->
+<section id="section16">
+    <!-- REPLACEMENT FOR SECTION 16 INTERACTIVE PLACEHOLDER -->
+<div class="interactive-container" id="colorSpaceContainer">
+    <div class="canvas-wrapper">
+        <canvas id="colorSpaceCanvas"></canvas>
+        <div class="loading-overlay" id="loadingOverlay">Loading Math...</div>
+    </div>
+    <div class="controls">
+        <button class="mode-btn active" onclick="setMode('rgb')">RGB Cube</button>
+        <button class="mode-btn" onclick="setMode('hsv')">HSV Cylinder</button>
+        <button class="mode-btn" onclick="setMode('lab')">Lab Blob</button>
+    </div>
+    <p class="caption" id="captionText"><strong>RGB Mode:</strong> Colors are mapped directly to X, Y, and Z axes. Note how green, red, and blue form the corners of a perfect cube.</p>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('colorSpaceCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('colorSpaceContainer');
+    const caption = document.getElementById('captionText');
+    const btns = document.querySelectorAll('.mode-btn');
+
+    // --- State ---
+    let particles = [];
+    let currentMode = 'rgb';
+    let width, height;
+    let rotation = { x: -0.5, y: 0.5 }; // Initial angle
+    let targetRotation = { x: -0.5, y: 0.5 };
+    let isDragging = false;
+    let lastMouse = { x: 0, y: 0 };
+    let autoRotate = true;
+
+    // --- Math Helpers ---
+
+    // 1. RGB [0-255] to HSV
+    function rgbToHsv(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h, s, v = max;
+        const d = max - min;
+        s = max === 0 ? 0 : d / max;
+        if (max === min) { h = 0; }
+        else {
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+        return [h, s, v];
+    }
+
+    // 2. RGB to XYZ to Lab (Approximated for performance)
+    function rgbToLab(r, g, b) {
+        // Convert RGB to Linear RGB
+        let R = r/255, G = g/255, B = b/255;
+        R = (R > 0.04045) ? Math.pow((R + 0.055) / 1.055, 2.4) : R / 12.92;
+        G = (G > 0.04045) ? Math.pow((G + 0.055) / 1.055, 2.4) : G / 12.92;
+        B = (B > 0.04045) ? Math.pow((B + 0.055) / 1.055, 2.4) : B / 12.92;
+
+        // Linear RGB to XYZ
+        let X = R * 0.4124 + G * 0.3576 + B * 0.1805;
+        let Y = R * 0.2126 + G * 0.7152 + B * 0.0722;
+        let Z = R * 0.0193 + G * 0.1192 + B * 0.9505;
+
+        // XYZ to Lab (D65 Ref)
+        // Normalizing to reference white (approx)
+        X = X / 0.95047; Y = Y / 1.00000; Z = Z / 1.08883;
+
+        const f = (t) => (t > 0.008856) ? Math.pow(t, 1/3) : (7.787 * t) + (16/116);
+        const fX = f(X), fY = f(Y), fZ = f(Z);
+
+        const L_val = (116 * fY) - 16;
+        const a_val = 500 * (fX - fY);
+        const b_val = 200 * (fY - fZ);
+
+        return [L_val, a_val, b_val];
+    }
+
+    // --- Initialization ---
+
+    function initPoints() {
+        particles = [];
+        const step = 25; // Density of points (lower step = more points)
+        
+        for (let r = 0; r <= 255; r += step) {
+            for (let g = 0; g <= 255; g += step) {
+                for (let b = 0; b <= 255; b += step) {
+                    
+                    // Precompute coordinates for all modes
+                    
+                    // 1. RGB Mode: Map 0-255 to -100 to 100
+                    const rgbPos = {
+                        x: (r - 127.5) * 0.8,
+                        y: -(g - 127.5) * 0.8, // Flip Y for canvas
+                        z: (b - 127.5) * 0.8
+                    };
+
+                    // 2. HSV Mode: Cylinder
+                    const [h, s, v] = rgbToHsv(r, g, b);
+                    const angle = h * Math.PI * 2;
+                    const radius = s * 100; 
+                    const hsvPos = {
+                        x: Math.cos(angle) * radius,
+                        y: -(v * 200 - 100), // Height based on Value
+                        z: Math.sin(angle) * radius
+                    };
+
+                    // 3. Lab Mode: Sphere/Blob
+                    const [L, A, B_val] = rgbToLab(r, g, b);
+                    // Lab values: L(0..100), a(-128..127), b(-128..127)
+                    const labPos = {
+                        x: A * 1.5,
+                        y: -(L * 2 - 100), // L acts as vertical axis
+                        z: B_val * 1.5
+                    };
+
+                    particles.push({
+                        color: `rgb(${r},${g},${b})`,
+                        x: rgbPos.x, y: rgbPos.y, z: rgbPos.z, // Current pos
+                        tx: rgbPos.x, ty: rgbPos.y, tz: rgbPos.z, // Target pos
+                        coords: { rgb: rgbPos, hsv: hsvPos, lab: labPos }
+                    });
+                }
+            }
+        }
+    }
+
+    // --- 3D Projection & Rendering ---
+
+    function resize() {
+        // Handle High DPI displays
+        const rect = container.getBoundingClientRect();
+        width = rect.width;
+        height = 400; // Fixed height from CSS
+        canvas.width = width * window.devicePixelRatio;
+        canvas.height = height * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+
+    function project(x, y, z) {
+        // Simple rotation matrix
+        const cosX = Math.cos(rotation.x);
+        const sinX = Math.sin(rotation.x);
+        const cosY = Math.cos(rotation.y);
+        const sinY = Math.sin(rotation.y);
+
+        // Rotate Y
+        let x1 = x * cosY - z * sinY;
+        let z1 = z * cosY + x * sinY;
+
+        // Rotate X
+        let y1 = y * cosX - z1 * sinX;
+        let z2 = z1 * cosX + y * sinX;
+
+        // Perspective projection
+        const perspective = 400 / (400 + z2); 
+        
+        return {
+            x: width/2 + x1 * perspective,
+            y: height/2 + y1 * perspective,
+            z: z2, // Keep Z for sorting
+            scale: perspective
+        };
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Auto rotation if idle
+        if (autoRotate && !isDragging) {
+            rotation.y += 0.003;
+        }
+
+        // Lerp particles to target
+        const lerpSpeed = 0.1;
+        particles.forEach(p => {
+            p.x += (p.tx - p.x) * lerpSpeed;
+            p.y += (p.ty - p.y) * lerpSpeed;
+            p.z += (p.tz - p.z) * lerpSpeed;
+
+            p.proj = project(p.x, p.y, p.z);
+        });
+
+        // Sort by Z (Painter's Algorithm)
+        particles.sort((a, b) => b.proj.z - a.proj.z);
+
+        // Draw
+        particles.forEach(p => {
+            const size = 3 * p.proj.scale;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.proj.x, p.proj.y, size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Draw Axis Floor (Optional visual aid)
+        // Not strictly necessary but helps orientation
+        
+        requestAnimationFrame(animate);
+    }
+
+    // --- Interactions ---
+
+    window.setMode = function(mode) {
+        currentMode = mode;
+        autoRotate = false; // Stop auto rotate on interaction
+        
+        // Update Buttons
+        btns.forEach(b => b.classList.remove('active'));
+        document.querySelector(`button[onclick="setMode('${mode}')"]`).classList.add('active');
+
+        // Update Text
+        if (mode === 'rgb') {
+            caption.innerHTML = "<strong>RGB Cube:</strong> A perfect cube. Colors combine additively. Note the Black corner (0,0,0) and the White corner (255,255,255) opposite it.";
+        } else if (mode === 'hsv') {
+            caption.innerHTML = "<strong>HSV Cylinder:</strong> Hue is the angle, Saturation is the radius, and Value is the height. Notice how black collapses to a single point at the bottom, and white is at the top center.";
+        } else if (mode === 'lab') {
+            caption.innerHTML = "<strong>Lab Blob:</strong> This uneven shape represents <em>human perception</em>. We see far more variations of Green and Yellow than we do of Blue, which is why the shape bulges.";
+        }
+
+        // Set Targets
+        particles.forEach(p => {
+            p.tx = p.coords[mode].x;
+            p.ty = p.coords[mode].y;
+            p.tz = p.coords[mode].z;
+        });
+    };
+
+    // Mouse Events
+    canvas.addEventListener('mousedown', e => {
+        isDragging = true;
+        autoRotate = false;
+        lastMouse = { x: e.clientX, y: e.clientY };
+    });
+    
+    window.addEventListener('mouseup', () => isDragging = false);
+    
+    window.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        const dx = e.clientX - lastMouse.x;
+        const dy = e.clientY - lastMouse.y;
+        
+        rotation.y += dx * 0.01;
+        rotation.x -= dy * 0.01; // Invert Y axis
+        
+        lastMouse = { x: e.clientX, y: e.clientY };
+    });
+
+    // Touch Events
+    canvas.addEventListener('touchstart', e => {
+        isDragging = true;
+        autoRotate = false;
+        lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        e.preventDefault(); // Prevent scroll
+    });
+
+    canvas.addEventListener('touchmove', e => {
+        if (!isDragging) return;
+        const dx = e.touches[0].clientX - lastMouse.x;
+        const dy = e.touches[0].clientY - lastMouse.y;
+        
+        rotation.y += dx * 0.01;
+        rotation.x -= dy * 0.01;
+        
+        lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        e.preventDefault();
+    });
+
+    // Startup
+    resize();
+    initPoints();
+    animate();
+    
+    // Handle window resize
+    window.addEventListener('resize', resize);
+
+    // Watch for visibility changes (since sections are display: none initially)
+    if (window.ResizeObserver) {
+        const ro = new ResizeObserver(() => {
+            if (container.offsetWidth > 0) resize();
+        });
+        ro.observe(container);
+    }
+    
+})();
+</script>
+    <p>Notice how HSV separates the 'Color' (Hue) from the 'Intensity' (Value). This makes it very robust for computer vision tasks where lighting might change.</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- SECTION 17: Check Your Understanding (Car) -->
+<section id="section17">
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>You are building a self-driving car that needs to detect red stop signs. However, the signs look bright red in the sun and dark maroon in the shade. Why would converting the image to HSV help?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'RGB values change drastically when lighting dims (e.g., [255, 0, 0] becomes [100, 0, 0]), making it hard to define \'red\'.')">It wouldn't; RGB is better for red objects.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! You can just look for the \'Red\' Hue range and ignore the Value channel, making your detector robust to shadows.')">In HSV, the 'Hue' for red remains roughly the same regardless of the lighting (Value).</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'HSV is just a mathematical transformation of RGB; it doesn\'t create new colors or expand the gamut.')">HSV has a larger Gamut than RGB.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- SECTION 18: Chromatic Adaptation -->
+<section id="section18">
+    <h2>The Brain vs. The Sensor</h2>
+    <p>Finally, we need to talk about one of the most amazing features of your brain: <strong>Chromatic Adaptation</strong>.</p>
+    <p>If you look at a piece of white paper outside in the sun, it reflects yellowish-white light. If you look at it under a fluorescent tube, it reflects bluish-white light. Yet, in both cases, your brain says, "That paper is white."</p>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<!-- SECTION 19: Digital Cameras & Vocab -->
+<section id="section19">
+    <p>Digital cameras are not that smart. They just record the light they see. If you take a photo indoors without correction, everything might look orange.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>White Balance</h4>
+        <p>The process of adjusting the intensities of colors (usually globally) so that neutral objects (like white or gray) appear neutral in the final image, effectively simulating the brain's chromatic adaptation.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<!-- SECTION 20: Why It Matters (WB) -->
+<section id="section20">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>In Computer Vision, if we don't correct White Balance, our algorithms might fail. A 'white' lane line on a road might look yellow at sunset, confusing the autopilot.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<!-- SECTION 21: Review -->
+<section id="section21">
+    <h2>Review and Reflect</h2>
+    <p>We've moved beyond the simple RGB pixel grid to understand the complexity of color representation.</p>
+    <ul>
+        <li><strong>CIE XYZ</strong> provides a standard mathematical map of human vision.</li>
+        <li><strong>Gamut</strong> defines the physical limits of what a screen can display (the Triangle inside the Horseshoe).</li>
+        <li><strong>CIE Lab</strong> allows for mathematically accurate color comparisons (Perceptual Uniformity).</li>
+        <li><strong>HSV</strong> separates color from brightness, making it ideal for robust image processing.</li>
+        <li><strong>White Balance</strong> corrects for the color of the light source, mimicking the human brain.</li>
+    </ul>
+    <p>In the next and final lesson of this chapter, we will leave color behind and focus on Intensity, looking at Histograms and High Dynamic Range (HDR) imaging.</p>
+    <div class="continue-button" onclick="showNextSection(22)">Continue</div>
+</section>
+
+<!-- SECTION 22: Test Your Knowledge -->
+<section id="section22">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following best describes the CIE 1931 Chromaticity Diagram (the horseshoe)?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, standard monitors can only display the colors within the sRGB triangle, which is a subset of the horseshoe.')">It represents all colors a standard monitor can display.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! It maps chromaticity (\(x, y\)) derived from the normalized XYZ values.')">It maps all visible colors based on hue and saturation, independent of brightness.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That describes CIE Lab, not the original CIE 1931 (\(x, y\)) diagram.')">It is a perceptually uniform color space where distances equal perceived differences.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(23)">Continue</div>
+</section>
+
+<!-- SECTION 23: FAQ & Completion -->
+<section id="section23">
+    <div class="faq-section">
+        <h3>Frequently Asked Questions</h3>
+        <p><strong>Q: Why don't we just use CIE Lab for everything if it's so perfect?</strong></p>
+        <p>Great question. There are two main reasons:</p>
+        <ol style="margin-left: 1.5rem; margin-bottom: 1rem;">
+            <li><strong>Hardware:</strong> Screens use Red, Green, and Blue sub-pixels. Storing images in RGB avoids the need to convert them every time we want to display them.</li>
+            <li><strong>Computation:</strong> Converting between RGB and Lab involves complex math (cubes roots and powers). For real-time applications processing millions of pixels 60 times a second, RGB is much faster.</li>
+        </ol>
+    </div>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 23;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    // Small delay to allow display change before scrolling
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Auto-advance logic for quizzes if needed, or simply let user click continue
+    // For this lesson, we rely on the manual 'Continue' button which is already rendered below the quiz
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Mock IDs for the new lesson
+                let courseId = 'computer-vision';
+                let pathId = 'color-theory';
+                let moduleId = 'cv-ch2-color-spaces';
+                let lessonId = 'cv-ch2-l2-mapping-rainbow';
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch2-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🌈', '🎨', '🖌️', '✨', '🌟', '📐', '👁️'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Rainbow Mapped! 🌈';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch2-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

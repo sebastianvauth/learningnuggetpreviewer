@@ -81,7 +81,22 @@
   let sliderPos = 0.5; // 0 to 1
   let isDragging = false;
   let width, height;
-  
+
+  // Polyfill for roundRect (not supported in all browsers)
+  if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+      if (w < 2 * r) r = w / 2;
+      if (h < 2 * r) r = h / 2;
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y, x + w, y + h, r);
+      this.arcTo(x + w, y + h, x, y + h, r);
+      this.arcTo(x, y + h, x, y, r);
+      this.arcTo(x, y, x + w, y, r);
+      this.closePath();
+      return this;
+    };
+  }
+
   // Architecture Nodes (U-Shape positions)
   const nodes = [
       { x: 0.2, y: 0.15, type: 'enc', id: 1 }, // Top Left
@@ -95,12 +110,16 @@
 
   function resize() {
       const parentWidth = canvas.parentElement.clientWidth;
+      if (parentWidth === 0) return; // Skip if parent not visible yet
+
       // Aspect ratio 16:9 roughly
-      canvas.width = parentWidth * window.devicePixelRatio;
-      canvas.height = (parentWidth * 0.6) * window.devicePixelRatio;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = parentWidth * dpr;
+      canvas.height = (parentWidth * 0.6) * dpr;
       canvas.style.height = (parentWidth * 0.6) + 'px';
-      
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+      ctx.scale(dpr, dpr);
       width = parentWidth;
       height = parentWidth * 0.6;
       draw();
@@ -348,6 +367,19 @@
   window.addEventListener('mouseup', handleEnd);
   window.addEventListener('touchend', handleEnd);
 
+  // Watch for section becoming visible
+  const section7 = document.getElementById('section7');
+  if (section7) {
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.attributeName === 'class' && section7.classList.contains('visible')) {
+          setTimeout(resize, 100); // Small delay to ensure layout is complete
+        }
+      });
+    });
+    observer.observe(section7, { attributes: true, attributeFilter: ['class'] });
+  }
+
   // Init
   resize();
 })();
@@ -474,6 +506,21 @@
   const inputArea = document.getElementById('samInputArea');
   const textInput = document.getElementById('samTextInput');
   const instruction = document.getElementById('samInstruction');
+
+  // Polyfill for roundRect (not supported in all browsers)
+  if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+      if (w < 2 * r) r = w / 2;
+      if (h < 2 * r) r = h / 2;
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y, x + w, y + h, r);
+      this.arcTo(x + w, y + h, x, y + h, r);
+      this.arcTo(x, y + h, x, y, r);
+      this.arcTo(x, y, x + w, y, r);
+      this.closePath();
+      return this;
+    };
+  }
 
   // State
   let currentTool = 'point'; // point, box, text

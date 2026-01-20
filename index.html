@@ -12,24 +12,46 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <header class="main-header">
+    <header class="main-header duo-header">
         <div class="header-content">
-            <h1 class="header-logo" onclick="navigateToHome()" style="cursor: pointer;">Learning Nugget</h1>
-            <div class="header-search">
-                <div class="search-container">
-                    <input type="text" id="search-input" class="search-input" placeholder="Search courses, lessons, topics..." autocomplete="off">
-                    <button class="search-btn" onclick="performSearch()">
-                        <span class="search-icon">🔍</span>
+            <!-- Left: Mascot + Course Dropdown -->
+            <div class="header-left">
+                <div class="duo-mascot" onclick="navigateToHome()" title="Home">
+                    <span class="mascot-icon">🦉</span>
+                </div>
+
+                <!-- Course Dropdown -->
+                <div class="course-dropdown" id="course-dropdown">
+                    <button class="course-dropdown-btn" onclick="toggleCourseDropdown(event)">
+                        <span class="current-course-icon" id="current-course-icon">👁️</span>
+                        <span class="current-course-name" id="current-course-name">Computer Vision</span>
+                        <span class="dropdown-arrow">▼</span>
                     </button>
-                    <div id="search-suggestions" class="search-suggestions hidden"></div>
+                    <div class="course-dropdown-menu" id="course-dropdown-menu">
+                        <!-- Populated dynamically by JavaScript -->
+                    </div>
                 </div>
             </div>
-            <nav class="header-nav">
-                <button class="nav-btn" onclick="navigateToHome()">🏠 Home</button>
-                <button class="nav-btn" onclick="showAllCourses()">📚 Courses</button>
+
+            <!-- Center: Streak + XP Stats -->
+            <div class="header-center">
+                <div class="duo-stats-bar">
+                    <div class="duo-streak-display" id="header-streak" title="Daily Streak">
+                        <span class="streak-flame">🔥</span>
+                        <span class="streak-count" id="header-streak-count">0</span>
+                    </div>
+                    <div class="duo-xp-display" id="header-xp" title="Total XP">
+                        <span class="xp-icon">⚡</span>
+                        <span class="xp-count" id="header-xp-count">0 XP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Auth -->
+            <div class="header-right">
                 <!-- Auth container will be populated by JavaScript -->
                 <div id="auth-container" class="auth-container"></div>
-            </nav>
+            </div>
         </div>
     </header>
     <main>

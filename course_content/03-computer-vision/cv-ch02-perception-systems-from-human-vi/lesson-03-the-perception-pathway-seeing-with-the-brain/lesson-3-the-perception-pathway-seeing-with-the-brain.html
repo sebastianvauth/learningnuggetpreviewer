@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>The Perception Pathway – Seeing with the Brain</title>
+<style>
+/* 
+   REUSING EXACT CSS FROM TEMPLATE 
+   (Design System: Typography, Colors, Animations, Layout)
+*/
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #ffffff;
+    min-height: 100vh;
+    color: #2d3748;
+    line-height: 1.6;
+}
+.progress-container {
+    position: fixed; top: 0; left: 0; width: 100%; height: 4px;
+    background: rgba(0, 0, 0, 0.1); z-index: 1000;
+}
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+}
+.lesson-container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+section {
+    background: transparent; margin-bottom: 30px; padding: 20px 0;
+    display: none; opacity: 0; transition: all 0.6s ease;
+    transform: translateY(20px); text-align: center;
+}
+section.visible { display: block; opacity: 1; transform: translateY(0); }
+section > *:not(.continue-button) { text-align: left; }
+
+/* Typography */
+h1 {
+    font-size: 2.5rem; font-weight: 700; color: #2d3748; margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; line-height: 1.2;
+}
+h2 {
+    font-size: 2rem; font-weight: 600; color: #2d3748; margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+h3 { font-size: 1.25rem; font-weight: 600; color: #4a5568; margin-bottom: 1rem; }
+p { font-size: 1.125rem; line-height: 1.7; color: #4a5568; margin-bottom: 1.5rem; text-align: left; }
+ul { margin-left: 1.5rem; margin-bottom: 1.5rem; text-align: left; }
+li { font-size: 1.125rem; line-height: 1.7; color: #4a5568; margin-bottom: 0.5rem; }
+strong { color: #2d3748; font-weight: 600; }
+em { color: #667eea; font-style: normal; font-weight: 500; }
+
+/* Placeholders & Images */
+.image-placeholder, .interactive-placeholder, .visual-placeholder { margin: 1.5rem 0; }
+.placeholder-box {
+    width: 100%; height: 220px;
+    border: 2px dashed #cbd5e1; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: #94a3b8; background: #f8fafc; font-weight: 600; text-align: center; padding: 20px;
+}
+.lesson-container img { max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 8px; }
+
+/* Content Boxes */
+.why-it-matters, .vocab-section, .check-your-knowledge, .test-your-knowledge, .stop-and-think {
+    margin: 2rem 0; padding: 2rem; border-radius: 8px; border-left: 4px solid;
+    transition: all 0.3s ease; position: relative; overflow: hidden; text-align: left;
+}
+.why-it-matters {
+    background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);
+    border-left-color: #f093fb; box-shadow: 0 10px 30px rgba(240, 147, 251, 0.1);
+}
+.vocab-section {
+    background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+    border-left-color: #4facfe; box-shadow: 0 10px 30px rgba(79, 172, 254, 0.1);
+}
+.vocab-section h4 { color: #2d3748; font-size: 1.25rem; font-weight: 600; margin: 0 0 0.75rem 0; }
+.test-your-knowledge, .check-your-knowledge, .stop-and-think {
+    background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+    border-left-color: #68d391; box-shadow: 0 10px 30px rgba(104, 211, 145, 0.1);
+}
+.test-your-knowledge h3, .check-your-knowledge h3, .stop-and-think h3 {
+    color: #10b981; font-size: 0.875rem; text-transform: uppercase;
+    letter-spacing: 0.05em; font-weight: 700; margin-bottom: 1rem;
+}
+
+/* Buttons */
+.continue-button, .reveal-button, .check-button {
+    display: inline-block; padding: 16px 32px; margin-top: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white; border-radius: 50px; text-decoration: none;
+    cursor: pointer; border: none; font-size: 1rem; font-weight: 600;
+    transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+.continue-button:hover, .reveal-button:hover {
+    transform: translateY(-3px); box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+.continue-button.show-with-animation {
+    opacity: 0; transform: translateY(20px);
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Multiple Choice */
+.multiple-choice { margin: 1.5rem 0; text-align: left; }
+.choice-option {
+    display: block; margin: 1rem 0; padding: 1.5rem; background: #f8fafc;
+    border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer;
+    transition: all 0.3s ease; font-size: 1rem; font-weight: 500;
+    position: relative; overflow: hidden;
+}
+.choice-option:hover { transform: translateX(5px); border-color: rgba(102,126,234,0.3); }
+.choice-option.selected, .choice-option.correct {
+    background: linear-gradient(135deg, #eafaf1 0%, #f0fcf4 100%);
+    border-color: #68d391; color: #2d3748;
+}
+.choice-option.incorrect {
+    background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%);
+    border-color: #f87171; color: #2d3748;
+}
+.choice-explanation { display: none; margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 8px; font-size: 0.95rem; }
+
+/* Completion & Success */
+.mark-completed-button {
+    display: none; width: 100%; max-width: 400px; margin: 40px auto 20px auto;
+    padding: 16px 32px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white; border: none; border-radius: 50px; font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+}
+.mark-completed-button.show { display: block; }
+.mark-completed-button.completed { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); cursor: default; }
+
+/* Confetti & Animations */
+.success-message {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #28a745, #20c997); color: white;
+    padding: 20px 30px; border-radius: 12px; font-size: 1.1rem; font-weight: 600;
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3); z-index: 10000;
+    opacity: 0; animation: success-popup 2.5s ease-out; pointer-events: none;
+}
+@keyframes success-popup {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+.confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+.confetti { position: absolute; font-size: 20px; animation: confetti-fall 3s linear infinite; }
+@keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+.animate-in { animation: fadeIn 0.5s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 768px) {
+    .lesson-container { padding: 20px 15px; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.75rem; }
+}
+</style>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+
+<div class="lesson-container">
+
+    <!-- SECTION 1: Intro -->
+    <section id="section1" class="visible">
+        <div class="image-placeholder">
+            <img src="images/1.jpg" alt="Stylized silhouette of a human head with a glowing brain, highlighting the visual cortex.">
+        </div>
+        <h1>The Perception Pathway</h1>
+        <p>Have you ever wondered why you can dream in vivid images even when your eyes are closed? Or why optical illusions can trick you even when you know they aren't real? It's because your eyes are just the biological equivalent of a webcam. The actual 'seeing'—the heavy lifting of interpreting reality—happens in the dark, inside your skull.</p>
+        <div class="continue-button" role="button" tabindex="0" onclick="showNextSection(2)">Continue</div>
+    </section>
+
+    <!-- SECTION 2: Hardware vs Software Intro -->
+    <section id="section2">
+        <h2>The Hardware vs. The Software</h2>
+        <p>To understand computer vision, we have to look at the original architecture: the human brain. The eye is simply the scanner; the brain is the computer.</p>
+        <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+    </section>
+
+    <!-- SECTION 3: Retina Details -->
+    <section id="section3">
+        <p>The retina generates electrical signals, but these signals are just raw data—a stream of voltage spikes. Without the brain to process them, they are as meaningless as a file filled with random binary code.</p>
+        <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+    </section>
+
+    <!-- SECTION 4: Pathway Diagram -->
+    <section id="section4">
+        <p>The journey of this data from the sensor to the 'processor' is where the magic happens. Let's trace the signal.</p>
+        <div class="visual-placeholder">
+            <img src="images/2.jpg" alt="Diagram of the human visual pathway showing optic nerves, optic chiasm, LGN, and V1.">
+        </div>
+        <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+    </section>
+
+    <!-- SECTION 5: Optic Chiasm -->
+    <section id="section5">
+        <p>The signals travel along the Optic Nerve to a crucial intersection called the <strong>Optic Chiasm</strong>. Here, the wiring gets interesting: signals from the nasal (inner) half of each retina cross over to the opposite side of the brain.</p>
+        <div class="vocab-section">
+            <h3>Build Your Vocab</h3>
+            <h4>Optic Chiasm</h4>
+            <p>The X-shaped structure formed at the point below the brain where the two optic nerves cross over each other. This crossing ensures that information from the left visual field is processed by the right hemisphere of the brain, and vice versa.</p>
+        </div>
+        <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+    </section>
+
+    <!-- SECTION 6: LGN & V1 + FAQ -->
+    <section id="section6">
+        <p>This means your right brain hemisphere processes everything you see on your left, and your left hemisphere processes everything on your right. After this crossover, signals stop at a relay station called the <strong>Lateral Geniculate Nucleus (LGN)</strong> in the thalamus before reaching the final destination: the <strong>Primary Visual Cortex (V1)</strong>.</p>
+        
+        <div class="check-your-knowledge">
+            <h3>Frequently Asked</h3>
+            <h4>Why do the nerves cross at the Optic Chiasm?</h4>
+            <div id="cuy-faq-answer" style="display:none;" class="animate-in">
+                It allows for binocular vision and depth perception! By combining input from both eyes into specific hemispheres based on the visual field (left vs. right), the brain can compare the slightly different angles from each eye to calculate depth ($Z$-axis information).
+            </div>
+            <button class="reveal-button" onclick="revealAnswer('cuy-faq-answer')">Reveal Answer</button>
+        </div>
+        <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+    </section>
+
+    <!-- SECTION 7: Processing Streams Intro -->
+    <section id="section7">
+        <h2>Processing Streams</h2>
+        <p>Once the data hits the Primary Visual Cortex (V1) located in the occipital lobe (the back of your head), the image is technically 'assembled.' However, V1 only handles basics like edge detection and orientation.</p>
+        <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+    </section>
+
+    <!-- SECTION 8: Two Streams Diagram -->
+    <section id="section8">
+        <p>To actually understand <em>what</em> you are seeing or <em>where</em> it is, the information must flow further. This leads us to the <strong>Two Streams Hypothesis</strong>.</p>
+        <!-- REPLACEMENT FOR SECTION 8 VISUAL PLACEHOLDER -->
+<div class="visual-container-s8">
+    <canvas id="brainStreamCanvas" aria-label="Diagram of the brain showing the Dorsal stream (blue, going up) and Ventral stream (red, going down) originating from the V1 visual cortex."></canvas>
+    <div id="stream-info" class="stream-caption">Hover over the pathways to see what they do.</div>
+</div>
+
+<style>
+.visual-container-s8 {
+    width: 100%;
+    margin: 2rem 0;
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+canvas#brainStreamCanvas {
+    display: block;
+    width: 100%;
+    height: 350px;
+    cursor: crosshair;
+}
+
+.stream-caption {
+    text-align: center;
+    padding: 12px;
+    font-size: 0.95rem;
+    color: #4a5568;
+    background: #f7fafc;
+    border-top: 1px solid #edf2f7;
+    transition: color 0.3s ease;
+    font-weight: 500;
+}
+</style>
+
+<script>
+(function() {
+    const canvas = document.getElementById('brainStreamCanvas');
+    const ctx = canvas.getContext('2d');
+    const caption = document.getElementById('stream-info');
+    
+    // Config
+    let width, height;
+    let particles = [];
+    const particleCount = 60;
+    
+    // Colors
+    const colors = {
+        brainOutline: "#cbd5e1",
+        brainFill: "#f8fafc",
+        v1: "#fbbf24", // Amber/Gold
+        dorsal: "#3b82f6", // Blue
+        ventral: "#ef4444", // Red
+        text: "#1e293b"
+    };
+
+    // State
+    let hoverState = null; // 'dorsal', 'ventral', or null
+    let time = 0;
+
+    // Brain Geometry (Relative points 0.0 - 1.0)
+    const brainPath = {
+        start: {x: 0.3, y: 0.8}, // Brain stem area
+        curves: [
+            {cp1x: 0.1, cp1y: 0.8, cp2x: 0.05, cp2y: 0.5, x: 0.1, y: 0.4}, // Frontal bottom
+            {cp1x: 0.1, cp1y: 0.2, cp2x: 0.3, cp2y: 0.05, x: 0.5, y: 0.05}, // Frontal top
+            {cp1x: 0.7, cp1y: 0.05, cp2x: 0.9, cp2y: 0.2, x: 0.95, y: 0.5}, // Parietal/Occipital top
+            {cp1x: 0.95, cp1y: 0.7, cp2x: 0.8, cp2y: 0.85, x: 0.6, y: 0.85}, // Occipital bottom (V1 area)
+            {cp1x: 0.5, cp1y: 0.85, cp2x: 0.4, cp2y: 0.8, x: 0.3, y: 0.8}  // Temporal/Stem
+        ]
+    };
+
+    // Stream Paths (Bezier Control Points)
+    // V1 source is approx at 0.9, 0.6
+    const dorsalPath = {
+        p0: {x: 0.85, y: 0.65}, // V1
+        cp1: {x: 0.85, y: 0.3},
+        cp2: {x: 0.6, y: 0.15},
+        p3: {x: 0.4, y: 0.2}  // Parietal Lobe
+    };
+
+    const ventralPath = {
+        p0: {x: 0.85, y: 0.65}, // V1
+        cp1: {x: 0.85, y: 0.8},
+        cp2: {x: 0.6, y: 0.85},
+        p3: {x: 0.4, y: 0.75} // Temporal Lobe
+    };
+
+    function resize() {
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width <= 0) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = 350 * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = '350px';
+        width = rect.width;
+        height = 350;
+        initParticles();
+    }
+
+    function initParticles() {
+        particles = [];
+        for(let i=0; i<particleCount; i++) {
+            particles.push({
+                t: Math.random(), // position along curve 0-1
+                speed: 0.005 + Math.random() * 0.005,
+                type: i % 2 === 0 ? 'dorsal' : 'ventral',
+                offset: (Math.random() - 0.5) * 10 // random jitter
+            });
+        }
+    }
+
+    // Bezier math to get point at t
+    function getBezierPoint(t, p0, p1, p2, p3) {
+        const cX = 3 * (p1.x - p0.x);
+        const bX = 3 * (p2.x - p1.x) - cX;
+        const aX = p3.x - p0.x - cX - bX;
+
+        const cY = 3 * (p1.y - p0.y);
+        const bY = 3 * (p2.y - p1.y) - cY;
+        const aY = p3.y - p0.y - cY - bY;
+
+        const x = (aX * Math.pow(t, 3)) + (bX * Math.pow(t, 2)) + (cX * t) + p0.x;
+        const y = (aY * Math.pow(t, 3)) + (bY * Math.pow(t, 2)) + (cY * t) + p0.y;
+
+        return {x, y};
+    }
+
+    function drawBrain() {
+        ctx.beginPath();
+        const s = width < 500 ? 0.9 : 0.7; // Scale factor
+        const ox = (width - (width * s)) / 2; // Offset X
+        const oy = (height - (height * s)) / 2; // Offset Y
+        const w = width * s;
+        const h = height * s;
+
+        // Helper to scale points
+        const tx = (val) => ox + val * w;
+        const ty = (val) => oy + val * h;
+
+        ctx.moveTo(tx(brainPath.start.x), ty(brainPath.start.y));
+        
+        brainPath.curves.forEach(c => {
+            ctx.bezierCurveTo(
+                tx(c.cp1x), ty(c.cp1y),
+                tx(c.cp2x), ty(c.cp2y),
+                tx(c.x), ty(c.y)
+            );
+        });
+
+        ctx.closePath();
+        ctx.fillStyle = colors.brainFill;
+        ctx.fill();
+        ctx.strokeStyle = colors.brainOutline;
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Helper for stream drawing to share scale
+        return {tx, ty};
+    }
+
+    function drawStreamPath(transform, path, color, label, type) {
+        const {tx, ty} = transform;
+        const isHovered = hoverState === type;
+        const baseAlpha = isHovered ? 1.0 : (hoverState ? 0.2 : 0.6);
+        const lineWidth = isHovered ? 4 : 2;
+
+        // Draw Line
+        ctx.beginPath();
+        ctx.moveTo(tx(path.p0.x), ty(path.p0.y));
+        ctx.bezierCurveTo(
+            tx(path.cp1.x), ty(path.cp1.y),
+            tx(path.cp2.x), ty(path.cp2.y),
+            tx(path.p3.x), ty(path.p3.y)
+        );
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = baseAlpha;
+        ctx.lineWidth = lineWidth;
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1.0;
+
+        // Draw Arrowhead
+        const endX = tx(path.p3.x);
+        const endY = ty(path.p3.y);
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        ctx.globalAlpha = baseAlpha;
+        ctx.arc(endX, endY, isHovered ? 8 : 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+
+        // Draw Label
+        if (!hoverState || isHovered) {
+            ctx.font = isHovered ? "bold 16px sans-serif" : "14px sans-serif";
+            ctx.fillStyle = color;
+            ctx.textAlign = type === 'dorsal' ? "right" : "right";
+            // Custom label positioning
+            const labelX = type === 'dorsal' ? tx(path.p3.x) - 15 : tx(path.p3.x) - 15;
+            const labelY = type === 'dorsal' ? ty(path.p3.y) - 15 : ty(path.p3.y) + 25;
+            ctx.fillText(label, labelX, labelY);
+        }
+    }
+
+    function drawV1(transform) {
+        const {tx, ty} = transform;
+        const x = tx(dorsalPath.p0.x);
+        const y = ty(dorsalPath.p0.y);
+
+        // Pulse effect
+        const pulse = 10 + Math.sin(time * 0.05) * 3;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, pulse, 0, Math.PI * 2);
+        ctx.fillStyle = colors.v1;
+        ctx.shadowColor = colors.v1;
+        ctx.shadowBlur = 20;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("V1", x, y);
+    }
+
+    function animate() {
+        if (!width || width <= 0) {
+            requestAnimationFrame(animate);
+            return;
+        }
+        ctx.clearRect(0, 0, width, height);
+        const transform = drawBrain();
+        const {tx, ty} = transform;
+
+        // Draw V1
+        drawV1(transform);
+
+        // Update and Draw Particles
+        particles.forEach(p => {
+            p.t += p.speed;
+            if (p.t > 1) p.t = 0;
+
+            const path = p.type === 'dorsal' ? dorsalPath : ventralPath;
+            // Determine absolute control points
+            const p0 = {x: tx(path.p0.x), y: ty(path.p0.y)};
+            const cp1 = {x: tx(path.cp1.x), y: ty(path.cp1.y)};
+            const cp2 = {x: tx(path.cp2.x), y: ty(path.cp2.y)};
+            const p3 = {x: tx(path.p3.x), y: ty(path.p3.y)};
+
+            const pos = getBezierPoint(p.t, p0, cp1, cp2, p3);
+
+            const isHovered = hoverState === p.type;
+            const isDimmed = hoverState && hoverState !== p.type;
+
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y + p.offset, isHovered ? 4 : 2, 0, Math.PI*2);
+            ctx.fillStyle = p.type === 'dorsal' ? colors.dorsal : colors.ventral;
+            ctx.globalAlpha = isDimmed ? 0.1 : (isHovered ? 1.0 : 0.6);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+        });
+
+        // Draw Lines over particles
+        drawStreamPath(transform, dorsalPath, colors.dorsal, "Dorsal Stream", 'dorsal');
+        drawStreamPath(transform, ventralPath, colors.ventral, "Ventral Stream", 'ventral');
+
+        time++;
+        requestAnimationFrame(animate);
+    }
+
+    // Interaction
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        const relativeY = y / rect.height;
+
+        // Simple vertical split for detection logic
+        if (relativeY < 0.5) {
+            if (hoverState !== 'dorsal') {
+                hoverState = 'dorsal';
+                caption.innerHTML = "<strong style='color:#3b82f6'>Dorsal Stream:</strong> The 'Where/How' pathway (Spatial location & Action).";
+                canvas.style.cursor = "pointer";
+            }
+        } else {
+            if (hoverState !== 'ventral') {
+                hoverState = 'ventral';
+                caption.innerHTML = "<strong style='color:#ef4444'>Ventral Stream:</strong> The 'What' pathway (Object recognition & Identity).";
+                canvas.style.cursor = "pointer";
+            }
+        }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+        hoverState = null;
+        caption.innerHTML = "Hover over the pathways to see what they do.";
+        canvas.style.cursor = "default";
+    });
+
+    // Start
+    window.addEventListener('resize', resize);
+    setTimeout(() => {
+        resize();
+        animate();
+    }, 100);
+
+})();
+</script>
+        <p>The brain splits the data into two distinct processing highways: the Dorsal Stream and the Ventral Stream.</p>
+        <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+    </section>
+
+    <!-- SECTION 9: Dorsal Stream -->
+    <section id="section9">
+        <p>The <strong>Dorsal Stream</strong> goes up to the parietal lobe. It is often called the 'Where' or 'How' pathway. It answers questions like: <em>Where is that object? How fast is it moving? How do I grab it?</em></p>
+        <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+    </section>
+
+    <!-- SECTION 10: Ventral Stream + Vocab -->
+    <section id="section10">
+        <p>The <strong>Ventral Stream</strong> goes down to the temporal lobe. It is the 'What' pathway. It answers questions like: <em>Is that a cat or a dog? Is that face familiar? What color is this?</em></p>
+        <div class="vocab-section">
+            <h3>Build Your Vocab</h3>
+            <h4>Ventral vs. Dorsal Streams</h4>
+            <p>The <strong>Ventral Stream</strong> ('What' pathway) processes object recognition and form representation. The <strong>Dorsal Stream</strong> ('Where/How' pathway) processes motion, object location, and control of the eyes and arms.</p>
+        </div>
+        <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+    </section>
+
+    <!-- SECTION 11: Interactive + Quiz -->
+    <section id="section11">
+        <p>Let's see if you can differentiate between these two processing tasks.</p>
+        <!-- REPLACEMENT FOR SECTION 11 INTERACTIVE PLACEHOLDER -->
+<div class="interactive-container">
+    <canvas id="perceptionCanvas" aria-label="Interactive game: Drag cards like 'Catching a baseball' to the Dorsal Stream bucket, and 'Reading a stop sign' to the Ventral Stream bucket."></canvas>
+    <div id="game-status" class="game-instructions">Drag the cards to the correct brain stream!</div>
+</div>
+
+<style>
+/* Local styles for this interactive component */
+.interactive-container {
+    width: 100%;
+    margin: 2rem 0;
+    position: relative;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.02);
+}
+
+canvas#perceptionCanvas {
+    display: block;
+    width: 100%;
+    height: 400px; /* Default height */
+    touch-action: none; /* Prevents scrolling while dragging on mobile */
+}
+
+.game-instructions {
+    text-align: center;
+    padding: 10px;
+    font-size: 0.9rem;
+    color: #64748b;
+    background: #f1f5f9;
+    border-top: 1px solid #e2e8f0;
+    font-weight: 600;
+}
+</style>
+
+<script>
+(function() {
+    const canvas = document.getElementById('perceptionCanvas');
+    const ctx = canvas.getContext('2d');
+    const statusDiv = document.getElementById('game-status');
+    
+    // State
+    let width, height, scale;
+    let isDragging = false;
+    let dragItem = null;
+    let dragOffset = { x: 0, y: 0 };
+    let completedCount = 0;
+    const totalItems = 4;
+
+    // Configuration
+    const config = {
+        font: "600 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        cardBg: "#ffffff",
+        cardBorder: "#cbd5e1",
+        cardShadow: "rgba(0,0,0,0.1)",
+        dorsalColor: "#4facfe", // Blue
+        ventralColor: "#764ba2", // Purple
+        successColor: "#48bb78",
+        errorColor: "#f56565"
+    };
+
+    // Data
+    const targets = [
+        { 
+            id: 'dorsal', 
+            label: "Dorsal Stream\n(Action / Where)", 
+            color: config.dorsalColor, 
+            x: 0, y: 0, w: 0, h: 0 
+        },
+        { 
+            id: 'ventral', 
+            label: "Ventral Stream\n(Recog / What)", 
+            color: config.ventralColor, 
+            x: 0, y: 0, w: 0, h: 0 
+        }
+    ];
+
+    let cards = [
+        { id: 1, text: "Catching a baseball", type: 'dorsal', x: 0, y: 0, w: 180, h: 50, locked: false, originX: 0, originY: 0 },
+        { id: 2, text: "Reading a stop sign", type: 'ventral', x: 0, y: 0, w: 180, h: 50, locked: false, originX: 0, originY: 0 },
+        { id: 3, text: "Dodging a punch", type: 'dorsal', x: 0, y: 0, w: 180, h: 50, locked: false, originX: 0, originY: 0 },
+        { id: 4, text: "Mom's Face", type: 'ventral', x: 0, y: 0, w: 180, h: 50, locked: false, originX: 0, originY: 0 }
+    ];
+
+    // Initialization
+    function resize() {
+        // High DPI display handling
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width <= 0) return;
+        
+        canvas.width = rect.width * dpr;
+        canvas.height = 400 * dpr; // Fixed height logic
+        
+        ctx.scale(dpr, dpr);
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = '400px';
+        
+        width = rect.width;
+        height = 400;
+
+        layoutElements();
+        draw();
+    }
+
+    function layoutElements() {
+        const padding = 20;
+        const bucketWidth = (width - (padding * 3)) / 2;
+        const bucketHeight = 120;
+        const bucketY = height - bucketHeight - padding;
+
+        // Setup Targets
+        targets[0].x = padding;
+        targets[0].y = bucketY;
+        targets[0].w = bucketWidth;
+        targets[0].h = bucketHeight;
+
+        targets[1].x = padding * 2 + bucketWidth;
+        targets[1].y = bucketY;
+        targets[1].w = bucketWidth;
+        targets[1].h = bucketHeight;
+
+        // Setup Cards (Stack them initially)
+        const startY = 40;
+        cards.forEach((card, index) => {
+            if (!card.locked && !isDragging) {
+                card.x = (width / 2) - (card.w / 2);
+                card.y = startY + (index * 10); // Slight fan effect
+                card.originX = card.x;
+                card.originY = card.y;
+            }
+        });
+    }
+
+    // Drawing Helpers
+    function drawRoundedRect(x, y, w, h, r) {
+        if (w <= 0 || h <= 0) return;
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        if (r < 0) r = 0;
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+    }
+
+    function wrapText(text, x, y, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        const lines = [];
+
+        for(let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            const testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                lines.push(line);
+                line = words[n] + ' ';
+            } else {
+                line = testLine;
+            }
+        }
+        lines.push(line);
+
+        lines.forEach((l, i) => {
+            ctx.fillText(l, x, y + (i * lineHeight) - ((lines.length - 1) * lineHeight / 2));
+        });
+    }
+
+    // Main Draw Loop
+    function draw() {
+        if (!width || width <= 0) return;
+        ctx.clearRect(0, 0, width, height);
+
+        // 1. Draw Targets
+        targets.forEach(t => {
+            // Fill
+            const grad = ctx.createLinearGradient(t.x, t.y, t.x + t.w, t.y + t.h);
+            grad.addColorStop(0, t.color + "22"); // Low opacity
+            grad.addColorStop(1, t.color + "44");
+            
+            ctx.fillStyle = grad;
+            drawRoundedRect(t.x, t.y, t.w, t.h, 15);
+            ctx.fill();
+
+            // Border
+            ctx.strokeStyle = t.color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = t.color;
+            ctx.font = "bold 16px -apple-system, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            wrapText(t.label, t.x + t.w/2, t.y + t.h/2, t.w - 20, 20);
+        });
+
+        // 2. Draw Cards (Reverse order so top card is last)
+        // We filter to draw locked cards first (underneath), then active cards
+        const activeCards = cards.filter(c => !c.locked);
+        
+        // Draw locked cards (faded in bucket)
+        cards.filter(c => c.locked).forEach(c => {
+             // We don't actually draw them in this design to keep buckets clean, 
+             // but we could draw a 'stack' count if needed.
+             // For now, let's just show a checkmark or similar if all done.
+        });
+
+        if (completedCount === totalItems) {
+            ctx.fillStyle = "#2d3748";
+            ctx.font = "bold 24px -apple-system, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("🎉 Excellent Work!", width/2, 100);
+        }
+
+        activeCards.reverse().forEach(c => {
+            // Shadow
+            ctx.shadowColor = "rgba(0,0,0,0.15)";
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 4;
+
+            // Shape
+            ctx.fillStyle = config.cardBg;
+            drawRoundedRect(c.x, c.y, c.w, c.h, 25);
+            ctx.fill();
+            
+            // Reset Shadow
+            ctx.shadowColor = "transparent";
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+
+            // Border
+            ctx.strokeStyle = c.flashColor || config.cardBorder;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Text
+            ctx.fillStyle = "#2d3748";
+            ctx.font = config.font;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(c.text, c.x + c.w/2, c.y + c.h/2);
+        });
+    }
+
+    // Interaction Logic
+    function getMousePos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (evt.clientX - rect.left),
+            y: (evt.clientY - rect.top)
+        };
+    }
+
+    function isInside(pos, rect) {
+        return pos.x > rect.x && pos.x < rect.x + rect.w && pos.y > rect.y && pos.y < rect.y + rect.h;
+    }
+
+    function handleStart(x, y) {
+        // Find top-most card that contains click
+        // Iterate backwards since last drawn is on top
+        for (let i = 0; i < cards.length; i++) {
+            const c = cards[i];
+            if (!c.locked && isInside({x, y}, {x: c.x, y: c.y, w: c.w, h: c.h})) {
+                isDragging = true;
+                dragItem = c;
+                dragOffset.x = x - c.x;
+                dragOffset.y = y - c.y;
+                
+                // Move this card to the start of the array so it draws last (on top)
+                cards.splice(i, 1);
+                cards.unshift(c);
+                
+                draw();
+                return;
+            }
+        }
+    }
+
+    function handleMove(x, y) {
+        if (isDragging && dragItem) {
+            dragItem.x = x - dragOffset.x;
+            dragItem.y = y - dragOffset.y;
+            draw();
+        } else {
+            // Hover cursor effect
+            let hovering = false;
+            for (let c of cards) {
+                if (!c.locked && isInside({x, y}, {x: c.x, y: c.y, w: c.w, h: c.h})) {
+                    hovering = true;
+                    break;
+                }
+            }
+            canvas.style.cursor = hovering ? 'grab' : 'default';
+        }
+    }
+
+    function handleEnd() {
+        if (!isDragging || !dragItem) return;
+        
+        const centerCard = {
+            x: dragItem.x + dragItem.w / 2,
+            y: dragItem.y + dragItem.h / 2
+        };
+
+        let hit = null;
+        for (let t of targets) {
+            if (isInside(centerCard, t)) {
+                hit = t;
+                break;
+            }
+        }
+
+        if (hit) {
+            if (hit.id === dragItem.type) {
+                // Correct
+                handleCorrect(dragItem, hit);
+            } else {
+                // Incorrect
+                handleIncorrect(dragItem);
+            }
+        } else {
+            // Dropped in void, return home
+            returnToHome(dragItem);
+        }
+
+        isDragging = false;
+        dragItem = null;
+    }
+
+    function handleCorrect(card, target) {
+        card.flashColor = config.successColor;
+        card.locked = true;
+        completedCount++;
+        
+        // Animate shrinking into bucket
+        statusDiv.textContent = "Correct!";
+        statusDiv.style.color = config.successColor;
+
+        // Force a redraw then remove logic
+        draw();
+        
+        setTimeout(() => {
+            statusDiv.textContent = completedCount === totalItems 
+                ? "All Done! Continue to the quiz below." 
+                : "Great job! Keep going.";
+            statusDiv.style.color = "#64748b";
+            draw();
+        }, 1000);
+    }
+
+    function handleIncorrect(card) {
+        card.flashColor = config.errorColor;
+        statusDiv.textContent = "Try again!";
+        statusDiv.style.color = config.errorColor;
+        draw();
+        setTimeout(() => {
+            card.flashColor = null;
+            returnToHome(card);
+            statusDiv.textContent = "Drag the cards to the correct brain stream!";
+            statusDiv.style.color = "#64748b";
+        }, 500);
+    }
+
+    function returnToHome(card) {
+        const animate = () => {
+            const dx = card.originX - card.x;
+            const dy = card.originY - card.y;
+            if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+                card.x = card.originX;
+                card.y = card.originY;
+                draw();
+                return;
+            }
+            card.x += dx * 0.2;
+            card.y += dy * 0.2;
+            draw();
+            requestAnimationFrame(animate);
+        };
+        animate();
+    }
+
+    // Event Listeners
+    canvas.addEventListener('mousedown', e => {
+        const pos = getMousePos(e);
+        handleStart(pos.x, pos.y);
+    });
+    canvas.addEventListener('mousemove', e => {
+        const pos = getMousePos(e);
+        handleMove(pos.x, pos.y);
+    });
+    canvas.addEventListener('mouseup', handleEnd);
+    canvas.addEventListener('mouseleave', handleEnd);
+
+    // Touch Support
+    canvas.addEventListener('touchstart', e => {
+        e.preventDefault(); // prevent scroll
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        handleStart(touch.clientX - rect.left, touch.clientY - rect.top);
+    }, {passive: false});
+
+    canvas.addEventListener('touchmove', e => {
+        e.preventDefault(); 
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        handleMove(touch.clientX - rect.left, touch.clientY - rect.top);
+    }, {passive: false});
+
+    canvas.addEventListener('touchend', handleEnd);
+
+    // Run
+    window.addEventListener('resize', resize);
+    // Initial delay to ensure DOM is ready
+    setTimeout(resize, 100);
+})();
+</script>
+        
+        <div class="test-your-knowledge">
+            <h3>Test Your Knowledge</h3>
+            <h4>You are walking and suddenly trip over a rock. You instinctively throw your hands out to catch yourself before you even realize what happened. Which stream was primarily responsible for guiding your hands?</h4>
+            <div class="multiple-choice">
+                <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The Ventral stream identifies *what* the rock is, but it is too slow for immediate motor reaction.')">
+                    Ventral Stream
+                </div>
+                <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The Dorsal stream processes spatial location and guides motor action (\'How\' to react) very quickly.')">
+                    Dorsal Stream
+                </div>
+                <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'V1 processes the raw visual data, but the spatial guidance for your arms requires the higher-level processing of the Dorsal stream.')">
+                    Primary Visual Cortex (V1) only
+                </div>
+            </div>
+        </div>
+        <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(12)" style="display: none;">Continue</div>
+    </section>
+
+    <!-- SECTION 12: Perception Intro -->
+    <section id="section12">
+        <h2>Perception is Construction</h2>
+        <p>Here is the most critical takeaway for computer vision: Perception is not a passive recording; it is an active construction.</p>
+        <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+    </section>
+
+    <!-- SECTION 13: Kanizsa Triangle -->
+    <section id="section13">
+        <p>Your brain doesn't just process the signals it gets; it fills in the blanks based on what it <em>expects</em> to see. This is why optical illusions work.</p>
+        <div class="image-placeholder">
+            <img src="images/3.jpg" alt="Kanizsa Triangle illusion: Three pac-men shapes creating the perception of a white triangle in the center.">
+        </div>
+        <p>In the image above, your brain 'invents' a white triangle that isn't drawn there. It constructs edges where there are none because that is the most logical interpretation of the scene.</p>
+        <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+    </section>
+
+    <!-- SECTION 14: Stop and Think -->
+    <section id="section14">
+        <div class="stop-and-think">
+            <h3>Stop & Think</h3>
+            <h4>A newborn baby has healthy eyes and retinas, yet they cannot accurately 'see' objects or reach out and grab a toy floating in front of them. Why?</h4>
+            <div id="cuy-baby-answer" style="display:none;" class="animate-in">
+                <strong>Hint:</strong> Perception is learned. The neural pathways (Dorsal/Ventral streams) that interpret raw signals and coordinate motor control haven't been built or trained yet. The hardware is there, but the 'software' hasn't been installed.
+            </div>
+            <button class="reveal-button" onclick="revealAnswer('cuy-baby-answer')">Reveal Answer</button>
+        </div>
+        <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+    </section>
+
+    <!-- SECTION 15: AI Inspiration & Why it matters -->
+    <section id="section15">
+        <p>This biological architecture is exactly what inspired modern Artificial Intelligence.</p>
+        <div class="why-it-matters">
+            <h3>Why It Matters</h3>
+            <p>Deep Learning architectures, specifically Convolutional Neural Networks (CNNs), often mimic this biological hierarchy. The early layers of a CNN act like <strong>V1</strong>, detecting simple edges and textures. The deeper layers act like the <strong>Ventral Stream</strong>, combining those edges to recognize complex objects like cars or faces.</p>
+        </div>
+        <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+    </section>
+
+    <!-- SECTION 16: Review -->
+    <section id="section16">
+        <h2>Review and Reflect</h2>
+        
+        <p>In this lesson, we traced the signal from the eye to the brain, realizing that the 'image' we perceive is actually a mental construction.</p>
+        <ul>
+            <li>The <strong>Optic Chiasm</strong> ensures each brain hemisphere processes the opposite visual field.</li>
+            <li>The <strong>LGN</strong> relays signals to <strong>V1</strong> for basic processing.</li>
+            <li>The <strong>Dorsal Stream</strong> handles <em>action and location</em>, while the <strong>Ventral Stream</strong> handles <em>recognition and identity</em>.</li>
+        </ul>
+        <p>Understanding this biological split helps us design better artificial systems, as we often need different algorithms for 'tracking movement' versus 'identifying objects.'</p>
+        <p>In the next lesson, we will leave biology behind and look at the mathematical model used to flatten the 3D world into a 2D image: The Pinhole Camera Model.</p>
+    </section>
+
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+// Logic to handle 16 sequential sections
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+// Check if starting at the end
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = (window.event && window.event.target) || null;
+    
+    if (!nextSectionElement) return;
+    
+    // Hide the clicked continue button
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    // Reveal next section
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+
+    // Trigger resize to fix interactives that depend on layout
+    window.dispatchEvent(new Event('resize'));
+    
+    // Show completion button if at end
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    
+    // Smooth scroll
+    setTimeout(() => { 
+        nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = (window.event && window.event.target) || null;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    // Reset choices
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    
+    // Set state
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    
+    // Add explanation
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Trigger continue button if this is the quiz section (Section 11)
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section11') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+// Keyboard navigation (Space/Right Arrow)
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            // Placeholder for LMS integration
+            if (window.parent && window.parent.ProgressTracker) {
+                // Using generic IDs based on title context
+                let courseId = 'computer-vision';
+                let pathId = 'foundations';
+                let moduleId = 'cv-ch01-intro';
+                let lessonId = 'cv-ch01-l2-perception-pathway';
+                
+                // Try to grab from URL if available
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch02-l3_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    
+    const emojis = ['🧠', '👁️', '💡', '✨', '⚡', '🎓'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { 
+        if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); 
+    }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Perspective Shifted! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { 
+        if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); 
+    }, 2500);
+}
+
+// Check completion on load
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check Local Storage
+    const isCompleted = localStorage.getItem('lesson_cv-ch02-l3_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

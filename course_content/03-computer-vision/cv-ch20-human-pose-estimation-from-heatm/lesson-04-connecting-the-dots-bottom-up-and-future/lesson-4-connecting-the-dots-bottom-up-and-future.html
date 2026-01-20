@@ -157,17 +157,28 @@ window.MathJax = {
               <button class="paf-reset" onclick="resetPafSimulation()">Reset</button>
           </div>
       </div>
-  
+
       <script>
       (function() {
           const canvas = document.getElementById('pafCanvas');
+          if (!canvas) {
+              console.error('PAF Canvas not found');
+              return;
+          }
+
           const ctx = canvas.getContext('2d');
+          if (!ctx) {
+              console.error('Canvas context not available');
+              return;
+          }
+
           const statusEl = document.getElementById('pafStatus');
           const canvasWrapper = canvas.parentElement;
           const parentSection = canvas.closest('section');
-          
+
           // Configuration
-          let width, height;
+          let width = 0;
+          let height = 0;
           const pointRadius = 12;
           const arrowSpacing = 25;
           

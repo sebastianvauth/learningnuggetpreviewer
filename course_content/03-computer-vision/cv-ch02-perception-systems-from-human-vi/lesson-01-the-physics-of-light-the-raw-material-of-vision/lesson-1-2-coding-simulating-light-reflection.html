@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Coding: Simulating Light Reflection</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+.code-block {
+    background: #1a202c;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    position: relative;
+}
+.code-block pre {
+    margin: 0;
+    color: #e2e8f0;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+.code-block .comment { color: #68d391; }
+.code-block .keyword { color: #f687b3; }
+.code-block .string { color: #fbd38d; }
+.code-block .function { color: #63b3ed; }
+.code-block .number { color: #fc8181; }
+.code-label {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 0.75rem;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.output-block {
+    background: #2d3748;
+    border-left: 4px solid #4facfe;
+    border-radius: 0 8px 8px 0;
+    padding: 15px 20px;
+    margin: 1rem 0;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 0.9rem;
+    color: #e2e8f0;
+}
+.output-label {
+    font-size: 0.75rem;
+    color: #a0aec0;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.scenario-card {
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 1.5rem 0;
+    border-left: 4px solid #4facfe;
+}
+.scenario-card h4 {
+    color: #4facfe;
+    margin-bottom: 10px;
+}
+.math-display {
+    background: rgba(79, 172, 254, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 1rem 0;
+    text-align: center;
+    font-size: 1.1rem;
+}
+.logic-steps {
+    background: #2d3748;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin: 1rem 0;
+}
+.logic-steps ol {
+    margin: 0;
+    padding-left: 20px;
+    color: #e2e8f0;
+}
+.logic-steps li {
+    margin: 8px 0;
+}
+</style>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <h1>Coding Lesson: The Physics of Light in Python</h1>
+    <h2>Introduction</h2>
+    <p>Welcome to the simulation! In the previous lesson, we learned that the color you see isn't an inherent property of an object—it's a relationship between the light source and the material.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>If you are a Computer Vision engineer, you need to understand how images are formed mathematically. Today, we are going to write a Python function that acts as a <strong>"Physics Engine."</strong> We will mathematically prove why a red apple looks black under blue light.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <h2>The Math: The Hadamard Product</h2>
+    <p>In computer vision, an image is formed by <strong>element-wise multiplication</strong> (also known as the Hadamard Product).</p>
+    <div class="math-display">
+        $$ ObservedColor = LightSource \times Reflectance $$
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>Here is the catch:</p>
+    <ol>
+        <li><strong>Light Source:</strong> Usually defined by intensity (0 to 255).</li>
+        <li><strong>Reflectance:</strong> Physically, this is a <em>percentage</em> (0% to 100%). A red apple reflects ~90% red light and absorbs ~10% blue/green.</li>
+    </ol>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>To make this work in code, we need to:</p>
+    <div class="logic-steps">
+        <ol>
+            <li><strong>Normalize</strong> our inputs from integers (0-255) to floats (0.0-1.0).</li>
+            <li><strong>Multiply</strong> them channel by channel (Red × Red, Green × Green, etc.).</li>
+            <li><strong>Scale</strong> the result back to 0-255 so we can display it as a pixel.</li>
+        </ol>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>Step 1: Import the Toolset</h2>
+    <p>We will use <strong>NumPy</strong>, the fundamental library for scientific computing in Python. It handles arrays and matrices much faster than standard lists.</p>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="function">print</span>(<span class="string">"NumPy imported successfully! We are ready to calculate physics."</span>)</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <h2>Step 2: Defining the "Observe" Function</h2>
+    <p>Let's build our function step-by-step.</p>
+    <p><strong>The Logic:</strong></p>
+    <div class="logic-steps">
+        <ol>
+            <li>Take two inputs: <code>light_rgb</code> and <code>surface_rgb</code>.</li>
+            <li>Divide them by <code>255.0</code> to get a range of <code>0.0</code> to <code>1.0</code>.</li>
+            <li>Multiply them together.</li>
+            <li>Multiply the result by <code>255.0</code>.</li>
+            <li>Round to the nearest whole number and convert to an integer.</li>
+        </ol>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="keyword">def</span> <span class="function">observe_color</span>(light_rgb, surface_rgb):
+    <span class="string">"""
+    Simulates the interaction between a light source and a surface material.
+
+    Args:
+        light_rgb (list): [R, G, B] intensity of the light (0-255)
+        surface_rgb (list): [R, G, B] reflectance of the object (0-255)
+
+    Returns:
+        numpy.array: The observed color [R, G, B] (0-255)
+    """</span>
+    <span class="comment"># 1. Convert lists to NumPy arrays for easy math</span>
+    light = np.array(light_rgb)
+    surface = np.array(surface_rgb)
+
+    <span class="comment"># 2. Normalize to 0.0 - 1.0 (Representing physics 0% to 100%)</span>
+    light_norm = light / <span class="number">255.0</span>
+    surface_norm = surface / <span class="number">255.0</span>
+
+    <span class="comment"># 3. Calculate interaction (Element-wise multiplication)</span>
+    <span class="comment"># This multiplies Red with Red, Green with Green, Blue with Blue</span>
+    observed_norm = light_norm * surface_norm
+
+    <span class="comment"># 4. Scale back to 0 - 255</span>
+    observed = observed_norm * <span class="number">255.0</span>
+
+    <span class="comment"># 5. Round to nearest integer and return</span>
+    <span class="keyword">return</span> np.round(observed).astype(<span class="function">int</span>)</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <h2>Step 3: The "Red Apple" Experiment</h2>
+    <p>Let's test the scenario we discussed in the lecture.</p>
+    <p>We have a <strong>Perfect Red Apple</strong>. It reflects 100% of Red light (<code>255</code>) and absorbs all Green and Blue (<code>0</code>).</p>
+    <div class="math-display">
+        $$ Surface = [255, 0, 0] $$
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <div class="scenario-card">
+        <h4>Scenario A: Sunlight (White Light)</h4>
+        <p>White light contains equal parts Red, Green, and Blue.</p>
+        <div class="math-display">
+            $$ Light = [255, 255, 255] $$
+        </div>
+    </div>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="comment"># Define our objects</span>
+red_apple = [<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>]
+white_light = [<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>]
+
+<span class="comment"># Run the simulation</span>
+result_A = <span class="function">observe_color</span>(white_light, red_apple)
+
+<span class="function">print</span>(<span class="string">f"Scenario A (White Light on Red Apple): </span>{result_A}<span class="string">"</span>)</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <div class="output-block">
+        <div class="output-label">Expected Output</div>
+        [255, 0, 0]
+    </div>
+    <p><strong>Explanation:</strong> The white light provided Red, Green, and Blue energy. The apple absorbed the Green and Blue, but reflected the Red back to your eye.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <div class="scenario-card">
+        <h4>Scenario B: The "Alien Sun" (Blue Light)</h4>
+        <p>Now, let's turn off the sun and turn on a pure Blue LED.</p>
+        <div class="math-display">
+            $$ Light = [0, 0, 255] $$
+        </div>
+    </div>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre>blue_light = [<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>]
+
+<span class="comment"># Run the simulation</span>
+result_B = <span class="function">observe_color</span>(blue_light, red_apple)
+
+<span class="function">print</span>(<span class="string">f"Scenario B (Blue Light on Red Apple): </span>{result_B}<span class="string">"</span>)</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <div class="output-block">
+        <div class="output-label">Expected Output</div>
+        [0, 0, 0] (Black)
+    </div>
+    <p><strong>Explanation:</strong></p>
+    <ol>
+        <li>The Blue light sends <strong>0 Red</strong> photons. The apple can <em>only</em> reflect Red. Result: 0 reflection.</li>
+        <li>The Blue light sends <strong>255 Blue</strong> photons. The apple <em>absorbs</em> Blue. Result: 0 reflection.</li>
+        <li>The result is total darkness.</li>
+    </ol>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <h2>Step 4: Advanced Mixing</h2>
+    <p>Real life isn't just pure Red or Pure Blue. Let's try a complex color.</p>
+    <p><strong>The Object:</strong> A <strong>Teal Ball</strong>. Teal is a mix of Green and Blue.</p>
+    <div class="math-display">
+        $$ Surface = [0, 255, 255] $$
+    </div>
+    <p><strong>The Light:</strong> A <strong>Yellow Flashlight</strong>. Yellow is a mix of Red and Green.</p>
+    <div class="math-display">
+        $$ Light = [255, 255, 0] $$
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <div class="stop-and-think">
+        <h3>Stop & Think</h3>
+        <h4>Before you run the code, guess the result.</h4>
+        <ul>
+            <li><strong>Red channel:</strong> Light(Yes) × Object(No) = ?</li>
+            <li><strong>Green channel:</strong> Light(Yes) × Object(Yes) = ?</li>
+            <li><strong>Blue channel:</strong> Light(No) × Object(Yes) = ?</li>
+        </ul>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre>teal_ball = [<span class="number">0</span>, <span class="number">255</span>, <span class="number">255</span>]
+yellow_light = [<span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>]
+
+result_C = <span class="function">observe_color</span>(yellow_light, teal_ball)
+
+<span class="function">print</span>(<span class="string">f"Scenario C (Yellow Light on Teal Ball): </span>{result_C}<span class="string">"</span>)</pre>
+    </div>
+    <div class="output-block">
+        <div class="output-label">Expected Output</div>
+        [0, 255, 0] (Pure Green)
+    </div>
+    <p><strong>Explanation:</strong> The only color that existed in <em>both</em> the light source AND the object's reflectance was <strong>Green</strong>. The Red was absorbed by the ball, and the Blue was missing from the light.</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <div class="test-your-knowledge">
+        <h3>Challenge: Partial Reflection</h3>
+        <h4>Real-world colors are never "pure"</h4>
+        <p>In the real world, objects are rarely "pure" colors. A real apple isn't <code>[255, 0, 0]</code>. It might be <code>[200, 50, 50]</code> (mostly red, but reflects a little bit of everything—that's why it looks shiny).</p>
+        <p><strong>Task:</strong></p>
+        <p>Create a variable <code>real_apple = [200, 50, 50]</code>.<br>
+        Create a variable <code>dim_blue_light = [0, 0, 100]</code>.<br>
+        Calculate the observed color.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="comment"># Try it yourself here!</span>
+real_apple = [<span class="number">200</span>, <span class="number">50</span>, <span class="number">50</span>]
+dim_blue_light = [<span class="number">0</span>, <span class="number">0</span>, <span class="number">100</span>]
+
+result_D = <span class="function">observe_color</span>(dim_blue_light, real_apple)
+<span class="function">print</span>(<span class="string">f"Challenge Result: </span>{result_D}<span class="string">"</span>)</pre>
+    </div>
+    <div class="output-block">
+        <div class="output-label">Expected Output</div>
+        [0, 0, 20]
+    </div>
+    <div class="why-it-matters">
+        <h3>Interpretation</h3>
+        <p>It's not perfectly black! Because the "Real Apple" reflects a tiny bit of blue (50/255 ≈ 20%), and the light source provided some blue, you see a very, very dark blue reflection. This is exactly how realistic lighting works in video games!</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <h2>Summary</h2>
+    <p>You have just written a function that simulates the fundamental law of visual perception.</p>
+    <ul>
+        <li><strong>Perception = Light × Matter</strong></li>
+        <li>If the light source doesn't contain a frequency, you can't see it (even if the object is that color).</li>
+        <li>If the object absorbs a frequency, you can't see it (even if the light source is that color).</li>
+    </ul>
+    <p>In the next lesson, we will look at the <strong>Eye</strong>, and learn how it captures these resulting RGB values!</p>
+
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 19;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = (window.event && window.event.target) || null;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                let courseId = 'computer-vision';
+                let pathId = 'foundations-of-vision';
+                let moduleId = 'cv-ch2-m1-physics';
+                let lessonId = 'cv-ch2-l1-2-coding-light-reflection';
+
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch2-l1-2-coding_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '💡', '🐍'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch2-l1-2-coding_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

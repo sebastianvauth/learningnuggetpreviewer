@@ -12,6 +12,7 @@ window.MathJax = {
 };
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<script src="../interactive-fixes.js"></script>
 </head>
 <body>
 <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
@@ -513,37 +514,38 @@ window.MathJax = {
 
 <section id="section15">
     <p>The decoder then fuses the semantic info (from the deep layers) with the spatial info (from the skip connections).</p>
- <!-- Interactive FCN Variants Module (Corrected) -->
-<div class="interactive-box" id="skipConnectionsInteractive">
+ <!-- Interactive FCN Variants Module (Section 15 - FIXED DUPLICATE) -->
+<div class="interactive-box" id="skipConnectionsInteractive2">
     <div class="canvas-wrapper">
-        <canvas id="skipsCanvas"></canvas>
+        <canvas id="skipsCanvas2"></canvas>
     </div>
-    
+
     <div class="controls-wrapper">
         <div class="variant-labels">
-            <span id="lbl-32s" class="variant-label">FCN-32s<br><small>(No Skips)</small></span>
-            <span id="lbl-16s" class="variant-label">FCN-16s<br><small>(Pool4 Skip)</small></span>
-            <span id="lbl-8s" class="variant-label">FCN-8s<br><small>(Pool3+4 Skips)</small></span>
+            <span id="lbl-32s-2" class="variant-label">FCN-32s<br><small>(No Skips)</small></span>
+            <span id="lbl-16s-2" class="variant-label">FCN-16s<br><small>(Pool4 Skip)</small></span>
+            <span id="lbl-8s-2" class="variant-label">FCN-8s<br><small>(Pool3+4 Skips)</small></span>
         </div>
-        
-        <input type="range" min="1" max="3" step="0.05" value="1" class="interactive-slider" id="skipsSlider">
-        
-        <div id="skips-caption" class="slider-caption">
+
+        <input type="range" min="1" max="3" step="0.05" value="1" class="interactive-slider" id="skipsSlider2">
+
+        <div id="skips-caption-2" class="slider-caption">
             Result: Very Coarse. The mask is just a blob.
         </div>
     </div>
 
     <script>
     (function() {
-        const canvas = document.getElementById('skipsCanvas');
+        const canvas = document.getElementById('skipsCanvas2');
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        const slider = document.getElementById('skipsSlider');
-        const caption = document.getElementById('skips-caption');
-        
+        const slider = document.getElementById('skipsSlider2');
+        const caption = document.getElementById('skips-caption-2');
+
         // Labels
-        const lbl32 = document.getElementById('lbl-32s');
-        const lbl16 = document.getElementById('lbl-16s');
-        const lbl8 = document.getElementById('lbl-8s');
+        const lbl32 = document.getElementById('lbl-32s-2');
+        const lbl16 = document.getElementById('lbl-16s-2');
+        const lbl8 = document.getElementById('lbl-8s-2');
         
         // Config
         const width = 500;
@@ -615,19 +617,22 @@ window.MathJax = {
         }
 
         function render() {
+            if (!ctx || !canvas) return;
             ctx.clearRect(0, 0, width, height);
 
-            const val = parseFloat(slider.value);
+            const val = parseFloat(slider ? slider.value : 1);
 
-            // Update UI Labels
-            lbl32.className = val < 1.5 ? 'variant-label active' : 'variant-label';
-            lbl16.className = val >= 1.5 && val < 2.5 ? 'variant-label active' : 'variant-label';
-            lbl8.className = val >= 2.5 ? 'variant-label active' : 'variant-label';
+            // Update UI Labels with null checks
+            if (lbl32) lbl32.className = val < 1.5 ? 'variant-label active' : 'variant-label';
+            if (lbl16) lbl16.className = val >= 1.5 && val < 2.5 ? 'variant-label active' : 'variant-label';
+            if (lbl8) lbl8.className = val >= 2.5 ? 'variant-label active' : 'variant-label';
 
             // Update Caption
-            if (val < 1.5) caption.innerHTML = "<strong>FCN-32s:</strong> Very Coarse. The mask is just a blob.";
-            else if (val < 2.5) caption.innerHTML = "<strong>FCN-16s:</strong> Better. Some shape emerges, but edges are soft.";
-            else caption.innerHTML = "<strong>FCN-8s:</strong> Sharp! Skip connections recover the whiskers and ears.";
+            if (caption) {
+                if (val < 1.5) caption.innerHTML = "<strong>FCN-32s:</strong> Very Coarse. The mask is just a blob.";
+                else if (val < 2.5) caption.innerHTML = "<strong>FCN-16s:</strong> Better. Some shape emerges, but edges are soft.";
+                else caption.innerHTML = "<strong>FCN-8s:</strong> Sharp! Skip connections recover the whiskers and ears.";
+            }
 
             // 1. Draw Real Image (Background)
             ctx.globalAlpha = 1.0;
@@ -635,10 +640,10 @@ window.MathJax = {
 
             // 2. Generate Mask
             // Map slider to resolution factor
-            let resFactor; 
+            let resFactor;
             if (val <= 2) {
                  const t = val - 1; // 0 to 1
-                 resFactor = 0.03 + (t * 0.03); 
+                 resFactor = 0.03 + (t * 0.03);
             } else {
                  const t = val - 2;
                  resFactor = 0.06 + (t * 0.19);
@@ -646,7 +651,7 @@ window.MathJax = {
 
             const maskW = Math.floor(width * resFactor);
             const maskH = Math.floor(height * resFactor);
-            
+
             maskCanvas.width = maskW;
             maskCanvas.height = maskH;
 
@@ -658,12 +663,25 @@ window.MathJax = {
             ctx.globalAlpha = 0.6;
             ctx.globalCompositeOperation = 'source-over';
             ctx.drawImage(maskCanvas, 0, 0, maskW, maskH, 0, 0, width, height);
-            
+
             ctx.globalAlpha = 1.0;
         }
 
-        slider.addEventListener('input', render);
-        render();
+        if (slider) slider.addEventListener('input', render);
+
+        // Wait for section visibility before initial render
+        const parentSection = canvas.closest('section');
+        if (parentSection && !parentSection.classList.contains('visible')) {
+            const observer = new MutationObserver(() => {
+                if (parentSection.classList.contains('visible')) {
+                    setTimeout(render, 100);
+                    observer.disconnect();
+                }
+            });
+            observer.observe(parentSection, { attributes: true, attributeFilter: ['class'] });
+        } else {
+            setTimeout(render, 100);
+        }
     })();
     </script>
 </div>

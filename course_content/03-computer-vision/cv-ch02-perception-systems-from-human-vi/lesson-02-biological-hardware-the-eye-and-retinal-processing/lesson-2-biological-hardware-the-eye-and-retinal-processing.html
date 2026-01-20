@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Biological Hardware – The Eye and Retinal Processing</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Diagram comparing the human eye to a camera, showing similarities between the pupil/aperture and retina/sensor" style="width: 100%; border-radius: 12px;">
+    </div>
+    <h1>Biological Hardware – The Eye and Retinal Processing</h1>
+    <h2>Introduction: The Ultimate Biological Camera</h2>
+    <p>In the previous lesson, we explored the physics of light—the electromagnetic waves that carry information about the world. Now, let's look at the hardware designed to capture that information: the human eye.</p>
+    
+    <p>It is easy to think of the eye as just a biological camera. In many ways, it is. It has a lens to focus light and an opening called the <strong>pupil</strong> that acts exactly like a camera's <strong>aperture</strong>, expanding and contracting to control how much light gets in.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Retina: A Backwards Design</h2>
+    <p>Light passes through the lens and hits the <strong>Retina</strong> at the back of the eye. You might expect the light-sensitive cells to be right at the front, facing the incoming photons. Surprisingly, nature designed it backwards.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Retinal Layer Cake Diagram: Light passing through Ganglion and Bipolar cell layers to reach the Photoreceptors at the back" style="width: 100%; border-radius: 12px;">
+    </div>
+    <p>The retina is like a strange layer cake. Light has to pass through several layers of transparent wiring—Ganglion cells and Bipolar cells—before it finally hits the <strong>Photoreceptors</strong> at the very back.</p>
+    <p>Once the light hits these photoreceptors, a chemical reaction triggers an electrical signal. This signal is then sent back through the layers to the optic nerve. Effectively, your visual sensor is wired from the front, not the back!</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Retina</h4>
+        <p>The light-sensitive tissue lining the back of our eye. It contains photoreceptor cells (rods and cones) that convert light into electrical neural impulses. It is actually considered part of the central nervous system (brain tissue).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <h2>Rods vs. Cones: Quality vs. Sensitivity</h2>
+    <p>Not all pixels in your eye are the same. We have two distinct types of photoreceptors, and they represent a massive engineering trade-off.</p>
+    <p>First, we have <strong>Cones</strong>. These are your "luxury" sensors. They provide high-resolution, color vision, but they are power-hungry—they need a lot of light to work. They are concentrated in the <strong>Fovea</strong>, the center of your vision where you see best.</p>
+    <p>Then, we have <strong>Rods</strong>. These are your "survival" sensors. They are incredibly sensitive and can detect a single photon! However, they are colorblind (monochromatic) and have low resolution because hundreds of rods connect to a single output wire. They populate your peripheral vision.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Microscopic illustration comparing Rods and Cones, showing the tapered RGB cones and slender uniform rods" style="width: 100%; border-radius: 12px;">
+    </div>
+    <p>Let's see how this trade-off works in practice. Try adjusting the light levels in the simulation below to switch between these two systems.</p>
+    <div class="interactive-container" style="background: #1a202c; border: 2px solid #4a5568; border-radius: 12px; padding: 20px; text-align: center; margin: 1.5rem 0; color: #fff;">
+    
+        <!-- Canvas -->
+        <div style="position: relative; max-width: 600px; margin: 0 auto; overflow: hidden; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);">
+            <canvas id="improvedSimCanvas" width="600" height="350" style="width: 100%; height: auto; background: #000; display: block;"></canvas>
+            
+            <!-- Live Data overlay -->
+            <div style="position: absolute; top: 10px; left: 10px; text-align: left; pointer-events: none;">
+                <div id="simModeLabel" style="background: rgba(0,0,0,0.8); color: #4fd1c5; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; display: inline-block;">
+                    Cone Vision
+                </div>
+                <div id="simStats" style="background: rgba(0,0,0,0.6); color: #e2e8f0; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">
+                    Acuity: 100% | Color: RGB
+                </div>
+            </div>
+        </div>
+    
+        <!-- Controls -->
+        <div style="max-width: 600px; margin: 25px auto 10px auto; padding: 0 10px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; color: #a0aec0;">
+                <span>Input: <span style="color: #63b3ed">~0.01 Lux</span> (Starlight)</span>
+                <span>Input: <span style="color: #f6e05e">~10,000 Lux</span> (Daylight)</span>
+            </div>
+            <input type="range" id="luxSlider" min="0" max="100" value="100" step="0.5" 
+                   style="width: 100%; height: 8px; -webkit-appearance: none; background: linear-gradient(90deg, #2d3748 0%, #4a5568 30%, #ecc94b 100%); border-radius: 5px; outline: none; cursor: pointer;">
+        </div>
+        
+        <p style="font-size: 0.9rem; color: #a0aec0; margin-top: 15px; font-style: italic;">
+            Observe how the red books become black in low light, and the text becomes unreadable.
+        </p>
+    
+        <script>
+        (function() {
+            const canvas = document.getElementById('improvedSimCanvas');
+            const ctx = canvas.getContext('2d');
+            const slider = document.getElementById('luxSlider');
+            const label = document.getElementById('simModeLabel');
+            const stats = document.getElementById('simStats');
+    
+            // Animation frame ID
+            let animationId;
+    
+            // --- 1. Asset Generation (Cached Base Scene) ---
+            const baseCanvas = document.createElement('canvas');
+            baseCanvas.width = 600;
+            baseCanvas.height = 350;
+            const bCtx = baseCanvas.getContext('2d');
+    
+            function drawBook(x, y, w, h, color, title) {
+                // Book Spine
+                bCtx.fillStyle = color;
+                bCtx.fillRect(x, y, w, h);
+                // Shadow
+                bCtx.fillStyle = "rgba(0,0,0,0.2)";
+                bCtx.fillRect(x + w - 4, y, 4, h);
+                
+                // Text
+                bCtx.save();
+                bCtx.translate(x + w/2, y + 10);
+                bCtx.rotate(Math.PI / 2);
+                bCtx.fillStyle = "rgba(255,255,255,0.9)";
+                bCtx.font = "bold 10px Arial";
+                bCtx.textAlign = "left";
+                bCtx.fillText(title, 0, 4);
+                bCtx.restore();
+            }
+    
+            function generateScene() {
+                const w = baseCanvas.width;
+                const h = baseCanvas.height;
+    
+                // Dark room background
+                bCtx.fillStyle = "#1a202c";
+                bCtx.fillRect(0,0,w,h);
+    
+                // Shelf Background
+                bCtx.fillStyle = "#2d3748";
+                bCtx.fillRect(50, 50, w-100, h-100);
+    
+                // Books - We specifically choose RED books to demonstrate Purkinje shift
+                const colors = ['#e53e3e', '#e53e3e', '#3182ce', '#38a169', '#d69e2e', '#e53e3e']; 
+                const titles = ["VISION", "OPTICS", "RETINA", "LIGHT", "COLOR", "PHYSICS"];
+    
+                let x = 70;
+                let y = 140; // Top shelf
+                
+                // Draw diverse books
+                for(let i=0; i<18; i++) {
+                    const bw = 20 + Math.random() * 10;
+                    const bh = 90 + Math.random() * 10;
+                    const col = colors[i % colors.length];
+                    const tit = titles[i % titles.length];
+                    
+                    drawBook(x, y - bh, bw, bh, col, tit);
+                    x += bw + 2;
+                }
+    
+                x = 70;
+                y = 280; // Bottom shelf
+                 for(let i=0; i<18; i++) {
+                    const bw = 20 + Math.random() * 10;
+                    const bh = 90 + Math.random() * 10;
+                    // Shift colors for variety
+                    const col = colors[(i+2) % colors.length];
+                    drawBook(x, y - bh, bw, bh, col, "...");
+                    x += bw + 2;
+                }
+                
+                // "Vignette" shadow to focus center
+                const grad = bCtx.createRadialGradient(w/2, h/2, 150, w/2, h/2, 350);
+                grad.addColorStop(0, "rgba(0,0,0,0)");
+                grad.addColorStop(1, "rgba(0,0,0,0.8)");
+                bCtx.fillStyle = grad;
+                bCtx.fillRect(0,0,w,h);
+            }
+    
+            // --- 2. Dynamic Noise Generator ---
+            function drawNoise(intensity) {
+                if (intensity <= 0) return;
+                
+                ctx.save();
+                ctx.globalCompositeOperation = "overlay";
+                ctx.globalAlpha = intensity;
+                
+                // We use a small randomized offset to make grain feel "alive"
+                const offsetX = Math.random() * 100;
+                const offsetY = Math.random() * 100;
+                
+                // Draw noise (simulated by drawing many tiny rects for perf, or use a pre-gen pattern)
+                // For better performance, we'll generate random pixels on the fly in a small region and tile it
+                // Actually, simply filling with a grainy pattern that shifts is best.
+                
+                ctx.fillStyle = `rgba(200, 200, 200, 0.5)`;
+                for(let i=0; i<400; i++) {
+                     const x = Math.random() * canvas.width;
+                     const y = Math.random() * canvas.height;
+                     const s = Math.random() * 2;
+                     ctx.fillRect(x,y,s,s);
+                }
+                
+                ctx.restore();
+            }
+    
+            // --- 3. Main Render Loop ---
+            function render() {
+                const input = parseFloat(slider.value);
+                const w = canvas.width;
+                const h = canvas.height;
+    
+                // Clear
+                ctx.clearRect(0, 0, w, h);
+    
+                // --- Logic Maps ---
+                // 1. Brightness: Linear drop
+                const brightness = Math.max(0.1, input / 100);
+                
+                // 2. Rod Influence: Inverse of input, but kicks in strongly below 40%
+                let rodInfluence = 0;
+                if (input < 50) {
+                    rodInfluence = (50 - input) / 50; // 0.0 to 1.0
+                }
+    
+                // --- Layer 1: The Scene (with filters) ---
+                ctx.save();
+                
+                // A. BLUR (Acuity Loss): Rods are low res.
+                // As rodInfluence goes up, blur goes up. Max blur ~6px
+                const blurAmount = rodInfluence * 6;
+                ctx.filter = `blur(${blurAmount}px) brightness(${brightness * 100}%)`;
+                
+                ctx.drawImage(baseCanvas, 0, 0);
+                
+                // B. Purkinje Shift / Desaturation (Manual coloring)
+                // If we are in rod mode, we need to kill the red channel and overlay blue-green
+                if (rodInfluence > 0) {
+                    ctx.filter = 'none'; // Clear filter for composite ops
+                    
+                    // Overlay "Night Cyan" to simulate rod spectral sensitivity (peak 500nm)
+                    ctx.globalCompositeOperation = "color"; // Replaces Hue/Sat, keeps Lum
+                    ctx.fillStyle = "#4fd1c5"; // Teal
+                    ctx.globalAlpha = rodInfluence * 0.9; // Up to 90% desaturation towards teal
+                    ctx.fillRect(0,0,w,h);
+                    
+                    // "Red Crush": Multiply dark cyan to darken reds specifically
+                    // (Cyan absorbs Red)
+                    ctx.globalCompositeOperation = "multiply";
+                    ctx.fillStyle = `rgba(0, 50, 50, ${rodInfluence})`; 
+                    ctx.fillRect(0,0,w,h);
+                }
+                
+                ctx.restore();
+    
+                // --- Layer 2: Biological Artifacts ---
+                
+                // A. Neural Noise (Grain)
+                // Increases as light decreases
+                drawNoise(rodInfluence * 0.8);
+    
+                // B. Foveal Scotoma (The "Missing Center")
+                // Instead of black, we render a "No Signal" zone in the center
+                // High noise, low contrast
+                if (rodInfluence > 0.6) {
+                    ctx.save();
+                    const radius = 60 * rodInfluence;
+                    
+                    // Create a mask that blurs/destroys the center
+                    const g = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, radius);
+                    g.addColorStop(0, `rgba(20,20,30, ${rodInfluence * 0.7})`); // Darken center
+                    g.addColorStop(1, "rgba(0,0,0,0)");
+                    
+                    ctx.fillStyle = g;
+                    ctx.globalCompositeOperation = "source-over"; // simple overlay
+                    ctx.fillRect(0,0,w,h);
+                    ctx.restore();
+                }
+    
+                // --- UI Updates ---
+                if (input > 60) {
+                    label.innerHTML = "👁️ CONE VISION (Photopic)";
+                    label.style.color = "#f6e05e";
+                    stats.innerHTML = "Acuity: High | Color: Full RGB | Sensitivity: Low";
+                } else if (input > 20) {
+                    label.innerHTML = "🌅 MESOPIC (Transition)";
+                    label.style.color = "#63b3ed";
+                    stats.innerHTML = "Acuity: Medium | Color: Muted | Rods & Cones Active";
+                } else {
+                    label.innerHTML = "🌑 ROD VISION (Scotopic)";
+                    label.style.color = "#a0aec0";
+                    stats.innerHTML = "Acuity: Low (Blurred) | Color: Monochromatic | Reds: Dark";
+                }
+    
+                // Keep animating only if there is noise to draw (low light)
+                if (input < 100) {
+                    animationId = requestAnimationFrame(render);
+                }
+            }
+    
+            // Init
+            generateScene();
+            render();
+    
+            // Listeners
+            slider.addEventListener('input', () => {
+                 cancelAnimationFrame(animationId);
+                 render();
+            });
+            
+            // Start loop for noise
+            render();
+    
+        })();
+        </script>
+    </div>
+    <p>As you slid to the dark setting, you switched from <strong>Photopic</strong> (Cone-based) to <strong>Scotopic</strong> (Rod-based) vision.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Which photoreceptors are active while you are reading this text on a bright screen?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Rods are saturated and effectively turned off in bright light. They are also low resolution, making them bad for reading text.')">Rods</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Reading requires high acuity (sharpness) and usually takes place in well-lit conditions, which is the domain of the Cones in your Fovea.')">Cones</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <h2>Dark Adaptation</h2>
+    <p>Switching between these systems isn't instant. It takes time for the chemicals in your rods to regenerate after being bleached by bright light. This is why you are blind for a moment when walking into a dark movie theater.</p>
+    <div class="image-placeholder">
+        <img src="images/4.jpg" alt="Meme showing a Pirate Captain explaining that his eyepatch is for dark adaptation, not an injury" style="width: 100%; border-radius: 12px;">
+    </div>
+    <p>History suggests pirates didn't always wear eyepatches because of missing eyes. By keeping one eye covered and constantly adapted to darkness, they could run below deck (where it was pitch black) and swap the patch to the other eye, instantly seeing clearly with the rod-dominated eye.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <h2>Spectral Sensitivity: The Trichromatic Theory</h2>
+    <p>We mentioned that Rods are colorblind. Color vision comes entirely from the Cones. But how? We have three types of cones: <strong>S-cones</strong> (Short wavelength/Blue), <strong>M-cones</strong> (Medium/Green), and <strong>L-cones</strong> (Long/Red).</p>
+    <p>This is the <strong>Trichromatic Theory</strong>. Your brain figures out color by comparing the signal strength from these three inputs. But look closely at the graph below—notice specifically the Red and Green curves.</p>
+    <div class="visual-placeholder">
+        <img src="images/5.jpg" alt="Spectral Sensitivity Graph showing the overlapping sensitivity curves for S, M, and L cones, plus rods" style="width: 100%; border-radius: 12px;">
+    </div>
+    <p>The overlap between the Red (L) and Green (M) cones is massive. Yellow light, for instance, stimulates both of them almost equally. Your brain interprets "Red+Green activation" as Yellow.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Trichromatic Theory</h4>
+        <p>The theory that human color perception is based on three types of receptors (cones), each sensitive to a different range of wavelengths (roughly Blue, Green, and Red).</p>
+    </div>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Looking at the sensitivity graph, the Red and Green curves are very close together. Why do you think this makes color blindness (specifically red-green) so common?</h4>
+        <div id="cuy-colorblind-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Since the curves are already so similar, a small genetic mutation that shifts the sensitivity of the Red cone slightly towards the Green cone makes them overlap almost perfectly. If they overlap perfectly, the brain can no longer distinguish between signals from red objects and green objects—they just look like the same muddy color.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-colorblind-answer')">Reveal Answer</button>
+    </div>
+    <p>Why does this matter for Computer Vision? Because cameras are often designed to mimic this. The Bayer filter in digital cameras uses a mosaic of Red, Green, and Blue filters to approximate our trichromatic vision.</p>
+    <div class="why-it-matters">
+        <h3>Frequently Asked Question</h3>
+        <h4>Do we really see the world upside down?</h4>
+        <p>Yes! The lens of your eye projects an inverted image onto the retina, just like a camera lens projects an inverted image onto a sensor. The top of the tree you are looking at hits the bottom of your retina. Your brain's visual cortex automatically flips the image right-side up during processing so you don't get dizzy.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>Review and Reflect</h2>
+    <p>To build an artificial perception system, we first had to understand the biological one.</p>
+    <p>In this lesson, we opened up the 'black box' of the human eye:</p>
+    <ul>
+        <li>We traced light through the <strong>pupil</strong> and lens to the <strong>retina</strong>.</li>
+        <li>We discovered the trade-off between the high-resolution, color-detecting <strong>Cones</strong> (concentrated in the <strong>Fovea</strong>) and the highly sensitive, motion-detecting <strong>Rods</strong>.</li>
+        <li>We analyzed the <strong>Trichromatic Theory</strong> and how overlapping sensitivity curves allow us to perceive millions of colors.</li>
+    </ul>
+    <p>In the next lesson, we will leave the eye behind and travel deeper into the brain to see how these electrical signals are processed into actual <em>meaning</em>.</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following statements about the Fovea is true?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That describes the Blind Spot, not the Fovea.')">It is located at the optic nerve exit and contains no photoreceptors.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! When you focus on an object, you are centering it on your Fovea to use your high-resolution Cones.')">It is the region of highest visual acuity, densely packed with Cones.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The periphery is dominated by rods; the Fovea is the center of gaze.')">It is responsible for peripheral vision and is mostly Rods.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" style="display: none;" onclick="showMarkCompleted()">Continue</div>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 6;
+
+updateProgress();
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+// Special function for the final continue button to reveal the completed button
+function showMarkCompleted() {
+    const btn = document.getElementById('continue-after-test-knowledge');
+    if (btn) btn.style.display = 'none';
+    
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) {
+        completedButton.classList.add('show');
+        completedButton.classList.add('animate-in');
+        setTimeout(() => { completedButton.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+    }
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after the final test is attempted
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section6') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'inline-block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Mock LMS integration
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Using placeholder IDs for this lesson
+                window.parent.ProgressTracker.markLessonCompleted('computer-vision', 'foundations', 'biological-vision', 'eye-and-retina');
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv_eye_retina_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '👁️', '🌈', '🧠', '⚡'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage for completion
+    const isCompleted = localStorage.getItem('lesson_cv_eye_retina_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('show');
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

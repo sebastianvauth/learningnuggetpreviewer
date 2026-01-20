@@ -1,0 +1,162 @@
+{
+    "lesson": {
+      "title": "Exercise: Photons and Pixels",
+      "sections": [
+        {
+          "title": "Practice Makes Perfect",
+          "content": "You've learned the theory: Light is a wave, energy depends on frequency, and objects get their color by rejecting light. Now, let's put that theory to work.",
+          "image": "image shows a sleek, modern laboratory desk with a calculator, a prism, and a notebook, inviting the student to solve problems.",
+          "text": "In this exercise lesson, we will simulate the job of a 'Renderer'—calculating exactly what an eye or a camera would see in specific lighting conditions. We will move through three levels of difficulty: **The Darkroom (Qualitative)**, **The Physicist (Ratios)**, and **The Algorithm (RGB Math)**.",
+          "continueButton": true
+        },
+        {
+          "title": "Level 1: The Darkroom (Qualitative)",
+          "content": "Let's start without numbers. We are going to predict color appearance based on absorption rules.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "**The Scenario:**\nYou are in a traditional photography darkroom developing film. The room is pitch black, illuminated ONLY by a **Safe Light**. A Safe Light emits **pure Red** photons (wavelength ~700nm). There are no other wavelengths in the room.",
+              "image": "image depicts a photography darkroom illuminated solely by a red light bulb, creating a high-contrast, monochromatic red environment.",
+              "continueButton": true
+            },
+            {
+              "text": "On the table, there are two items:\n1. A **Blue** shirt (which normally reflects blue and absorbs red/green).\n2. A sheet of **White** printer paper (which normally reflects all visible wavelengths).",
+              "testYourKnowledge": {
+                "question": "Under this pure Red light, what color does the **Blue shirt** appear to be?",
+                "options": [
+                  {
+                    "option": "Purple",
+                    "explanation": "No. To see purple, you would need blue light mixing with the red light. But there is no blue light in the room, and the shirt doesn't reflect the red.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Blue",
+                    "explanation": "Incorrect. The shirt *wants* to reflect blue, but there is no blue light in the room to reflect.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Black",
+                    "explanation": "Correct! The shirt's material absorbs red light. Since red is the only light available, the shirt absorbs everything. No light bounces back to your eye, so it appears black.",
+                    "correct": true
+                  }
+                ]
+              },
+              "continueButton": true
+            },
+            {
+              "testYourKnowledge": {
+                "question": "Under the same pure Red light, what color does the **White paper** appear to be?",
+                "options": [
+                  {
+                    "option": "White",
+                    "explanation": "Not quite. White means the object is reflecting R, G, and B simultaneously. But there is no G or B in the room to reflect.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Red",
+                    "explanation": "Correct! White paper is a 'universal reflector.' It reflects whatever hits it. Since only Red light hits it, only Red light bounces back.",
+                    "correct": true
+                  },
+                  {
+                    "option": "Black",
+                    "explanation": "No, white paper does not absorb visible light; it reflects it.",
+                    "correct": false
+                  }
+                ]
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Level 2: The Physicist (Energy Ratios)",
+          "content": "Now, let's look at the relationship between wavelength and energy. You don't need a calculator, just logic.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "**The Rules:**\n1. Energy ($E$) is directly proportional to Frequency ($f$).\n2. Frequency ($f$) is *inversely* proportional to Wavelength ($\\lambda$).\n3. Therefore: **Shorter Wavelength = Higher Energy**.",
+              "continueButton": true
+            },
+            {
+              "text": "**The Scenario:**\nWe are comparing two specific photons:\n*   **Photon A (Violet):** Wavelength $\\lambda = 400 \\text{nm}$.\n*   **Photon B (Infrared):** Wavelength $\\lambda = 800 \\text{nm}$.",
+              "testYourKnowledge": {
+                "question": "How much more energy does the Violet Photon (A) carry compared to the Infrared Photon (B)?",
+                "options": [
+                  {
+                    "option": "They have the same energy.",
+                    "explanation": "Incorrect. Energy depends on wavelength.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Violet has 2x the Energy.",
+                    "explanation": "Correct! Here is the math:\nThe wavelength of Violet (400) is exactly **half** of Infrared (800).\nSince wavelength is cut in half, the frequency doubles.\nSince frequency doubles, the energy doubles.",
+                    "correct": true
+                  },
+                  {
+                    "option": "Violet has 4x the Energy.",
+                    "explanation": "Incorrect. The relationship is linear, not squared.",
+                    "correct": false
+                  },
+                  {
+                    "option": "Infrared has 2x the Energy.",
+                    "explanation": "Incorrect. Infrared has a longer wavelength, which means it is 'lazier' and carries less energy.",
+                    "correct": false
+                  }
+                ]
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Level 3: The Algorithm (RGB Arithmetic)",
+          "content": "Finally, let's simulate how a computer vision algorithm calculates the color of a pixel. This is exactly how rendering engines in video games work.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "The formula for what the camera sees is simple multiplication:\n\n$$ \\text{CameraPixel} = \\text{LightSource} \\times \\text{ObjectReflectance} $$\n\n*Note: We perform this calculation separately for the Red, Green, and Blue channels.*",
+              "continueButton": true
+            },
+            {
+              "text": "**The Scenario:**\n*   **Light Source:** A warm, sunset-like light. RGB values: $[255, 200, 100]$.\n*   **The Object:** A teal ceramic vase. It has the following physical properties:\n    *   Absorbs 100% of Red (Reflectance = 0.0)\n    *   Reflects 50% of Green (Reflectance = 0.5)\n    *   Reflects 100% of Blue (Reflectance = 1.0)",
+              "continueButton": true
+            },
+            {
+              "text": "Let's calculate the **Green** channel together:\n$$ \\text{Green}_{\\text{in}} = 200 $$\n$$ \\text{Reflectance} = 0.5 $$\n$$ \\text{Green}_{\\text{out}} = 200 \\times 0.5 = 100 $$",
+              "continueButton": true
+            },
+            {
+              "testYourKnowledge": {
+                "question": "Calculate the final RGB vector that the camera sees. Remember: Light = [255, 200, 100] and Reflectance = [0.0, 0.5, 1.0].",
+                "options": [
+                  {
+                    "option": "[0, 100, 100]",
+                    "explanation": "Correct! \nRed: $255 \\times 0.0 = 0$\nGreen: $200 \\times 0.5 = 100$\nBlue: $100 \\times 1.0 = 100$\nThe result is a dark teal color.",
+                    "correct": true
+                  },
+                  {
+                    "option": "[255, 100, 100]",
+                    "explanation": "Incorrect. Check your Red calculation. The object absorbs all Red (Reflectance 0.0).",
+                    "correct": false
+                  },
+                  {
+                    "option": "[0, 100, 255]",
+                    "explanation": "Incorrect. Check your Blue calculation. The object reflects 100% of the Blue light, but the light source only provided 100 units of Blue light to begin with. You can't reflect more light than exists!",
+                    "correct": false
+                  }
+                ]
+              },
+              "whyItMatters": {
+                "text": "Notice that the 'Blue' channel result was 100, even though the object is perfectly blue (1.0 reflectance). The resulting color looks dark teal, not bright cyan. This explains why objects look dull in dim or warm lighting—the camera can only record the light that actually bounces back."
+              }
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "You have successfully simulated the physics of light!",
+          "text": "In this lesson, you proved that:\n1.  **Color depends on the light source:** A blue shirt is black in a red room.\n2.  **Energy depends on wavelength:** Halving the wavelength doubles the energy.\n3.  **Vision is multiplication:** What we see is the product of the light available and the material's properties.\n\nKeep these rules in mind. When your computer vision model struggles to recognize an object in a new environment, ask yourself: 'Did the light change?'"
+        }
+      ]
+    }
+  }

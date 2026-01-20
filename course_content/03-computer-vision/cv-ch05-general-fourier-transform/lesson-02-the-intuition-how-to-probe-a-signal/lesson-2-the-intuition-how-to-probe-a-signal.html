@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Intuition – How to "Probe" a Signal</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+/* Specific styles for Frequency Detective Interactive */
+.oscilloscope-screen {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    background: #1a202c;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    border: 2px solid #4a5568;
+}
+#scopeCanvas {
+    width: 100%;
+    height: 100%;
+}
+.legend {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(26, 32, 44, 0.8);
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: white;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+.dot.green { background: #48bb78; }
+.dot.red { background: #f56565; }
+
+.control-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    background: #f7fafc;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.control-group label {
+    font-weight: 600;
+    color: #2d3748;
+}
+input[type="range"] {
+    width: 100%;
+}
+.tick-marks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #718096;
+    padding: 0 5px;
+}
+
+.meter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.meter-group label {
+    font-weight: 600;
+    color: #2d3748;
+    text-align: center;
+}
+.meter-housing {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 100px;
+    justify-content: center;
+}
+.meter-bar-container {
+    width: 40px;
+    height: 100%;
+    background: #edf2f7;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #cbd5e1;
+}
+.meter-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    background: #4299e1;
+    transition: height 0.1s ease, background-color 0.3s ease;
+}
+.meter-fill.high-match {
+    background: #48bb78;
+    box-shadow: 0 0 10px rgba(72, 187, 120, 0.5);
+}
+.meter-scale {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    font-size: 0.7rem;
+    color: #718096;
+    font-weight: 700;
+}
+@media (max-width: 768px) {
+    .control-panel {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <h1>The Intuition – How to "Probe" a Signal</h1>
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Signal Decomposition: Magnifying glass over a complex waveform revealing distinct simple sine waves underneath.">
+    </div>
+    <h2>The Frequency Detective</h2>
+    <p>In the last lesson, we discovered that complex signals—like the sound of your voice or the pixels in an image—are actually just piles of simple sine waves stacked on top of each other. This is the <strong>Superposition Principle</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Problem of Detection</h2>
+    <p>But here is the catch: If I hand you a messy, complicated signal, you can't just "see" the sine waves inside it with your naked eye. It looks like chaos.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>Imagine you are trying to tune an old-fashioned radio. The air around you is filled with hundreds of radio stations (signals) all mixed together. How does your radio pick out <em>just</em> 98.5 FM and ignore the rest?</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>We need a way to "probe" the signal. We need a mathematical detector that lights up only when it finds a specific frequency and stays dark for everything else.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>This lesson is about that detector. It is the core mechanism behind the Fourier Transform, and it relies on a surprisingly simple idea: <strong>Multiplication and Summation</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>The Core Mechanism</h2>
+    <p>Let's say we have a target signal, \(f(t)\), and we want to know: "Does this signal contain a sine wave at 3 Hz?"</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>To find out, we create a <strong>Probe Signal</strong>, \(g(t)\), which is a pure sine wave at exactly 3 Hz. Then, we perform a simple test in two steps:</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>1. <strong>Multiply</strong> the target signal by the probe signal at every point in time.<br>
+    2. <strong>Sum</strong> (integrate) the result over a period of time.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>Let's look at what happens visually when we do this. We call this the <strong>Multiplication Graph</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <h2>Scenario 1: It's a Match!</h2>
+    <p>Imagine our target signal \(f(t)\) actually <em>is</em> a simple sine wave, and our probe \(g(t)\) has the exact same frequency and phase.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Matched Filtering: Identical sine waves (Green Target and Red Probe) aligned perfectly, resulting in a product graph with entirely positive humps.">
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>When both waves go up (positive), their product is positive (\(+ \times + = +\)).<br>
+    When both waves go down (negative), their product is <em>also</em> positive (\(- \times - = +\)).</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>Because the product is always positive, when we <strong>sum</strong> (integrate) the area under the curve, we get a large, positive number.</p>
+    <p>$$\text{Score} = \int f(t)g(t) dt \gg 0$$</p>
+    <p>A high score tells us: <strong>"Yes! This frequency is present!"</strong></p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <h2>Scenario 2: The Miss</h2>
+    <p>Now, what if the probe frequency doesn't match? Let's try to detect a 3 Hz signal using a 5 Hz probe.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Mismatched Frequencies: Green sine wave (slow) vs Red sine wave (fast). The product graph oscillates chaotically above and below the x-axis.">
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p>Sometimes the target is positive while the probe is negative (\(+ \times - = -\)). Sometimes both are positive (\(+\)). The product oscillates wildly between positive and negative values.</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <p>Over time, the positive areas and the negative areas cancel each other out almost perfectly.</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <p>When we sum this up, the result is close to zero.</p>
+    <p>$$\text{Score} = \int f(t)g(t) dt \approx 0$$</p>
+    <p>A score of zero tells us: <strong>"Nope. This frequency is not here."</strong></p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Correlation</h4>
+        <p>In signal processing, correlation is a measure of how similar two signals are. By multiplying and integrating, we are mathematically calculating the correlation between our unknown signal and our known probe.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <h2>Scenario 3: The Phase Problem</h2>
+    <p>There is a tricky third case. What if the frequency matches, but the waves are out of sync?</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <p>Let's say the target is a <strong>Sine</strong> wave (\(\sin(t)\)) and our probe is a <strong>Cosine</strong> wave (\(\cos(t)\)). They have the exact same frequency, but the Cosine is shifted by \(90^\circ\).</p>
+    <div class="image-placeholder">
+        <img src="images/4.jpg" alt="Sine vs Cosine Orthogonality: Sine and Cosine waves of the same frequency. The product graph shows equal distinct humps above and below the x-axis, summing to zero.">
+    </div>
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If you multiply a sine wave by a cosine wave of the same frequency and integrate over one full period, what is the result?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. Look at the product graph—half the time it is positive, half the time it is negative.')">A large positive number</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The positive and negative areas cancel out perfectly. This is a property called Orthogonality.')">Zero</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, the areas cancel out, they don\'t sum to a negative.')">A large negative number</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-quiz" onclick="showNextSection(19)" style="display: none;">Continue</div>
+</section>
+
+<section id="section19">
+    <p>This is called <strong>Orthogonality</strong>. Even though the frequency is right, the probe fails to "see" the signal because of the phase mismatch. This is a problem we will solve in the next lesson using Complex Numbers!</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Orthogonality</h4>
+        <p>Two functions are orthogonal if their product sums (integrates) to zero over a period. Sine and Cosine are orthogonal to each other, which means a pure Sine probe cannot 'see' a Cosine signal.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<section id="section20">
+    <h2>Interactive: The Frequency Detective</h2>
+    <p>Now it is your turn to find the hidden sine waves.</p>
+    <div class="interactive-container">
+        <!-- Oscilloscope Screen -->
+        <div class="oscilloscope-screen">
+            <canvas id="scopeCanvas"></canvas>
+            <div class="legend">
+                <span class="legend-item"><span class="dot green"></span> Mystery Signal</span>
+                <span class="legend-item"><span class="dot red"></span> Probe Signal</span>
+            </div>
+        </div>
+    
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="control-group">
+                <label for="freqSlider">Probe Frequency: <span id="freqDisplay">1.0</span> Hz</label>
+                <input type="range" id="freqSlider" min="1" max="8" step="0.1" value="1.0">
+                <div class="tick-marks">
+                    <span>1Hz</span><span>2Hz</span><span>3Hz</span><span>4Hz</span><span>5Hz</span><span>6Hz</span><span>7Hz</span><span>8Hz</span>
+                </div>
+            </div>
+            
+            <div class="meter-group">
+                <label>Correlation Meter</label>
+                <div class="meter-housing">
+                    <div class="meter-bar-container">
+                        <div id="correlationBar" class="meter-fill"></div>
+                    </div>
+                    <div class="meter-scale">
+                        <span>MAX</span>
+                        <span>0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    (function() {
+        // Canvas Setup
+        const canvas = document.getElementById('scopeCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // UI Elements
+        const slider = document.getElementById('freqSlider');
+        const display = document.getElementById('freqDisplay');
+        const meterBar = document.getElementById('correlationBar');
+        
+        // State
+        let width, height;
+        let time = 0;
+        let probeFreq = 1.0;
+        
+        // The Hidden Recipe: The Mystery Signal consists of 3Hz, 5Hz, and 7Hz
+        const secretFrequencies = [3.0, 5.0, 7.0]; 
+        
+        // Resize Handler
+        function resize() {
+            // Get CSS width
+            const rect = canvas.getBoundingClientRect();
+            // Set actual canvas size (High DPI support)
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            
+            width = canvas.width;
+            height = canvas.height;
+            
+            // Scale context
+            ctx.scale(dpr, dpr);
+            // Adjust logical width/height for drawing calculations
+            width = rect.width;
+            height = rect.height;
+        }
+        
+        window.addEventListener('resize', resize);
+        resize();
+        
+        // Input Handler
+        slider.addEventListener('input', (e) => {
+            probeFreq = parseFloat(e.target.value);
+            display.textContent = probeFreq.toFixed(1);
+        });
+    
+        // Drawing Functions
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(79, 209, 197, 0.15)'; // Faint teal
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            // Verticals
+            for(let x = 0; x < width; x += 40) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+            }
+            // Horizontals
+            for(let y = 0; y < height; y += 40) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+            }
+            // Center Line
+            ctx.strokeStyle = 'rgba(79, 209, 197, 0.4)';
+            ctx.moveTo(0, height/2);
+            ctx.lineTo(width, height/2);
+            ctx.stroke();
+        }
+    
+        function getMysteryValue(t_val) {
+            // Sum of sine waves
+            // Using smaller amplitudes so they sum up to roughly 1.0 max
+            let val = 0;
+            // 3Hz component
+            val += 0.5 * Math.sin(2 * Math.PI * 3 * t_val);
+            // 5Hz component
+            val += 0.3 * Math.sin(2 * Math.PI * 5 * t_val); 
+            // 7Hz component
+            val += 0.2 * Math.sin(2 * Math.PI * 7 * t_val);
+            return val;
+        }
+    
+        function getProbeValue(t_val) {
+            // Pure sine at slider frequency
+            return 0.8 * Math.sin(2 * Math.PI * probeFreq * t_val);
+        }
+    
+        function animate() {
+            // Guard: If width or height is 0, the section might be hidden. 
+            // Try to resize to get actual dimensions when it becomes visible.
+            if (width === 0 || height === 0) {
+                resize();
+                if (width === 0 || height === 0) {
+                    requestAnimationFrame(animate);
+                    return;
+                }
+            }
+
+            ctx.clearRect(0, 0, width, height);
+            
+            drawGrid();
+    
+            const timeScale = 1; // Seconds visible on screen
+            const points = width; // Resolution
+            
+            let sumProduct = 0;
+            let sampleCount = 0;
+            
+            // 1. Draw Mystery Signal (Green)
+            ctx.beginPath();
+            ctx.strokeStyle = '#48bb78';
+            ctx.lineWidth = 3;
+            
+            for (let x = 0; x < width; x++) {
+                // Map x pixel to time 't'
+                // We add 'time' variable to make it scroll
+                let t = (x / width) * timeScale + (time * 0.2); 
+                
+                let yNorm = getMysteryValue(t); // returns -1 to 1 approx
+                let yPlot = (height / 2) - (yNorm * (height / 3)); // Scale to canvas
+                
+                if (x === 0) ctx.moveTo(x, yPlot);
+                else ctx.lineTo(x, yPlot);
+                
+                // For Math: Calculate product for correlation
+                // We recalculate probe here analytically to save loop, 
+                // but functionally it's "Multiplying the two graphs"
+                let probeY = getProbeValue(t);
+                
+                // Integration Step: Sum(Mystery * Probe)
+                sumProduct += (yNorm * probeY);
+                sampleCount++;
+            }
+            ctx.stroke();
+            
+            // 2. Draw Probe Signal (Red)
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(245, 101, 101, 0.7)'; // Red with opacity
+            ctx.lineWidth = 2;
+            
+            for (let x = 0; x < width; x++) {
+                let t = (x / width) * timeScale + (time * 0.2);
+                let yNorm = getProbeValue(t);
+                let yPlot = (height / 2) - (yNorm * (height / 3));
+                
+                if (x === 0) ctx.moveTo(x, yPlot);
+                else ctx.lineTo(x, yPlot);
+            }
+            ctx.stroke();
+    
+            // 3. Update Meter
+            // Calculate average correlation
+            let avgCorrelation = sumProduct / sampleCount;
+            
+            // Because of the math, the max possible correlation for a normalized sine * sine is 0.5.
+            // We want to scale this to 0-100% for the CSS height.
+            // We take absolute value because phase shift might make it negative, 
+            // but for "detection" magnitude matters most in this simplified UI.
+            // However, since we aligned phases in generation, it should be positive.
+            
+            let displayValue = Math.abs(avgCorrelation) * 400; // Multiplier to make it fill the bar
+            
+            // Clamp
+            if (displayValue > 100) displayValue = 100;
+            
+            // Smooth visual transition
+            meterBar.style.height = `${displayValue}%`;
+            
+            // Visual reward if matched
+            if (displayValue > 60) {
+                meterBar.classList.add('high-match');
+            } else {
+                meterBar.classList.remove('high-match');
+            }
+    
+            // Increment time for scrolling
+            time += 0.02;
+            requestAnimationFrame(animate);
+        }
+    
+        animate();
+    })();
+    </script>
+    
+    <p>Did you notice how sharp the peaks were? The correlation is very specific. Even being off by a few Hertz drops the score to near zero.</p>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<section id="section21">
+    <p>This mechanism—multiplying by a probe and summing—is exactly what the mathematical integral in the Fourier Transform does.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>This intuition is the physical reality behind the math. It is the logic behind radio tuning (resonating with one frequency), identifying chords in a song, and even detecting edges in images (which we will view as 'high frequency' features later).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(22)">Continue</div>
+</section>
+
+<section id="section22">
+    <h2>Why Integration?</h2>
+    <div class="check-your-knowledge" style="border-left-color: #f093fb; background: linear-gradient(135deg, #ffeef7 0%, #fff0f8 100%);">
+        <h3 style="color: #d53f8c;">Frequently Asked Question</h3>
+        <h4>Why do we sum (integrate) the result? Why isn't multiplying enough?</h4>
+        <p>Great question! Imagine looking at just a single point in time. At \(t=1.5\), the mismatched waves might both be positive just by coincidence. If we stopped there, we'd think it was a match!</p>
+        <p>We sum over time to get the "average" behavior. The summation allows the random positives and negatives of a mismatch to kill each other off, leaving only the true, consistent correlation.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(23)">Continue</div>
+</section>
+
+<section id="section23">
+    <h2>Review and Reflect</h2>
+    <p>We have established the core physical intuition for frequency analysis.</p>
+    <p>In this lesson, we learned how to 'probe' a signal to find hidden frequencies:</p>
+    <ul>
+        <li><strong>Multiply</strong> the target signal by a probe sine wave.</li>
+        <li><strong>Integrate</strong> (sum) the result.</li>
+        <li><strong>Interpret:</strong> A large positive result means the frequency is present (Match). A result near zero means it is absent (Mismatch).</li>
+    </ul>
+    <p>However, we also discovered a flaw: A Sine probe can't detect a Cosine signal due to <strong>Orthogonality</strong>. In the next lesson, we will upgrade our toolkit with <strong>Complex Numbers</strong> to solve this phase problem once and for all.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 23;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to reveal continue button after an attempt (or correct answer)
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section18') {
+        const continueButton = document.getElementById('continue-after-quiz');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Mock LMS integration
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+               // Placeholder ID for this specific lesson
+               window.parent.ProgressTracker.markLessonCompleted('signal-processing', 'fourier', 'intuition', 'probing-signal');
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_sp-intuition_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    // Check local storage
+    const isCompleted = localStorage.getItem('lesson_sp-intuition_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

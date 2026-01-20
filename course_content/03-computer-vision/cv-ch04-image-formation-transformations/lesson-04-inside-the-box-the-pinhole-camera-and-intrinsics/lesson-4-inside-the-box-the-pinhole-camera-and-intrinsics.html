@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Inside the Box – The Pinhole Camera and Intrinsics</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Simple box camera (camera obscura) showing how light rays from a tree pass through a tiny hole to form an inverted image on the back wall." style="width: 100%; border-radius: 12px;">
+    </div>
+    <h1>Inside the Box – The Pinhole Camera and Intrinsics</h1>
+    <h2>Trapping the World in 2D</h2>
+    <p>We have spent the last few lessons sliding, rotating, and warping flat images. But photographs don't start as flat images—they start as a rich, three-dimensional world. In this lesson, we are going to look at the physics that allows a camera to trap the 3D world onto a 2D sensor.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Pinhole Camera Model</h2>
+    <p>The simplest way to model a camera isn't with lenses or high-tech sensors, but with a box and a tiny hole. This is the <strong>Pinhole Camera Model</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>Imagine a ray of light traveling from the top of a tree. It passes through the pinhole (the center of projection) and hits the back of the camera (the image plane).</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Geometry diagram of the pinhole camera model showing similar triangles formed by an object of height Y at depth Z and its image of height y at focal length f." style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>Because light travels in straight lines, we can use geometry—specifically <strong>similar triangles</strong>—to figure out where that tree top lands on the image.</p>
+    <p>If the tree has height \( Y \) and is at a depth \( Z \) from the pinhole, and the image plane is at a distance \( f \) (focal length) behind the pinhole, the projected height \( y \) is given by this ratio:</p>
+    <p>$$ \frac{y}{f} = \frac{Y}{Z} $$</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>By rearranging this, we get the fundamental equation of perspective projection:</p>
+    <p>$$ y = f \cdot \frac{Y}{Z} $$</p>
+    <p>Notice that we are dividing by \( Z \) (depth). This mathematical operation is why objects that are further away look smaller.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Based on the equation \( y = f \cdot \frac{Y}{Z} \), what happens to the size of the image \( y \) if you move the object twice as far away (double \( Z \))?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Check the equation again. \\( Z \\) is in the denominator.')">The image size doubles.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. Since \\( Z \\) is in the denominator, doubling the distance halves the projected size.')">The image size is cut in half.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'In perspective projection, distance affects size.')">The image size stays the same.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-check" onclick="showNextSection(7)" style="display: none;">Continue</div>
+</section>
+
+<section id="section7">
+    <p>This division by \( Z \) is non-linear, which is annoying for matrix math. However, thanks to the <strong>Homogeneous Coordinates</strong> we learned in Lesson 1, we can express this division as a linear matrix operation.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <h2>The Intrinsic Matrix (K)</h2>
+    <p>The physics equation gives us coordinates in meters or millimeters. But digital images are made of <strong>pixels</strong>. To bridge this gap, we need the <strong>Camera Intrinsics</strong>.</p>
+    <p>We pack all the internal parameters of the camera into a special \( 3 \times 3 \) matrix called \( \mathbf{K} \).</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Intrinsic Matrix (K)</h4>
+        <p>A 3x3 matrix that contains the internal parameters of a camera, such as focal length and optical center, allowing us to map camera coordinates (physical units) to image coordinates (pixels).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>The matrix looks like this:</p>
+    <p>$$ \mathbf{K} = \begin{pmatrix} f_x & s & c_x \\ 0 & f_y & c_y \\ 0 & 0 & 1 \end{pmatrix} $$</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>Let's break down what these values do:</p>
+    <ul>
+        <li><strong>\( f_x, f_y \)</strong>: The <strong>Focal Length</strong> expressed in pixels. This controls how much the scene is "zoomed in."</li>
+        <li><strong>\( c_x, c_y \)</strong>: The <strong>Principal Point</strong>. The pinhole projects to the center of the sensor, but in digital images, the origin \( (0,0) \) is usually the top-left pixel. This offset shifts the coordinate system.</li>
+        <li><strong>\( s \)</strong>: Skew. We usually assume pixels are perfect squares, so this is almost always 0.</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>We can now write the full projection from a point in the camera's 3D space (\( \tilde{\mathbf{p}}_c \)) to a pixel in the image (\( \tilde{\mathbf{x}}_s \)) as:</p>
+    <p>$$ \lambda \tilde{\mathbf{x}}_s = \mathbf{K} [\mathbf{I}|\mathbf{0}] \tilde{\mathbf{p}}_c $$</p>
+    <p>Here, \( \lambda \) is the depth \( Z \), which we "lost" during the projection. We can't get it back just by looking at the 2D image.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <div class="stop-and-think">
+        <h3>Stop and Think</h3>
+        <h4>Since \( \lambda \) (depth) is unknown when we only have the 2D image, what visual ambiguity does this create?</h4>
+        <div id="st-ambiguity-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> It creates a scale ambiguity. A small car close to the camera looks exactly the same size as a real car far away. Without knowing \( \mathbf{K} \) or the depth, we can't tell the difference.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('st-ambiguity-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <h2>The Virtual Photographer</h2>
+    <p>Now that we know the math, let's see how changing the Focal Length inside matrix \( \mathbf{K} \) changes the photo.</p>
+    <!-- START INTERACTIVE MODULE -->
+<div class="interactive-container">
+    <div class="canvas-flex-wrapper">
+        <!-- World View -->
+        <div class="view-container">
+            <div class="view-label">Top-Down View (World)</div>
+            <canvas id="worldCanvas" width="350" height="300"></canvas>
+        </div>
+        <!-- Camera View -->
+        <div class="view-container">
+            <div class="view-label">Camera View (Photo)</div>
+            <canvas id="cameraCanvas" width="350" height="300"></canvas>
+        </div>
+    </div>
+
+    <div class="controls-container">
+        <div class="slider-label">
+            <span>Wide Angle (Low f)</span>
+            <span>Current f: <span id="fValueDisplay" style="color:#667eea">500</span></span>
+            <span>Telephoto (High f)</span>
+        </div>
+        <input type="range" id="focalSlider" min="200" max="1000" value="500" step="10">
+    </div>
+</div>
+
+<script>
+(function() {
+    // Configuration
+    const worldCanvas = document.getElementById('worldCanvas');
+    const cameraCanvas = document.getElementById('cameraCanvas');
+    const ctxWorld = worldCanvas.getContext('2d');
+    const ctxCamera = cameraCanvas.getContext('2d');
+    const slider = document.getElementById('focalSlider');
+    const fDisplay = document.getElementById('fValueDisplay');
+
+    // Scene Objects (Cubes)
+    // x: horizontal position in world (0 is center)
+    // z: depth in world (distance from camera)
+    // size: physical size of the cube
+    const objects = [
+        { x: -150, z: 400, size: 60, color: '#F687B3' }, // Pink (Close, Left)
+        { x: 0,    z: 600, size: 60, color: '#4FD1C5' }, // Teal (Mid, Center)
+        { x: 150,  z: 800, size: 60, color: '#667EEA' }  // Blue (Far, Right)
+    ];
+
+    // Camera Parameters
+    let focalLength = 500;
+    const sensorWidth = 300; // Virtual width of the sensor for FOV calc
+
+    // Animation Loop
+    function draw() {
+        // --- 1. Draw Top-Down World View ---
+        ctxWorld.clearRect(0, 0, worldCanvas.width, worldCanvas.height);
+        
+        // Setup coordinate system: Origin at bottom center
+        const wcx = worldCanvas.width / 2;
+        const wcy = worldCanvas.height - 20; // Camera position
+
+        // Draw Grid
+        ctxWorld.strokeStyle = '#f1f5f9';
+        ctxWorld.lineWidth = 1;
+        for(let i=0; i<worldCanvas.height; i+=30) {
+            ctxWorld.beginPath(); ctxWorld.moveTo(0, i); ctxWorld.lineTo(worldCanvas.width, i); ctxWorld.stroke();
+        }
+        for(let i=0; i<worldCanvas.width; i+=30) {
+            ctxWorld.beginPath(); ctxWorld.moveTo(i, 0); ctxWorld.lineTo(i, worldCanvas.height); ctxWorld.stroke();
+        }
+
+        // Draw Field of View (FOV) Cone
+        // Math: tan(theta/2) = (sensorWidth/2) / focalLength
+        const halfFovRad = Math.atan((sensorWidth/2) / focalLength);
+        
+        ctxWorld.fillStyle = 'rgba(102, 126, 234, 0.1)';
+        ctxWorld.beginPath();
+        ctxWorld.moveTo(wcx, wcy); // Camera point
+        // Left Ray
+        ctxWorld.lineTo(wcx - Math.tan(halfFovRad) * worldCanvas.height, 0);
+        // Right Ray
+        ctxWorld.lineTo(wcx + Math.tan(halfFovRad) * worldCanvas.height, 0);
+        ctxWorld.fill();
+        
+        // Draw FOV Border Lines
+        ctxWorld.strokeStyle = 'rgba(102, 126, 234, 0.4)';
+        ctxWorld.setLineDash([5, 5]);
+        ctxWorld.beginPath();
+        ctxWorld.moveTo(wcx, wcy);
+        ctxWorld.lineTo(wcx - Math.tan(halfFovRad) * worldCanvas.height, 0);
+        ctxWorld.moveTo(wcx, wcy);
+        ctxWorld.lineTo(wcx + Math.tan(halfFovRad) * worldCanvas.height, 0);
+        ctxWorld.stroke();
+        ctxWorld.setLineDash([]);
+
+        // Draw Camera Icon
+        ctxWorld.fillStyle = '#2d3748';
+        ctxWorld.beginPath();
+        ctxWorld.arc(wcx, wcy, 8, 0, Math.PI*2);
+        ctxWorld.fill();
+        ctxWorld.fillStyle = 'white';
+        ctxWorld.font = '10px sans-serif';
+        ctxWorld.textAlign = 'center';
+        ctxWorld.fillText("CAM", wcx, wcy+3);
+
+        // Draw Objects (Top-Down)
+        objects.forEach(obj => {
+            // Map World Z (depth) to Canvas Y (upwards)
+            // Scale world units to canvas units slightly for fit (0.3x)
+            const mapScale = 0.35;
+            const ox = wcx + (obj.x * mapScale);
+            const oy = wcy - (obj.z * mapScale);
+
+            ctxWorld.fillStyle = obj.color;
+            ctxWorld.beginPath();
+            ctxWorld.arc(ox, oy, 10, 0, Math.PI*2);
+            ctxWorld.fill();
+            
+            // Draw connector line to camera center (ray trace visualization)
+            ctxWorld.strokeStyle = obj.color;
+            ctxWorld.globalAlpha = 0.3;
+            ctxWorld.beginPath();
+            ctxWorld.moveTo(wcx, wcy);
+            ctxWorld.lineTo(ox, oy);
+            ctxWorld.stroke();
+            ctxWorld.globalAlpha = 1.0;
+            
+            // Label
+            ctxWorld.fillStyle = '#4a5568';
+            ctxWorld.font = '10px sans-serif';
+            ctxWorld.fillText(`Z=${obj.z}`, ox, oy - 15);
+        });
+
+        // --- 2. Draw Camera View (Photo) ---
+        ctxCamera.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
+        
+        // Background
+        ctxCamera.fillStyle = '#f8fafc';
+        ctxCamera.fillRect(0,0, cameraCanvas.width, cameraCanvas.height);
+        
+        // Center of image
+        const cx = cameraCanvas.width / 2;
+        const cy = cameraCanvas.height / 2;
+
+        // Sort objects by depth (painter's algorithm) - far objects first
+        const sortedObjects = [...objects].sort((a, b) => b.z - a.z);
+
+        sortedObjects.forEach(obj => {
+            // THE MATH: y_screen = f * (Y_world / Z_world)
+            // We use the same ratio for scale: scale = f / Z
+            const scale = focalLength / obj.z;
+            
+            // Projected Position
+            const projX = cx + (obj.x * scale);
+            const projY = cy; // Objects are on ground plane, effectively Y=0 relative to camera center for this demo
+            
+            // Projected Size
+            const projSize = obj.size * scale;
+
+            // Draw "Square" facing camera
+            ctxCamera.fillStyle = obj.color;
+            ctxCamera.shadowColor = 'rgba(0,0,0,0.2)';
+            ctxCamera.shadowBlur = 10;
+            ctxCamera.shadowOffsetY = 5;
+            
+            ctxCamera.fillRect(
+                projX - projSize/2, 
+                projY - projSize/2, 
+                projSize, 
+                projSize
+            );
+            
+            ctxCamera.shadowColor = 'transparent';
+
+            // Draw outline
+            ctxCamera.strokeStyle = 'rgba(0,0,0,0.2)';
+            ctxCamera.lineWidth = 2;
+            ctxCamera.strokeRect(
+                projX - projSize/2, 
+                projY - projSize/2, 
+                projSize, 
+                projSize
+            );
+        });
+
+        // Overlay Crosshair
+        ctxCamera.strokeStyle = 'rgba(0,0,0,0.1)';
+        ctxCamera.lineWidth = 1;
+        ctxCamera.beginPath();
+        ctxCamera.moveTo(cx, 0); ctxCamera.lineTo(cx, cameraCanvas.height);
+        ctxCamera.moveTo(0, cy); ctxCamera.lineTo(cameraCanvas.width, cy);
+        ctxCamera.stroke();
+    }
+
+    // Interaction
+    slider.addEventListener('input', (e) => {
+        focalLength = parseInt(e.target.value);
+        fDisplay.textContent = focalLength;
+        draw();
+    });
+
+    // Initial Draw
+    draw();
+})();
+</script>
+<!-- END INTERACTIVE MODULE -->
+    <p>Move the slider to adjust the focal length. Notice that increasing \( f \) (zooming in) makes the field of view narrower, but objects appear larger. Decreasing \( f \) makes the view wider (fisheye), fitting more of the world into the frame.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p>Professional photographers use different lenses to change \( f \). In computer vision, we just change the numbers \( f_x \) and \( f_y \) in our matrix.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If you double the focal length (\( f \)), what happens to the size of an object in the image?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Recall the formula \\( y = f \\cdot \\frac{Y}{Z} \\).')">It stays the same size.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The relationship is linear, not quadratic.')">It becomes four times larger.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Because \\( y = f \\cdot \\dots \\), doubling \\( f \\) doubles \\( y \\). This is why telephoto lenses act like binoculars.')">It doubles in size.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(15)" style="display: none;">Continue</div>
+</section>
+
+<section id="section15">
+    <h2>Why It Matters</h2>
+    <p>Every time you use a camera for Computer Vision—whether it's a self-driving car sensing distance or an app placing an AR furniture model in your living room—the system relies on the Intrinsic Matrix \( \mathbf{K} \).</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Without knowing \( \mathbf{K} \), the computer is just looking at a grid of colors. It doesn't know if a blob of pixels is a mountain ten miles away or a rock ten feet away. Calibrating a camera to find \( \mathbf{K} \) is often the very first step in any 3D vision pipeline. It provides the geometric rules that relate the physical world to the digital image.</p>
+    </div>
+    <div class="vocab-section">
+        <h3>Frequently Asked</h3>
+        <h4>Is the image inside a real camera upside down?</h4>
+        <p>Yes! In physical reality, light rays cross at the pinhole, flipping the image both vertically and horizontally. However, in Computer Vision math, we usually place the virtual image plane <em>in front</em> of the pinhole. This mathematical trick keeps the image right-side up and makes the coordinate math much easier to handle.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>We have successfully trapped the 3D world into a 2D matrix equation.</p>
+    
+    <p>In this lesson, you learned:</p>
+    <ul>
+        <li>The <strong>Pinhole Camera Model</strong> uses similar triangles to project 3D points to 2D.</li>
+        <li>Objects further away appear smaller because we divide by depth (\( Z \)).</li>
+        <li>The <strong>Intrinsic Matrix (\( \mathbf{K} \))</strong> converts physical measurements into pixels using focal length and the principal point.</li>
+    </ul>
+    <p>But wait—this camera is floating in a void! We haven't defined where the camera is located in the world or which way it is pointing. In the next lesson, we will move the camera using <strong>Extrinsics</strong>.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+// Check if already completed on load to show button
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    
+    if (!nextSectionElement) return;
+    
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    
+    setTimeout(() => { 
+        nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Auto-reveal continue button for quizzes
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        let continueBtnId;
+        if (parentSection.id === 'section6') continueBtnId = 'continue-after-check';
+        if (parentSection.id === 'section14') continueBtnId = 'continue-after-test-knowledge';
+        
+        if (continueBtnId) {
+            const continueButton = document.getElementById(continueBtnId);
+            if (continueButton && continueButton.style.display === 'none') {
+                setTimeout(() => {
+                    continueButton.style.display = 'block';
+                    continueButton.classList.add('show-with-animation');
+                }, 800);
+            }
+        }
+    }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs adjusted for this specific lesson context
+                let courseId = 'computer-vision';
+                let pathId = '3d-vision';
+                let moduleId = 'cv-ch21-m1-foundations';
+                let lessonId = 'cv-ch21-l2-pinhole-intrinsics';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                
+                // Fallback to URL params
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch21-m1-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    
+    const emojis = ['📷', '📐', '✨', '🌟', '🔳', '🎓', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    
+    setTimeout(() => { 
+        if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); 
+    }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { 
+        if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); 
+    }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage or parent tracker
+    const isCompleted = localStorage.getItem('lesson_cv-ch21-m1-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

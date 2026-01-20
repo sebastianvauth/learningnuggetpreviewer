@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Math Explainer: The Wavelength-Energy Dance</title>
+<style>
+/* --- CORE DESIGN SYSTEM --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #ffffff;
+    min-height: 100vh;
+    color: #2d3748;
+    line-height: 1.6;
+}
+
+.lesson-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+/* Typography */
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+.lesson-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    letter-spacing: 0.5px;
+}
+
+h3 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #718096;
+    margin-bottom: 2rem;
+}
+
+p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* Video Player Container */
+.video-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid #2d3748;
+    border-radius: 16px;
+    padding: 0;
+    margin: 2rem 0;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.video-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+}
+
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    background: #000;
+}
+
+.video-wrapper video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    border-radius: 0 0 16px 16px;
+}
+
+.video-label {
+    padding: 20px;
+    text-align: center;
+    font-weight: 600;
+    color: #a0aec0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.video-label svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Thumbnail/Poster Overlay */
+.video-poster {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d3748 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.5s ease;
+    z-index: 10;
+}
+
+.video-poster.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.play-button {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.play-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+}
+
+.play-button svg {
+    width: 32px;
+    height: 32px;
+    fill: white;
+    margin-left: 4px;
+}
+
+.poster-text {
+    color: #a0aec0;
+    margin-top: 20px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Key Concepts Section */
+.key-concepts {
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 25px;
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.key-concepts h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.key-concepts ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.key-concepts li {
+    padding: 10px 0;
+    border-bottom: 1px solid #e2e8f0;
+    color: #4a5568;
+    font-size: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.key-concepts li:last-child {
+    border-bottom: none;
+}
+
+.key-concepts li::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    margin-top: 8px;
+    flex-shrink: 0;
+}
+
+/* Math highlight */
+.math-highlight {
+    background: linear-gradient(135deg, #eef2ff 0%, #faf5ff 100%);
+    border-left: 4px solid #667eea;
+    padding: 20px;
+    margin: 1.5rem 0;
+    border-radius: 0 12px 12px 0;
+    text-align: center;
+}
+
+.math-highlight code {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 1.25rem;
+    color: #553c9a;
+    background: none;
+}
+
+/* Mark Completed Button */
+.mark-completed-button {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 40px auto;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+    text-decoration: none;
+}
+
+.mark-completed-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(72, 187, 120, 0.4);
+}
+
+.mark-completed-button.completed {
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    cursor: default;
+    transform: none;
+}
+
+/* Success Animation */
+.success-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+    z-index: 10000;
+    opacity: 0;
+    animation: success-popup 2.5s ease-out;
+    pointer-events: none;
+}
+@keyframes success-popup {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    40% { transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+.confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+.confetti { position: absolute; font-size: 20px; animation: confetti-fall 3s linear infinite; }
+@keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lesson-container { padding: 20px 15px; }
+    h1 { font-size: 1.8rem; }
+    .play-button { width: 60px; height: 60px; }
+    .play-button svg { width: 24px; height: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="lesson-container">
+
+    <span class="lesson-tag">Manim Video Explainer</span>
+
+    <h1>The Wavelength-Energy Dance</h1>
+    <h3>Visualizing the Inverse Relationship Between Light's Properties</h3>
+
+    <p>Watch as we animate the elegant mathematical relationship between wavelength and energy. This visual explanation brings to life the equation that governs all electromagnetic radiation.</p>
+
+    <!-- VIDEO PLAYER -->
+    <div class="video-card">
+        <div class="video-label">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+            </svg>
+            Watch the Math Explainer
+        </div>
+
+        <div class="video-wrapper">
+            <!-- Poster/Play Button Overlay -->
+            <div class="video-poster" id="videoPoster" onclick="startVideo()">
+                <div class="play-button">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                </div>
+                <p class="poster-text">Click to play</p>
+            </div>
+
+            <video id="lessonVideo" controls preload="metadata">
+                <source src="audio/lesson-1-1-manim-video-math-explainer-the-wavelength-energy-dance.mp4" type="video/mp4">
+                Your browser does not support the video element.
+            </video>
+        </div>
+    </div>
+
+    <!-- Key Concepts Covered -->
+    <div class="key-concepts">
+        <h4>Key Concepts in This Video</h4>
+        <ul>
+            <li>The inverse relationship between wavelength and frequency</li>
+            <li>How Planck's constant connects energy to frequency</li>
+            <li>Why shorter wavelengths carry more energy</li>
+            <li>The electromagnetic spectrum visualized through this relationship</li>
+        </ul>
+    </div>
+
+    <!-- Math Formula Highlight -->
+    <div class="math-highlight">
+        <p style="margin-bottom: 10px; font-weight: 600; color: #553c9a;">The Core Equation</p>
+        <code>E = h * c / lambda</code>
+        <p style="margin-top: 10px; font-size: 0.95rem; color: #718096;">Energy is inversely proportional to wavelength</p>
+    </div>
+
+    <!-- COMPLETION BUTTON -->
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">Mark as Completed</button>
+
+</div>
+
+<script>
+// --- Video Player Logic ---
+
+function startVideo() {
+    const video = document.getElementById('lessonVideo');
+    const poster = document.getElementById('videoPoster');
+
+    poster.classList.add('hidden');
+    video.play();
+}
+
+// When video ends, optionally show poster again or keep controls visible
+document.getElementById('lessonVideo').addEventListener('ended', function() {
+    // Optionally reset poster
+    // document.getElementById('videoPoster').classList.remove('hidden');
+});
+
+// --- Completion Logic ---
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                let courseId = 'computer-vision';
+                let pathId = 'perception-systems';
+                let moduleId = 'physics-of-light';
+                let lessonId = 'wavelength-energy-dance-video';
+
+                // Route override check
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+
+        button.classList.add('completed');
+        button.innerHTML = 'Completed!';
+        triggerCelebration();
+
+        localStorage.setItem('lesson_wavelength_energy_video_completed', 'true');
+    }
+}
+
+// --- Celebration Effects ---
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+
+    const emojis = ['🎬', '📐', '✨', '🌟', '🎥', '💡'];
+    const colors = ['#667eea', '#764ba2', '#4facfe', '#00f2fe'];
+
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.5) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '&#9679;';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+
+    setTimeout(() => {
+        if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer);
+    }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = 'Video Completed! Great Learning!';
+    document.body.appendChild(successMessage);
+    setTimeout(() => {
+        if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage);
+    }, 2500);
+}
+
+// --- Initialization ---
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+
+    // Check parent tracker
+    if (window.parent && window.parent.ProgressTracker) {
+        let courseId = 'computer-vision';
+        let pathId = 'perception-systems';
+        let moduleId = 'physics-of-light';
+        let lessonId = 'wavelength-energy-dance-video';
+
+        if (window.parent.currentRoute) {
+            const route = window.parent.currentRoute;
+            if (route.courseId) courseId = route.courseId;
+            if (route.pathId) pathId = route.pathId;
+            if (route.moduleId) moduleId = route.moduleId;
+            if (route.lessonId) lessonId = route.lessonId;
+        }
+
+        try {
+            const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+            if (progress && progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+                button.classList.add('completed');
+                button.innerHTML = 'Completed!';
+                return;
+            }
+        } catch(e) { console.log("Tracker error", e); }
+    }
+
+    // Check local storage fallback
+    const isCompleted = localStorage.getItem('lesson_wavelength_energy_video_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = 'Completed!';
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Big Picture: Time, Frequency, and Superposition</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <h1>The Matrix of Signals</h1>
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Complex Signal Diagnosis: Confusion at a jagged waveform vs. Enlightenment seeing 3 glowing sine waves">
+    </div>
+    <p>Welcome to the matrix of signal processing. When you look at an image or a signal, what do you see? Usually, you see values changing over time or space. But just like in The Matrix, there is a hidden layer of reality beneath the surface. Today, we take the red pill and enter the Frequency Domain.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Time vs Frequency Intro -->
+<section id="section2">
+    <h2>Time vs. Frequency</h2>
+    <p>To understand the Fourier Transform, we first need to agree on what a 'Signal' is. Usually, we think in the <strong>Time Domain</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Music Analogy (Sheet Music) -->
+<section id="section3">
+    <p>Imagine reading a piece of sheet music note by note, from left to right. You are experiencing the music in time. You see <em>when</em> the loudness changes.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Music Analogy (Chords) -->
+<section id="section4">
+    <p>Now, imagine looking at the same piece of music, but instead of reading it, someone instantly tells you: 'This piece is made of a C-Major chord and a G-Major chord.' They are describing the <strong>frequencies</strong> present, regardless of when they happen.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: The Distinction & Meme -->
+<section id="section5">
+    <p>That is the <strong>Frequency Domain</strong>. It doesn't ask <em>'When did the value change?'</em> It asks <em>'How fast is the value changing?'</em></p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Meme: 'The signal she tells you not to worry about' (noisy input) vs 'What the signal actually is' (clean sine waves)">
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: Definition & Vocab -->
+<section id="section6">
+    <p>This distinction is crucial. In Computer Vision, shifting from the spatial domain (pixels) to the frequency domain allows us to do things that seem like magic, like compressing a huge image into a tiny JPEG or removing noise without blurring the edges.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Time Domain vs. Frequency Domain</h4>
+        <p>The Time Domain analyzes a signal's changes over time (or space, for images). The Frequency Domain analyzes how much of each specific frequency exists within that signal.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Visualization -->
+<section id="section7">
+    <p>Let's visualize this relationship. Below is a dual-view animation. As the complex wave wiggles in time (top), look at what happens to the frequency bars (bottom).</p>
+    <div class="interactive-container">
+        <div class="interactive-label top-label">Time Domain (Signal History)</div>
+        <canvas id="signalCanvas"></canvas>
+        <div class="interactive-label bottom-label">Frequency Domain (The Ingredients)</div>
+        <div class="interactive-hint">👆 Hover over a bar to isolate that frequency</div>
+    </div>
+    
+    <script>
+    (function() {
+        const canvas = document.getElementById('signalCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Fallback for roundRect if not supported
+        if (!ctx.roundRect) {
+            ctx.roundRect = function(x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                this.beginPath();
+                this.moveTo(x + r, y);
+                this.arcTo(x + w, y, x + w, y + h, r);
+                this.arcTo(x + w, y + h, x, y + h, r);
+                this.arcTo(x, y + h, x, y, r);
+                this.arcTo(x, y, x + w, y, r);
+                this.closePath();
+                return this;
+            };
+        }
+        
+        // Configuration
+        const harmonics = [
+            { f: 1,  amp: 0.5, color: '#667eea' }, // Fundamental
+            { f: 2,  amp: 0.3, color: '#764ba2' },
+            { f: 3,  amp: 0.2, color: '#ec4899' },
+            { f: 5,  amp: 0.1, color: '#4facfe' },
+            { f: 8,  amp: 0.1, color: '#00f2fe' }
+        ];
+        
+        // State
+        let time = 0;
+        let wavePath = [];
+        const maxPathLength = 500; // How much history to keep
+        let hoveredBarIndex = -1;
+    
+        // Handle resizing
+        function resize() {
+            // Look up the size the canvas is being displayed
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+    
+            // If it's resolution does not match change it
+            if (canvas.width !== width || canvas.height !== height) {
+                canvas.width = width;
+                canvas.height = height;
+                // Clear path on resize to avoid scaling artifacts
+                wavePath = [];
+            }
+        }
+        window.addEventListener('resize', resize);
+        resize();
+    
+        // Interaction
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const h = canvas.height;
+            
+            // Check if mouse is in bottom half
+            if (y > h / 2) {
+                const barWidth = (canvas.width * 0.8) / harmonics.length;
+                const startX = canvas.width * 0.1;
+                
+                // Calculate which bar is hovered
+                const index = Math.floor((x - startX) / barWidth);
+                if (index >= 0 && index < harmonics.length) {
+                    hoveredBarIndex = index;
+                } else {
+                    hoveredBarIndex = -1;
+                }
+            } else {
+                hoveredBarIndex = -1;
+            }
+        });
+    
+        canvas.addEventListener('mouseleave', () => {
+            hoveredBarIndex = -1;
+        });
+    
+        function draw() {
+            const w = canvas.width;
+            const h = canvas.height;
+            const halfH = h / 2;
+            
+            ctx.clearRect(0, 0, w, h);
+            
+            // Draw Separator Line
+            ctx.beginPath();
+            ctx.moveTo(0, halfH);
+            ctx.lineTo(w, halfH);
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.setLineDash([]);
+    
+            // 1. UPDATE AMPLITUDES (The "Dance")
+            // We vary amplitudes using sine waves at different speeds to create organic movement
+            harmonics.forEach((h, i) => {
+                if (hoveredBarIndex !== -1) {
+                    // If hovering, boost selected, mute others
+                    if (i === hoveredBarIndex) {
+                        h.currentAmp = 1.0; 
+                    } else {
+                        h.currentAmp = 0.1;
+                    }
+                } else {
+                    // Organic auto-animation
+                    // Math.sin(time * speed) mapped to 0.1 -> 0.9 range
+                    const oscillator = Math.sin(time * (0.02 + i * 0.01) + i); 
+                    h.currentAmp = 0.2 + (oscillator * 0.5 + 0.5) * 0.6;
+                }
+            });
+    
+            // 2. CALCULATE TIME DOMAIN POINT
+            // Sum of all sine waves: y(t) = sum( Amp * sin(freq * t) )
+            let ySum = 0;
+            let maxPossibleAmp = 0; // Used for normalization
+            
+            harmonics.forEach(h => {
+                // frequency multiplier acts as speed of the sine wave
+                ySum += h.currentAmp * Math.sin(time * h.f * 0.1); 
+                maxPossibleAmp += 1.0; // Theoretical max if all amps were 1.0
+            });
+    
+            // Normalize y to fit in the top pane (padding 20px)
+            const normalizedY = (ySum / 2.5) * (halfH / 2 - 20); 
+            
+            // Add to history
+            wavePath.push(normalizedY);
+            if (wavePath.length > w) wavePath.shift();
+    
+            // 3. DRAW TIME DOMAIN (Top Pane)
+            ctx.beginPath();
+            ctx.strokeStyle = '#4facfe'; // Fallback
+            
+            // Create gradient for the line
+            const gradient = ctx.createLinearGradient(0, 0, w, 0);
+            gradient.addColorStop(0, 'rgba(79, 172, 254, 0)'); // Fade in
+            gradient.addColorStop(0.2, '#4facfe');
+            gradient.addColorStop(1, '#00f2fe');
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 3;
+    
+            for (let i = 0; i < wavePath.length; i++) {
+                const x = w - (wavePath.length - i); // Draw from right to left
+                const y = (halfH / 2) + wavePath[i];
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+    
+            // Draw center line for Time Domain
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+            ctx.lineWidth = 1;
+            ctx.moveTo(0, halfH/2);
+            ctx.lineTo(w, halfH/2);
+            ctx.stroke();
+    
+            // 4. DRAW FREQUENCY DOMAIN (Bottom Pane)
+            const barWidth = (w * 0.8) / harmonics.length;
+            const startX = w * 0.1; // Center the chart horizontally
+            const chartBottom = h - 30;
+            const maxBarHeight = (halfH - 60);
+    
+            harmonics.forEach((harm, i) => {
+                const barHeight = harm.currentAmp * maxBarHeight;
+                const x = startX + (i * barWidth) + (barWidth * 0.1); // gap
+                const y = chartBottom - barHeight;
+                const bw = barWidth * 0.8;
+    
+                // Draw Bar
+                ctx.fillStyle = harm.color;
+                
+                // If hovering over this bar, add a glow
+                if (i === hoveredBarIndex) {
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = harm.color;
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+    
+                // Rounded top bars
+                ctx.beginPath();
+                ctx.roundRect(x, y, bw, barHeight, [5, 5, 0, 0]);
+                ctx.fill();
+                ctx.shadowBlur = 0; // Reset
+    
+                // Label (Frequency Hz approximation)
+                ctx.fillStyle = '#64748b';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${harm.f}x`, x + bw/2, chartBottom + 20);
+            });
+    
+            // 5. LOOP
+            time += 1; // Animation speed
+            requestAnimationFrame(draw);
+        }
+    
+        // Start animation
+        draw();
+    })();
+    </script>
+    <p>Notice that a complicated shape in the Time Domain is just a specific recipe of heights in the Frequency Domain.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Superposition Intro -->
+<section id="section8">
+    <h2>The Superposition Principle</h2>
+    <p>So, how do we get from a simple sine wave to the complex shapes we see in the real world?</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Fourier's Discovery -->
+<section id="section9">
+    <p>The answer lies in the <strong>Superposition Principle</strong>. This is the core idea developed by Joseph Fourier.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Vocab & Concept -->
+<section id="section10">
+    <p>Fourier discovered that essentially <strong>any</strong> periodic signal, no matter how complex or jagged, can be constructed by simply adding together (summing) simple sine or cosine waves.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Superposition</h4>
+        <p>The principle that a complex effect is the sum of several simpler causes. In signals, it means a complex wave is created by adding multiple simple sine waves together.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Cooking Analogy & Harmonics -->
+<section id="section11">
+    <p>Think of it like cooking. The complex signal is the final dish. The sine waves are the ingredients. You just need to know the recipe: which frequencies to use (the ingredients) and how strong to make them (the amount).</p>
+    <p>We call these ingredients <strong>Harmonics</strong>. The main ingredient is the <strong>Fundamental Frequency</strong> ($f_0$). The spices are integer multiples of that frequency ($2f_0, 3f_0, 4f_0, \dots$).</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If our Fundamental Frequency ($f_0$) is 50Hz, what is the frequency of the 3rd Harmonic?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Harmonics are multiples, not additions.')">53Hz</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. The 3rd harmonic is $3 \\times f_0$. So $3 \\times 50\\text{Hz} = 150\\text{Hz}$.')">150Hz</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Harmonics are usually higher frequencies (multiples), not fractions.')">25Hz</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Square Wave Intro -->
+<section id="section12">
+    <h2>Example: Building a Square Wave</h2>
+    <p>Let's prove it. We are going to build a <strong>Square Wave</strong>. A square wave looks impossible to make with curves—it has sharp 90-degree corners and flat tops.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: The Recipe -->
+<section id="section13">
+    <p>To build a square wave, we need a specific recipe. We take the fundamental frequency ($f_0$), and we add <strong>only the odd harmonics</strong> ($3f_0, 5f_0, 7f_0 \dots$) with decreasing amplitudes.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Steps -->
+<section id="section14">
+    <p>
+        1. <strong>Start:</strong> One sine wave ($f_0$). It looks like a round hill.<br>
+        2. <strong>Add:</strong> The 3rd harmonic ($3f_0$). It flattens the top of the hill.<br>
+        3. <strong>Add:</strong> The 5th harmonic ($5f_0$). It sharpens the corners.
+    </p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Simulator & Stop and Think -->
+<section id="section15">
+    <p>Don't just take my word for it. Build it yourself.</p>
+    <div class="wave-builder-container">
+        <div class="canvas-wrapper">
+            <canvas id="squareBuilderCanvas"></canvas>
+            <div class="graph-overlay">Time Domain Output</div>
+        </div>
+        
+        <div class="controls-wrapper">
+            <div class="control-header">
+                <h3>Harmonic Recipe</h3>
+                <p>Adjust ingredients to bake a square.</p>
+            </div>
+            
+            <!-- Slider 1: Fundamental -->
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>Fundamental ($f_0$)</span>
+                    <span class="slider-value" id="val-1">0%</span>
+                </div>
+                <input type="range" min="0" max="100" value="0" class="harmonic-slider" data-harmonic="1" aria-label="Fundamental Frequency Amount">
+            </div>
+    
+            <!-- Slider 3 -->
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>3rd Harmonic ($3f_0$)</span>
+                    <span class="slider-value" id="val-3">0%</span>
+                </div>
+                <input type="range" min="0" max="100" value="0" class="harmonic-slider" data-harmonic="3" aria-label="3rd Harmonic Amount">
+            </div>
+    
+            <!-- Slider 5 -->
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>5th Harmonic ($5f_0$)</span>
+                    <span class="slider-value" id="val-5">0%</span>
+                </div>
+                <input type="range" min="0" max="100" value="0" class="harmonic-slider" data-harmonic="5" aria-label="5th Harmonic Amount">
+            </div>
+    
+            <!-- Slider 7 -->
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>7th Harmonic ($7f_0$)</span>
+                    <span class="slider-value" id="val-7">0%</span>
+                </div>
+                <input type="range" min="0" max="100" value="0" class="harmonic-slider" data-harmonic="7" aria-label="7th Harmonic Amount">
+            </div>
+    
+            <!-- Slider 9 -->
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>9th Harmonic ($9f_0$)</span>
+                    <span class="slider-value" id="val-9">0%</span>
+                </div>
+                <input type="range" min="0" max="100" value="0" class="harmonic-slider" data-harmonic="9" aria-label="9th Harmonic Amount">
+            </div>
+            
+            <button class="reset-btn" onclick="resetSliders()">Reset to Flat</button>
+        </div>
+    </div>
+    
+    <script>
+    // Global function needed for the HTML button
+    window.resetSliders = function() {};
+    
+    (function() {
+        const canvas = document.getElementById('squareBuilderCanvas');
+        const ctx = canvas.getContext('2d');
+        const sliders = document.querySelectorAll('.harmonic-slider');
+        
+        // State: Percentage (0-1) for each harmonic
+        let harmonics = {
+            1: 0,
+            3: 0,
+            5: 0,
+            7: 0,
+            9: 0
+        };
+        
+        let time = 0;
+    
+        // Reset Function
+        window.resetSliders = function() {
+            sliders.forEach(s => {
+                s.value = 0;
+                updateHarmonic(s);
+            });
+        };
+    
+        // Update state from inputs
+        function updateHarmonic(slider) {
+            const h = parseInt(slider.dataset.harmonic);
+            const val = parseInt(slider.value);
+            harmonics[h] = val / 100;
+            
+            // Update Label Text
+            const label = document.getElementById(`val-${h}`);
+            if(label) label.innerText = `${val}%`;
+        }
+    
+        // Attach listeners
+        sliders.forEach(slider => {
+            slider.addEventListener('input', (e) => updateHarmonic(e.target));
+        });
+    
+        // Resize Handling
+        function resize() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+    
+        function draw() {
+            const w = canvas.width;
+            const h = canvas.height;
+            const cy = h / 2;
+            
+            ctx.clearRect(0, 0, w, h);
+    
+            // 1. Draw Grid
+            ctx.strokeStyle = '#f1f5f9';
+            ctx.lineWidth = 1;
+            // Horizontal center
+            ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
+            // Vertical grid lines
+            for(let x=0; x<w; x+=50) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+            }
+    
+            // 2. Calculate Wave
+            ctx.beginPath();
+            ctx.lineWidth = 3;
+            
+            // Dynamic gradient for the wave line
+            const gradient = ctx.createLinearGradient(0, 0, w, 0);
+            gradient.addColorStop(0, '#4facfe');
+            gradient.addColorStop(1, '#00f2fe');
+            ctx.strokeStyle = gradient;
+    
+            // Wave Parameters
+            const frequency = 0.02; // Base width
+            const speed = 2.0;
+            const amplitudeScale = h * 0.35; // Height scaling
+    
+            for (let x = 0; x < w; x++) {
+                let yVal = 0;
+                
+                // Fourier Summation
+                // Square Wave Recipe: sum( sin(k*x) / k ) for odd k
+                // We multiply by our slider percentage to allow the user to fade them in/out
+                
+                // Fundamental
+                yVal += harmonics[1] * Math.sin((x * frequency + time) * 1);
+                
+                // 3rd Harmonic (scaled by 1/3 automatically)
+                yVal += harmonics[3] * (1/3) * Math.sin((x * frequency + time) * 3);
+                
+                // 5th Harmonic (scaled by 1/5)
+                yVal += harmonics[5] * (1/5) * Math.sin((x * frequency + time) * 5);
+                
+                // 7th Harmonic (scaled by 1/7)
+                yVal += harmonics[7] * (1/7) * Math.sin((x * frequency + time) * 7);
+                
+                // 9th Harmonic (scaled by 1/9)
+                yVal += harmonics[9] * (1/9) * Math.sin((x * frequency + time) * 9);
+    
+                // Scale to canvas pixels
+                // We multiply by 1.27 (4/PI) so that a fully formed square wave 
+                // reaches roughly -1 to 1 range, though purely for visual fit we just scale to canvas
+                const plotY = cy - (yVal * amplitudeScale * 1.2);
+    
+                if (x === 0) ctx.moveTo(x, plotY);
+                else ctx.lineTo(x, plotY);
+            }
+            ctx.stroke();
+    
+            // 3. Draw Ghost "Perfect Square" (Optional, helps visualize goal)
+            // Only draw if fundamental is > 0 to avoid confusion
+            if (harmonics[1] > 0.1) {
+                ctx.strokeStyle = 'rgba(100, 116, 139, 0.1)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let x = 0; x < w; x++) {
+                    // Ideally this is Math.sign(Math.sin(...))
+                    const perfectY = Math.sign(Math.sin((x * frequency + time))) * amplitudeScale * 0.95; // 0.95 to align with Gibbs overshoot roughly
+                    if (x===0) ctx.moveTo(x, cy - perfectY);
+                    else ctx.lineTo(x, cy - perfectY);
+                }
+                ctx.stroke();
+            }
+    
+            time -= speed * 0.02; // Move wave to the right (visually usually signals move left, but standard conv)
+            // Let's move signal left (time increases):
+            // sin(kx - wt) moves right. sin(kx + wt) moves left.
+            // We used +time, and decreasing time, so it moves right. 
+            // Let's make it move left like an oscilloscope trace.
+            // time += speed * 0.02; 
+            
+            requestAnimationFrame(draw);
+        }
+    
+        draw();
+    })();
+    </script>
+    <p>See that? As you added more high-frequency odd harmonics, the curves turned into corners.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>If we wanted to create a <em>perfect</em> square wave with perfectly vertical sides and perfectly sharp 90-degree corners, how many harmonics would we theoretically need?</h4>
+        <div id="sat-square-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> Infinite! A perfect vertical line requires an infinite number of high-frequency sine waves to create that instant change. In the real world, we settle for 'close enough'.</div>
+        <button class="reveal-button" onclick="revealAnswer('sat-square-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16: Why It Matters Intro -->
+<section id="section16">
+    <h2>Why It Matters</h2>
+    <p>You might be asking, 'Why do I care about building square waves? I want to build Computer Vision models.'</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- Section 17: Images are Signals -->
+<section id="section17">
+    <p>Here is the secret: Images are just signals. An edge in an image (like the side of a building against the sky) is basically a square wave—a sudden jump in brightness.</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- Section 18: Noise & Compression -->
+<section id="section18">
+    <p>If we can decompose an image into these frequencies, we can control it.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>If an image has 'noise' (speckles), that is usually just high-frequency garbage. If we decompose the image, delete the highest frequencies, and put it back together, the noise is gone. This is the basis of filtering and JPEG compression.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<!-- Section 19: Review and Reflect -->
+<section id="section19">
+    <h2>Review and Reflect</h2>
+    <p>You have taken the first step into the Frequency Domain. It requires a shift in perspective, but it unlocks powerful tools for analyzing data.</p>
+    <p>To recap:</p>
+    <ul>
+        <li><strong>Time Domain</strong> shows <em>when</em> changes happen. <strong>Frequency Domain</strong> shows <em>what</em> rates of change exist.</li>
+        <li><strong>Superposition</strong> lets us build complex signals by summing simple sine waves.</li>
+        <li>Complex shapes like a <strong>Square Wave</strong> are built by adding specific <strong>Harmonics</strong> (in this case, odd multiples).</li>
+    </ul>
+    <p>In the next lesson, we will learn the intuition behind <em>how</em> to find these hidden frequencies in an unknown signal using a concept called correlation.</p>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following recipes creates a Square Wave?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Close, but that actually creates a \'Sawtooth\' wave.')">Summing sine waves of ALL integer frequencies ($f_0, 2f_0, 3f_0 \dots$)</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The odd harmonics flatten the peaks and steepen the sides to form a square.')">Summing sine waves of ODD harmonics ($f_0, 3f_0, 5f_0 \dots$)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Superposition relies on SUMMING (adding) waves, not multiplying them.')">Multiplying sine waves together.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="revealFaq()" style="display: none;">Continue</div>
+
+    <div id="faq-container" style="display:none; margin-top: 30px;" class="animate-in">
+        <div class="faq-section">
+            <h3>Frequently Asked Question</h3>
+            <h4>Does this work for non-repeating signals?</h4>
+            <div id="faq-answer" style="display:none;" class="animate-in">
+                <strong>Answer:</strong> Great question! The Fourier <em>Series</em> (what we looked at today) is for periodic (repeating) signals. For non-repeating signals, we use the Fourier <em>Transform</em>, which treats the signal as having one infinite period. The concept of breaking it down into frequencies remains exactly the same!
+            </div>
+            <button class="reveal-button" onclick="revealAnswer('faq-answer')">Reveal Answer</button>
+        </div>
+    </div>
+
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 19;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    // Trigger resize to fix canvas dimensions in newly visible sections
+    window.dispatchEvent(new Event('resize'));
+
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function revealFaq() {
+    const faqContainer = document.getElementById('faq-container');
+    const continueBtn = document.getElementById('continue-after-test-knowledge');
+    if (faqContainer) {
+        faqContainer.style.display = 'block';
+        faqContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    if (continueBtn) {
+        continueBtn.style.display = 'none';
+    }
+    // Since FAQ is part of section 19, we don't increment section count, but we show the complete button
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+        // Re-typeset math in revealed answer if necessary
+        if (window.MathJax) MathJax.typesetPromise([revealText]);
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Re-typeset math in explanation
+    if (window.MathJax) MathJax.typesetPromise([explanationDiv]);
+
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section19') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                 // Mock IDs for the new lesson path
+                let courseId = 'computer-vision';
+                let pathId = 'signal-processing';
+                let moduleId = 'cv-ch02-m1-frequency';
+                let lessonId = 'cv-ch02-l1-time-vs-freq';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch02-l1-time-vs-freq_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '🌊', '📈'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch02-l1-time-vs-freq_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

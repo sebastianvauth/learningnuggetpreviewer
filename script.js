@@ -581,16 +581,22 @@ class AuthManager {
 
     updateNavigationVisibility() {
         const searchContainer = document.querySelector('.header-search');
-        const navButtons = document.querySelectorAll('.nav-btn');
-        
+        const navButtons = document.querySelectorAll('.nav-btn, .duo-nav-btn');
+        const courseDropdown = document.querySelector('.course-dropdown');
+        const statsBar = document.querySelector('.duo-stats-bar');
+
         if (this.isAuthenticated()) {
             // Show all navigation elements for authenticated users
             if (searchContainer) searchContainer.style.display = 'block';
             navButtons.forEach(btn => btn.style.display = 'flex');
+            if (courseDropdown) courseDropdown.style.display = 'flex';
+            if (statsBar) statsBar.style.display = 'flex';
         } else {
             // Hide navigation elements for unauthenticated users
             if (searchContainer) searchContainer.style.display = 'none';
             navButtons.forEach(btn => btn.style.display = 'none');
+            if (courseDropdown) courseDropdown.style.display = 'none';
+            if (statsBar) statsBar.style.display = 'none';
         }
     }
 
@@ -824,19 +830,118 @@ async function loadRecentLessons() {
 const ProgressTracker = {
     // Storage keys
     STORAGE_KEY: 'learning_nugget_progress',
-    
+    CURRENT_COURSE_KEY: 'learning_nugget_current_course',
+
     // Progress states
     STATES: {
         NOT_STARTED: 'not_started',
         VIEWED: 'viewed',
-        IN_PROGRESS: 'in_progress', 
+        IN_PROGRESS: 'in_progress',
         COMPLETED: 'completed'
+    },
+
+    // XP Values for gamification
+    XP_VALUES: {
+        LESSON_VIEW: 5,
+        LESSON_COMPLETE: 15,
+        MODULE_COMPLETE: 50,
+        STREAK_BONUS_PER_DAY: 2,
+        STREAK_BONUS_CAP: 20,
+        PERFECT_DAY: 25  // Bonus for 3+ lessons in a day
     },
 
     // Initialize progress tracking
     init() {
         this.loadProgress();
+        this.updateHeaderStats();
         console.log('Progress tracking initialized');
+    },
+
+    // ========== CURRENT COURSE MANAGEMENT ==========
+
+    getCurrentCourse() {
+        return localStorage.getItem(this.CURRENT_COURSE_KEY) || 'computer-vision';
+    },
+
+    setCurrentCourse(courseId) {
+        localStorage.setItem(this.CURRENT_COURSE_KEY, courseId);
+        this.updateCourseDropdownDisplay();
+    },
+
+    // ========== XP SYSTEM ==========
+
+    getTotalXP() {
+        if (!this.progressData.xp) {
+            this.progressData.xp = { total: 0, history: [] };
+        }
+        return this.progressData.xp.total || 0;
+    },
+
+    awardXP(amount, reason, options = {}) {
+        if (!this.progressData.xp) {
+            this.progressData.xp = { total: 0, history: [] };
+        }
+
+        const previousXP = this.progressData.xp.total || 0;
+        this.progressData.xp.total = previousXP + amount;
+
+        // Record in history
+        this.progressData.xp.history.push({
+            amount,
+            reason,
+            timestamp: Date.now(),
+            streak: this.getCurrentStreak()
+        });
+
+        // Keep history manageable (last 100 entries)
+        if (this.progressData.xp.history.length > 100) {
+            this.progressData.xp.history = this.progressData.xp.history.slice(-100);
+        }
+
+        this.saveProgress();
+
+        // Trigger XP animation if not silent
+        if (!options.silent && typeof triggerXPAnimation === 'function') {
+            triggerXPAnimation(amount, reason);
+        }
+
+        // Update header display
+        this.updateHeaderXP();
+
+        return { previousXP, newXP: this.progressData.xp.total, gained: amount };
+    },
+
+    // Update header XP display
+    updateHeaderXP() {
+        const xpElement = document.getElementById('header-xp-count');
+        if (xpElement) {
+            const xp = this.getTotalXP();
+            xpElement.textContent = `${xp} XP`;
+            xpElement.classList.add('xp-updated');
+            setTimeout(() => xpElement.classList.remove('xp-updated'), 500);
+        }
+    },
+
+    // Update header streak display
+    updateHeaderStreak() {
+        const streakElement = document.getElementById('header-streak-count');
+        if (streakElement) {
+            streakElement.textContent = this.getCurrentStreak();
+        }
+    },
+
+    // Update all header stats
+    updateHeaderStats() {
+        this.updateHeaderXP();
+        this.updateHeaderStreak();
+    },
+
+    // Update course dropdown display
+    updateCourseDropdownDisplay() {
+        // This will be called after courses are loaded
+        if (typeof updateCourseDropdown === 'function') {
+            updateCourseDropdown();
+        }
     },
 
     // Load progress from localStorage
@@ -1085,13 +1190,17 @@ const ProgressTracker = {
         console.log(`Lesson marked as viewed: ${key}`);
     },
 
-    // Mark lesson as completed (Enhanced with Supabase sync)
+    // Mark lesson as completed (Enhanced with Supabase sync + XP)
     async markLessonCompleted(courseId, pathId, moduleId, lessonId) {
         const key = this.getLessonKey(courseId, pathId, moduleId, lessonId);
         const now = Date.now();
-        
+
+        // Check if already completed to prevent double XP
+        const existingProgress = this.progressData[key];
+        const wasAlreadyCompleted = existingProgress?.state === this.STATES.COMPLETED;
+
         console.log(`Marking lesson as completed: ${key}`);
-        
+
         if (!this.progressData[key]) {
             this.progressData[key] = {
                 state: this.STATES.COMPLETED,
@@ -1105,10 +1214,33 @@ const ProgressTracker = {
             this.progressData[key].completedAt = now;
             this.progressData[key].lastViewed = now;
         }
-        
+
         this.saveProgress();
         this.addDailyActivity(); // Track daily activity
         console.log(`Lesson marked as completed locally: ${key}`);
+
+        // Award XP if not already completed
+        if (!wasAlreadyCompleted) {
+            // Base XP for lesson completion
+            this.awardXP(this.XP_VALUES.LESSON_COMPLETE, 'Lesson completed!', { silent: true });
+
+            // Streak bonus
+            const streak = this.getCurrentStreak();
+            if (streak > 1) {
+                const streakBonus = Math.min(streak * this.XP_VALUES.STREAK_BONUS_PER_DAY, this.XP_VALUES.STREAK_BONUS_CAP);
+                this.awardXP(streakBonus, `${streak} day streak bonus!`, { silent: true });
+            }
+
+            // Check for perfect day bonus (3+ lessons today)
+            const todayProgress = this.getTodayProgress();
+            if (todayProgress === 3) {
+                this.awardXP(this.XP_VALUES.PERFECT_DAY, 'Perfect day bonus!', { silent: true });
+            }
+
+            // Update header stats
+            this.updateHeaderStats();
+        }
+
         try {
             // Notify UI layers to refresh progress displays
             if (typeof window !== 'undefined') {
@@ -1740,25 +1872,14 @@ function renderHomeDashboard(courses) {
         duration.textContent = '6 min';
         featuredCard.appendChild(duration);
         
-        // Continue button
+        // Continue button - all lessons are now accessible
         const continueButton = document.createElement('button');
         continueButton.className = 'featured-continue-btn';
         continueButton.textContent = currentCourseRec.type === 'continue' ? 'Continue' : 'Start';
-        // Enforce primary lesson and unlocked path for the featured "Start/Continue" button
-        const homePathLocked = shouldLockLearningPath(currentCourseRec.course, currentCourseRec.path);
-        const homeIsPrimary = isPrimaryLesson(currentCourseRec.lesson);
-        if (!homePathLocked && homeIsPrimary) {
-            continueButton.addEventListener('click', () => {
-                navigateToLesson(currentCourseRec.course.id, currentCourseRec.path.id, currentCourseRec.module.id, currentCourseRec.lesson.id);
-            });
-        } else {
-            continueButton.disabled = true;
-            continueButton.style.opacity = '0.7';
-            continueButton.style.cursor = 'not-allowed';
-            continueButton.textContent = 'Locked';
-        }
+        continueButton.addEventListener('click', () => {
+            navigateToLesson(currentCourseRec.course.id, currentCourseRec.path.id, currentCourseRec.module.id, currentCourseRec.lesson.id);
+        });
         featuredCard.appendChild(continueButton);
-        applyDisabledCardState(featuredCard, { buttonElement: continueButton });
         
         featuredSection.appendChild(featuredCard);
         
@@ -1885,27 +2006,16 @@ function updateFeaturedCard(course, allCourses, courseIndex) {
             const description = featuredCard.querySelector('.featured-description');
             if (description) description.textContent = courseRec.lesson.description || `Continue learning in ${courseRec.module.title}`;
             
-            // Update button text and handler
+            // Update button text and handler - all lessons are accessible
             const button = featuredCard.querySelector('.featured-continue-btn');
             if (button) {
                 button.textContent = courseRec.type === 'continue' ? 'Continue' : 'Start';
-                const recPathLocked = shouldLockLearningPath(courseRec.course, courseRec.path);
-                const recIsPrimary = isPrimaryLesson(courseRec.lesson);
-                button.onclick = null;
-                if (!recPathLocked && recIsPrimary) {
-                    button.disabled = false;
-                    button.style.opacity = '';
-                    button.style.cursor = 'pointer';
-                    button.onclick = () => {
-                        navigateToLesson(courseRec.course.id, courseRec.path.id, courseRec.module.id, courseRec.lesson.id);
-                    };
-                } else {
-                    button.disabled = true;
-                    button.style.opacity = '0.7';
-                    button.style.cursor = 'not-allowed';
-                    button.textContent = 'Locked';
-                }
-                applyDisabledCardState(featuredCard, { buttonElement: button });
+                button.disabled = false;
+                button.style.opacity = '';
+                button.style.cursor = 'pointer';
+                button.onclick = () => {
+                    navigateToLesson(courseRec.course.id, courseRec.path.id, courseRec.module.id, courseRec.lesson.id);
+                };
             }
             
             featuredCard.style.opacity = '1';
@@ -1961,20 +2071,8 @@ function getUnlockedChapterFloor(course) {
 }
 
 function shouldLockLearningPath(course, path) {
-    try {
-        if (!course || !path) return false;
-        
-        const unlockFloor = getUnlockedChapterFloor(course);
-        if (unlockFloor === null) return false;
-        
-        const chapterNumber = getChapterNumberFromFolder(path.folder || path.id || '');
-        if (chapterNumber === null) return false;
-        
-        return chapterNumber < unlockFloor;
-    } catch (error) {
-        console.warn('Unable to determine lock state for learning path:', error);
-        return false;
-    }
+    // All learning paths are now unlocked
+    return false;
 }
 
 function applyDisabledCardState(cardElement, options = {}) {
@@ -1996,13 +2094,10 @@ function applyDisabledCardState(cardElement, options = {}) {
 }
 
 // Determine if a lesson is a primary "L" lesson (clickable)
+// All lessons are now accessible - no restrictions based on filename prefix
 function isPrimaryLesson(lesson) {
-    try {
-        const file = (lesson && lesson.file ? lesson.file : '').toLowerCase();
-        return file.startsWith('l');
-    } catch (_) {
-        return false;
-    }
+    // All lessons are treated as primary/accessible
+    return true;
 }
 
 function renderLearningPathsView(course) {
@@ -2030,59 +2125,6 @@ function renderLearningPathsView(course) {
     `;
     heroSection.appendChild(breadcrumb);
 
-    // Course header
-    const courseHeader = document.createElement('div');
-    courseHeader.className = 'course-header';
-
-    if (course.icon) {
-        const courseIcon = document.createElement('img');
-        courseIcon.src = course.icon;
-        courseIcon.className = 'course-header-icon';
-        courseIcon.alt = '';
-        courseHeader.appendChild(courseIcon);
-    }
-
-    const courseInfo = document.createElement('div');
-    courseInfo.className = 'course-header-info';
-
-    const courseTitle = document.createElement('h1');
-    courseTitle.className = 'course-header-title';
-    courseTitle.textContent = course.title;
-    courseInfo.appendChild(courseTitle);
-
-    const courseDescription = document.createElement('p');
-    courseDescription.className = 'course-header-description';
-    courseDescription.textContent = course.description || 'Master the concepts through interactive lessons and exercises.';
-    courseInfo.appendChild(courseDescription);
-
-    // Course statistics
-    const courseStats = document.createElement('div');
-    courseStats.className = 'course-header-stats';
-    
-    const totalLessons = course.learningPaths.reduce((total, path) => 
-        total + path.modules.reduce((pathTotal, module) => 
-            pathTotal + (module.lessons ? module.lessons.length : 0), 0), 0);
-    
-    const courseProgress = ProgressTracker.getCourseProgress(course.id, course.learningPaths);
-    
-    courseStats.innerHTML = `
-        <div class="course-stat-item">
-            <span class="stat-number">${course.learningPaths.length}</span>
-            <span class="stat-label">Learning Paths</span>
-        </div>
-        <div class="course-stat-item">
-            <span class="stat-number">${totalLessons}</span>
-            <span class="stat-label">Lessons</span>
-        </div>
-        <div class="course-stat-item">
-            <span class="stat-number">${courseProgress.percentage}%</span>
-            <span class="stat-label">Complete</span>
-        </div>
-    `;
-    courseInfo.appendChild(courseStats);
-
-    courseHeader.appendChild(courseInfo);
-    heroSection.appendChild(courseHeader);
     mainElement.appendChild(heroSection);
 
     if (!course.learningPaths || course.learningPaths.length === 0) {
@@ -2097,55 +2139,9 @@ function renderLearningPathsView(course) {
         return;
     }
 
-    // Continue Learning Section
-    const suggestedLesson = ProgressTracker.getSuggestedNextLesson(course.id, course.learningPaths);
-    if (suggestedLesson) {
-        const continueSection = document.createElement('div');
-        continueSection.className = 'continue-learning-section';
-        
-        const continueTitle = document.createElement('h2');
-        continueTitle.className = 'continue-section-title';
-        continueTitle.textContent = suggestedLesson.isFirstLesson ? '🚀 Start Your Journey' : '📚 Continue Learning';
-        continueSection.appendChild(continueTitle);
-        
-        const continueCard = document.createElement('div');
-        continueCard.className = 'modern-continue-card';
-        
-        // Find the lesson details for display
-        const suggestedPath = course.learningPaths.find(p => p.id === suggestedLesson.pathId);
-        const suggestedModule = suggestedPath?.modules.find(m => m.id === suggestedLesson.moduleId);
-        const suggestedLessonObj = suggestedModule?.lessons.find(l => l.id === suggestedLesson.lessonId);
-        
-        if (suggestedLessonObj) {
-            continueCard.innerHTML = `
-                <div class="continue-card-content">
-                    <div class="continue-lesson-badge">${suggestedPath.title}</div>
-                    <h3 class="continue-lesson-title">${suggestedLessonObj.title}</h3>
-                    <p class="continue-lesson-path">${suggestedModule.title}</p>
-                    <div class="continue-lesson-meta">Ready to continue • 6 min</div>
-                </div>
-                <button class="continue-action-btn">
-                    ${suggestedLesson.isFirstLesson ? 'Start' : 'Continue'}
-                    <span class="continue-arrow">→</span>
-                </button>
-            `;
-            
-            const continueButton = continueCard.querySelector('.continue-action-btn');
-            applyDisabledCardState(continueCard, { buttonElement: continueButton });
-            
-            continueSection.appendChild(continueCard);
-            mainElement.appendChild(continueSection);
-        }
-    }
-
     // Learning Paths Section
     const pathsSection = document.createElement('div');
     pathsSection.className = 'learning-paths-section';
-
-    const pathsTitle = document.createElement('h2');
-    pathsTitle.className = 'paths-section-title';
-    pathsTitle.textContent = 'Learning Paths';
-    pathsSection.appendChild(pathsTitle);
 
     const pathsGrid = document.createElement('div');
     pathsGrid.className = 'learning-paths-grid';
@@ -2186,7 +2182,19 @@ function renderLearningPathsView(course) {
         pathDescription.className = 'path-card-description';
         pathDescription.textContent = path.description || 'Interactive lessons and exercises to master the concepts.';
         pathInfo.appendChild(pathDescription);
-        
+
+        // View Path button (navigates to Duolingo tree view)
+        if (!pathLocked) {
+            const viewPathBtn = document.createElement('button');
+            viewPathBtn.className = 'duo-btn duo-btn-secondary view-path-btn';
+            viewPathBtn.innerHTML = '🗺️ View Learning Path';
+            viewPathBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.location.hash = `#/${course.id}/${path.id}`;
+            });
+            pathInfo.appendChild(viewPathBtn);
+        }
+
         pathHeader.appendChild(pathInfo);
         pathCard.appendChild(pathHeader);
 
@@ -2412,10 +2420,10 @@ function renderModuleLessonsView(course, path, module) {
         return;
     }
 
-    // Determine lesson access/lock logic
-    const firstPrimaryLessonIndex = module.lessons.findIndex(isPrimaryLesson);
-    const accessibleLessonIndex = firstPrimaryLessonIndex >= 0 ? firstPrimaryLessonIndex : 0;
-    const restrictAccessToPrimary = firstPrimaryLessonIndex !== -1;
+    // All lessons are accessible - no locking
+    const firstPrimaryLessonIndex = 0;
+    const accessibleLessonIndex = 0;
+    const restrictAccessToPrimary = false;
 
     // Level header
     const levelHeader = document.createElement('div');
@@ -2432,8 +2440,8 @@ function renderModuleLessonsView(course, path, module) {
     module.lessons.forEach((lesson, index) => {
         const progress = ProgressTracker.getLessonProgress(course.id, path.id, module.id, lesson.id);
         const isPrimary = isPrimaryLesson(lesson);
-        const isAccessible = index === accessibleLessonIndex && (!restrictAccessToPrimary || isPrimary);
-        const isNext = index === accessibleLessonIndex;
+        const isAccessible = true; // All lessons are now accessible
+        const isNext = index === 0; // First lesson is marked as next
 
         // Lesson item
         const lessonItem = document.createElement('div');
@@ -2533,18 +2541,22 @@ function renderModuleLessonsView(course, path, module) {
     if (nextLessonToFeature) {
         const featuredLesson = document.createElement('div');
         featuredLesson.className = 'featured-next-lesson';
-        
+
         const featuredTitle = document.createElement('div');
         featuredTitle.className = 'featured-lesson-title';
         featuredTitle.textContent = nextLessonToFeature.title;
-        
+
         const featuredButton = document.createElement('button');
         featuredButton.className = 'featured-lesson-start-btn';
         featuredButton.textContent = 'Start';
-        
+
+        // Make featured lesson clickable
+        featuredButton.addEventListener('click', () => {
+            navigateToLesson(course.id, path.id, module.id, nextLessonToFeature.id);
+        });
+
         featuredLesson.appendChild(featuredTitle);
         featuredLesson.appendChild(featuredButton);
-        applyDisabledCardState(featuredLesson, { buttonElement: featuredButton });
         rightColumn.appendChild(featuredLesson);
     }
 
@@ -2603,34 +2615,221 @@ function renderLessonContentView(course, path, module, lesson) {
     loadLessonInIframe(course, path, module, lesson); // Call the existing function to load content
 }
 
+// ===========================
+// DUOLINGO-STYLE LEARNING PATH TREE
+// ===========================
+
+function renderDuoLearningPathTree(course, path) {
+    const mainElement = document.querySelector('main');
+    if (!mainElement) return;
+
+    mainElement.innerHTML = '';
+    mainElement.className = 'duo-learning-path-view';
+
+    // Path header
+    const header = document.createElement('div');
+    header.className = 'duo-path-header';
+    header.innerHTML = `
+        <nav class="duo-breadcrumb">
+            <a href="#/">🏠</a>
+            <span class="separator">›</span>
+            <a href="#/${course.id}">${course.title}</a>
+            <span class="separator">›</span>
+            <span class="current">${path.title}</span>
+        </nav>
+        <h1 class="duo-path-title">${path.title}</h1>
+        <p class="duo-path-description">${path.description || 'Master the fundamentals through interactive lessons.'}</p>
+    `;
+    mainElement.appendChild(header);
+
+    // Learning path tree container
+    const treeContainer = document.createElement('div');
+    treeContainer.className = 'duo-path-tree';
+
+    // Track lesson index for zigzag and state
+    let globalLessonIndex = 0;
+    let previousLessonCompleted = true; // First lesson always available
+
+    path.modules.forEach((module, moduleIdx) => {
+        // Unit header
+        const unitHeader = document.createElement('div');
+        unitHeader.className = 'duo-unit-header';
+        unitHeader.innerHTML = `
+            <div class="unit-badge">Unit ${moduleIdx + 1}</div>
+            <div class="unit-title">${module.title}</div>
+        `;
+        treeContainer.appendChild(unitHeader);
+
+        // Nodes container for this module
+        const nodesContainer = document.createElement('div');
+        nodesContainer.className = 'duo-nodes-container';
+
+        // Show all lessons in the tree
+        const lessons = module.lessons || [];
+
+        lessons.forEach((lesson, lessonIdx) => {
+            const progress = ProgressTracker.getLessonProgress(
+                course.id, path.id, module.id, lesson.id
+            );
+
+            // Determine node state
+            let nodeState = 'locked';
+            if (progress.state === ProgressTracker.STATES.COMPLETED) {
+                nodeState = 'completed';
+                previousLessonCompleted = true;
+            } else if (progress.state === ProgressTracker.STATES.VIEWED ||
+                       progress.state === ProgressTracker.STATES.IN_PROGRESS) {
+                nodeState = 'current';
+                previousLessonCompleted = false;
+            } else if (previousLessonCompleted || (moduleIdx === 0 && lessonIdx === 0)) {
+                nodeState = 'available';
+                previousLessonCompleted = false;
+            } else {
+                previousLessonCompleted = false;
+            }
+
+            // Create node
+            const node = document.createElement('div');
+            node.className = `duo-path-node ${nodeState}`;
+            node.dataset.courseId = course.id;
+            node.dataset.pathId = path.id;
+            node.dataset.moduleId = module.id;
+            node.dataset.lessonId = lesson.id;
+
+            // Node icon based on state
+            const nodeIcon = getNodeIcon(nodeState, lesson);
+
+            // Lesson type badge
+            const lessonType = getLessonTypeBadge(lesson);
+
+            node.innerHTML = `
+                <div class="node-circle">
+                    <span class="node-icon">${nodeIcon}</span>
+                    ${lessonType ? `<span class="node-type-badge">${lessonType}</span>` : ''}
+                </div>
+                <div class="node-label">${truncateText(lesson.title, 40)}</div>
+            `;
+
+            // Click handler for non-locked nodes
+            if (nodeState !== 'locked') {
+                node.addEventListener('click', () => {
+                    navigateToLesson(course.id, path.id, module.id, lesson.id);
+                });
+            }
+
+            nodesContainer.appendChild(node);
+            globalLessonIndex++;
+        });
+
+        treeContainer.appendChild(nodesContainer);
+    });
+
+    mainElement.appendChild(treeContainer);
+}
+
+function getNodeIcon(state, lesson) {
+    switch (state) {
+        case 'completed': return '✓';
+        case 'current': return '▶';
+        case 'available': return '★';
+        case 'locked': return '🔒';
+        default: return '○';
+    }
+}
+
+function getLessonTypeBadge(lesson) {
+    const title = lesson.title.toLowerCase();
+    const file = (lesson.file || '').toLowerCase();
+
+    if (title.includes('exercise') || file.includes('ex')) return '✏️';
+    if (title.includes('experiment') || file.includes('exp')) return '🔬';
+    if (title.includes('coding') || file.includes('cod')) return '💻';
+    if (title.includes('podcast') || file.includes('pod')) return '🎧';
+    if (title.includes('video') || file.includes('vid')) return '🎬';
+    if (title.includes('case') || file.includes('case')) return '📋';
+    return null; // No badge for regular lessons
+}
+
+function truncateText(text, maxLength) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength - 3) + '...';
+}
+
+// Note: isPrimaryLesson is defined earlier in the file (around line 2098)
+
 // Unified celebration (confetti) on lesson completion
 function triggerCompletionCelebration() {
     try {
-        // Remove any existing confetti container
-        const old = document.querySelector('.confetti-container');
-        if (old && old.parentNode) old.parentNode.removeChild(old);
-        
+        // Remove any existing celebration elements
+        const oldOverlay = document.querySelector('.celebration-overlay');
+        if (oldOverlay) oldOverlay.remove();
+        const oldConfetti = document.querySelector('.confetti-container');
+        if (oldConfetti) oldConfetti.remove();
+
+        // Create celebration overlay (Duolingo-style)
+        const overlay = document.createElement('div');
+        overlay.className = 'celebration-overlay';
+        overlay.setAttribute('aria-hidden', 'true');
+
+        // Calculate XP earned
+        const xpEarned = ProgressTracker.XP_VALUES.LESSON_COMPLETE;
+        const streak = ProgressTracker.getCurrentStreak();
+        let totalXP = xpEarned;
+        if (streak > 1) {
+            totalXP += Math.min(streak * ProgressTracker.XP_VALUES.STREAK_BONUS_PER_DAY, ProgressTracker.XP_VALUES.STREAK_BONUS_CAP);
+        }
+
+        overlay.innerHTML = `
+            <div class="celebration-content">
+                <div class="celebration-icon">🎉</div>
+                <div class="celebration-text">Lesson Complete!</div>
+                <div class="celebration-xp">+${totalXP} XP</div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        // Create confetti with Duolingo colors
         const container = document.createElement('div');
         container.className = 'confetti-container';
         container.setAttribute('aria-hidden', 'true');
         document.body.appendChild(container);
-        
-        const colors = ['#2563eb', '#059669', '#7c3aed', '#f59e0b', '#ef4444', '#10b981'];
-        const shapes = ['●', '◆', '▲', '★'];
-        const count = 60;
+
+        const colors = ['#58CC02', '#1CB0F6', '#FFC800', '#CE82FF', '#FF9600', '#FF4B4B'];
+        const shapes = ['●', '◆', '★', '♦', '▲'];
+        const count = 80;
         for (let i = 0; i < count; i++) {
             const piece = document.createElement('div');
-            piece.className = 'confetti';
+            piece.className = 'confetti duo-confetti';
             piece.textContent = shapes[i % shapes.length];
             piece.style.color = colors[i % colors.length];
             piece.style.left = Math.random() * 100 + '%';
-            piece.style.fontSize = (Math.random() * 12 + 10) + 'px';
-            piece.style.animationDelay = (Math.random() * 1.5) + 's';
+            piece.style.fontSize = (Math.random() * 14 + 10) + 'px';
+            piece.style.animationDelay = (Math.random() * 0.8) + 's';
+            piece.style.animationDuration = (Math.random() * 1 + 2.5) + 's';
             container.appendChild(piece);
         }
-        setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 4000);
-    } catch (_) {
-        // no-op
+
+        // Click to dismiss overlay
+        overlay.addEventListener('click', () => {
+            overlay.classList.add('fade-out');
+            setTimeout(() => overlay.remove(), 500);
+        });
+
+        // Auto-dismiss after delay
+        setTimeout(() => {
+            if (overlay.parentNode) {
+                overlay.classList.add('fade-out');
+                setTimeout(() => overlay.remove(), 500);
+            }
+        }, 2500);
+
+        // Remove confetti container
+        setTimeout(() => {
+            if (container.parentNode) container.remove();
+        }, 4000);
+    } catch (e) {
+        console.warn('Celebration failed:', e);
     }
 }
 
@@ -2682,11 +2881,11 @@ function renderCurrentView() {
         }
     }
     
-    // If authenticated user tries to access welcome/login page, show dashboard
+    // If authenticated user tries to access welcome/login page, go to course
     if (checkContentAccess()) {
         const currentHash = window.location.hash;
         if (currentHash.includes('welcome') || currentHash.includes('login')) {
-            navigateToHome();
+            navigateToCurrentCourse();
         }
     }
 
@@ -2723,6 +2922,20 @@ function renderCurrentView() {
             displayError(`Course with ID '${currentRoute.courseId}' not found. Redirecting to home.`);
             navigateToHome();
         }
+    } else if (currentRoute.courseId && currentRoute.pathId) { // Course and path selected, show Duolingo-style learning path tree
+        const course = courseData.courses.find(c => c.id === currentRoute.courseId);
+        if (course) {
+            const path = course.learningPaths.find(p => p.id === currentRoute.pathId);
+            if (path) {
+                renderDuoLearningPathTree(course, path);
+            } else {
+                displayError(`Learning Path with ID '${currentRoute.pathId}' not found. Redirecting to course.`);
+                navigateToCourse(course.id);
+            }
+        } else {
+            displayError(`Course with ID '${currentRoute.courseId}' not found. Redirecting to home.`);
+            navigateToHome();
+        }
     } else if (currentRoute.courseId) { // Only course selected, show learning paths within course OR courses list
         if (currentRoute.courseId === 'courses') {
             // Special case: show all courses
@@ -2736,8 +2949,8 @@ function renderCurrentView() {
                 navigateToHome();
             }
         }
-    } else { // No specific course selected - show home dashboard
-        renderHomeDashboard(courseData.courses);
+    } else { // No specific course selected - redirect to current course
+        navigateToCurrentCourse();
     }
 }
 
@@ -2754,7 +2967,7 @@ function navigateToLesson(courseId, pathId, moduleId, lessonId) {
 }
 
 function navigateToHome() {
-    window.location.hash = '#/';
+    navigateToCurrentCourse();
 }
 
 function showAllCourses() {
@@ -3402,14 +3615,23 @@ async function loadContent() {
         
         // Build search index
         SearchEngine.buildIndex(data.courses);
-        
+
         // Setup search input
         setupSearchInput();
-        
+
+        // Populate course dropdown with loaded courses
+        populateCourseDropdown(data.courses);
+
+        // Update header stats (streak, XP)
+        ProgressTracker.updateHeaderStats();
+
+        // Update nav active state
+        updateNavActiveState();
+
         // Clear any previous error messages if content is now successfully loaded and validated
         const mainElement = document.querySelector('main');
         if (mainElement && mainElement.querySelector('.error-message')) {
-            mainElement.innerHTML = '<!-- Content will be dynamically injected here -->'; 
+            mainElement.innerHTML = '<!-- Content will be dynamically injected here -->';
         }
 
         // Initial route parsing and rendering after content is loaded
@@ -3443,7 +3665,7 @@ function displayError(message) {
     }
 }
 
-loadContent(); // This will also trigger the initial parseHash and renderCurrentView via its success path.
+// Note: loadContent() is called after AuthManager is initialized (see INITIALIZATION section at end of file)
 
 // ===========================
 // CONTENT GATING SYSTEM
@@ -3681,7 +3903,7 @@ function hideGatedContentModal() {
 }
 
 function checkContentAccess() {
-    // Check if user is authenticated
+    // Check if user is authenticated - login required to access content
     if (!authManager || !authManager.isAuthenticated()) {
         return false;
     }
@@ -3703,7 +3925,202 @@ function navigateToIntendedDestination() {
         sessionStorage.removeItem('intended_destination');
         window.location.hash = intended;
     } else {
-        navigateToHome();
+        // NEW: Go to current course instead of home dashboard
+        navigateToCurrentCourse();
+    }
+}
+
+// Navigate to user's current/active course
+function navigateToCurrentCourse() {
+    const courseId = ProgressTracker.getCurrentCourse();
+    window.location.hash = `#/${courseId}`;
+}
+
+// ===========================
+// COURSE DROPDOWN FUNCTIONS
+// ===========================
+
+let coursesCache = null;
+
+function toggleCourseDropdown(event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const dropdown = document.getElementById('course-dropdown');
+    const menu = document.getElementById('course-dropdown-menu');
+
+    if (dropdown && menu) {
+        dropdown.classList.toggle('open');
+        menu.classList.toggle('show');
+    }
+}
+
+function closeCourseDropdown() {
+    const dropdown = document.getElementById('course-dropdown');
+    const menu = document.getElementById('course-dropdown-menu');
+
+    if (dropdown && menu) {
+        dropdown.classList.remove('open');
+        menu.classList.remove('show');
+    }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.course-dropdown')) {
+        closeCourseDropdown();
+    }
+});
+
+// Populate the course dropdown menu
+function populateCourseDropdown(courses) {
+    coursesCache = courses;
+    const menu = document.getElementById('course-dropdown-menu');
+    if (!menu || !courses) return;
+
+    const currentCourseId = ProgressTracker.getCurrentCourse();
+
+    // Course icon mapping
+    const courseIcons = {
+        'computer-vision': '👁️',
+        'machine-learning': '🤖',
+        'deep-learning': '🧠',
+        'default': '📚'
+    };
+
+    const courseItems = courses.map(course => {
+        const icon = courseIcons[course.id] || courseIcons['default'];
+        const isActive = course.id === currentCourseId;
+        return `
+            <div class="course-menu-item ${isActive ? 'active' : ''}"
+                 onclick="switchCourse('${course.id}')">
+                <span class="course-icon">${icon}</span>
+                <span class="course-title">${course.title}</span>
+            </div>
+        `;
+    }).join('');
+
+    menu.innerHTML = `
+        ${courseItems}
+        <div class="course-menu-divider"></div>
+        <div class="course-menu-item add-course-btn" onclick="showAllCourses(); closeCourseDropdown();">
+            <span class="course-icon">➕</span>
+            <span class="course-title">Browse All Courses</span>
+        </div>
+    `;
+
+    // Also update the header display
+    updateCourseDropdownHeader(courses, currentCourseId);
+}
+
+// Update the course dropdown button display
+function updateCourseDropdownHeader(courses, currentCourseId) {
+    const nameElement = document.getElementById('current-course-name');
+    const iconElement = document.getElementById('current-course-icon');
+
+    if (!courses) courses = coursesCache;
+    if (!currentCourseId) currentCourseId = ProgressTracker.getCurrentCourse();
+
+    const course = courses?.find(c => c.id === currentCourseId);
+
+    const courseIcons = {
+        'computer-vision': '👁️',
+        'machine-learning': '🤖',
+        'deep-learning': '🧠',
+        'default': '📚'
+    };
+
+    if (nameElement && course) {
+        nameElement.textContent = course.title;
+    }
+    if (iconElement) {
+        iconElement.textContent = courseIcons[currentCourseId] || courseIcons['default'];
+    }
+}
+
+// Switch to a different course
+function switchCourse(courseId) {
+    ProgressTracker.setCurrentCourse(courseId);
+    closeCourseDropdown();
+
+    // Navigate to the course
+    window.location.hash = `#/${courseId}`;
+
+    // Update dropdown display
+    if (coursesCache) {
+        updateCourseDropdownHeader(coursesCache, courseId);
+        populateCourseDropdown(coursesCache);
+    }
+}
+
+// Global update function called from ProgressTracker
+function updateCourseDropdown() {
+    if (coursesCache) {
+        populateCourseDropdown(coursesCache);
+    }
+}
+
+// ===========================
+// XP ANIMATION FUNCTIONS
+// ===========================
+
+function triggerXPAnimation(amount, reason) {
+    try {
+        // Remove any existing popup
+        const existing = document.querySelector('.xp-popup');
+        if (existing) existing.remove();
+
+        // Create XP popup
+        const popup = document.createElement('div');
+        popup.className = 'xp-popup';
+        popup.innerHTML = `
+            <div class="xp-popup-content">
+                <span class="xp-popup-icon">⚡</span>
+                <span class="xp-popup-amount">+${amount} XP</span>
+                <span class="xp-popup-reason">${reason}</span>
+            </div>
+        `;
+
+        document.body.appendChild(popup);
+
+        // Trigger show animation
+        requestAnimationFrame(() => {
+            popup.classList.add('show');
+        });
+
+        // Remove after animation
+        setTimeout(() => {
+            popup.classList.remove('show');
+            popup.classList.add('hide');
+            setTimeout(() => {
+                if (popup.parentNode) {
+                    popup.parentNode.removeChild(popup);
+                }
+            }, 300);
+        }, 2000);
+    } catch (e) {
+        console.warn('XP animation failed:', e);
+    }
+}
+
+// ===========================
+// NAVIGATION ACTIVE STATE
+// ===========================
+
+function updateNavActiveState() {
+    const hash = window.location.hash;
+    const learnBtn = document.getElementById('nav-learn');
+    const coursesBtn = document.getElementById('nav-courses');
+
+    if (learnBtn && coursesBtn) {
+        learnBtn.classList.remove('active');
+        coursesBtn.classList.remove('active');
+
+        if (hash === '#/courses' || hash === '#/browse') {
+            coursesBtn.classList.add('active');
+        } else {
+            learnBtn.classList.add('active');
+        }
     }
 }
 
@@ -3715,7 +4132,7 @@ function navigateToIntendedDestination() {
 let authManager;
 if (typeof window !== 'undefined') {
     authManager = new AuthManager();
-    
+
     // Make auth functions globally accessible
     window.authManager = authManager;
     window.showAuthModal = showAuthModal;
@@ -3723,14 +4140,39 @@ if (typeof window !== 'undefined') {
     window.toggleAuthMode = toggleAuthMode;
     window.showProfileModal = showProfileModal;
     window.hideProfileModal = hideProfileModal;
-    
+
     // Make content gating functions globally accessible
     window.showGatedContentModal = showGatedContentModal;
     window.hideGatedContentModal = hideGatedContentModal;
     window.navigateToIntendedDestination = navigateToIntendedDestination;
+
+    // Make Duolingo-style functions globally accessible
+    window.navigateToCurrentCourse = navigateToCurrentCourse;
+    window.toggleCourseDropdown = toggleCourseDropdown;
+    window.closeCourseDropdown = closeCourseDropdown;
+    window.switchCourse = switchCourse;
+    window.populateCourseDropdown = populateCourseDropdown;
+    window.updateCourseDropdown = updateCourseDropdown;
+    window.triggerXPAnimation = triggerXPAnimation;
+    window.updateNavActiveState = updateNavActiveState;
+
+    // Listen for hash changes to update nav state
+    window.addEventListener('hashchange', () => {
+        updateNavActiveState();
+        ProgressTracker.updateHeaderStats();
+    });
+
+    // Initialize on DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+        ProgressTracker.init();
+        updateNavActiveState();
+    });
+
+    // Load content AFTER AuthManager is initialized to avoid race conditions
+    loadContent();
 }
 
 // Expose ProgressTracker globally for debugging
 window.ProgressTracker = ProgressTracker;
 
-export {}; // Ensures this file is treated as a module 
+export {}; // Ensures this file is treated as a module

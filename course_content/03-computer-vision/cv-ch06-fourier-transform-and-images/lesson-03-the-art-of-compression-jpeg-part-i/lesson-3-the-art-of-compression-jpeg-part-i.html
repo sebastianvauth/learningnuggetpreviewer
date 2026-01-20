@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Art of Compression (JPEG Part I)</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro -->
+<section id="section1" class="visible">
+    <img src="images/1.jpg" alt="Comparison: Left 'RAW 20MB' (Heavy Weight) to Right 'JPEG 200KB' (Feather)">
+    <h1>The Art of Compression (JPEG Part I)</h1>
+    <h2>The Magic Shrinking Machine</h2>
+    <p>You take a stunning photo of a sunset. On your camera, the raw file is a massive 20 MB. You decide to send it to a friend on WhatsApp. It arrives instantly, and the file size is now only 200 KB.</p>
+    
+    <p>That is a 99% reduction in size. If you threw away 99% of a book, you'd be left with a few random sentences. Yet, the photo still looks like a sunset. How did the phone throw away so much data without turning the photo into garbage?</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: Intro to Lossless vs Lossy -->
+<section id="section2">
+    <p>The answer lies in the art of <strong>Compression</strong>, and specifically, the clever tricks used by the JPEG algorithm. Today, we start looking at the pipeline that makes this possible.</p>
+    <h2>Lossless vs. Lossy</h2>
+    <p>Before we dive into JPEG, we need to understand that not all compression is created equal. Broadly, there are two strategies: <strong>Lossless</strong> and <strong>Lossy</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Sweater Analogy (Lossless) -->
+<section id="section3">
+    <p>Imagine you want to pack a bulky wool sweater into a small suitcase.</p>
+    <p><strong>Lossless Compression</strong> is like neatly folding the sweater and using a vacuum bag to suck all the air out. It takes up less space, but when you unpack it (decompress), it returns to its exact original shape. This is how ZIP files or PNG images work. You get back <em>exactly</em> what you put in.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: Sweater Analogy (Lossy) + Quiz -->
+<section id="section4">
+    <p><strong>Lossy Compression</strong> is ... well, it's like cutting the sleeves off the sweater because you don't think anyone will notice. You save a lot of space, but you can never get the sleeves back. The original data is changed forever.</p>
+    <p>JPEG is a <strong>Lossy</strong> format. It relies on the fact that human eyes are easily tricked.</p>
+    <style>
+    .compression-interactive-container {
+        width: 100%;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 1.5rem 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    .compression-interactive-container canvas {
+        display: block;
+        width: 100%;
+        height: 400px;
+        background: #ffffff;
+        border-radius: 8px;
+    }
+    .interactive-controls {
+        margin-top: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    .interactive-btn {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .interactive-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .interactive-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .status-text {
+        font-size: 0.9rem;
+        color: #64748b;
+        font-style: italic;
+    }
+    </style>
+    <div class="compression-interactive-container">
+      <canvas id="compressionCanvas"></canvas>
+      <div class="interactive-controls">
+          <button id="runCompressionBtn" class="interactive-btn">▶ Run Compression</button>
+          <div id="interactiveStatus" class="status-text">Ready to compress</div>
+      </div>
+  </div>
+  
+  <script>
+  (function() {
+      const canvas = document.getElementById('compressionCanvas');
+      const ctx = canvas.getContext('2d');
+      const btn = document.getElementById('runCompressionBtn');
+      const statusText = document.getElementById('interactiveStatus');
+      const section = document.getElementById('section4');
+  
+      // Configuration
+      let animationId;
+      let state = 'idle'; // idle, compressing, expanding, done
+      let progress = 0;
+      let dims = null;
+      let isInitialized = false;
+      
+      // High DPI Setup
+      function setupCanvas() {
+          const dpr = window.devicePixelRatio || 1;
+          const rect = canvas.getBoundingClientRect();
+          // Only setup if canvas has valid dimensions
+          if (rect.width === 0 || rect.height === 0) {
+              return null;
+          }
+          // Reset transform before scaling
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          canvas.width = rect.width * dpr;
+          canvas.height = rect.height * dpr;
+          ctx.scale(dpr, dpr);
+          canvas.style.width = `${rect.width}px`;
+          canvas.style.height = `${rect.height}px`;
+          return { width: rect.width, height: rect.height };
+      }
+  
+      // Initialize the interactive when section becomes visible
+      function initializeInteractive() {
+          // Check if section is visible
+          if (!section || !section.classList.contains('visible')) {
+              return;
+          }
+          
+          // Wait a frame to ensure layout is complete
+          requestAnimationFrame(() => {
+              dims = setupCanvas();
+              if (dims && dims.width > 0 && dims.height > 0) {
+                  isInitialized = true;
+                  draw();
+              } else {
+                  // If setup failed, reset flag to allow retry
+                  isInitialized = false;
+              }
+          });
+      }
+  
+      // Try to initialize immediately if section is already visible
+      initializeInteractive();
+      
+      // Also initialize when section becomes visible
+      const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+              if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                  if (section.classList.contains('visible')) {
+                      initializeInteractive();
+                  }
+              }
+          });
+      });
+      
+      if (section) {
+          observer.observe(section, { attributes: true, attributeFilter: ['class'] });
+      }
+  
+      // Drawing Helpers
+      function drawRoundedRect(x, y, w, h, r, color, stroke) {
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.lineTo(x + w - r, y);
+          ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+          ctx.lineTo(x + w, y + h - r);
+          ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+          ctx.lineTo(x + r, y + h);
+          ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+          ctx.lineTo(x, y + r);
+          ctx.quadraticCurveTo(x, y, x + r, y);
+          ctx.closePath();
+          if (color) { ctx.fillStyle = color; ctx.fill(); }
+          if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); }
+      }
+  
+      function drawFileIcon(x, y, scale, type, quality = 1) {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.scale(scale, scale);
+  
+          // Shadow
+          ctx.shadowColor = "rgba(0,0,0,0.1)";
+          ctx.shadowBlur = 10;
+          ctx.shadowOffsetY = 5;
+  
+          // Paper Background
+          drawRoundedRect(-30, -40, 60, 80, 5, "#ffffff", "#cbd5e1");
+  
+          ctx.shadowColor = "transparent"; // Reset shadow
+  
+          if (type === 'text') {
+              // Text Lines
+              ctx.fillStyle = "#94a3b8";
+              for(let i=0; i<5; i++) {
+                  ctx.fillRect(-20, -25 + (i * 12), 40, 6);
+              }
+          } else if (type === 'image') {
+              // Photo Content (Sun & Mountains)
+              ctx.beginPath();
+              ctx.rect(-25, -35, 50, 70);
+              ctx.clip(); // Clip drawing to inside the paper margin
+  
+              if (quality < 1) {
+                  // Blur effect for low quality
+                  ctx.filter = 'blur(3px)';
+              }
+  
+              // Sky
+              ctx.fillStyle = "#e0f2fe"; 
+              ctx.fillRect(-30, -40, 60, 80);
+  
+              // Sun
+              ctx.fillStyle = "#fcd34d";
+              ctx.beginPath();
+              ctx.arc(10, -20, 12, 0, Math.PI * 2);
+              ctx.fill();
+  
+              // Mountains
+              ctx.fillStyle = "#4ade80";
+              ctx.beginPath();
+              ctx.moveTo(-30, 40);
+              ctx.lineTo(-10, 0);
+              ctx.lineTo(10, 25);
+              ctx.lineTo(30, -5);
+              ctx.lineTo(30, 40);
+              ctx.fill();
+  
+              ctx.filter = 'none'; // Reset filter
+          }
+  
+          ctx.restore();
+      }
+  
+      function drawCompressorBox(cw, ch) {
+          const boxW = cw * 0.8;
+          const boxH = 80;
+          const boxX = (cw - boxW) / 2;
+          const boxY = (ch - boxH) / 2;
+  
+          // Box body
+          const grad = ctx.createLinearGradient(boxX, boxY, boxX + boxW, boxY + boxH);
+          grad.addColorStop(0, '#f1f5f9');
+          grad.addColorStop(1, '#e2e8f0');
+          
+          drawRoundedRect(boxX, boxY, boxW, boxH, 10, grad, '#94a3b8');
+  
+          // Label
+          ctx.fillStyle = "#64748b";
+          ctx.font = "bold 12px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("COMPRESSION ALGORITHM", cw / 2, boxY + boxH/2 + 5);
+          
+          return { y: boxY, h: boxH };
+      }
+  
+      function drawLabels(cw, ch) {
+          ctx.fillStyle = "#475569";
+          ctx.font = "bold 14px sans-serif";
+          ctx.textAlign = "center";
+  
+          // Columns
+          ctx.fillText("LOSSLESS (ZIP)", cw * 0.25, 30);
+          ctx.fillText("LOSSY (JPEG)", cw * 0.75, 30);
+      }
+  
+      // Main Render Loop
+      function draw() {
+          // Ensure canvas is initialized
+          if (!dims || dims.width === 0 || dims.height === 0) {
+              initializeInteractive();
+              return;
+          }
+          
+          // Clear
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          const cw = dims.width;
+          const ch = dims.height;
+          const box = drawCompressorBox(cw, ch);
+          drawLabels(cw, ch);
+  
+          // Animation Variables
+          const startY = 80;
+          const endY = ch - 80;
+          const midY = box.y + box.h/2;
+          
+          let leftY, rightY, scale, quality;
+  
+          // State Machine Logic
+          if (state === 'idle') {
+              leftY = startY;
+              rightY = startY;
+              scale = 1;
+              quality = 1;
+          } 
+          else if (state === 'compressing') {
+              // Move from Top to Middle, Scale down
+              leftY = startY + (midY - startY) * progress;
+              rightY = startY + (midY - startY) * progress;
+              scale = 1 - (0.6 * progress); // 1 -> 0.4
+              quality = 1;
+          } 
+          else if (state === 'expanding') {
+              // Move from Middle to Bottom, Scale up
+              leftY = midY + (endY - midY) * progress;
+              rightY = midY + (endY - midY) * progress;
+              scale = 0.4 + (0.6 * progress); // 0.4 -> 1
+              quality = 1; // Still draw high quality until finished
+          } 
+          else if (state === 'done') {
+              leftY = endY;
+              rightY = endY;
+              scale = 1;
+              quality = 0.5; // Trigger blur
+              
+              // Draw Result Text
+              ctx.font = "12px sans-serif";
+              
+              // Left Result
+              ctx.fillStyle = "#10b981"; // Green
+              ctx.fillText("✓ Exact Match", cw * 0.25, endY + 60);
+              
+              // Right Result
+              ctx.fillStyle = "#d97706"; // Orange
+              ctx.fillText("≈ Approximation", cw * 0.75, endY + 60);
+          }
+  
+          // Draw Left (Text)
+          drawFileIcon(cw * 0.25, leftY, scale, 'text', 1);
+  
+          // Draw Right (Image) - Pass quality parameter
+          // In expanding state, we keep quality high until the very end reveal
+          // In done state, quality drops
+          const currentImgQuality = (state === 'done') ? 0.2 : 1;
+          drawFileIcon(cw * 0.75, rightY, scale, 'image', currentImgQuality);
+      }
+  
+      function animate() {
+          if (state === 'compressing') {
+              progress += 0.02;
+              if (progress >= 1) {
+                  state = 'expanding';
+                  progress = 0;
+              }
+          } else if (state === 'expanding') {
+              progress += 0.02;
+              if (progress >= 1) {
+                  state = 'done';
+                  btn.innerText = "↺ Reset";
+                  btn.disabled = false;
+                  statusText.innerText = "Notice the blur on the right?";
+              }
+          }
+          
+          draw();
+          
+          if (state !== 'idle' && state !== 'done') {
+              animationId = requestAnimationFrame(animate);
+          }
+      }
+  
+      // Event Listeners
+      btn.addEventListener('click', () => {
+          if (state === 'idle' || state === 'done') {
+              state = 'compressing';
+              progress = 0;
+              btn.disabled = true;
+              btn.innerText = "Running...";
+              statusText.innerText = "Compressing data...";
+              animate();
+          }
+      });
+  
+      window.addEventListener('resize', () => {
+          dims = setupCanvas();
+          if (dims && dims.width > 0 && dims.height > 0) {
+              draw();
+          }
+      });
+  
+  })();
+  </script>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following scenarios requires Lossless compression?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Memes usually do not need pixel-perfect accuracy; lossy is fine here.')">Saving a meme to post on Twitter</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. If a \'9\' is compressed to look like an \'8\' to save space, you lose money. Data like text and numbers requires perfect reconstruction.')">Archiving a spreadsheet of bank transactions</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Video streaming relies heavily on lossy compression to keep data usage low.')">Streaming a movie on Netflix</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-s4" onclick="showNextSection(5)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 5: Biology Intro -->
+<section id="section5">
+    <h2>Step 1: Hacking Human Vision</h2>
+    <p>The first step in the JPEG pipeline isn't math—it's biology. Your eyes are not perfect sensors. You are very good at detecting changes in brightness (light and dark), but you are surprisingly bad at detecting fine details in color.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: RGB to YCbCr -->
+<section id="section6">
+    <p>Computers typically store images in <strong>RGB</strong> (Red, Green, Blue) format. But JPEG doesn't want RGB. It converts the image into a different color space called <strong>YCbCr</strong>.</p>
+    <p>In this system, we split the image into three channels:</p>
+    <ul>
+        <li><strong>Y (Luminance):</strong> This is the brightness. It's essentially a black-and-white version of the photo.</li>
+        <li><strong>Cb (Blue-Difference):</strong> How 'blue' the pixels are relative to green.</li>
+        <li><strong>Cr (Red-Difference):</strong> How 'red' the pixels are relative to green.</li>
+    </ul>
+    
+    <img src="images/2.jpg" alt="Parrot Image Split: 1. Sharp B&W (Y) | 2. Ghostly Blue Blob (Cb) | 3. Ghostly Red Blob (Cr)">
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Luminance vs. Chrominance</h4>
+        <p><strong>Luminance (Y)</strong> represents the intensity or brightness of light in an image. <strong>Chrominance (Cb and Cr)</strong> represents the color information. In image compression, Luminance is preserved with high detail, while Chrominance is often compressed heavily.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Chroma Subsampling + Quiz -->
+<section id="section7">
+    <p>Why do we do this? Because now we can cheat. Since your eyes rely on the <strong>Luminance (Y)</strong> for detail, we keep that channel at full resolution.</p>
+    <p>But for the <strong>Chrominance (Cb and Cr)</strong> channels, we can throw away 50% or even 75% of the pixels, and you probably won't even notice. This is called <strong>Chroma Subsampling</strong>.</p>
+    
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Why does converting RGB to YCbCr help with compression?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. The conversion itself just changes the representation. The savings come from what we do after.')">It reduces the number of colors in the image automatically.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Bingo! We can treat the \'structure\' (brightness) and the \'paint\' (color) differently.')">It isolates brightness from color, allowing us to reduce the resolution of the color layers without ruining the image structure.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The Y channel is black and white, but the Cb and Cr channels keep the color data.')">It converts the image to black and white.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-s7" onclick="showNextSection(8)" style="display: none;">Continue</div>
+</section>
+
+<!-- Section 8: Why It Matters + Stop and Think -->
+<section id="section8">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>This conversion explains why low-quality JPEGs sometimes look like the color is 'bleeding' outside the lines. The color information is actually lower resolution than the brightness information!</p>
+    </div>
+    
+    <img src="images/3.jpg" alt="Zoomed-in Edge: Crisp edge in Original vs. Blocky/Smeared colors in Compressed.">
+
+    <p>JPEG ruthlessly exploits this biological weakness to save space. By downsizing the color channels, we can immediately shave off a significant chunk of the file size before we even start doing complex math.</p>
+
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>We discussed how lossy compression discards "unimportant" data. Imagine you are a doctor analyzing a digital X-ray to find a hairline bone fracture. What are the risks of using high-compression JPEG for this image?</h4>
+        <div id="cuy-medical-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> If the compression algorithm decides that fine details (high frequencies) are "unimportant" to save space, it might smooth out or blur the tiny line that represents the fracture. In medical imaging, "lossy" can mean "misdiagnosis". This is why medical formats (like DICOM) often use lossless compression.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-medical-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Step 2 Intro -->
+<section id="section9">
+    <h2>Step 2: Divide and Conquer</h2>
+    <p>Once we have our Y, Cb, and Cr channels, the computer doesn't try to process the whole 12-megapixel image at once. That would be computationally exhausting.</p>
+    <p>Instead, it chops the image up. This is <strong>Step 2: Block Splitting</strong>.</p>
+    <img src="images/4.jpg" alt="Grid overlay on a cat photo. Zoom in to show a single 8x8 pixel square.">
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: 8x8 Blocks + FAQ -->
+<section id="section10">
+    <p>The standard JPEG algorithm divides the image into <strong>8x8 pixel blocks</strong>. Every subsequent step of the compression—math, quantization, and encoding—happens inside these tiny 8x8 universes independently.</p>
+    <p>This is why, if you zoom way in on a low-quality image, you see a checkerboard pattern. You are seeing the edges of these individual 8x8 blocks.</p>
+    
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <p><strong>Why 8x8? Why not 16x16 or 4x4?</strong></p>
+        <p>It's a balance or "Goldilocks" zone. A 4x4 block is too small to capture complex patterns (frequencies), so compression wouldn't be efficient. A 16x16 block is mathematically more complex to process and creates worse "ringing" artifacts (ghostly ripples) near edges. Over the years, engineers found 8x8 to be the best trade-off between speed and quality.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Review + Final Quiz -->
+<section id="section11">
+    <h2>Review and Reflect</h2>
+    <p>We have started our journey into the JPEG pipeline. We haven't done any heavy math yet, but we've already prepared the image for massive size reduction.</p>
+    <p>Let's review what happens before the math kicks in:</p>
+    <ul>
+        <li><strong>Color Transformation:</strong> We switch from RGB to <strong>YCbCr</strong> to separate brightness from color.</li>
+        <li><strong>Chroma Subsampling:</strong> We shrink the Cb and Cr channels because eyes are bad at seeing fine color detail.</li>
+        <li><strong>Block Splitting:</strong> We cut the image into <strong>8x8 blocks</strong> to process them one by one.</li>
+    </ul>
+    <p>In the next lesson, we will look inside one of these 8x8 blocks and apply the <strong>Discrete Cosine Transform (DCT)</strong> to turn pixels into frequencies.</p>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>What is the standard block size used in JPEG compression?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Too big! That would cause ringing artifacts.')">16x16 pixels</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. The image is chopped into independent 8x8 tiles.')">8x8 pixels</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Actually, standard JPEG almost always uses 8x8 blocks regardless of the image size.')">It depends on the image size.</div>
+        </div>
+    </div>
+    
+    <div class="continue-button" id="continue-final" onclick="toggleCompleted()" style="display: none;">Continue & Finish</div>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 11;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show hidden continue buttons after answering quiz
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        // Find specific continue buttons hidden in quiz sections
+        const continueBtn = parentSection.querySelector('.continue-button[style*="display: none"]');
+        if (continueBtn && continueBtn.id !== '') {
+             setTimeout(() => {
+                continueBtn.style.display = 'inline-block';
+                continueBtn.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Placeholder IDs for the new lesson
+                let courseId = 'computer-vision';
+                let pathId = 'image-compression';
+                let moduleId = 'cv-ch05-m1-jpeg';
+                let lessonId = 'cv-ch05-l1-art-of-compression';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch05-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '💾', '🖼️', '📉', '👏'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch05-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Seeing Images as Signals</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: Intro -->
+<section id="section1" class="visible">
+    <h1>Seeing Images as Signals</h1>
+    <h2>From Time to Space</h2>
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Comparison: Left shows 1D audio waveform over time; Right shows 2D landscape image with pixel grid.">
+    </div>
+    
+    <p>Welcome back! In the last chapter, we spent a lot of time breaking down sound waves into frequencies. We saw how a complex song is really just a sum of simple sine waves. Today, we’re going to ask a fundamental question: Can we do the same for a photograph?</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: Time vs Space -->
+<section id="section2">
+    <p>It might sound strange at first. Sound happens over <em>time</em>. An image just sits there. But mathematically, they are more alike than you think. In audio, the signal intensity (volume) changes as time (\(t\)) ticks forward.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3: 2D Spatial Signal -->
+<section id="section3">
+    <p>In an image, the signal intensity (brightness) changes as you move across the space (\(x\) and \(y\)). Instead of a 1D time signal, an image is simply a <strong>2D spatial signal</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4: The Image as a Signal -->
+<section id="section4">
+    <h2>The Image as a Signal</h2>
+    <p>To really see this, let's stop looking at the whole picture for a second and look at just a single slice.</p>
+    <!-- Interactive Module Start -->
+<div class="interactive-container" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 2rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    
+    <!-- 1. The Image Visualization -->
+    <div style="margin-bottom: 10px;">
+        <h4 style="font-size: 0.9rem; color: #64748b; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em;">Visual Representation (2D)</h4>
+        <canvas id="freqImageCanvas" width="600" height="150" style="width: 100%; height: auto; border-radius: 6px; border: 1px solid #cbd5e1; background: #000; display: block;"></canvas>
+    </div>
+
+    <!-- 2. The Signal Graph -->
+    <div style="margin-bottom: 20px; position: relative;">
+        <h4 style="font-size: 0.9rem; color: #64748b; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em;">Signal Representation (1D)</h4>
+        <canvas id="freqGraphCanvas" width="600" height="150" style="width: 100%; height: auto; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; display: block;"></canvas>
+        <!-- Overlay labels for the graph -->
+        <span style="position: absolute; top: 25px; left: 10px; font-size: 10px; color: #94a3b8;">255 (White)</span>
+        <span style="position: absolute; bottom: 5px; left: 10px; font-size: 10px; color: #94a3b8;">0 (Black)</span>
+    </div>
+
+    <!-- 3. The Controls -->
+    <div class="controls" style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px; flex-wrap: nowrap;">
+        <label for="freqSlider" style="font-weight: 600; color: #2d3748; white-space: nowrap;">Spatial Frequency:</label>
+        <input type="range" id="freqSlider" min="1" max="60" value="2" step="0.5" style="flex-grow: 1; cursor: pointer;">
+        <span id="freqLabel" style="min-width: 60px; text-align: right; font-family: monospace; font-weight: 700; color: #667eea; white-space: nowrap;">Low</span>
+    </div>
+
+    <script>
+    (function() {
+        const slider = document.getElementById('freqSlider');
+        const imgCanvas = document.getElementById('freqImageCanvas');
+        const graphCanvas = document.getElementById('freqGraphCanvas');
+        const label = document.getElementById('freqLabel');
+        
+        const imgCtx = imgCanvas.getContext('2d');
+        const graphCtx = graphCanvas.getContext('2d');
+        
+        const width = imgCanvas.width;
+        const height = imgCanvas.height;
+
+        function draw() {
+            // 1. Get Values
+            const freq = parseFloat(slider.value);
+            
+            // Update Label
+            if(freq < 5) label.innerText = "Low";
+            else if(freq < 25) label.innerText = "Med";
+            else label.innerText = "High";
+
+            // 2. Clear Canvases
+            imgCtx.clearRect(0, 0, width, height);
+            graphCtx.clearRect(0, 0, width, height);
+            
+            // Draw Graph Grid (Simple lines)
+            graphCtx.strokeStyle = '#f1f5f9';
+            graphCtx.lineWidth = 1;
+            graphCtx.beginPath();
+            graphCtx.moveTo(0, height/2);
+            graphCtx.lineTo(width, height/2); // Midline
+            graphCtx.stroke();
+
+            // 3. Begin Drawing Loop
+            // We use ImageData for the image canvas for performance, 
+            // but a loop of fillRect is easier to read and fine for this size.
+            
+            graphCtx.beginPath();
+            graphCtx.strokeStyle = '#667eea'; // Purple/Blue theme color
+            graphCtx.lineWidth = 3;
+
+            for (let x = 0; x < width; x++) {
+                // THE MATH: 
+                // Normalize x (0 to 1), multiply by 2*PI and Frequency.
+                // This gives us our sine wave.
+                // The result is -1 to 1.
+                const normalizedX = x / width;
+                const radians = normalizedX * Math.PI * 2 * freq;
+                const sineValue = Math.sin(radians);
+                
+                // Map Sine (-1 to 1) to Grayscale (0 to 255)
+                const intensity = (sineValue + 1) * 127.5;
+                
+                // --- DRAW IMAGE (Top) ---
+                // Create a grayscale color
+                const color = `rgb(${intensity}, ${intensity}, ${intensity})`;
+                imgCtx.fillStyle = color;
+                // Draw a 1px wide vertical line
+                imgCtx.fillRect(x, 0, 1, height);
+
+                // --- DRAW GRAPH (Bottom) ---
+                // Map intensity (0-255) to Graph Y coordinates
+                // Note: Canvas Y=0 is top, so we invert.
+                // If intensity is 255 (white), y should be near 0 (top).
+                // If intensity is 0 (black), y should be near height (bottom).
+                const graphY = height - (intensity / 255 * height);
+                
+                if (x === 0) {
+                    graphCtx.moveTo(x, graphY);
+                } else {
+                    graphCtx.lineTo(x, graphY);
+                }
+            }
+            
+            graphCtx.stroke();
+        }
+
+        // Initialize
+        slider.addEventListener('input', draw);
+        // Initial draw
+        draw();
+    })();
+    </script>
+</div>
+<!-- Interactive Module End -->
+    <p>Imagine taking a single horizontal row of pixels from an image. If we plot the brightness values of that row, it looks exactly like a waveform.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5: Low vs High Frequency -->
+<section id="section5">
+    <p>Notice how the graph behaves. Where the image is smooth (like a wall or sky), the line is flat or gently curving. This represents a <strong>low frequency</strong>. Where there are sharp edges or textures (like hair or bricks), the line jumps up and down rapidly. This represents a <strong>high frequency</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6: Key Realization -->
+<section id="section6">
+    <p>This is the key realization: <strong>Edges are high-frequency events.</strong> Smooth gradients are low-frequency events.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7: Understanding Spatial Frequency -->
+<section id="section7">
+    <h2>Understanding Spatial Frequency</h2>
+    <p>Let's play with this concept of "Spatial Frequency" directly.</p>
+    <!-- Interactive Energy Compaction Module -->
+<div class="interactive-container" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 2rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    
+<!-- Interactive Energy Compaction Module -->
+<div class="interactive-container" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 2rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px;">
+    
+    <div style="text-align: center;">
+        <h4 style="font-size: 1rem; color: #2d3748; margin-bottom: 5px;">Compare the Energy Distribution</h4>
+        <p style="font-size: 0.9rem; color: #64748b; margin: 0;">Drag the slider to add detail (noise/texture) to the signal.</p>
+    </div>
+
+    <!-- Charts Container -->
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; width: 100%;">
+        
+        <!-- DFT Chart -->
+        <div style="flex: 1; min-width: 280px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+            <h5 style="font-size: 0.85rem; color: #4facfe; margin-bottom: 8px; font-weight: 700;">DFT (Fourier Transform)</h5>
+            <canvas id="dftCanvas" width="300" height="180" style="width: 100%; height: auto; border-radius: 6px; border: 1px solid #cbd5e1; background: white; display: block;"></canvas>
+            <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 10px; min-height: 1.5em;">Energy is spread out (symmetric)</p>
+        </div>
+
+        <!-- DCT Chart -->
+        <div style="flex: 1; min-width: 280px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+            <h5 style="font-size: 0.85rem; color: #764ba2; margin-bottom: 8px; font-weight: 700;">DCT (Cosine Transform)</h5>
+            <canvas id="dctCanvas" width="300" height="180" style="width: 100%; height: auto; border-radius: 6px; border: 1px solid #cbd5e1; background: white; display: block;"></canvas>
+            <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 10px; min-height: 1.5em;">Energy compacts to the left</p>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls" style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px; flex-wrap: nowrap; width: 100%; margin-top: 10px;">
+        <label for="detailSlider" style="font-weight: 600; color: #2d3748; font-size: 0.9rem; white-space: nowrap;">Image Complexity:</label>
+        <input type="range" id="detailSlider" min="0" max="100" value="20" style="flex-grow: 1; cursor: pointer;">
+        <span id="detailLabel" style="min-width: 40px; text-align: right; font-family: monospace; font-weight: 700; color: #4a5568; white-space: nowrap;">Low</span>
+    </div>
+
+    <script>
+    (function() {
+        const slider = document.getElementById('detailSlider');
+        const dftCanvas = document.getElementById('dftCanvas');
+        const dctCanvas = document.getElementById('dctCanvas');
+        const label = document.getElementById('detailLabel');
+        
+        const dftCtx = dftCanvas.getContext('2d');
+        const dctCtx = dctCanvas.getContext('2d');
+        
+        const N = 32; // Number of samples (keep small for clear bars)
+
+        // 1. Math Helpers
+        
+        // Generate a signal: A base low-freq sine wave + random high-freq noise based on slider
+        function generateSignal(complexity) {
+            const signal = [];
+            const noiseLevel = complexity / 100;
+            
+            for (let i = 0; i < N; i++) {
+                // Base: Slow curve (low spatial frequency)
+                let val = Math.cos((i / N) * Math.PI); 
+                
+                // Add Noise (High frequency simulation)
+                // We add random jaggedness based on the slider
+                if (noiseLevel > 0) {
+                    val += (Math.random() - 0.5) * 2 * noiseLevel * 2; 
+                }
+                signal.push(val);
+            }
+            return signal;
+        }
+
+        // Discrete Cosine Transform (DCT-II) - O(N^2)
+        function computeDCT(signal) {
+            const result = [];
+            for (let k = 0; k < N; k++) {
+                let sum = 0;
+                for (let n = 0; n < N; n++) {
+                    sum += signal[n] * Math.cos((Math.PI / N) * (n + 0.5) * k);
+                }
+                result.push(Math.abs(sum)); // We only care about magnitude for the chart
+            }
+            // Normalize first term usually, but for visual comparison raw mag is fine
+            return result;
+        }
+
+        // Discrete Fourier Transform (DFT) - O(N^2)
+        function computeDFT(signal) {
+            const result = [];
+            for (let k = 0; k < N; k++) {
+                let real = 0;
+                let imag = 0;
+                for (let n = 0; n < N; n++) {
+                    const angle = (2 * Math.PI * k * n) / N;
+                    real += signal[n] * Math.cos(angle);
+                    imag -= signal[n] * Math.sin(angle);
+                }
+                const magnitude = Math.sqrt(real * real + imag * imag);
+                result.push(magnitude);
+            }
+            return result;
+        }
+
+        function drawChart(ctx, data, colorStart, colorEnd) {
+            const w = ctx.canvas.width;
+            const h = ctx.canvas.height;
+            const barWidth = (w / data.length) - 2;
+            const maxVal = Math.max(...data, 10); // Avoid divide by zero, set min scale
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw Grid
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 0, w, h);
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.beginPath();
+            ctx.moveTo(0, h-1); ctx.lineTo(w, h-1);
+            ctx.stroke();
+
+            // Draw Bars
+            for (let i = 0; i < data.length; i++) {
+                const barHeight = (data[i] / maxVal) * (h - 20); // Leave some top padding
+                const x = i * (w / data.length) + 1;
+                const y = h - barHeight;
+
+                // Gradient Fill
+                const gradient = ctx.createLinearGradient(0, h, 0, 0);
+                gradient.addColorStop(0, colorStart);
+                gradient.addColorStop(1, colorEnd);
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x, y, barWidth, barHeight);
+            }
+        }
+
+        function update() {
+            const complexity = parseInt(slider.value);
+            
+            // Text Feedback
+            if(complexity < 30) label.innerText = "Low";
+            else if(complexity < 70) label.innerText = "Med";
+            else label.innerText = "High";
+
+            // 1. Create Signal
+            const signal = generateSignal(complexity);
+
+            // 2. Compute Transforms
+            const dftData = computeDFT(signal);
+            const dctData = computeDCT(signal);
+
+            // 3. Draw
+            // DFT: Blue/Teal gradient
+            drawChart(dftCtx, dftData, '#4facfe', '#00f2fe');
+            
+            // DCT: Purple/Pink gradient
+            drawChart(dctCtx, dctData, '#667eea', '#764ba2');
+        }
+
+        slider.addEventListener('input', update);
+        update(); // Init
+    })();
+    </script>
+</div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- SECTION 8: Check Your Understanding (Sky vs Checkerboard) -->
+<section id="section8">
+    <p>We quantify this as how many cycles (changes from dark to light and back) occur within a specific amount of space.</p>
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Based on what you just saw, if you have an image of a dense checkerboard and an image of a clear blue sky, which has the higher spatial frequency?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Think about how quickly the pixel values change. In a clear sky, a pixel is blue, the next is blue, and the next is blue. The change is nearly zero.')">The Blue Sky</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. In a checkerboard, you go from black to white to black in the span of just a few pixels. That is a rapid change, meaning high spatial frequency.')">The Checkerboard</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- SECTION 9: Enter the DCT -->
+<section id="section9">
+    <h2>Enter the DCT</h2>
+    <p>So, we can analyze images as waves. In the last chapter, we used the <strong>Discrete Fourier Transform (DFT)</strong> to do this. The DFT is the grandfather of frequency analysis, using complex numbers (\(e^{-j\dots}\)) to describe waves.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- SECTION 10: DCT & Vocab -->
+<section id="section10">
+    <p>However, for images—and specifically for compression tasks like JPEG—we switch to a more efficient cousin: the <strong>Discrete Cosine Transform (DCT)</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Spatial Frequency</h4>
+        <p>A measure of how often sinusoidal components (brightness variations) repeat per unit of distance. In images, high spatial frequency corresponds to fine details and edges; low spatial frequency corresponds to smooth areas.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- SECTION 11: Energy Compaction -->
+<section id="section11">
+    <p>Why switch? Two main reasons. First, the DCT uses only real numbers (cosines) rather than complex numbers, making the math easier for computers. Second, and most importantly, it is better at <strong>Energy Compaction</strong>.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Bar Chart Comparison: DFT (spread out bars) vs DCT (tall bars clustered to the left).">
+    </div>
+    <p>Look at the charts above. For the same image signal, the DCT tends to pack the important information (the "energy") into just a few numbers at the start of the list.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- SECTION 12: Vocab Energy Compaction -->
+<section id="section12">
+    <p>This property is called <strong>Energy Compaction</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Energy Compaction</h4>
+        <p>The ability of a mathematical transform to concentrate the majority of a signal's information (energy) into a small number of coefficients. This is crucial for compression, as the remaining 'empty' coefficients can be discarded.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- SECTION 13: Why Cosines Rule -->
+<section id="section13">
+    <h2>Why Cosines Rule</h2>
+    <p>We don't just use DCT because it's math-fancy. We use it because that efficiency—packing the image into just a few numbers—is the bedrock of the JPEG format you use every day.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>If we used the standard DFT for images, your photo files would be larger and require more processing power to open. DCT's use of real numbers and its ability to compact energy allows us to throw away data we don't need without ruining the picture. It makes the internet faster.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 14: Stop and Think -->
+<section id="section14">
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why might using only Cosine waves (and no Sine waves) be sufficient for image intensity, whereas audio required complex numbers?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> In audio, phase (the starting point of the wave) is crucial for how waves interfere over time. In static image compression, we are mostly concerned with the magnitude of the intensity changes. Furthermore, by mirroring the signal (a mathematical trick DCT uses), we can simulate a periodic signal that is continuous at the boundaries, which Cosine functions model perfectly without needing the complex 'imaginary' components of the DFT.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- SECTION 15: FAQ -->
+<section id="section15">
+    <div class="frequently-asked">
+        <h3>Frequently Asked</h3>
+        <p><strong>Q: Do we calculate this for the whole image at once?</strong></p>
+        <p>A: Great question! Usually, no. Calculating the DCT for a massive 12-megapixel image all at once would be incredibly slow. Instead, as we will see in the next lesson, we chop the image into tiny 8x8 squares and analyze those small grids individually.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- SECTION 16: Test Knowledge 1 -->
+<section id="section16">
+    <h2>Test Your Knowledge</h2>
+    <p>Let's see if you're ready to start decoding JPEGs.</p>
+    <div class="test-your-knowledge">
+        <h4>Which of the following image areas represents the Highest Spatial Frequency?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This is very smooth, meaning low frequency.')">A clear blue sky</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Blur removes edges, resulting in low frequencies.')">A blurry background</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Text consists of sharp, high-contrast transitions between black ink and white paper. These rapid changes signify high spatial frequency.')">The sharp text on a printed page</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- SECTION 17: Test Knowledge 2 -->
+<section id="section17">
+    <div class="test-your-knowledge">
+        <h4>What is the primary reason we prefer DCT over DFT for image compression?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'DCT actually avoids complex numbers, using only real numbers.')">It allows us to use complex imaginary numbers.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. DCT concentrates the important image information into fewer coefficients, making it easier to compress.')">Energy Compaction</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Transforms like DCT process existing data; they do not inherently increase resolution.')">It increases the resolution of the image.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<!-- SECTION 18: Test Knowledge 3 -->
+<section id="section18">
+    <div class="test-your-knowledge">
+        <h4>How does an image signal differ from an audio signal?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Spot on. Audio is a 1D temporal signal; images are 2D spatial signals.')">Audio is a function of time (\(t\)), while an image is a function of space (\(x, y\)).</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Images definitely have frequencies—spatial frequencies!')">Audio has frequencies, but images do not.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Digital images and digital audio are both discrete (sampled).')">Images are continuous, while audio is discrete.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(19)" style="display: none;">Continue</div>
+</section>
+
+<!-- SECTION 19: Review and Reflect -->
+<section id="section19">
+    <h2>Review and Reflect</h2>
+    <p>In this lesson, we made the mental leap from time to space.</p>
+    <p>We learned that:</p>
+    <ul>
+        <li>Images can be analyzed as <strong>2D signals</strong>.</li>
+        <li><strong>Spatial Frequency</strong> describes how quickly brightness changes across the image (Smooth = Low, Edges = High).</li>
+        <li>The <strong>Discrete Cosine Transform (DCT)</strong> is our tool of choice because it efficiently packs the image's energy into a few real numbers.</li>
+    </ul>
+    <p>But how do we actually represent an image using just these numbers? In the next lesson, we will meet the "8x8 Grid" and see the actual building blocks of a JPEG image.</p>
+    
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 19;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Auto-reveal continue button logic for final questions
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section18') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Default path ID assumed based on context
+                let courseId = 'computer-vision';
+                let pathId = 'image-processing';
+                let moduleId = 'cv-ch3-frequency';
+                let lessonId = 'cv-ch3-l1-images-as-signals';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch3-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    // Check parent tracker
+    if (window.parent && window.parent.ProgressTracker) {
+         // Default path ID assumed
+        let courseId = 'computer-vision';
+        let pathId = 'image-processing';
+        let moduleId = 'cv-ch3-frequency';
+        let lessonId = 'cv-ch3-l1-images-as-signals';
+        
+        if (window.parent.currentRoute) {
+            const route = window.parent.currentRoute;
+            if (route.courseId) courseId = route.courseId;
+            if (route.pathId) pathId = route.pathId;
+            if (route.moduleId) moduleId = route.moduleId;
+            if (route.lessonId) lessonId = route.lessonId;
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('course')) courseId = urlParams.get('course');
+        if (urlParams.get('path')) pathId = urlParams.get('path');
+        if (urlParams.get('module')) moduleId = urlParams.get('module');
+        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+        
+        try {
+            const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+            if (progress && progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+                button.classList.add('completed');
+                button.innerHTML = '✅ Completed!';
+                return;
+            }
+        } catch(e) { console.log("Tracker not ready"); }
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch3-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>
+
+
+
+

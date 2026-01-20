@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Test Page</title>
+    <script src="interactive-fixes.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.pass {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.fail {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        canvas {
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            display: block;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Interactive Fixes Test Suite</h1>
+    <p>This page verifies that all interactive fixes are working correctly.</p>
+
+    <div class="test-section">
+        <h2>Test 1: roundRect Polyfill</h2>
+        <canvas id="test1" width="300" height="150"></canvas>
+        <div id="test1-status" class="status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: CanvasHelper DPI Scaling</h2>
+        <div style="width: 400px; height: 200px; border: 1px solid #ccc;">
+            <canvas id="test2"></canvas>
+        </div>
+        <div id="test2-status" class="status"></div>
+        <p>Device Pixel Ratio: <strong id="dpr"></strong></p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Section Visibility Detection</h2>
+        <div id="hidden-section" style="display: none;">
+            <canvas id="test3" width="300" height="100"></canvas>
+        </div>
+        <button onclick="showHiddenSection()">Show Hidden Canvas</button>
+        <div id="test3-status" class="status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Safe Element Getter</h2>
+        <div id="test4-status" class="status"></div>
+    </div>
+
+    <script>
+        // Test 1: roundRect
+        (function() {
+            const canvas = document.getElementById('test1');
+            const ctx = canvas.getContext('2d');
+            const status = document.getElementById('test1-status');
+
+            try {
+                // Test if roundRect exists
+                if (typeof ctx.roundRect !== 'function') {
+                    throw new Error('roundRect method not found');
+                }
+
+                // Draw rounded rectangles
+                ctx.fillStyle = '#667eea';
+                ctx.roundRect(10, 10, 100, 60, 10);
+                ctx.fill();
+
+                ctx.fillStyle = '#48bb78';
+                ctx.roundRect(120, 10, 100, 60, [15, 5, 25, 5]);
+                ctx.fill();
+
+                ctx.fillStyle = '#ed8936';
+                ctx.roundRect(10, 80, 210, 60, [20, 20, 0, 0]);
+                ctx.fill();
+
+                status.className = 'status pass';
+                status.textContent = '✓ PASS: roundRect polyfill working correctly';
+            } catch (e) {
+                status.className = 'status fail';
+                status.textContent = '✗ FAIL: ' + e.message;
+            }
+        })();
+
+        // Test 2: CanvasHelper
+        (function() {
+            const canvas = document.getElementById('test2');
+            const status = document.getElementById('test2-status');
+            const dprDisplay = document.getElementById('dpr');
+
+            try {
+                if (!window.CanvasHelper) {
+                    throw new Error('CanvasHelper not loaded');
+                }
+
+                const result = CanvasHelper.setupCanvas(canvas, 400, 200);
+
+                if (!result || !result.ctx) {
+                    throw new Error('setupCanvas failed to return context');
+                }
+
+                const { ctx, width, height, dpr } = result;
+
+                // Draw test pattern
+                ctx.fillStyle = '#f56565';
+                ctx.fillRect(0, 0, width, height);
+
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('DPI Scaled Canvas', width/2, height/2);
+
+                dprDisplay.textContent = dpr;
+
+                status.className = 'status pass';
+                status.textContent = `✓ PASS: Canvas scaled correctly (${canvas.width}x${canvas.height} physical, ${width}x${height} logical)`;
+            } catch (e) {
+                status.className = 'status fail';
+                status.textContent = '✗ FAIL: ' + e.message;
+            }
+        })();
+
+        // Test 3: Visibility Detection
+        window.showHiddenSection = function() {
+            const section = document.getElementById('hidden-section');
+            const canvas = document.getElementById('test3');
+            const status = document.getElementById('test3-status');
+
+            section.style.display = 'block';
+
+            CanvasHelper.whenVisible(canvas, () => {
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#4fd1c5';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Rendered after becoming visible!', canvas.width/2, canvas.height/2);
+
+                status.className = 'status pass';
+                status.textContent = '✓ PASS: Canvas rendered after visibility change';
+            });
+        };
+
+        // Test 4: Safe Element Getter
+        (function() {
+            const status = document.getElementById('test4-status');
+
+            try {
+                if (!window.safeGetElement) {
+                    throw new Error('safeGetElement not loaded');
+                }
+
+                // Test existing element
+                const existing = safeGetElement('test4-status');
+                if (!existing) {
+                    throw new Error('Failed to get existing element');
+                }
+
+                // Test non-existing element (should warn but not crash)
+                const nonExisting = safeGetElement('this-does-not-exist');
+                if (nonExisting !== null) {
+                    throw new Error('Expected null for non-existing element');
+                }
+
+                status.className = 'status pass';
+                status.textContent = '✓ PASS: safeGetElement working (check console for warning about missing element)';
+            } catch (e) {
+                status.className = 'status fail';
+                status.textContent = '✗ FAIL: ' + e.message;
+            }
+        })();
+
+        // Summary
+        setTimeout(() => {
+            const statuses = document.querySelectorAll('.status');
+            const passes = document.querySelectorAll('.status.pass').length;
+            const total = statuses.length;
+
+            console.log(`\n${'='.repeat(50)}`);
+            console.log(`Interactive Fixes Test Results: ${passes}/${total} passed`);
+            console.log(`${'='.repeat(50)}\n`);
+
+            if (passes === total) {
+                console.log('✓ All fixes are working correctly!');
+                console.log('Your interactive lessons should now display properly.');
+            } else {
+                console.warn('⚠ Some tests failed. Check the errors above.');
+            }
+        }, 500);
+    </script>
+</body>
+</html>

@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Digital Representation – From Signals to Data</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: Intro -->
+<section id="section1" class="visible">
+    <div class="visual-placeholder">
+        <img src="images/1.jpg" alt="Illustration showing Analog to Digital Conversion: A continuous analog wave being sampled into discrete digital data blocks.">
+    </div>
+    <h1>Digital Representation – From Signals to Data</h1>
+    <h2>From Voltage to Numbers</h2>
+    
+    <p>We've followed the journey of a photon from the sun, through the atmosphere, into your eye (or lens), and onto a silicon sensor. In the last lesson, we saw how Photodiodes turn that light into an electrical charge (voltage). But here's the catch: computers don't speak 'voltage'. They don't speak 'waves'. They speak numbers.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: The Transformation -->
+<section id="section2">
+    <p>To turn that electrical soup into a crisp Instagram photo, we need to perform two major translation steps: <strong>Demosaicing</strong> (to fix the color gaps) and <strong>Quantization</strong> (to turn smooth signals into integers).</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3: The Goal -->
+<section id="section3">
+    <p>By the end of this lesson, you'll understand exactly what a digital image <em>is</em> when you open it in code: not a photograph, but a giant 3D grid of numbers.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4: Demosaicing Intro -->
+<section id="section4">
+    <h2>Filling in the Gaps: Demosaicing</h2>
+    <p>Remember the Bayer Filter from the previous lesson? It covers the sensor in a checkerboard of Red, Green, and Blue filters. This means that at any specific pixel location, the sensor only captured <strong>one</strong> color.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Diagram showing the Demosaicing Algorithm: Converting raw sensor data in a Bayer pattern into a reconstructed full-color image of a hummingbird.">
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5: Interpolation Logic -->
+<section id="section5">
+    <p>If pixel (1,1) is covered by a Red filter, we know how much Red light hit it. But we have no idea how much Green or Blue light hit that exact spot. To get a full color image, we have to guess.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6: Vocab Demosaicing -->
+<section id="section6">
+    <p>This process is called <strong>Demosaicing</strong> (or debayering). The camera looks at the neighboring pixels to estimate the missing values. If a Red pixel is surrounded by Green pixels, the camera averages those neighbors to estimate the Green value for the center point.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Demosaicing</h4>
+        <p>The process of interpolating (estimating) the missing color values for each pixel based on the values of neighboring pixels in a Bayer pattern sensor.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7: Artifacts -->
+<section id="section7">
+    <p>Usually, this works perfectly. But sometimes, especially where there are fine patterns (like a striped shirt) or sharp edges, the math gets confused. This creates 'false colors' or weird patterns known as artifacts.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Image Artifacts</h4>
+        <p>Visual anomalies or distortions in a digital image (like moiré patterns or jagged edges) that were not present in the original scene, often caused by processing steps like demosaicing or compression.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- SECTION 8: Quiz Demosaicing -->
+<section id="section8">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>What is the primary result of Demosaicing?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, that is usually done later (like in JPEG compression). Demosaicing is about reconstructing color.')">It compresses the image to make the file smaller.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly! It takes the single-channel mosaic and interpolates the missing channels so every pixel has an R, G, and B value.')">It converts a sparse Bayer pattern into a full-color image.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'While noise reduction happens during preprocessing, Demosaicing specifically refers to the color interpolation step.')">It removes noise from the sensor data.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- SECTION 9: Quantization Intro -->
+<section id="section9">
+    <h2>Quantization: Chopping up the Signal</h2>
+    <p>Now we have full color channels, but the signal is still effectively an analog voltage—a continuous value. It could be 1.2349 volts, or 0.0001 volts. Computers can't store infinite precision, so we have to round these values to integers. This is <strong>Quantization</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- SECTION 10: Vocab Quantization -->
+<section id="section10">
+    <p>We map the continuous light intensity to a discrete scale. In almost all standard images, we use <strong>8-bit</strong> color depth.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Quantization</h4>
+        <p>The process of mapping a large set of input values (like continuous voltage) to a (countable) smaller set of output values (like integers from 0 to 255).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- SECTION 11: The Math -->
+<section id="section11">
+    <p>Why 8-bit? Because computers process data in bytes, and 1 byte = 8 bits. Let's look at the math to see how many intensity levels that gives us.</p>
+    <p>In binary, an n-bit system can represent \(2^n\) unique values. For 8 bits:</p>
+    <p>\[ 2^8 = 2 \times 2 \times 2 \times 2 \times 2 \times 2 \times 2 \times 2 = 256 \]</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- SECTION 12: The Range -->
+<section id="section12">
+    <p>This gives us 256 possible intensity levels. Since we start counting at 0 (no light), the range is:</p>
+    <div class="visual-placeholder">
+        <img src="images/3.jpg" alt="Graphic showing the 8-bit Quantization Range from Black (value 0) to White (value 255) with intermediate gray steps.">
+    </div>
+    <p>\(0\) = Absolute Black (Minimum Intensity)<br>
+    \(255\) = Pure White (Maximum Intensity)</p>
+    <p>There is no value for 201.4. It must be 201 or 202. This introduces a tiny bit of error, but 256 levels are usually enough to fool the human eye into seeing a smooth gradient.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- SECTION 13: FAQ & Vocab -->
+<section id="section13">
+    <div class="why-it-matters">
+        <h3>Frequently Asked</h3>
+        <p><strong>Why 0 to 255? Why not 0 to 100?</strong></p>
+        <p>Great question! It comes down to hardware efficiency. Computers work in binary (0s and 1s). A 'Byte' is the standard unit of storage and consists of 8 bits. The maximum number you can write with 8 bits (11111111) is 255. If we used 0-100, we'd be wasting more than half the capacity of every byte!</p>
+    </div>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Pixel Depth</h4>
+        <p>The number of bits used to represent the color of a single pixel. Standard images use 8 bits per channel (24 bits total for RGB).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 14: RGB Model -->
+<section id="section14">
+    <h2>The RGB Color Model</h2>
+    <p>After demosaicing and quantization, every single pixel in the image is represented by three numbers: Red, Green, and Blue. This is the <strong>RGB Color Model</strong>.</p>
+    <div class="rgb-cube-container">
+        <canvas id="rgbCubeCanvas"></canvas>
+        <div class="cube-controls">
+            <div class="control-hint">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span>Click & Drag to Rotate</span>
+            </div>
+            <button onclick="resetCube()" class="reset-btn">Reset View</button>
+        </div>
+    </div>
+    
+    <script>
+    (function() {
+        const canvas = document.getElementById('rgbCubeCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        
+        // Configuration
+        const step = 32; // Density of points (lower = more dense)
+        const pointSize = 5; // Size of dots
+        const cubeScale = 1.2; // Zoom level
+        
+        // State
+        let rotation = { x: -0.5, y: -0.6 }; // Initial angle to show depth
+        let isDragging = false;
+        let lastMouse = { x: 0, y: 0 };
+        let points = [];
+        
+        // Generate the RGB point cloud
+        function initPoints() {
+            points = [];
+            // Loop 0 to 255
+            for (let r = 0; r <= 255; r += step) {
+                for (let g = 0; g <= 255; g += step) {
+                    for (let b = 0; b <= 255; b += step) {
+                        // Normalize coordinates to -1 to 1 range for 3D math
+                        // 0 becomes -1, 255 becomes 1
+                        let x = (r / 127.5) - 1; 
+                        let y = (g / 127.5) - 1;
+                        let z = (b / 127.5) - 1;
+                        
+                        points.push({
+                            x: x, y: y, z: z,
+                            r: r, g: g, b: b,
+                            origX: x, origY: y, origZ: z // Keep original for reset/calc
+                        });
+                    }
+                }
+            }
+        }
+    
+        // 3D Projection Logic
+        function project(p, rotX, rotY) {
+            // 1. Rotate around Y axis
+            let x1 = p.x * Math.cos(rotY) - p.z * Math.sin(rotY);
+            let z1 = p.z * Math.cos(rotY) + p.x * Math.sin(rotY);
+            
+            // 2. Rotate around X axis
+            let y2 = p.y * Math.cos(rotX) - z1 * Math.sin(rotX);
+            let z2 = z1 * Math.cos(rotX) + p.y * Math.sin(rotX);
+            
+            // 3. Simple Perspective Projection
+            // The camera is at some distance (e.g., 4 units away)
+            let fov = 400 * cubeScale;
+            let cameraDist = 4;
+            let scale = fov / (cameraDist - z2);
+            
+            return {
+                x: x1 * scale + width / 2,
+                y: y2 * scale + height / 2, // Inverted Y not needed as we mapped -1 to bottom
+                z: z2, // Depth for sorting
+                scale: scale,
+                r: p.r, g: p.g, b: p.b
+            };
+        }
+    
+        function draw() {
+            // Clear background
+            ctx.clearRect(0, 0, width, height);
+            
+            // Project all points
+            let projectedPoints = points.map(p => project(p, rotation.x, rotation.y));
+            
+            // Sort by Z (depth) so we draw back-to-front (Painter's Algorithm)
+            projectedPoints.sort((a, b) => a.z - b.z);
+            
+            // Draw Points
+            projectedPoints.forEach(p => {
+                // Calculate opacity based on depth (fog effect)
+                let alpha = (p.scale / 150); 
+                if(alpha > 1) alpha = 1;
+                if(alpha < 0.2) alpha = 0.2;
+    
+                ctx.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${alpha})`;
+                ctx.beginPath();
+                // Draw circle
+                ctx.arc(p.x, p.y, pointSize * (p.scale/100), 0, Math.PI * 2);
+                ctx.fill();
+            });
+    
+            drawAxes();
+        }
+        
+        function drawAxes() {
+            // We want to draw lines from Origin (Black) to R, G, B max
+            // Origin in our -1 to 1 space is (-1, -1, -1) corresponding to (0,0,0) RGB
+            
+            const axes = [
+                { id: 'R', x: 1, y: -1, z: -1, color: '#ff0000', label: 'Red (X)' },
+                { id: 'G', x: -1, y: 1, z: -1, color: '#00ff00', label: 'Green (Y)' },
+                { id: 'B', x: -1, y: -1, z: 1, color: '#0000ff', label: 'Blue (Z)' },
+                { id: 'W', x: 1, y: 1, z: 1, color: '#aaa', label: 'White' }, // Far corner
+                { id: 'O', x: -1, y: -1, z: -1, color: '#000', label: 'Black' } // Origin
+            ];
+            
+            // Project Axes
+            const projAxes = axes.map(a => {
+                let p = project(a, rotation.x, rotation.y);
+                return { ...a, px: p.x, py: p.y };
+            });
+    
+            const origin = projAxes.find(a => a.id === 'O');
+    
+            ctx.lineWidth = 3;
+            ctx.font = 'bold 14px sans-serif';
+            ctx.strokeStyle = 'white'; // Outline for text
+            ctx.textAlign = 'center';
+            
+            // Draw lines from Origin to R, G, B tips
+            ['R', 'G', 'B'].forEach(axisId => {
+                const target = projAxes.find(a => a.id === axisId);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = target.color;
+                ctx.moveTo(origin.px, origin.py);
+                ctx.lineTo(target.px, target.py);
+                ctx.stroke();
+                
+                // Draw Label
+                ctx.fillStyle = '#2d3748';
+                ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+                ctx.lineWidth = 3;
+                ctx.strokeText(target.label, target.px, target.py - 10);
+                ctx.fillText(target.label, target.px, target.py - 10);
+            });
+            
+            // Label White Corner and Black Corner
+            const white = projAxes.find(a => a.id === 'W');
+            ctx.strokeText("White (255,255,255)", white.px, white.py + 20);
+            ctx.fillText("White (255,255,255)", white.px, white.py + 20);
+    
+            ctx.strokeText("Black (0,0,0)", origin.px, origin.py + 20);
+            ctx.fillText("Black (0,0,0)", origin.px, origin.py + 20);
+        }
+    
+        // Input Handling
+        function onMouseDown(e) {
+            isDragging = true;
+            lastMouse = { x: e.clientX, y: e.clientY };
+        }
+        
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            
+            const deltaX = e.clientX - lastMouse.x;
+            const deltaY = e.clientY - lastMouse.y;
+            
+            rotation.y += deltaX * 0.01;
+            rotation.x -= deltaY * 0.01;
+            
+            lastMouse = { x: e.clientX, y: e.clientY };
+            requestAnimationFrame(draw);
+        }
+        
+        function onMouseUp() {
+            isDragging = false;
+        }
+    
+        // Resize Handling
+        function resize() {
+            const rect = canvas.getBoundingClientRect();
+            width = rect.width;
+            height = rect.height;
+            // Handle High DPI screens
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+            draw();
+        }
+        
+        // Global Reset function
+        window.resetCube = function() {
+            rotation = { x: -0.5, y: -0.6 };
+            draw();
+        };
+    
+        // Initialize
+        initPoints();
+        
+        // Event Listeners
+        canvas.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+        
+        // Touch support
+        canvas.addEventListener('touchstart', (e) => onMouseDown(e.touches[0]));
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); onMouseMove(e.touches[0]); });
+        canvas.addEventListener('touchend', onMouseUp);
+    
+        // Initial render
+        window.addEventListener('load', () => {
+            resize();
+            window.addEventListener('resize', resize);
+        });
+        
+        // Handle section visibility change (if using the template logic)
+        const observer = new IntersectionObserver((entries) => {
+            if(entries[0].isIntersecting) resize();
+        });
+        observer.observe(canvas);
+    
+    })();
+    </script>
+    <p>We can visualize this as a 3D coordinate system—a cube. Any color you can imagine (that a screen can display) exists somewhere inside this cube.</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- SECTION 15: Pixel Inspector -->
+<section id="section15">
+    <p>Let's test your intuition on how computers see color. We are going to look at a pixel inspector.</p>
+    <div class="pixel-inspector-wrapper">
+        <!-- Game Status Header -->
+        <div class="inspector-header">
+            <div class="task-status" id="taskStatus">
+                <span class="status-icon">🎯</span>
+                <span id="taskText">Task 1: Find a <strong>Yellow</strong> pixel.</span>
+            </div>
+            <div class="progress-dots">
+                <div class="dot active" id="dot1"></div>
+                <div class="dot" id="dot2"></div>
+            </div>
+        </div>
+    
+        <!-- Main Canvas Area -->
+        <div class="canvas-container">
+            <canvas id="parrotCanvas"></canvas>
+            
+            <!-- Magnifier / Tooltip -->
+            <div id="pixelTooltip" class="pixel-tooltip">
+                <div class="color-preview" id="tooltipColor"></div>
+                <div class="rgb-values">
+                    <div>R: <span id="valR">0</span></div>
+                    <div>G: <span id="valG">0</span></div>
+                    <div>B: <span id="valB">0</span></div>
+                </div>
+            </div>
+            
+            <!-- Selection Reticle -->
+            <div id="reticle" class="pixel-reticle"></div>
+        </div>
+    
+        <!-- Mobile Instruction -->
+        <div class="mobile-hint">Tap and drag to inspect pixels</div>
+    </div>
+    
+    <script>
+    (function() {
+        // Setup
+        const canvas = document.getElementById('parrotCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const tooltip = document.getElementById('pixelTooltip');
+        const reticle = document.getElementById('reticle');
+        const taskText = document.getElementById('taskText');
+        const dot1 = document.getElementById('dot1');
+        const dot2 = document.getElementById('dot2');
+        
+        // Config
+        // We render a small internal resolution to simulate "big pixels"
+        const internalWidth = 40; 
+        const internalHeight = 30; 
+        const pixelScale = 20; // Visual scale handled by CSS/Layout, used for calc
+        
+        // Set canvas actual size
+        canvas.width = internalWidth;
+        canvas.height = internalHeight;
+        
+        // Game State
+        let currentTask = 1; // 1 = Find Yellow, 2 = Find Gray, 3 = Done
+        let isHovering = false;
+        
+        // 1. GENERATE "PARROT" IMAGE PROCEDURALLY
+        // We draw gradients and shapes to ensure Yellow and Gray exist.
+        function drawParrot() {
+            // Background: Sky Blue
+            ctx.fillStyle = "#87CEEB";
+            ctx.fillRect(0, 0, internalWidth, internalHeight);
+            
+            // Branch (Gray/Brown) - Bottom Right area
+            ctx.fillStyle = "#808080"; // Perfect Gray for the task
+            ctx.beginPath();
+            ctx.moveTo(internalWidth, internalHeight);
+            ctx.lineTo(internalWidth/2, internalHeight);
+            ctx.lineTo(internalWidth, internalHeight/2);
+            ctx.fill();
+    
+            // Parrot Body - Red
+            let gradientRed = ctx.createLinearGradient(0, 0, internalWidth/2, internalHeight);
+            gradientRed.addColorStop(0, "#FF0000");
+            gradientRed.addColorStop(1, "#8B0000");
+            ctx.fillStyle = gradientRed;
+            ctx.beginPath();
+            ctx.ellipse(15, 15, 10, 14, Math.PI/12, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Parrot Wing - Green and Blue
+            ctx.fillStyle = "#008000";
+            ctx.beginPath();
+            ctx.ellipse(15, 18, 5, 8, -Math.PI/6, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = "#0000FF";
+            ctx.beginPath();
+            ctx.ellipse(12, 20, 3, 6, -Math.PI/6, 0, 2 * Math.PI);
+            ctx.fill();
+    
+            // Parrot Beak - YELLOW (Crucial for Task 1)
+            ctx.fillStyle = "#FFFF00"; 
+            ctx.beginPath();
+            ctx.moveTo(22, 10);
+            ctx.lineTo(28, 12);
+            ctx.lineTo(22, 14);
+            ctx.fill();
+    
+            // Eye - Black/White
+            ctx.fillStyle = "white";
+            ctx.beginPath();
+            ctx.arc(18, 10, 2, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = "black";
+            ctx.beginPath();
+            ctx.arc(18, 10, 0.5, 0, Math.PI*2);
+            ctx.fill();
+        }
+    
+        drawParrot();
+    
+        // 2. INTERACTION HANDLERS
+        function handleInteraction(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            
+            // Calculate coordinate within the grid
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const x = Math.floor((clientX - rect.left) * scaleX);
+            const y = Math.floor((clientY - rect.top) * scaleY);
+            
+            // Out of bounds check
+            if(x < 0 || x >= internalWidth || y < 0 || y >= internalHeight) {
+                tooltip.style.display = 'none';
+                reticle.style.display = 'none';
+                return;
+            }
+    
+            // Get Pixel Data
+            const p = ctx.getImageData(x, y, 1, 1).data;
+            const r = p[0];
+            const g = p[1];
+            const b = p[2];
+    
+            // Update UI Position
+            // We snap the reticle to the visual grid
+            const visualCellWidth = rect.width / internalWidth;
+            const visualCellHeight = rect.height / internalHeight;
+            
+            reticle.style.display = 'block';
+            reticle.style.width = `${visualCellWidth}px`;
+            reticle.style.height = `${visualCellHeight}px`;
+            reticle.style.left = `${x * visualCellWidth}px`;
+            reticle.style.top = `${y * visualCellHeight}px`;
+    
+            // Update Tooltip
+            tooltip.style.display = 'block';
+            
+            // Keep tooltip inside container
+            let tooltipLeft = (x * visualCellWidth) + 20;
+            let tooltipTop = (y * visualCellHeight) + 20;
+            
+            // Flip if too close to edge
+            if (tooltipLeft + 120 > rect.width) tooltipLeft -= 140;
+            if (tooltipTop + 80 > rect.height) tooltipTop -= 100;
+    
+            tooltip.style.left = `${tooltipLeft}px`;
+            tooltip.style.top = `${tooltipTop}px`;
+    
+            // Update Values
+            document.getElementById('valR').textContent = r;
+            document.getElementById('valG').textContent = g;
+            document.getElementById('valB').textContent = b;
+            document.getElementById('tooltipColor').style.background = `rgb(${r},${g},${b})`;
+        }
+    
+        function handleClick(clientX, clientY) {
+            if(currentTask === 3) return; // Done
+    
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = Math.floor((clientX - rect.left) * scaleX);
+            const y = Math.floor((clientY - rect.top) * scaleY);
+    
+            if(x < 0 || x >= internalWidth || y < 0 || y >= internalHeight) return;
+    
+            const p = ctx.getImageData(x, y, 1, 1).data;
+            const r = p[0], g = p[1], b = p[2];
+    
+            // Logic for Task 1: Find Yellow
+            // Yellow = High Red, High Green, Low Blue
+            if (currentTask === 1) {
+                if (r > 200 && g > 200 && b < 100) {
+                    completeTask1();
+                }
+            }
+            // Logic for Task 2: Find Gray
+            // Gray = R, G, B are similar values (low variance)
+            else if (currentTask === 2) {
+                const avg = (r + g + b) / 3;
+                const variance = Math.abs(r - avg) + Math.abs(g - avg) + Math.abs(b - avg);
+                // Ensure it's not white or black (brightness check)
+                if (variance < 30 && avg > 50 && avg < 200) {
+                    completeTask2();
+                }
+            }
+        }
+    
+        function completeTask1() {
+            currentTask = 2;
+            taskText.innerHTML = "Success! Now, find a <strong>Gray</strong> pixel.";
+            dot1.classList.remove('active');
+            dot1.classList.add('completed');
+            dot2.classList.add('active');
+            triggerFlash();
+        }
+    
+        function completeTask2() {
+            currentTask = 3;
+            taskText.innerHTML = "<strong>🎉 All tasks completed!</strong> Explore the rest.";
+            dot2.classList.remove('active');
+            dot2.classList.add('completed');
+            reticle.style.borderColor = "#10b981"; // Green border
+            triggerFlash();
+        }
+    
+        function triggerFlash() {
+            const wrapper = document.querySelector('.pixel-inspector-wrapper');
+            wrapper.classList.remove('success-flash');
+            void wrapper.offsetWidth; // trigger reflow
+            wrapper.classList.add('success-flash');
+        }
+    
+        // Mouse Events
+        canvas.addEventListener('mousemove', (e) => {
+            handleInteraction(e.clientX, e.clientY);
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            tooltip.style.display = 'none';
+            reticle.style.display = 'none';
+        });
+    
+        canvas.addEventListener('click', (e) => {
+            handleClick(e.clientX, e.clientY);
+        });
+    
+        // Touch Events (for mobile)
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            const touch = e.touches[0];
+            handleInteraction(touch.clientX, touch.clientY);
+        }, {passive: false});
+    
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            handleInteraction(touch.clientX, touch.clientY);
+        }, {passive: false});
+    
+        // Tap to select on mobile
+        canvas.addEventListener('touchend', (e) => {
+            // Use the last known position from the reticle logic ideally, 
+            // but for simplicity, we just use the last touch point if available
+            if (e.changedTouches.length > 0) {
+                const touch = e.changedTouches[0];
+                handleClick(touch.clientX, touch.clientY);
+            }
+            // Hide tooltip after a delay on mobile
+            setTimeout(() => {
+                tooltip.style.display = 'none';
+                reticle.style.display = 'none';
+            }, 2000);
+        });
+    
+    })();
+    </script>
+    <p>Did you notice the pattern? Yellow is made by mixing Red and Green (\(R \approx 255, G \approx 255, B \approx 0\)). Gray happens when all three channels are roughly equal but not at maximum brightness (e.g., \(R=128, G=128, B=128\)).</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- SECTION 16: Stop & Think -->
+<section id="section16">
+    <div class="check-your-knowledge">
+        <h3>Stop & Think</h3>
+        <h4>In the RGB model, if you possess a pixel with values \((100, 100, 100)\) and you double every value to \((200, 200, 200)\), what property of the pixel changed? What stayed the same?</h4>
+        <div id="sat-brightness-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> The <strong>Brightness</strong> increased (it got closer to white), but the <strong>Color/Hue</strong> stayed the same (it is still a neutral gray). In RGB, the ratio between the channels determines the color, while the magnitude determines the brightness.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('sat-brightness-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<!-- SECTION 17: Quiz Magenta -->
+<section id="section17">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>What color is represented by the tuple \((255, 0, 255)\)?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Check the middle value. The Green channel is 0. This cannot be green.')">Green</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Yellow is a mix of Red and Green. Here we have Red and Blue.')">Yellow</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Maximum Red + Maximum Blue (with no Green) creates Magenta.')">Magenta / Purple</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'White requires all three channels to be maxed out (255, 255, 255).')">White</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(18)" style="display: none;">Continue</div>
+</section>
+
+<!-- SECTION 18: 3D Array -->
+<section id="section18">
+    <h2>The Digital Image: A 3D Array</h2>
+    <p>So, what <em>is</em> an image when you load it into Python or C++? It's just a 3D matrix (or Tensor) of these numbers.</p>
+    <div class="visual-placeholder">
+        <img src="images/4.jpg" alt="Diagram of Multi-Channel Representation: Decomposing a 2D image into a 3D tensor with Red, Green, and Blue channels, labeled Height x Width x 3.">
+    </div>
+    <p>The structure is defined by three dimensions: <strong>Height \(\times\) Width \(\times\) Channels</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<!-- SECTION 19: Channels & Importance -->
+<section id="section19">
+    <p>If you have a \(100 \times 100\) pixel image, you actually have \(100 \times 100 \times 3 = 30,000\) integers to process. These numbers are the raw material for everything we do in computer vision.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>RGB Channel</h4>
+        <p>A specific component of an image containing intensity information for just one color (Red, Green, or Blue). A standard color image has 3 channels.</p>
+    </div>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>This 3D array (Tensor) is the actual input variable for every computer vision algorithm you will write. Whether you are detecting edges or training a Deep Learning model, you are ultimately just performing math operations on this grid of numbers.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<!-- SECTION 20: Review -->
+<section id="section20">
+    <h2>Review and Reflect</h2>
+    
+    <p>We have completed the journey from the physical world to the digital realm. Here is the pipeline we built in this chapter:</p>
+    <ul>
+        <li><strong>Light</strong> reflects off an object.</li>
+        <li>It passes through the <strong>Lens</strong> and Aperture.</li>
+        <li>It hits the <strong>Bayer Filter</strong> and <strong>Photodiodes</strong>.</li>
+        <li>The voltage is <strong>Demosaiced</strong> to restore color and <strong>Quantized</strong> to 0-255 integers.</li>
+    </ul>
+    <p>Now that you understand the data, you are ready to start manipulating it. In the next chapter, we will learn how to process these images to change their appearance and extract information.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 20;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to reveal continue button after answering a quiz in specific sections
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section17') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        // Attempt LMS integration
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // IDs adjusted for this lesson context
+                let courseId = 'computer-vision';
+                let pathId = 'foundations';
+                let moduleId = 'digital-images';
+                let lessonId = 'digital-representation';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv_digital_representation_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    // Check LMS status
+    if (window.parent && window.parent.ProgressTracker) {
+        // IDs adjusted for this lesson context
+        let courseId = 'computer-vision';
+        let pathId = 'foundations';
+        let moduleId = 'digital-images';
+        let lessonId = 'digital-representation';
+        
+        if (window.parent.currentRoute) {
+            const route = window.parent.currentRoute;
+            if (route.courseId) courseId = route.courseId;
+            if (route.pathId) pathId = route.pathId;
+            if (route.moduleId) moduleId = route.moduleId;
+            if (route.lessonId) lessonId = route.lessonId;
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('course')) courseId = urlParams.get('course');
+        if (urlParams.get('path')) pathId = urlParams.get('path');
+        if (urlParams.get('module')) moduleId = urlParams.get('module');
+        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+        const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+        if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+            button.classList.add('completed');
+            button.innerHTML = '✅ Completed!';
+            return;
+        }
+    }
+    // Check local storage
+    const isCompleted = localStorage.getItem('lesson_cv_digital_representation_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

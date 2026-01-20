@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Experiment: The Sound of Mathematics</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+/* ============================================
+   SYNTHESIZER LAB STYLES
+   ============================================ */
+
+.synth-container {
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 2rem 0;
+    color: white;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.synth-container h4 {
+    margin: 0 0 8px 0;
+    color: #63b3ed;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.synth-container .synth-subtitle {
+    color: #a0aec0;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+/* Waveform Canvas */
+.waveform-display {
+    background: #0d1117;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.waveform-display::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #48bb78, #4facfe, #f093fb);
+    border-radius: 12px 12px 0 0;
+}
+
+.waveform-canvas {
+    width: 100%;
+    height: 180px;
+    display: block;
+    border-radius: 8px;
+}
+
+.waveform-label {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    color: #a0aec0;
+}
+
+/* Play Button */
+.play-controls {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.play-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    border: none;
+    border-radius: 50px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+}
+
+.play-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(72, 187, 120, 0.4);
+}
+
+.play-btn.playing {
+    background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+    box-shadow: 0 4px 20px rgba(245, 101, 101, 0.3);
+}
+
+.play-btn.playing:hover {
+    box-shadow: 0 8px 30px rgba(245, 101, 101, 0.4);
+}
+
+.play-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+/* Sliders Section */
+.sliders-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.slider-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    transition: background 0.2s ease;
+}
+
+.slider-row:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.slider-row.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.slider-label {
+    min-width: 140px;
+    font-size: 0.9rem;
+    color: #e2e8f0;
+}
+
+.slider-label .freq {
+    display: block;
+    font-size: 0.75rem;
+    color: #718096;
+    margin-top: 2px;
+}
+
+.slider-input {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: #4a5568;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+}
+
+.slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(79, 172, 254, 0.4);
+    transition: transform 0.2s ease;
+}
+
+.slider-input::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+}
+
+.slider-input::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(79, 172, 254, 0.4);
+}
+
+.slider-value {
+    min-width: 50px;
+    text-align: right;
+    font-size: 0.9rem;
+    color: #4facfe;
+    font-weight: 600;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* Harmonic color coding */
+.slider-row[data-harmonic="1"] .slider-input::-webkit-slider-thumb {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+}
+.slider-row[data-harmonic="2"] .slider-input::-webkit-slider-thumb,
+.slider-row[data-harmonic="4"] .slider-input::-webkit-slider-thumb,
+.slider-row[data-harmonic="6"] .slider-input::-webkit-slider-thumb {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+}
+.slider-row[data-harmonic="3"] .slider-input::-webkit-slider-thumb,
+.slider-row[data-harmonic="5"] .slider-input::-webkit-slider-thumb,
+.slider-row[data-harmonic="7"] .slider-input::-webkit-slider-thumb,
+.slider-row[data-harmonic="9"] .slider-input::-webkit-slider-thumb {
+    background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+}
+
+/* Preset Buttons */
+.preset-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.preset-btn {
+    padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.preset-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.preset-btn.square {
+    border-color: #9f7aea;
+    color: #d6bcfa;
+}
+
+.preset-btn.square:hover {
+    background: rgba(159, 122, 234, 0.2);
+}
+
+.preset-btn.sawtooth {
+    border-color: #ed8936;
+    color: #fbd38d;
+}
+
+.preset-btn.sawtooth:hover {
+    background: rgba(237, 137, 54, 0.2);
+}
+
+/* Frequency Bars Display */
+.freq-bars-container {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 8px;
+    height: 80px;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    margin-top: 16px;
+}
+
+.freq-bar {
+    width: 30px;
+    background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%);
+    border-radius: 4px 4px 0 0;
+    transition: height 0.15s ease;
+    position: relative;
+}
+
+.freq-bar::after {
+    content: attr(data-label);
+    position: absolute;
+    bottom: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: #718096;
+    white-space: nowrap;
+}
+
+.freq-bar.fundamental {
+    background: linear-gradient(180deg, #48bb78 0%, #38a169 100%);
+}
+
+.freq-bar.even {
+    background: linear-gradient(180deg, #ed8936 0%, #dd6b20 100%);
+}
+
+.freq-bar.odd {
+    background: linear-gradient(180deg, #9f7aea 0%, #805ad5 100%);
+}
+
+/* Section Labels */
+.harmonic-section-label {
+    font-size: 0.8rem;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 16px 0 8px 0;
+    padding-left: 4px;
+}
+
+.harmonic-section-label.odd {
+    color: #b794f4;
+}
+
+.harmonic-section-label.even {
+    color: #f6ad55;
+}
+
+/* Audio Context Warning */
+.audio-warning {
+    background: rgba(237, 137, 54, 0.2);
+    border: 1px solid #ed8936;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    color: #fbd38d;
+    display: none;
+}
+
+.audio-warning.show {
+    display: block;
+}
+</style>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- Section 1: Intro with Image -->
+<section id="section1" class="visible">
+    <h1>Experiment: The Sound of Mathematics</h1>
+    <div class="image-placeholder">
+        <div style="background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%); padding: 40px; border-radius: 12px; text-align: center;">
+            <p style="color: #a0aec0; font-style: italic;">An illustration of the human ear. The cochlea is unraveled to look like a piano keyboard, showing how different parts of the inner ear vibrate at different frequencies.</p>
+        </div>
+    </div>
+    <h2>Your Ears are Frequency Analyzers</h2>
+    <p>In the previous lesson, we looked at graphs. But graphs are for eyes, and eyes can be tricked. Your ears, however, are biological signal processors. Inside your ear is a spiral-shaped organ called the cochlea. It contains thousands of tiny hairs, and each hair is tuned to vibrate at a specific frequency.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- Section 2: The Pure Tone -->
+<section id="section2">
+    <h2>The Pure Tone</h2>
+    <p>When you hear a sound, your brain doesn't record the waveform over time like a tape recorder. It records which hairs are vibrating. It performs a Fourier Transform instantly.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- Section 3: Sine Wave Intro -->
+<section id="section3">
+    <p>Let's start with the simplest signal possible: The Sine Wave. In audio, we call this a 'Pure Tone'.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- Section 4: 440Hz Interactive -->
+<section id="section4">
+    <p>We will set our fundamental frequency ($f_0$) to 440Hz. In music, this is the note 'A4', the standard tuning pitch for orchestras.</p>
+
+    <!-- INTERACTIVE 1: Simple 440Hz Sine Wave Player -->
+    <div class="synth-container" id="synth1">
+        <h4>🔊 Pure Tone Generator</h4>
+        <p class="synth-subtitle">The simplest sound: a single 440Hz sine wave</p>
+
+        <div class="waveform-display">
+            <canvas id="canvas1" class="waveform-canvas"></canvas>
+            <span class="waveform-label">440 Hz · A4</span>
+        </div>
+
+        <div class="play-controls">
+            <button class="play-btn" id="playBtn1" onclick="toggleSynth1()">
+                <svg viewBox="0 0 24 24" id="playIcon1"><path d="M8 5v14l11-7z"/></svg>
+                <span id="playText1">Play 440Hz Sine Wave</span>
+            </button>
+        </div>
+    </div>
+
+    <p>Listen to that. It sounds smooth, round, perhaps a bit dull. This is the sound of a single frequency with no extra ingredients. It is the vanilla ice cream of sound.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- Section 5: Adding Flavor Intro -->
+<section id="section5">
+    <h2>Adding Flavor: The 3rd Harmonic</h2>
+    <p>Now, let's use the Superposition Principle. We aren't going to change the note (Pitch). We are going to change the flavor (Timbre).</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- Section 6: 3rd Harmonic Math -->
+<section id="section6">
+    <p>We will add a second sine wave at the <strong>3rd Harmonic</strong>.</p>
+    <p>Since our fundamental is $440\text{Hz}$, the 3rd harmonic is:</p>
+    <p style="text-align: center; font-size: 1.2rem;">$$3 \times 440\text{Hz} = 1320\text{Hz}$$</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- Section 7: Synthesizer Lab + Quiz + Vocab -->
+<section id="section7">
+    <p>In the interactive below, slowly slide the '3rd Harmonic' slider up. Don't listen for a second note (a chord). Listen to how the <em>character</em> of the first note changes.</p>
+
+    <!-- INTERACTIVE 2: Synthesizer Lab with 3rd Harmonic -->
+    <div class="synth-container" id="synth2">
+        <h4>🎛️ The Synthesizer Lab</h4>
+        <p class="synth-subtitle">Mix the fundamental with the 3rd harmonic</p>
+
+        <div class="waveform-display">
+            <canvas id="canvas2" class="waveform-canvas"></canvas>
+            <span class="waveform-label">Time Domain</span>
+        </div>
+
+        <div class="play-controls">
+            <button class="play-btn" id="playBtn2" onclick="toggleSynth2()">
+                <svg viewBox="0 0 24 24" id="playIcon2"><path d="M8 5v14l11-7z"/></svg>
+                <span id="playText2">Play Sound</span>
+            </button>
+        </div>
+
+        <div class="sliders-section" id="sliders2">
+            <div class="slider-row" data-harmonic="1">
+                <div class="slider-label">
+                    Fundamental
+                    <span class="freq">440 Hz</span>
+                </div>
+                <input type="range" class="slider-input" id="synth2-h1" min="0" max="100" value="100" disabled>
+                <span class="slider-value">100%</span>
+            </div>
+            <div class="slider-row" data-harmonic="3">
+                <div class="slider-label">
+                    3rd Harmonic
+                    <span class="freq">1320 Hz</span>
+                </div>
+                <input type="range" class="slider-input" id="synth2-h3" min="0" max="100" value="0" oninput="updateSynth2()">
+                <span class="slider-value" id="synth2-h3-val">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>As you increased the volume of the 3rd harmonic, what happened to the pitch (the musical note)?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'It might feel \\'brighter\\', but if you hum along, you are still humming the same note (A4).')">The pitch got higher.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Adding high frequency harmonics doesn\\'t lower the pitch.')">The pitch got lower.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'The fundamental frequency ($440\\text{Hz}$) dictates the pitch. The harmonics only change the timbre (texture).')">The pitch stayed the same.</div>
+        </div>
+    </div>
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Timbre</h4>
+        <p>Pronounced 'Tam-ber'. It is the 'color' or 'texture' of a sound. It is what makes a guitar sound different from a piano, even when playing the exact same note. Mathematically, Timbre is just the specific mixture of harmonic amplitudes.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- Section 8: Square Wave Intro -->
+<section id="section8">
+    <h2>The Square Wave (Retro Gaming)</h2>
+    <p>In Lesson 1, we claimed that adding <em>all</em> odd harmonics creates a Square Wave. Let's hear the proof.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- Section 9: Square Wave Interactive + Stop and Think -->
+<section id="section9">
+    <p>When we add the 3rd, 5th, 7th, and 9th harmonics, the smooth hill of the sine wave turns into a blocky, jagged wall.</p>
+
+    <!-- INTERACTIVE 3: Expanded Lab with Odd Harmonics -->
+    <div class="synth-container" id="synth3">
+        <h4>🎮 The Synthesizer Lab (Expanded)</h4>
+        <p class="synth-subtitle">Build a Square Wave using odd harmonics</p>
+
+        <div class="waveform-display">
+            <canvas id="canvas3" class="waveform-canvas"></canvas>
+            <span class="waveform-label">Time Domain</span>
+        </div>
+
+        <div class="play-controls">
+            <button class="play-btn" id="playBtn3" onclick="toggleSynth3()">
+                <svg viewBox="0 0 24 24" id="playIcon3"><path d="M8 5v14l11-7z"/></svg>
+                <span id="playText3">Play Sound</span>
+            </button>
+        </div>
+
+        <div class="sliders-section" id="sliders3">
+            <div class="slider-row" data-harmonic="1">
+                <div class="slider-label">Fundamental<span class="freq">440 Hz</span></div>
+                <input type="range" class="slider-input" id="synth3-h1" min="0" max="100" value="100" oninput="updateSynth3()">
+                <span class="slider-value" id="synth3-h1-val">100%</span>
+            </div>
+            <div class="slider-row" data-harmonic="3">
+                <div class="slider-label">3rd Harmonic<span class="freq">1320 Hz</span></div>
+                <input type="range" class="slider-input" id="synth3-h3" min="0" max="100" value="0" oninput="updateSynth3()">
+                <span class="slider-value" id="synth3-h3-val">0%</span>
+            </div>
+            <div class="slider-row" data-harmonic="5">
+                <div class="slider-label">5th Harmonic<span class="freq">2200 Hz</span></div>
+                <input type="range" class="slider-input" id="synth3-h5" min="0" max="100" value="0" oninput="updateSynth3()">
+                <span class="slider-value" id="synth3-h5-val">0%</span>
+            </div>
+            <div class="slider-row" data-harmonic="7">
+                <div class="slider-label">7th Harmonic<span class="freq">3080 Hz</span></div>
+                <input type="range" class="slider-input" id="synth3-h7" min="0" max="100" value="0" oninput="updateSynth3()">
+                <span class="slider-value" id="synth3-h7-val">0%</span>
+            </div>
+            <div class="slider-row" data-harmonic="9">
+                <div class="slider-label">9th Harmonic<span class="freq">3960 Hz</span></div>
+                <input type="range" class="slider-input" id="synth3-h9" min="0" max="100" value="0" oninput="updateSynth3()">
+                <span class="slider-value" id="synth3-h9-val">0%</span>
+            </div>
+        </div>
+
+        <div class="preset-buttons">
+            <button class="preset-btn" onclick="resetSynth3()">Reset</button>
+            <button class="preset-btn square" onclick="squarePreset3()">⬜ Square Wave Preset</button>
+        </div>
+    </div>
+
+    <p>Recognize that sound? Early video games used square waves because they were easy for simple computers to generate. It sounds 'buzzy' because those sharp corners in the graph represent high-frequency energy.</p>
+
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why does a Square Wave sound 'hollow' compared to other buzzy sounds?</h4>
+        <div id="stop-think-1" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Because it is missing half the ingredients! It completely lacks Even Harmonics ($2f, 4f, 6f$). That 'gap' in the frequency spectrum gives it a hollow, woody quality.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-1')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- Section 10: Sawtooth Intro -->
+<section id="section10">
+    <h2>Discovery Task: The Sawtooth</h2>
+    <p>Now it is your turn to be the sound engineer. We want to create a <strong>Sawtooth Wave</strong>. A Sawtooth wave looks like the teeth of a saw (ramping up and dropping down). It is the buzziest, richest sound in synthesis.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- Section 11: Even vs Odd Harmonics -->
+<section id="section11">
+    <p>The Square Wave used only <strong>Odd</strong> harmonics. The Sawtooth wave uses <strong>Both Even and Odd</strong> harmonics.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- Section 12: Full Synthesizer Lab + Quiz -->
+<section id="section12">
+    <p>Use the lab below. Try to construct a Sawtooth wave by introducing the Even harmonics ($2f, 4f, 6f$) alongside the Odd ones.</p>
+
+    <!-- INTERACTIVE 4: Full Lab with Even and Odd Harmonics -->
+    <div class="synth-container" id="synth4">
+        <h4>🎹 The Synthesizer Lab (Full)</h4>
+        <p class="synth-subtitle">Create any waveform with all harmonics</p>
+
+        <div class="waveform-display">
+            <canvas id="canvas4" class="waveform-canvas"></canvas>
+            <span class="waveform-label">Time Domain</span>
+        </div>
+
+        <div class="play-controls">
+            <button class="play-btn" id="playBtn4" onclick="toggleSynth4()">
+                <svg viewBox="0 0 24 24" id="playIcon4"><path d="M8 5v14l11-7z"/></svg>
+                <span id="playText4">Play Sound</span>
+            </button>
+        </div>
+
+        <div class="sliders-section" id="sliders4">
+            <div class="slider-row" data-harmonic="1">
+                <div class="slider-label">Fundamental<span class="freq">440 Hz</span></div>
+                <input type="range" class="slider-input" id="synth4-h1" min="0" max="100" value="100" oninput="updateSynth4()">
+                <span class="slider-value" id="synth4-h1-val">100%</span>
+            </div>
+
+            <div class="harmonic-section-label even">Even Harmonics</div>
+            <div class="slider-row" data-harmonic="2">
+                <div class="slider-label">2nd Harmonic<span class="freq">880 Hz</span></div>
+                <input type="range" class="slider-input" id="synth4-h2" min="0" max="100" value="0" oninput="updateSynth4()">
+                <span class="slider-value" id="synth4-h2-val">0%</span>
+            </div>
+            <div class="slider-row" data-harmonic="4">
+                <div class="slider-label">4th Harmonic<span class="freq">1760 Hz</span></div>
+                <input type="range" class="slider-input" id="synth4-h4" min="0" max="100" value="0" oninput="updateSynth4()">
+                <span class="slider-value" id="synth4-h4-val">0%</span>
+            </div>
+            <div class="slider-row" data-harmonic="6">
+                <div class="slider-label">6th Harmonic<span class="freq">2640 Hz</span></div>
+                <input type="range" class="slider-input" id="synth4-h6" min="0" max="100" value="0" oninput="updateSynth4()">
+                <span class="slider-value" id="synth4-h6-val">0%</span>
+            </div>
+
+            <div class="harmonic-section-label odd">Odd Harmonics</div>
+            <div class="slider-row" data-harmonic="3">
+                <div class="slider-label">3rd Harmonic<span class="freq">1320 Hz</span></div>
+                <input type="range" class="slider-input" id="synth4-h3" min="0" max="100" value="0" oninput="updateSynth4()">
+                <span class="slider-value" id="synth4-h3-val">0%</span>
+            </div>
+            <div class="slider-row" data-harmonic="5">
+                <div class="slider-label">5th Harmonic<span class="freq">2200 Hz</span></div>
+                <input type="range" class="slider-input" id="synth4-h5" min="0" max="100" value="0" oninput="updateSynth4()">
+                <span class="slider-value" id="synth4-h5-val">0%</span>
+            </div>
+            <div class="slider-row" data-harmonic="7">
+                <div class="slider-label">7th Harmonic<span class="freq">3080 Hz</span></div>
+                <input type="range" class="slider-input" id="synth4-h7" min="0" max="100" value="0" oninput="updateSynth4()">
+                <span class="slider-value" id="synth4-h7-val">0%</span>
+            </div>
+        </div>
+
+        <div class="freq-bars-container" id="freqBars4">
+            <div class="freq-bar fundamental" data-label="f₀" id="bar4-h1"></div>
+            <div class="freq-bar even" data-label="2f" id="bar4-h2"></div>
+            <div class="freq-bar odd" data-label="3f" id="bar4-h3"></div>
+            <div class="freq-bar even" data-label="4f" id="bar4-h4"></div>
+            <div class="freq-bar odd" data-label="5f" id="bar4-h5"></div>
+            <div class="freq-bar even" data-label="6f" id="bar4-h6"></div>
+            <div class="freq-bar odd" data-label="7f" id="bar4-h7"></div>
+        </div>
+
+        <div class="preset-buttons">
+            <button class="preset-btn" onclick="resetSynth4()">Reset</button>
+            <button class="preset-btn square" onclick="squarePreset4()">⬜ Square Wave</button>
+            <button class="preset-btn sawtooth" onclick="sawtoothPreset4()">⚡ Sawtooth Wave</button>
+        </div>
+    </div>
+
+    <p>Did you hear the difference? Adding the even harmonics fills in the 'hollow' gaps, creating a richer, brighter buzz. This is the sound often used for energetic synthesizer leads in electronic music.</p>
+
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>To convert a Square Wave into a Sawtooth Wave, what did you have to do?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, that would make it sound more like a sine wave (dull).')">Remove the high frequencies.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. The Square wave was missing the 2nd, 4th, 6th, etc. Filling those in creates the Sawtooth ramp.')">Add the Even Harmonics.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That would just change the pitch, not the wave shape.')">Change the Fundamental Frequency.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- Section 13: Why It Matters Intro -->
+<section id="section13">
+    <h2>Why It Matters</h2>
+    <p>Why are we playing with synthesizers in a Computer Vision course?</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- Section 14: Feature Extraction -->
+<section id="section14">
+    <p>Because 'Timbre' is just another word for 'Feature Extraction'.</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- Section 15: Violin vs Flute + Why It Matters -->
+<section id="section15">
+    <p>If you want to build an AI that tells the difference between a Violin and a Flute, you can't just look at the raw waveform—it's too messy. But if you look at the <strong>Frequency Domain</strong> (the sliders you just played with), the answer is obvious.</p>
+
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>A Flute is mostly just the Fundamental ($f_0$). A Violin has a rich set of high-energy harmonics. By looking at the 'recipe' of frequencies, distinguishing objects (or sounds) becomes easy. This is exactly how we will analyze textures in images later.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- Section 16: Review and Reflect -->
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <div class="image-placeholder">
+        <div style="background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%); padding: 40px; border-radius: 12px; text-align: center;">
+            <p style="color: #a0aec0; font-style: italic;">A visual comparison. Left: A Flute (represented by a simple Sine Wave). Right: A Synthesizer (represented by a jagged Square Wave). Between them, an ear analyzing the incoming waves.</p>
+        </div>
+    </div>
+    <p>You have now heard the math.</p>
+    <ul>
+        <li>A <strong>Sine Wave</strong> is a single frequency.</li>
+        <li><strong>Timbre</strong> (the quality of sound) is determined by which <strong>Harmonics</strong> are added to the fundamental.</li>
+        <li>A <strong>Square Wave</strong> is created by summing <strong>Odd Harmonics</strong>.</li>
+        <li>A <strong>Sawtooth Wave</strong> uses <strong>All Harmonics</strong>.</li>
+    </ul>
+    <p>Just as we can construct any sound by mixing frequencies, we will soon learn to construct (and deconstruct) any image by mixing 2D spatial frequencies.</p>
+
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<!-- ============================================
+     AUDIO SYNTHESIS ENGINE
+     ============================================ -->
+<script>
+// ============================================
+// SHARED AUDIO CONTEXT & UTILITIES
+// ============================================
+
+let audioCtx = null;
+const BASE_FREQ = 440; // A4
+
+function initAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    return audioCtx;
+}
+
+// Create an oscillator + gain node for a harmonic
+function createHarmonicOsc(ctx, freq, gain) {
+    const osc = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gainNode.gain.value = gain;
+    osc.connect(gainNode);
+    return { osc, gainNode };
+}
+
+// ============================================
+// SYNTH 1: Simple 440Hz Sine Wave
+// ============================================
+
+let synth1Playing = false;
+let synth1Osc = null;
+let synth1Gain = null;
+let synth1Analyser = null;
+let canvas1Ctx = null;
+let anim1Id = null;
+
+function toggleSynth1() {
+    const btn = document.getElementById('playBtn1');
+    const icon = document.getElementById('playIcon1');
+    const text = document.getElementById('playText1');
+
+    if (!synth1Playing) {
+        initAudioContext();
+
+        synth1Osc = audioCtx.createOscillator();
+        synth1Gain = audioCtx.createGain();
+        synth1Analyser = audioCtx.createAnalyser();
+
+        synth1Osc.type = 'sine';
+        synth1Osc.frequency.value = BASE_FREQ;
+        synth1Gain.gain.value = 0.3;
+
+        synth1Osc.connect(synth1Gain);
+        synth1Gain.connect(synth1Analyser);
+        synth1Analyser.connect(audioCtx.destination);
+
+        synth1Osc.start();
+        synth1Playing = true;
+
+        btn.classList.add('playing');
+        icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        text.textContent = 'Stop';
+
+        drawWaveform1();
+    } else {
+        synth1Osc.stop();
+        synth1Osc = null;
+        synth1Playing = false;
+
+        btn.classList.remove('playing');
+        icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        text.textContent = 'Play 440Hz Sine Wave';
+
+        if (anim1Id) cancelAnimationFrame(anim1Id);
+        drawStaticWave1();
+    }
+}
+
+function drawWaveform1() {
+    const canvas = document.getElementById('canvas1');
+    if (!canvas1Ctx) {
+        canvas1Ctx = canvas.getContext('2d');
+    }
+
+    const w = canvas.width = canvas.clientWidth * window.devicePixelRatio;
+    const h = canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    canvas1Ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const displayW = canvas.clientWidth;
+    const displayH = canvas.clientHeight;
+
+    if (!synth1Playing || !synth1Analyser) return;
+
+    synth1Analyser.fftSize = 2048;
+    const bufferLength = synth1Analyser.fftSize;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function draw() {
+        if (!synth1Playing) return;
+
+        anim1Id = requestAnimationFrame(draw);
+        synth1Analyser.getByteTimeDomainData(dataArray);
+
+        canvas1Ctx.fillStyle = '#0d1117';
+        canvas1Ctx.fillRect(0, 0, displayW, displayH);
+
+        // Draw grid
+        canvas1Ctx.strokeStyle = '#1e293b';
+        canvas1Ctx.lineWidth = 1;
+        for (let y = 0; y < displayH; y += 30) {
+            canvas1Ctx.beginPath();
+            canvas1Ctx.moveTo(0, y);
+            canvas1Ctx.lineTo(displayW, y);
+            canvas1Ctx.stroke();
+        }
+
+        // Draw waveform
+        canvas1Ctx.lineWidth = 3;
+        canvas1Ctx.strokeStyle = '#48bb78';
+        canvas1Ctx.shadowBlur = 10;
+        canvas1Ctx.shadowColor = '#48bb78';
+        canvas1Ctx.beginPath();
+
+        const sliceWidth = displayW / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = (v * displayH) / 2;
+
+            if (i === 0) canvas1Ctx.moveTo(x, y);
+            else canvas1Ctx.lineTo(x, y);
+
+            x += sliceWidth;
+        }
+
+        canvas1Ctx.stroke();
+        canvas1Ctx.shadowBlur = 0;
+    }
+
+    draw();
+}
+
+function drawStaticWave1() {
+    const canvas = document.getElementById('canvas1');
+    if (!canvas1Ctx) canvas1Ctx = canvas.getContext('2d');
+
+    const w = canvas.width = canvas.clientWidth * window.devicePixelRatio;
+    const h = canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    canvas1Ctx.setTransform(1, 0, 0, 1, 0, 0);
+    canvas1Ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const displayW = canvas.clientWidth;
+    const displayH = canvas.clientHeight;
+
+    canvas1Ctx.fillStyle = '#0d1117';
+    canvas1Ctx.fillRect(0, 0, displayW, displayH);
+
+    // Draw grid
+    canvas1Ctx.strokeStyle = '#1e293b';
+    canvas1Ctx.lineWidth = 1;
+    for (let y = 0; y < displayH; y += 30) {
+        canvas1Ctx.beginPath();
+        canvas1Ctx.moveTo(0, y);
+        canvas1Ctx.lineTo(displayW, y);
+        canvas1Ctx.stroke();
+    }
+
+    // Draw static sine wave
+    canvas1Ctx.lineWidth = 3;
+    canvas1Ctx.strokeStyle = '#48bb78';
+    canvas1Ctx.shadowBlur = 10;
+    canvas1Ctx.shadowColor = '#48bb78';
+    canvas1Ctx.beginPath();
+
+    for (let x = 0; x < displayW; x++) {
+        const y = displayH / 2 + Math.sin(x * 0.05) * (displayH * 0.35);
+        if (x === 0) canvas1Ctx.moveTo(x, y);
+        else canvas1Ctx.lineTo(x, y);
+    }
+
+    canvas1Ctx.stroke();
+    canvas1Ctx.shadowBlur = 0;
+}
+
+// ============================================
+// SYNTH 2: Fundamental + 3rd Harmonic
+// ============================================
+
+let synth2Playing = false;
+let synth2Oscs = {};
+let synth2Gains = {};
+let synth2MasterGain = null;
+let synth2Analyser = null;
+let canvas2Ctx = null;
+let anim2Id = null;
+
+let synth2State = { h1: 1.0, h3: 0 };
+
+function updateSynth2() {
+    const h3Slider = document.getElementById('synth2-h3');
+    const h3Val = document.getElementById('synth2-h3-val');
+
+    synth2State.h3 = parseInt(h3Slider.value) / 100;
+    h3Val.textContent = h3Slider.value + '%';
+
+    if (synth2Playing && synth2Gains.h3) {
+        // For 3rd harmonic, use 1/3 amplitude scaling
+        synth2Gains.h3.gain.setTargetAtTime(synth2State.h3 * (1/3) * 0.3, audioCtx.currentTime, 0.02);
+    }
+
+    drawStaticWave2();
+}
+
+function toggleSynth2() {
+    const btn = document.getElementById('playBtn2');
+    const icon = document.getElementById('playIcon2');
+    const text = document.getElementById('playText2');
+
+    if (!synth2Playing) {
+        initAudioContext();
+
+        synth2MasterGain = audioCtx.createGain();
+        synth2MasterGain.gain.value = 0.5;
+        synth2Analyser = audioCtx.createAnalyser();
+
+        // Fundamental
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.value = BASE_FREQ;
+        gain1.gain.value = 0.3;
+        osc1.connect(gain1);
+        gain1.connect(synth2MasterGain);
+        synth2Oscs.h1 = osc1;
+        synth2Gains.h1 = gain1;
+
+        // 3rd Harmonic
+        const osc3 = audioCtx.createOscillator();
+        const gain3 = audioCtx.createGain();
+        osc3.type = 'sine';
+        osc3.frequency.value = BASE_FREQ * 3;
+        gain3.gain.value = synth2State.h3 * (1/3) * 0.3;
+        osc3.connect(gain3);
+        gain3.connect(synth2MasterGain);
+        synth2Oscs.h3 = osc3;
+        synth2Gains.h3 = gain3;
+
+        synth2MasterGain.connect(synth2Analyser);
+        synth2Analyser.connect(audioCtx.destination);
+
+        osc1.start();
+        osc3.start();
+        synth2Playing = true;
+
+        btn.classList.add('playing');
+        icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        text.textContent = 'Stop';
+
+        drawWaveform2();
+    } else {
+        Object.values(synth2Oscs).forEach(o => o.stop());
+        synth2Oscs = {};
+        synth2Gains = {};
+        synth2Playing = false;
+
+        btn.classList.remove('playing');
+        icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        text.textContent = 'Play Sound';
+
+        if (anim2Id) cancelAnimationFrame(anim2Id);
+        drawStaticWave2();
+    }
+}
+
+function drawWaveform2() {
+    const canvas = document.getElementById('canvas2');
+    if (!canvas2Ctx) canvas2Ctx = canvas.getContext('2d');
+
+    const w = canvas.width = canvas.clientWidth * window.devicePixelRatio;
+    const h = canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    canvas2Ctx.setTransform(1, 0, 0, 1, 0, 0);
+    canvas2Ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const displayW = canvas.clientWidth;
+    const displayH = canvas.clientHeight;
+
+    if (!synth2Playing || !synth2Analyser) return;
+
+    synth2Analyser.fftSize = 2048;
+    const bufferLength = synth2Analyser.fftSize;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function draw() {
+        if (!synth2Playing) return;
+
+        anim2Id = requestAnimationFrame(draw);
+        synth2Analyser.getByteTimeDomainData(dataArray);
+
+        canvas2Ctx.fillStyle = '#0d1117';
+        canvas2Ctx.fillRect(0, 0, displayW, displayH);
+
+        // Grid
+        canvas2Ctx.strokeStyle = '#1e293b';
+        canvas2Ctx.lineWidth = 1;
+        for (let y = 0; y < displayH; y += 30) {
+            canvas2Ctx.beginPath();
+            canvas2Ctx.moveTo(0, y);
+            canvas2Ctx.lineTo(displayW, y);
+            canvas2Ctx.stroke();
+        }
+
+        // Waveform
+        const gradient = canvas2Ctx.createLinearGradient(0, 0, displayW, 0);
+        gradient.addColorStop(0, '#48bb78');
+        gradient.addColorStop(1, '#9f7aea');
+
+        canvas2Ctx.lineWidth = 3;
+        canvas2Ctx.strokeStyle = gradient;
+        canvas2Ctx.shadowBlur = 10;
+        canvas2Ctx.shadowColor = '#4facfe';
+        canvas2Ctx.beginPath();
+
+        const sliceWidth = displayW / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = (v * displayH) / 2;
+            if (i === 0) canvas2Ctx.moveTo(x, y);
+            else canvas2Ctx.lineTo(x, y);
+            x += sliceWidth;
+        }
+
+        canvas2Ctx.stroke();
+        canvas2Ctx.shadowBlur = 0;
+    }
+
+    draw();
+}
+
+function drawStaticWave2() {
+    const canvas = document.getElementById('canvas2');
+    if (!canvas2Ctx) canvas2Ctx = canvas.getContext('2d');
+
+    const w = canvas.width = canvas.clientWidth * window.devicePixelRatio;
+    const h = canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    canvas2Ctx.setTransform(1, 0, 0, 1, 0, 0);
+    canvas2Ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const displayW = canvas.clientWidth;
+    const displayH = canvas.clientHeight;
+
+    canvas2Ctx.fillStyle = '#0d1117';
+    canvas2Ctx.fillRect(0, 0, displayW, displayH);
+
+    // Grid
+    canvas2Ctx.strokeStyle = '#1e293b';
+    canvas2Ctx.lineWidth = 1;
+    for (let y = 0; y < displayH; y += 30) {
+        canvas2Ctx.beginPath();
+        canvas2Ctx.moveTo(0, y);
+        canvas2Ctx.lineTo(displayW, y);
+        canvas2Ctx.stroke();
+    }
+
+    // Computed waveform
+    const gradient = canvas2Ctx.createLinearGradient(0, 0, displayW, 0);
+    gradient.addColorStop(0, '#48bb78');
+    gradient.addColorStop(1, '#9f7aea');
+
+    canvas2Ctx.lineWidth = 3;
+    canvas2Ctx.strokeStyle = gradient;
+    canvas2Ctx.shadowBlur = 10;
+    canvas2Ctx.shadowColor = '#4facfe';
+    canvas2Ctx.beginPath();
+
+    for (let x = 0; x < displayW; x++) {
+        const t = x * 0.05;
+        let y = Math.sin(t) * synth2State.h1;
+        y += Math.sin(t * 3) * synth2State.h3 * (1/3);
+        y = displayH / 2 + y * (displayH * 0.35);
+        if (x === 0) canvas2Ctx.moveTo(x, y);
+        else canvas2Ctx.lineTo(x, y);
+    }
+
+    canvas2Ctx.stroke();
+    canvas2Ctx.shadowBlur = 0;
+}
+
+// ============================================
+// SYNTH 3: Odd Harmonics (Square Wave Builder)
+// ============================================
+
+let synth3Playing = false;
+let synth3Oscs = {};
+let synth3Gains = {};
+let synth3MasterGain = null;
+let synth3Analyser = null;
+let canvas3Ctx = null;
+let anim3Id = null;
+
+let synth3State = { h1: 1.0, h3: 0, h5: 0, h7: 0, h9: 0 };
+
+function updateSynth3() {
+    ['h1', 'h3', 'h5', 'h7', 'h9'].forEach(key => {
+        const slider = document.getElementById(`synth3-${key}`);
+        const valEl = document.getElementById(`synth3-${key}-val`);
+        const n = parseInt(key.slice(1));
+
+        synth3State[key] = parseInt(slider.value) / 100;
+        valEl.textContent = slider.value + '%';
+
+        if (synth3Playing && synth3Gains[key]) {
+            const amp = synth3State[key] * (1/n) * 0.25;
+            synth3Gains[key].gain.setTargetAtTime(amp, audioCtx.currentTime, 0.02);
+        }
+    });
+
+    drawStaticWave3();
+}
+
+function toggleSynth3() {
+    const btn = document.getElementById('playBtn3');
+    const icon = document.getElementById('playIcon3');
+    const text = document.getElementById('playText3');
+
+    if (!synth3Playing) {
+        initAudioContext();
+
+        synth3MasterGain = audioCtx.createGain();
+        synth3MasterGain.gain.value = 0.6;
+        synth3Analyser = audioCtx.createAnalyser();
+
+        [1, 3, 5, 7, 9].forEach(n => {
+            const key = `h${n}`;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = BASE_FREQ * n;
+            gain.gain.value = synth3State[key] * (1/n) * 0.25;
+            osc.connect(gain);
+            gain.connect(synth3MasterGain);
+            synth3Oscs[key] = osc;
+            synth3Gains[key] = gain;
+            osc.start();
+        });
+
+        synth3MasterGain.connect(synth3Analyser);
+        synth3Analyser.connect(audioCtx.destination);
+        synth3Playing = true;
+
+        btn.classList.add('playing');
+        icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        text.textContent = 'Stop';
+
+        drawWaveform3();
+    } else {
+        Object.values(synth3Oscs).forEach(o => o.stop());
+        synth3Oscs = {};
+        synth3Gains = {};
+        synth3Playing = false;
+
+        btn.classList.remove('playing');
+        icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        text.textContent = 'Play Sound';
+
+        if (anim3Id) cancelAnimationFrame(anim3Id);
+        drawStaticWave3();
+    }
+}
+
+function resetSynth3() {
+    document.getElementById('synth3-h1').value = 100;
+    document.getElementById('synth3-h3').value = 0;
+    document.getElementById('synth3-h5').value = 0;
+    document.getElementById('synth3-h7').value = 0;
+    document.getElementById('synth3-h9').value = 0;
+    updateSynth3();
+}
+
+function squarePreset3() {
+    // Square wave: 1, 1/3, 1/5, 1/7, 1/9 normalized
+    document.getElementById('synth3-h1').value = 100;
+    document.getElementById('synth3-h3').value = 100;
+    document.getElementById('synth3-h5').value = 100;
+    document.getElementById('synth3-h7').value = 100;
+    document.getElementById('synth3-h9').value = 100;
+    updateSynth3();
+}
+
+function drawWaveform3() {
+    const canvas = document.getElementById('canvas3');
+    if (!canvas3Ctx) canvas3Ctx = canvas.getContext('2d');
+
+    const w = canvas.width = canvas.clientWidth * window.devicePixelRatio;
+    const h = canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    canvas3Ctx.setTransform(1, 0, 0, 1, 0, 0);
+    canvas3Ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const displayW = canvas.clientWidth;
+    const displayH = canvas.clientHeight;
+
+    if (!synth3Playing || !synth3Analyser) return;
+
+    synth3Analyser.fftSize = 2048;
+    const bufferLength = synth3Analyser.fftSize;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function draw() {
+        if (!synth3Playing) return;
+
+        anim3Id = requestAnimationFrame(draw);
+        synth3Analyser.getByteTimeDomainData(dataArray);
+
+        canvas3Ctx.fillStyle = '#0d1117';
+        canvas3Ctx.fillRect(0, 0, displayW, displayH);
+
+        canvas3Ctx.strokeStyle = '#1e293b';
+        canvas3Ctx.lineWidth = 1;
+        for (let y = 0; y < displayH; y += 30) {
+            canvas3Ctx.beginPath();
+            canvas3Ctx.moveTo(0, y);
+            canvas3Ctx.lineTo(displayW, y);
+            canvas3Ctx.stroke();
+        }
+
+        const gradient = canvas3Ctx.createLinearGradient(0, 0, displayW, 0);
+        gradient.addColorStop(0, '#9f7aea');
+        gradient.addColorStop(1, '#f093fb');
+
+        canvas3Ctx.lineWidth = 3;
+        canvas3Ctx.strokeStyle = gradient;
+        canvas3Ctx.shadowBlur = 10;
+        canvas3Ctx.shadowColor = '#9f7aea';
+        canvas3Ctx.beginPath();
+
+        const sliceWidth = displayW / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = (v * displayH) / 2;
+            if (i === 0) canvas3Ctx.moveTo(x, y);
+            else canvas3Ctx.lineTo(x, y);
+            x += sliceWidth;
+        }
+
+        canvas3Ctx.stroke();
+        canvas3Ctx.shadowBlur = 0;
+    }
+
+    draw();
+}
+
+function drawStaticWave3() {
+    const canvas = document.getElementById('canvas3');
+    if (!canvas3Ctx) canvas3Ctx = canvas.getContext('2d');
+
+    const w = canvas.width = canvas.clientWidth * window.devicePixelRatio;
+    const h = canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    canvas3Ctx.setTransform(1, 0, 0, 1, 0, 0);
+    canvas3Ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const displayW = canvas.clientWidth;
+    const displayH = canvas.clientHeight;
+
+    canvas3Ctx.fillStyle = '#0d1117';
+    canvas3Ctx.fillRect(0, 0, displayW, displayH);
+
+    canvas3Ctx.strokeStyle = '#1e293b';
+    canvas3Ctx.lineWidth = 1;
+    for (let y = 0; y < displayH; y += 30) {
+        canvas3Ctx.beginPath();
+        canvas3Ctx.moveTo(0, y);
+        canvas3Ctx.lineTo(displayW, y);
+        canvas3Ctx.stroke();
+    }
+
+    const gradient = canvas3Ctx.createLinearGradient(0, 0, displayW, 0);
+    gradient.addColorStop(0, '#9f7aea');
+    gradient.addColorStop(1, '#f093fb');
+
+    canvas3Ctx.lineWidth = 3;
+    canvas3Ctx.strokeStyle = gradient;
+    canvas3Ctx.shadowBlur = 10;
+    canvas3Ctx.shadowColor = '#9f7aea';
+    canvas3Ctx.beginPath();
+
+    for (let x = 0; x < displayW; x++) {
+        const t = x * 0.05;
+        let y = 0;
+        [1, 3, 5, 7, 9].forEach(n => {
+            y += Math.sin(t * n) * synth3State[`h${n}`] * (1/n);
+        });
+        y = displayH / 2 + y * (displayH * 0.3);
+        if (x === 0) canvas3Ctx.moveTo(x, y);
+        else canvas3Ctx.lineTo(x, y);
+    }
+
+    canvas3Ctx.stroke();
+    canvas3Ctx.shadowBlur = 0;
+}
+
+// ============================================
+// SYNTH 4: Full Lab (Even + Odd Harmonics)
+// ============================================
+
+let synth4Playing = false;
+let synth4Oscs = {};
+let synth4Gains = {};
+let synth4MasterGain = null;
+let synth4Analyser = null;
+let canvas4Ctx = null;
+let anim4Id = null;
+
+let synth4State = { h1: 1.0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0, h7: 0 };
+
+function updateSynth4() {
+    [1, 2, 3, 4, 5, 6, 7].forEach(n => {
+        const key = `h${n}`;
+        const slider = document.getElementById(`synth4-${key}`);
+        const valEl = document.getElementById(`synth4-${key}-val`);
+        const bar = document.getElementById(`bar4-${key}`);
+
+        synth4State[key] = parseInt(slider.value) / 100;
+        valEl.textContent = slider.value + '%';
+
+        // Update frequency bar
+        if (bar) {
+            bar.style.height = (synth4State[key] * 60) + 'px';
+        }
+
+        if (synth4Playing && synth4Gains[key]) {
+            const amp = synth4State[key] * (1/n) * 0.2;
+            synth4Gains[key].gain.setTargetAtTime(amp, audioCtx.currentTime, 0.02);
+        }
+    });
+
+    drawStaticWave4();
+}
+
+function toggleSynth4() {
+    const btn = document.getElementById('playBtn4');
+    const icon = document.getElementById('playIcon4');
+    const text = document.getElementById('playText4');
+
+    if (!synth4Playing) {
+        initAudioContext();
+
+        synth4MasterGain = audioCtx.createGain();
+        synth4MasterGain.gain.value = 0.5;
+        synth4Analyser = audioCtx.createAnalyser();
+
+        [1, 2, 3, 4, 5, 6, 7].forEach(n => {
+            const key = `h${n}`;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = BASE_FREQ * n;
+            gain.gain.value = synth4State[key] * (1/n) * 0.2;
+            osc.connect(gain);
+            gain.connect(synth4MasterGain);
+            synth4Oscs[key] = osc;
+            synth4Gains[key] = gain;
+            osc.start();
+        });
+
+        synth4MasterGain.connect(synth4Analyser);
+        synth4Analyser.connect(audioCtx.destination);
+        synth4Playing = true;
+
+        btn.classList.add('playing');
+        icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        text.textContent = 'Stop';
+
+        drawWaveform4();
+    } else {
+        Object.values(synth4Oscs).forEach(o => o.stop());
+        synth4Oscs = {};
+        synth4Gains = {};
+        synth4Playing = false;
+
+        btn.classList.remove('playing');
+        icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        text.textContent = 'Play Sound';
+
+        if (anim4Id) cancelAnimationFrame(anim4Id);
+        drawStaticWave4();
+    }
+}
+
+function resetSynth4() {
+    document.getElementById('synth4-h1').value = 100;
+    [2, 3, 4, 5, 6, 7].forEach(n => {
+        document.getElementById(`synth4-h${n}`).value = 0;
+    });
+    updateSynth4();
+}
+
+function squarePreset4() {
+    // Square wave: only odd harmonics
+    document.getElementById('synth4-h1').value = 100;
+    document.getElementById('synth4-h2').value = 0;
+    document.getElementById('synth4-h3').value = 100;
+    document.getElementById('synth4-h4').value = 0;
+    document.getElementById('synth4-h5').value = 100;
+    document.getElementById('synth4-h6').value = 0;
+    document.getElementById('synth4-h7').value = 100;
+    updateSynth4();
+}
+
+function sawtoothPreset4() {
+    // Sawtooth wave: all harmonics
+    document.getElementById('synth4-h1').value = 100;
+    document.getElementById('synth4-h2').value = 100;
+    document.getElementById('synth4-h3').value = 100;
+    document.getElementById('synth4-h4').value = 100;
+    document.getElementById('synth4-h5').value = 100;
+    document.getElementById('synth4-h6').value = 100;
+    document.getElementById('synth4-h7').value = 100;
+    updateSynth4();
+}
+
+function drawWaveform4() {
+    const canvas = document.getElementById('canvas4');
+    if (!canvas4Ctx) canvas4Ctx = canvas.getContext('2d');
+
+    const w = canvas.width = canvas.clientWidth * window.devicePixelRatio;
+    const h = canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    canvas4Ctx.setTransform(1, 0, 0, 1, 0, 0);
+    canvas4Ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const displayW = canvas.clientWidth;
+    const displayH = canvas.clientHeight;
+
+    if (!synth4Playing || !synth4Analyser) return;
+
+    synth4Analyser.fftSize = 2048;
+    const bufferLength = synth4Analyser.fftSize;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function draw() {
+        if (!synth4Playing) return;
+
+        anim4Id = requestAnimationFrame(draw);
+        synth4Analyser.getByteTimeDomainData(dataArray);
+
+        canvas4Ctx.fillStyle = '#0d1117';
+        canvas4Ctx.fillRect(0, 0, displayW, displayH);
+
+        canvas4Ctx.strokeStyle = '#1e293b';
+        canvas4Ctx.lineWidth = 1;
+        for (let y = 0; y < displayH; y += 30) {
+            canvas4Ctx.beginPath();
+            canvas4Ctx.moveTo(0, y);
+            canvas4Ctx.lineTo(displayW, y);
+            canvas4Ctx.stroke();
+        }
+
+        const gradient = canvas4Ctx.createLinearGradient(0, 0, displayW, 0);
+        gradient.addColorStop(0, '#48bb78');
+        gradient.addColorStop(0.5, '#ed8936');
+        gradient.addColorStop(1, '#9f7aea');
+
+        canvas4Ctx.lineWidth = 3;
+        canvas4Ctx.strokeStyle = gradient;
+        canvas4Ctx.shadowBlur = 10;
+        canvas4Ctx.shadowColor = '#ed8936';
+        canvas4Ctx.beginPath();
+
+        const sliceWidth = displayW / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = (v * displayH) / 2;
+            if (i === 0) canvas4Ctx.moveTo(x, y);
+            else canvas4Ctx.lineTo(x, y);
+            x += sliceWidth;
+        }
+
+        canvas4Ctx.stroke();
+        canvas4Ctx.shadowBlur = 0;
+    }
+
+    draw();
+}
+
+function drawStaticWave4() {
+    const canvas = document.getElementById('canvas4');
+    if (!canvas4Ctx) canvas4Ctx = canvas.getContext('2d');
+
+    const w = canvas.width = canvas.clientWidth * window.devicePixelRatio;
+    const h = canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    canvas4Ctx.setTransform(1, 0, 0, 1, 0, 0);
+    canvas4Ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const displayW = canvas.clientWidth;
+    const displayH = canvas.clientHeight;
+
+    canvas4Ctx.fillStyle = '#0d1117';
+    canvas4Ctx.fillRect(0, 0, displayW, displayH);
+
+    canvas4Ctx.strokeStyle = '#1e293b';
+    canvas4Ctx.lineWidth = 1;
+    for (let y = 0; y < displayH; y += 30) {
+        canvas4Ctx.beginPath();
+        canvas4Ctx.moveTo(0, y);
+        canvas4Ctx.lineTo(displayW, y);
+        canvas4Ctx.stroke();
+    }
+
+    const gradient = canvas4Ctx.createLinearGradient(0, 0, displayW, 0);
+    gradient.addColorStop(0, '#48bb78');
+    gradient.addColorStop(0.5, '#ed8936');
+    gradient.addColorStop(1, '#9f7aea');
+
+    canvas4Ctx.lineWidth = 3;
+    canvas4Ctx.strokeStyle = gradient;
+    canvas4Ctx.shadowBlur = 10;
+    canvas4Ctx.shadowColor = '#ed8936';
+    canvas4Ctx.beginPath();
+
+    for (let x = 0; x < displayW; x++) {
+        const t = x * 0.05;
+        let y = 0;
+        [1, 2, 3, 4, 5, 6, 7].forEach(n => {
+            y += Math.sin(t * n) * synth4State[`h${n}`] * (1/n);
+        });
+        y = displayH / 2 + y * (displayH * 0.28);
+        if (x === 0) canvas4Ctx.moveTo(x, y);
+        else canvas4Ctx.lineTo(x, y);
+    }
+
+    canvas4Ctx.stroke();
+    canvas4Ctx.shadowBlur = 0;
+}
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
+window.addEventListener('load', function() {
+    // Draw initial static waveforms
+    setTimeout(() => {
+        drawStaticWave1();
+        drawStaticWave2();
+        drawStaticWave3();
+        drawStaticWave4();
+        updateSynth4(); // Initialize frequency bars
+    }, 100);
+});
+
+window.addEventListener('resize', function() {
+    if (!synth1Playing) drawStaticWave1();
+    if (!synth2Playing) drawStaticWave2();
+    if (!synth3Playing) drawStaticWave3();
+    if (!synth4Playing) drawStaticWave4();
+});
+</script>
+
+<!-- ============================================
+     LESSON NAVIGATION SCRIPT
+     ============================================ -->
+<script>
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+
+    // Trigger resize to fix canvas dimensions in newly visible sections
+    window.dispatchEvent(new Event('resize'));
+
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+        if (window.MathJax) MathJax.typesetPromise([revealText]);
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+
+    if (window.MathJax) MathJax.typesetPromise([explanationDiv]);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                let courseId = 'computer-vision';
+                let pathId = 'signal-processing';
+                let moduleId = 'cv-ch05-m1-fourier';
+                let lessonId = 'cv-ch05-l2-sound-of-mathematics';
+
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch05-l2-sound-of-mathematics_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '🎵', '🎹'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch05-l2-sound-of-mathematics_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

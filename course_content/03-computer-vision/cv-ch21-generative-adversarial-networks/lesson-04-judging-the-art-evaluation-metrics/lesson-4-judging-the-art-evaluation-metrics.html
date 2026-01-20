@@ -126,7 +126,7 @@ options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
 <p>It compares the statistics of the <strong>Real</strong> cloud of features against the <strong>Fake</strong> cloud of features.</p>
 <!-- REPLACEMENT FOR SECTION 16 INTERACTIVE PLACEHOLDER -->
 <div class="interactive-fid-container">
-  <canvas id="fidCanvas" width="800" height="450"></canvas>
+  <canvas id="fidCanvas"></canvas>
   
   <div class="fid-controls">
       <div class="slider-group">
@@ -156,8 +156,34 @@ options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
   // Configuration
   const numPoints = 60;
   const focalLength = 400;
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
+  let centerX, centerY;
+
+  // Initialize canvas size
+  function resizeCanvas() {
+    const container = canvas.parentElement;
+    const rect = container.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    // Set display size
+    canvas.style.width = '100%';
+    canvas.style.height = '450px';
+
+    // Set actual size in memory (scaled for DPI)
+    const width = rect.width;
+    const height = 450;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+
+    // Scale context
+    ctx.scale(dpr, dpr);
+
+    // Update center points
+    centerX = width / 2;
+    centerY = height / 2;
+  }
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
   
   // Data structures
   let realCloud = [];
@@ -201,7 +227,9 @@ options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
   }
 
   function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const width = canvas.width / (window.devicePixelRatio || 1);
+      const height = canvas.height / (window.devicePixelRatio || 1);
+      ctx.clearRect(0, 0, width, height);
       
       // Grid / Floor for perspective reference
       ctx.strokeStyle = "rgba(203, 213, 225, 0.4)";

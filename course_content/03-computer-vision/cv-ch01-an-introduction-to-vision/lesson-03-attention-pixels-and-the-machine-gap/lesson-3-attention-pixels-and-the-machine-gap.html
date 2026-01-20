@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Attention, Pixels, and the Machine Gap</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Side-by-side comparison of a magician performing a trick. Left: Start of trick. Right: Shirt changed color, new tablecloth, missing plant." style="width: 100%; border-radius: 12px;">
+    </div>
+    <h1>The Magic of Attention</h1>
+    
+    <p>Have you ever watched a magic trick and been completely baffled by how it was done? You stare intently at the magician's hands, watching the cards closely, yet you miss the moment the coin disappears. This isn't just about your eyes—it's about your brain.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>Change Blindness</h2>
+    <p>Vision is an active process, and it is heavily reliant on <strong>attention</strong>. A famous experiment, often used in psychology, demonstrates that we can be incredibly blind to changes in our environment if we aren't specifically looking for them.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>In the example of the magician above, while your attention is hijacked by the fast movement of the cards (the trick), your brain simply stops updating its internal model of the rest of the scene. The shirt changes, the background shifts, but because there was no sudden motion to alert you <em>there</em>, you stay blind to it.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>This phenomenon is called <strong>Change Blindness</strong>. Our visual system uses motion as a primary alert system. If something doesn't move, it fades into the background of our perception.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Why do magic tricks often use sudden fast movements (sleight of hand)?</h4>
+        <div id="cuy-magic-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> To hijack the visual system's motion detection, forcing your attention to focus on the fast movement while the secret "trick" happens elsewhere in a static or slow-moving part of your view.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-magic-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>Let's test your own attention. Below is a classic "Spot the Difference" test, but with a twist known as the "flicker paradigm".</p>
+    <!-- REPLACEMENT CODE FOR SECTION 5 INTERACTIVE -->
+
+<div class="change-blindness-widget" id="cb-widget">
+    <div class="canvas-container">
+        <canvas id="cbCanvas" width="600" height="360"></canvas>
+        <div id="overlay-start" class="overlay-start" onclick="startExperience()">
+            <div class="play-icon">▶</div>
+            <p>Click to Start Experiment</p>
+            <small>Warning: Contains flashing images</small>
+        </div>
+    </div>
+    
+    <div class="controls-area">
+        <div class="control-group">
+            <span class="label">Condition:</span>
+            <div class="toggle-switch" id="flickerToggle" onclick="toggleMode()">
+                <div class="toggle-knob"></div>
+                <div class="toggle-labels">
+                    <span>Flicker (Masked)</span>
+                    <span>No Flicker</span>
+                </div>
+            </div>
+        </div>
+        
+        <button class="action-button" onclick="togglePause()">
+            <span id="pause-text">Pause</span>
+        </button>
+    </div>
+    
+    <p class="status-readout" id="status-readout">
+        Status: <span class="highlight">Motion Signal Disrupted.</span> The grey screen masks the change.
+    </p>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('cbCanvas');
+    const ctx = canvas.getContext('2d');
+    const statusText = document.getElementById('status-readout');
+    const pauseBtn = document.getElementById('pause-text');
+    const toggleEl = document.getElementById('flickerToggle');
+    const overlay = document.getElementById('overlay-start');
+
+    // State
+    let isRunning = false;
+    let hasStarted = false;
+    let flickerEnabled = true; // True = Hard mode
+    let lastTime = 0;
+    let timer = 0;
+    
+    // Config
+    const VIEW_DURATION = 600; // ms
+    const MASK_DURATION = 100; // ms
+    
+    // Assets (Pre-rendered for performance)
+    let sceneA_Canvas = document.createElement('canvas');
+    let sceneB_Canvas = document.createElement('canvas');
+    let noiseCanvas = document.createElement('canvas');
+
+    // --- PROCEDURAL GENERATION ---
+    
+    function generateNoise(w, h) {
+        noiseCanvas.width = w;
+        noiseCanvas.height = h;
+        const nCtx = noiseCanvas.getContext('2d');
+        const imgData = nCtx.createImageData(w, h);
+        const buffer = new Uint32Array(imgData.data.buffer);
+        for (let i = 0; i < buffer.length; i++) {
+            // Random noise: r,g,b,a. We want slight grain.
+            if (Math.random() < 0.2) {
+                // slightly darken random pixels
+                buffer[i] = 0x10000000; // Low alpha black
+            }
+        }
+        nCtx.putImageData(imgData, 0, 0);
+    }
+
+    function drawCityscape(targetCtx, includeTarget) {
+        const w = targetCtx.canvas.width;
+        const h = targetCtx.canvas.height;
+
+        // 1. Sky Gradient
+        const grad = targetCtx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, '#87CEEB');
+        grad.addColorStop(1, '#E0F7FA');
+        targetCtx.fillStyle = grad;
+        targetCtx.fillRect(0, 0, w, h);
+
+        // 2. Clouds (Random blobs)
+        targetCtx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        for(let i=0; i<5; i++) {
+            targetCtx.beginPath();
+            targetCtx.arc(100 + i*100, 50 + (i%2)*20, 30 + (i%3)*10, 0, Math.PI*2);
+            targetCtx.fill();
+        }
+
+        // 3. Skyline (Silhouette)
+        targetCtx.fillStyle = '#94a3b8'; // Distant buildings
+        targetCtx.fillRect(0, 200, 150, 160);
+        targetCtx.fillRect(100, 180, 80, 180);
+        targetCtx.fillRect(450, 210, 150, 150);
+
+        // 4. Ground
+        targetCtx.fillStyle = '#64748b';
+        targetCtx.fillRect(0, 300, w, 60);
+
+        // 5. Main Buildings (The "Clutter")
+        // Building Left
+        targetCtx.fillStyle = '#b45309'; // Brownish
+        targetCtx.fillRect(20, 150, 100, 210);
+        // Windows Left
+        targetCtx.fillStyle = '#fef3c7';
+        for(let r=0; r<6; r++) for(let c=0; c<3; c++) {
+            targetCtx.fillRect(35 + c*25, 160 + r*30, 15, 20);
+        }
+
+        // Building Right
+        targetCtx.fillStyle = '#0f172a'; // Dark Blue
+        targetCtx.fillRect(400, 120, 140, 240);
+        // Windows Right
+        targetCtx.fillStyle = '#bae6fd';
+        for(let r=0; r<8; r++) for(let c=0; c<4; c++) {
+            targetCtx.fillRect(415 + c*30, 130 + r*25, 20, 15);
+        }
+
+        // 6. THE TARGET (The disappearing object)
+        // Positioned centrally but blended with similar colors
+        if (includeTarget) {
+            // A generic apartment block in the middle
+            targetCtx.fillStyle = '#475569'; // Slate
+            targetCtx.fillRect(200, 180, 120, 120);
+            
+            // Detail: Roof trim
+            targetCtx.fillStyle = '#1e293b';
+            targetCtx.fillRect(195, 175, 130, 10);
+
+            // Detail: Windows
+            targetCtx.fillStyle = '#94a3b8'; // Darker windows (lights off)
+            for(let r=0; r<3; r++) for(let c=0; c<3; c++) {
+                targetCtx.fillRect(215 + c*35, 195 + r*30, 20, 20);
+            }
+        } else {
+            // When target is gone, reveal background logic? 
+            // In this simple 2.5D view, we just draw the sky/ground behind it.
+            // But to make it convincing, we draw the "Back" buildings over the gap
+            targetCtx.fillStyle = '#cbd5e1'; // Far back building
+            targetCtx.fillRect(220, 220, 80, 80); // Just a filler
+        }
+
+        // 7. Foreground Distractors (Trees, Lamp)
+        // Lamp Post (Right)
+        targetCtx.fillStyle = '#1e293b';
+        targetCtx.fillRect(500, 100, 10, 260); // Pole
+        targetCtx.beginPath(); targetCtx.arc(505, 100, 20, 0, Math.PI*2); targetCtx.fill(); // Light
+        
+        // Tree (Left/Center) covering part of the scene
+        targetCtx.fillStyle = '#3f6212'; // Dark Green
+        targetCtx.beginPath();
+        targetCtx.arc(150, 320, 60, 0, Math.PI*2); // Bush
+        targetCtx.fill();
+
+        // 8. Apply Film Grain / Noise
+        targetCtx.drawImage(noiseCanvas, 0, 0);
+    }
+
+    function initAssets() {
+        const w = 600, h = 360;
+        sceneA_Canvas.width = w; sceneA_Canvas.height = h;
+        sceneB_Canvas.width = w; sceneB_Canvas.height = h;
+
+        generateNoise(w, h);
+        drawCityscape(sceneA_Canvas.getContext('2d'), true);  // With Building
+        drawCityscape(sceneB_Canvas.getContext('2d'), false); // Without Building
+        
+        // Initial Draw
+        ctx.drawImage(sceneA_Canvas, 0, 0);
+    }
+
+    // --- ANIMATION LOOP ---
+
+    function loop(timestamp) {
+        if (!isRunning) return;
+        
+        const dt = timestamp - lastTime;
+        lastTime = timestamp;
+        
+        // Accumulate time
+        timer += dt;
+
+        // Cycle Calculation
+        // Full Cycle: View(600) + Mask(100) + View(600) + Mask(100) = 1400ms
+        // Or if Flicker Off: View(600) + View(600) = 1200ms
+        
+        let cycleDuration = flickerEnabled ? (VIEW_DURATION + MASK_DURATION) * 2 : VIEW_DURATION * 2;
+        let phase = timer % cycleDuration;
+        
+        // Determine what to draw based on phase
+        let renderState = ''; // 'A', 'B', 'MASK'
+
+        if (flickerEnabled) {
+            // Timeline:
+            // 0 -> 600: A
+            // 600 -> 700: MASK
+            // 700 -> 1300: B
+            // 1300 -> 1400: MASK
+            if (phase < VIEW_DURATION) renderState = 'A';
+            else if (phase < VIEW_DURATION + MASK_DURATION) renderState = 'MASK';
+            else if (phase < (VIEW_DURATION*2) + MASK_DURATION) renderState = 'B';
+            else renderState = 'MASK';
+        } else {
+            // Timeline:
+            // 0 -> 600: A
+            // 600 -> 1200: B
+            if (phase < VIEW_DURATION) renderState = 'A';
+            else renderState = 'B';
+        }
+
+        // Render
+        if (renderState === 'A') {
+            ctx.drawImage(sceneA_Canvas, 0, 0);
+        } else if (renderState === 'B') {
+            ctx.drawImage(sceneB_Canvas, 0, 0);
+        } else {
+            // Mask
+            ctx.fillStyle = '#a0a0a0'; // Neutral Grey
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        requestAnimationFrame(loop);
+    }
+
+    // --- INTERACTION ---
+
+    window.startExperience = function() {
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.style.display = 'none', 300);
+        hasStarted = true;
+        isRunning = true;
+        lastTime = performance.now();
+        requestAnimationFrame(loop);
+    };
+
+    window.toggleMode = function() {
+        flickerEnabled = !flickerEnabled;
+        toggleEl.classList.toggle('active');
+        
+        if (flickerEnabled) {
+            statusText.innerHTML = 'Status: <span class="highlight">Motion Signal Disrupted.</span> The grey screen masks the change.';
+        } else {
+            statusText.innerHTML = 'Status: <span class="highlight" style="color: #10b981">Motion Signal Active.</span> The change creates a "pop-out" effect.';
+        }
+    };
+
+    window.togglePause = function() {
+        if (!hasStarted) {
+            startExperience();
+            return;
+        }
+        
+        isRunning = !isRunning;
+        if (isRunning) {
+            pauseBtn.innerText = "Pause";
+            lastTime = performance.now();
+            requestAnimationFrame(loop);
+        } else {
+            pauseBtn.innerText = "Resume";
+        }
+    };
+
+    // Boot
+    initAssets();
+
+})();
+</script>
+    <p>Did you struggle to see the difference at first? That brief grey flash disrupted the motion signal. Once the flicker was removed, the motion of the changing object grabbed your attention instantly.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Change Blindness</h4>
+        <p>The failure to notice significant changes in a visual scene when the observer's attention is diverted or the visual signal is interrupted (like a blink or a camera cut).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>The Semantic Gap</h2>
+    <p>So, humans have attention, semantics, and a tendency to miss things that don't move. Now, let's pivot to technology. What does a camera have?</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>If you show that flickering image to a computer, it will never experience "Change Blindness". It will record every single pixel change perfectly, every time. But this comes with a trade-off.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="The Office Meme: Pam asking Creed to spot the difference between a cat photo and a grid of integers. Caption: Computer Vision Engineers trying to find the difference." style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>While we see a "cat", a "dog", or a "magician", the computer only sees a spreadsheet of numbers. This disconnect is known as the <strong>Semantic Gap</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>To a computer, a digital image is just a grid. We can represent this mathematically.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>Let \( I \) be our image. We can define it as a function of coordinates \( x \) and \( y \):</p>
+    <p>$$ I(x, y) = v $$</p>
+    <p>Here:</p>
+    <ul>
+        <li>\( x, y \) are the spatial coordinates (the row and column).</li>
+        <li>\( v \) is the value (intensity), typically an integer from 0 (black) to 255 (white).</li>
+    </ul>
+    <p>If you have a color image, you just have three of these grids stacked on top of each other (Red, Green, Blue).</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>Here is the fundamental problem of Computer Vision: <strong>Meaning \( \neq \) The Sum of Pixels</strong>.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="The Matrix View: Left: Photo of a dog. Right: Zoomed-in ear revealing a grid of gray squares overlaid with numbers." style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>You can add up all the numbers, average them, or find the standard deviation, but none of those math operations give you the concept of "Dog".</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>A camera never suffers from "Change Blindness"—it records every pixel change perfectly. Why, then, is it so hard for a computer to understand what is happening in a video compared to a human?</h4>
+        <div id="cuy-semantic-answer" style="display:none;" class="animate-in">
+            <strong>Hint:</strong> Think about the difference between <em>detecting</em> a change and <em>understanding</em> the importance of a change. A computer might detect that 10,000 pixels changed values because a cloud moved (irrelevant), but miss that 50 pixels changed because a traffic light turned red (critical). It lacks the "Semantic Model" to filter what matters.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-semantic-answer')">Reveal Hint</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Pixel</h4>
+        <p>Short for "Picture Element". The smallest controllable element of a picture represented on a screen; a single point of encoded color or intensity.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Semantic Information</h4>
+        <p>The meaning, concept, or interpretation associated with data (e.g., "This is a cat"), as opposed to the raw data values themselves (e.g., "Pixel at 10,10 is value 55").</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <h2>Bridging the Gap</h2>
+    <p>This brings us to the core mission of this course. We are trying to bridge the gap between the objective "Spreadsheet of Numbers" (the Camera) and the subjective "Abstract Symbol" (Human Perception).</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <div class="why-it-matters">
+        <h3>Frequently Asked</h3>
+        <h4>If cameras are objective, why do photos sometimes look different than real life?</h4>
+        <p>Great question! While cameras don't have "brains" to interpret scenes, they do have hardware limitations and software processing. They have "transfer functions" that adjust contrast, clip highlights that are too bright, or saturate colors. However, unlike humans, they don't "hallucinate" context or ignore things just because they aren't moving.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <p>In the upcoming chapters, we will learn how to use mathematics—filters, matrices, and eventually neural networks—to teach that grid of numbers how to "see" like we do.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>From the perspective of a computer, what is a digital image primarily composed of?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. \'Shapes\' and \'Edges\' are concepts we (or advanced algorithms) infer. The computer just starts with raw numbers.')">Shapes and Edges</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'If only! That is the end goal of Computer Vision, not the starting point.')">Semantic Concepts</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! It is a matrix of numbers, typically \\( I(x,y) = v \\).')">A grid of numerical intensity values</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The camera sensor captures light rays, but the digital image itself is the recorded numerical data resulting from that capture.')">Light rays</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(18)" style="display: none;">Continue</div>
+</section>
+
+<section id="section18">
+    <h2>Review and Reflect</h2>
+    <h3>Summary</h3>
+    <p>We've completed our journey through the foundations of perception. We started with the human eye and brain, exploring how we actively reconstruct reality, how we are fooled by illusions, and how our attention acts as a filter.</p>
+    <p>Then, we looked at the machine. We defined the digital image mathematically as a grid of values \( I(x,y) = v \) and identified the <strong>Semantic Gap</strong>: the massive difficulty in translating those raw pixel values into meaningful concepts.</p>
+    <p>Next, we will leave biology behind and start building the mathematical tools we need to process these images.</p>
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 18;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Explicitly handle the continuation logic for the Test Your Knowledge section
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section17') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Default placeholders - ideally these would be dynamically injected
+                let courseId = 'computer-vision';
+                let pathId = 'foundations'; 
+                let moduleId = 'cv-ch1-m1-perception'; 
+                let lessonId = 'cv-ch1-l2-attention-pixels-gap';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch1-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage for simple persistence
+    const isCompleted = localStorage.getItem('lesson_cv-ch1-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

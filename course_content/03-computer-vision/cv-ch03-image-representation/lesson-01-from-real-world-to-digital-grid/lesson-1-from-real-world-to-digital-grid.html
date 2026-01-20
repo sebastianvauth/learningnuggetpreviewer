@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>From Real World to Digital Grid</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Abstraction Pipeline: Real World Apple to Pixelated Grid">
+    </div>
+    <h1>From Real World to Digital Grid</h1>
+    <h2>Welcome to the Matrix</h2>
+    
+    <p>Welcome to the Matrix. Well, sort of. When we look at the world, we see a continuous flow of light, shapes, and colors. There are no edges, no grids, and infinite detail. But computers? They can't handle "infinite." They need finite, discrete numbers.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Screen Door Effect</h2>
+    <p>To get the real world into a computer, we have to perform a massive act of simplification. Imagine looking at a beautiful landscape through a screen door.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>You can still see the trees and the sky, but everything is broken up into tiny little squares. This is exactly what a digital camera does. We call this process <strong>Spatial Discretization</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>The pipeline to create a digital image actually involves three layers of abstraction, though we will focus on the first two in this chapter:</p>
+    <ul>
+        <li><strong>Spatial Discretization:</strong> Mapping the continuous world onto a finite grid (the screen door).</li>
+        <li><strong>Intensity Quantization:</strong> Turning the brightness of each square into a number.</li>
+        <li><strong>Projection:</strong> Flattening the 3D world onto a 2D sheet (the image plane).</li>
+    </ul>
+    <p>Let's dive deep into that first step: the grid.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <h2>Trapping the Light</h2>
+    <p>How do we physically catch a shadow? The heart of every digital camera is the sensor—a silicon chip (usually a CCD or CMOS) covered in millions of tiny light-traps called <strong>photodiodes</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>Think of these photodiodes like buckets set out in the rain. But instead of water, they catch photons (light particles).</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Camera sensor grid acting as buckets collecting photons">
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>Here is the catch: A single bucket can't tell you <em>where</em> the drop landed inside it. It just knows it has water. Similarly, a photodiode averages all the light that hits it. If half the pixel sees a bright white edge and the other half sees pitch black darkness, the sensor just records a uniform medium gray.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>This leads to one of the most common misconceptions in movies...</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Enhance Meme: Hollywood vs Reality in image resolution">
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>In reality, once that spatial discretization happens, the detail inside the pixel is gone forever. Let's see what this looks like up close.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <!-- REPLACE THE INTERACTIVE PLACEHOLDER IN SECTION 10 WITH THIS CODE -->
+
+<div class="interactive-zoom-container">
+    <div class="canvas-wrapper">
+        <canvas id="zoomCanvas" width="600" height="400"></canvas>
+        <div class="overlay-labels" id="overlayLabels">
+            <span class="label-grid">Grid Overlay: OFF</span>
+            <span class="label-pixel">Pixel Mode: OFF</span>
+            <span class="label-data">Data View: OFF</span>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <label for="zoomSlider">Zoom Level</label>
+        <input type="range" id="zoomSlider" min="1" max="40" step="0.1" value="1">
+        <div class="slider-markers">
+            <span>1x (Eye)</span>
+            <span>10x (Lens)</span>
+            <span>40x (Sensor)</span>
+        </div>
+    </div>
+    
+    <p id="zoom-description" class="zoom-caption">Slide to zoom into the leaf...</p>
+</div>
+
+<style>
+/* Scoped styles for the interactive module */
+.interactive-zoom-container {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.canvas-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+    background: #1a202c; /* Dark background for the 'camera body' */
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    cursor: crosshair;
+}
+
+.overlay-labels {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    pointer-events: none;
+}
+
+.overlay-labels span {
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: monospace;
+    opacity: 0.3;
+    transition: opacity 0.3s;
+}
+
+.overlay-labels span.active {
+    opacity: 1;
+    color: #48bb78; /* Green for active */
+    font-weight: bold;
+}
+
+.controls {
+    margin-top: 20px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #4a5568;
+}
+
+input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 5px;
+    outline: none;
+    transition: background 0.2s;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+    transition: transform 0.1s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+.slider-markers {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    color: #a0aec0;
+    font-size: 0.8rem;
+}
+
+.zoom-caption {
+    margin-top: 15px;
+    font-style: italic;
+    color: #718096;
+    min-height: 1.5em; /* Prevent layout shift */
+}
+</style>
+
+<script>
+(function() {
+    const canvas = document.getElementById('zoomCanvas');
+    const ctx = canvas.getContext('2d');
+    const slider = document.getElementById('zoomSlider');
+    const caption = document.getElementById('zoom-description');
+    
+    // UI Labels
+    const labelGrid = document.querySelector('.label-grid');
+    const labelPixel = document.querySelector('.label-pixel');
+    const labelData = document.querySelector('.label-data');
+
+    // Configuration
+    const GRID_SIZE = 8; // 8x8 pixel grid
+    const CANVAS_CENTER_X = canvas.width / 2;
+    const CANVAS_CENTER_Y = canvas.height / 2;
+    
+    // Procedural Data: A small 8x8 patch of a leaf (Greyscale/Green channel values)
+    // High numbers = Bright Green (Veins), Low numbers = Dark Green
+    const leafData = [
+        [45,  50,  55,  60,  65,  60,  55,  50],
+        [50,  60,  180, 190, 180, 65,  60,  55],
+        [55,  70,  190, 220, 190, 75,  65,  60],
+        [60,  170, 210, 255, 210, 180, 70,  65], // 255 is the bright center vein
+        [65,  180, 200, 240, 200, 190, 75,  70],
+        [60,  70,  180, 210, 180, 80,  70,  65],
+        [55,  65,  70,  180, 75,  70,  65,  60],
+        [50,  60,  65,  70,  65,  60,  55,  50]
+    ];
+
+    function draw() {
+        const zoom = parseFloat(slider.value);
+        
+        // Clear canvas
+        ctx.fillStyle = '#1a202c'; // Dark background
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // --- 1. Draw Background (Simulated "Rest of the forest") ---
+        // This moves away from center as we zoom in
+        ctx.save();
+        ctx.translate(CANVAS_CENTER_X, CANVAS_CENTER_Y);
+        ctx.scale(zoom, zoom);
+        
+        // Draw a large green rect to represent the leaf context
+        ctx.fillStyle = '#2f855a'; 
+        ctx.fillRect(-100, -100, 200, 200);
+        
+        // Add some random "noise" circles to simulate texture at high level
+        // (Only visible when zoomed out)
+        if(zoom < 10) {
+            ctx.fillStyle = '#276749';
+            for(let i=0; i<20; i++) {
+                ctx.beginPath();
+                ctx.arc(
+                    Math.sin(i)*50, 
+                    Math.cos(i)*50, 
+                    5 + (i%5), 0, Math.PI*2
+                );
+                ctx.fill();
+            }
+        }
+        ctx.restore();
+
+        // --- 2. Draw The Pixel Grid ---
+        
+        // Calculate size of a single "pixel" based on zoom
+        // Base size is small enough that at zoom 1 it looks like a dot
+        const basePixelSize = 4; 
+        const currentPixelSize = basePixelSize * zoom;
+        
+        const totalGridWidth = currentPixelSize * GRID_SIZE;
+        const startX = CANVAS_CENTER_X - (totalGridWidth / 2);
+        const startY = CANVAS_CENTER_Y - (totalGridWidth / 2);
+
+        // Determine visual mode based on zoom thresholds
+        const gridOpacity = Math.max(0, Math.min(1, (zoom - 5) / 5)); // Fades in 5x-10x
+        const pixelSnap = Math.max(0, Math.min(1, (zoom - 8) / 4));   // Transitions 8x-12x
+        const textOpacity = Math.max(0, Math.min(1, (zoom - 18) / 5)); // Fades in 18x-23x
+
+        // Update UI Labels
+        updateLabels(gridOpacity, pixelSnap, textOpacity);
+        updateCaption(zoom);
+
+        // Render pixels
+        for (let row = 0; row < GRID_SIZE; row++) {
+            for (let col = 0; col < GRID_SIZE; col++) {
+                const value = leafData[row][col];
+                
+                // Color Calculation
+                // As pixelSnap increases, we remove the "blur" simulation
+                const r = 30; // Dark green base
+                const g = value; 
+                const b = 40;
+                
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                
+                // Position
+                let x = startX + (col * currentPixelSize);
+                let y = startY + (row * currentPixelSize);
+                let w = currentPixelSize;
+                let h = currentPixelSize;
+
+                // Simulation: If zoomed out (low pixelSnap), overlap slighty 
+                // to make it look continuous/organic. If zoomed in, add gap for grid.
+                if (pixelSnap < 0.5) {
+                    ctx.fillRect(x - 1, y - 1, w + 2, h + 2); // Overlap to blur
+                } else {
+                    ctx.fillRect(x, y, w, h); // Sharp squares
+                }
+
+                // --- 3. Draw Grid Lines ---
+                if (gridOpacity > 0) {
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${gridOpacity * 0.3})`;
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, y, w, h);
+                }
+
+                // --- 4. Draw Numbers ---
+                if (textOpacity > 0) {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${textOpacity})`;
+                    ctx.font = `bold ${currentPixelSize * 0.4}px monospace`; // Scale font
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(value, x + w/2, y + h/2);
+                }
+            }
+        }
+    }
+
+    function updateLabels(grid, snap, text) {
+        // Toggle opacity classes on the overlay labels
+        labelGrid.className = grid > 0.5 ? 'active' : '';
+        labelGrid.innerText = grid > 0.5 ? 'Grid Overlay: ON' : 'Grid Overlay: OFF';
+
+        labelPixel.className = snap > 0.8 ? 'active' : '';
+        labelPixel.innerText = snap > 0.8 ? 'Pixel Mode: DISCRETE' : 'Pixel Mode: BLENDED';
+
+        labelData.className = text > 0.5 ? 'active' : '';
+        labelData.innerText = text > 0.5 ? 'Data View: INT8' : 'Data View: OFF';
+    }
+
+    function updateCaption(zoom) {
+        if (zoom < 5) caption.innerText = "Viewing the leaf surface...";
+        else if (zoom < 12) caption.innerText = "Getting closer... notice the grid appearing.";
+        else if (zoom < 20) caption.innerText = "The image is breaking down into discrete squares (Pixels).";
+        else caption.innerText = "Abstraction complete. The computer sees only numbers.";
+    }
+
+    // Initial Draw
+    draw();
+
+    // Event Listener
+    slider.addEventListener('input', draw);
+    
+    // Handle window resize logic if needed (simple redraw)
+    window.addEventListener('resize', draw);
+
+})();
+</script>
+    <p>Notice that when you zoom in far enough, the "leaf" disappears. It's just a mosaic of colored squares. This is the <strong>Pixel Grid</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Imagine you take a digital photo of a checkerboard. The checkerboard squares are tiny—actually smaller than the pixels on your camera sensor. What would the resulting image look like?</h4>
+        <div id="stop-think-1" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> It would look like solid gray mud! Since each pixel covers both white and black parts of the checkerboard, the sensor averages them together into gray. This distortion is called <strong>Aliasing</strong>.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-1')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <h2>The 3D Array</h2>
+    <p>So, we have a grid of colors. But how does a computer programmer see this? They don't see colors; they see a multi-dimensional array of numbers.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>A standard digital image is mathematically represented as a 3D array (or tensor) with dimensions:</p>
+    <p>$$ Height \times Width \times Channels $$</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p>The <strong>Height</strong> (\(H\)) and <strong>Width</strong> (\(W\)) correspond to the spatial grid we just looked at. The <strong>Channels</strong> (\(C\)) represent the color components—usually 3 for Red, Green, and Blue (RGB).</p>
+    <div class="image-placeholder">
+        <img src="images/4.jpg" alt="RGB Stack Diagram showing Height, Width, and Channels">
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <p>If you use Python libraries like NumPy to load an image, this is exactly what you get. An array of integers. Let's try a quick calculation to see how much data this actually is.</p>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <p>Suppose we have a tiny icon that is \(10 \times 10\) pixels. How many numbers does the computer store?</p>
+    <p>$$ 10 \text{ (Height)} \times 10 \text{ (Width)} = 100 \text{ Pixels} $$</p>
+    <p>But remember the channels! Each pixel needs 3 numbers (R, G, B).</p>
+    <p>$$ 100 \text{ Pixels} \times 3 \text{ Channels} = 300 \text{ integers} $$</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If you have a square image that is \(100 \times 100\) pixels, and it is a standard RGB color image, how many total values are stored in the array?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That is just the number of pixels (\(100 \\times 100\)). Don\'t forget the colors!')">10,000</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! \(100 \\times 100\) pixels = 10,000 pixels. Multiplied by 3 color channels = 30,000 values.')">30,000</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Too low. Check your math on \(100 \\times 100\).')">300</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Spatial Discretization</h4>
+        <p>The process of dividing continuous space into a finite set of discrete sample points (pixels).</p>
+    </div>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Pixel</h4>
+        <p>Short for 'Picture Element'. The smallest addressable element in a digital image, representing a single point in the grid.</p>
+    </div>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Aliasing</h4>
+        <p>Visual artifacts (like jagged edges or moiré patterns) that occur when the resolution of the grid is too low to capture the detail of the real world object.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <h2>Why It Matters</h2>
+    <p>Why spend so much time on grids and arrays?</p>
+    <div class="why-it-matters">
+        <h3>The Computer's Perspective</h3>
+        <p>Because computer vision algorithms <strong>do not see shapes</strong>. They do not see a "cat" or a "road". They only see a massive list of integers. Understanding that an image is just a \(H \times W \times C\) array is the first prerequisite for writing any code to process it.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<section id="section20">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following factors would REDUCE the amount of aliasing (pixelation/jagged edges) in an image?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Larger pixels mean a coarser grid, which makes aliasing worse.')">Increasing the size of the pixels</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! More pixels (higher resolution) means a finer grid, allowing you to capture smaller details and smooth curves.')">Increasing the sensor resolution</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This makes the object appear larger, which uses more pixels to represent it, but it doesn\'t change the inherent aliasing properties of the sensor itself.')">Moving the camera closer to the object</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(21)" style="display: none;">Continue</div>
+</section>
+
+<section id="section21">
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <h4>Why are images typically 3 channels?</h4>
+        <p>Great question. We use 3 channels (Red, Green, Blue) primarily to mimic human biology. Our eyes have three types of cone cells sensitive to these wavelengths. If we were designing cameras for mantis shrimp (who have 12-16 color receptors), our arrays would be much deeper!</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(22)">Continue</div>
+</section>
+
+<section id="section22">
+    <h2>Review and Reflect</h2>
+    <p>We have successfully frozen the world.</p>
+    <p>In this lesson, we explored the first major step in image formation:</p>
+    <ul>
+        <li><strong>Abstraction:</strong> We identified that images are spatial samples of reality.</li>
+        <li><strong>The Sensor:</strong> We saw how photodiodes average light into single pixel values.</li>
+        <li><strong>The Array:</strong> We defined the digital image as a 3D grid (\(H \times W \times C\)).</li>
+    </ul>
+    <p>But we have a problem. We have the <em>grid</em>, but we haven't decided what numbers go <em>inside</em> the grid squares. Is a bright pixel a "10"? A "100"? A "1000"?</p>
+    <p>In the next lesson, we will learn how to turn light intensity into digital values using <strong>Quantization</strong>.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 22;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+ const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section20') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Using generic placeholders, these would be set dynamically in a real LMS
+                let courseId = 'computer-vision';
+                let pathId = 'image-formation';
+                let moduleId = 'm1-pixels';
+                let lessonId = 'l2-digital-grid';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '📷', '🖼️', '💾', '🔳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+{
+    "lesson": {
+      "title": "Experiment: The Virtual Spectrometer",
+      "sections": [
+        {
+          "title": "Welcome to the Light Lab",
+          "content": "Theory is great, but seeing is believing. In this experiment, you will step into a virtual 'Light Lab' to manipulate the fundamental building blocks of color.",
+          "image": "image shows a clean, high-tech laboratory workbench with a glowing white beam of light emitting from a device on the left, passing through a glass prism in the center, and fanning out into a vibrant rainbow spectrum on a back screen.",
+          "text": "We've learned that 'White' light is actually a mixture of all visible wavelengths. But what happens when we start removing pieces of that mixture? In this lesson, you will use a Prism and a set of Optical Filters to decompose light and solve a camouflage puzzle.",
+          "continueButton": true
+        },
+        {
+          "title": "Tool 1: The Prism",
+          "content": "First, let's verify Newton's discovery. We need to see the components of our white light source.",
+          "interactive": "simulation of a light source and a prism. \n- **Initial State:** A single beam of white light travels from left to right.\n- **User Action:** Drag a triangular 'Glass Prism' into the path of the beam.\n- **Result:** As the white beam enters the prism, it bends and splits. On the other side, it exits as a fanned-out rainbow (Spectrum), clearly showing Red, Orange, Yellow, Green, Blue, Indigo, Violet bands on a screen.",
+          "textAfterInteractive": "Notice how the single white beam was hiding all these colors inside it? The prism separates them because different wavelengths bend (refract) at slightly different angles. Blue bends more than Red.",
+          "stopAndThink": {
+            "question": "If we used a laser pointer (which emits only one specific wavelength, like pure green) instead of a white flashlight, would the prism still create a rainbow?",
+            "revealText": "No! A laser is monochromatic (one color). The prism would bend the green beam, but since there are no other wavelengths to separate out, it would just remain a single green beam. You can't split what isn't mixed."
+          },
+          "continueButton": true
+        },
+        {
+          "title": "Tool 2: Optical Filters",
+          "content": "Now, let's start subtracting. An optical filter works by **absorbing** certain wavelengths and letting others pass through. It is a gatekeeper.",
+          "interactive": "simulation continues from the previous step (Prism is active, Rainbow is visible).\n- **User Action:** Drag a 'Red Glass Filter' into the beam path *before* it hits the prism.\n- **Result:** \n    1. The white beam turns Red after passing through the filter.\n    2. The rainbow fan on the screen disappears.\n    3. Only the **Red band** of the spectrum remains visible. The Green, Blue, and Violet bands are gone (black).",
+          "textAfterInteractive": "Did you see that? The Red Filter didn't 'dye' the light red. It **killed** the Green and Blue wavelengths. It absorbed them. The only thing left to hit the prism was the Red light, so only the Red band appeared on the screen.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "Now, let's try a 'Cyan' filter. In color theory, Cyan is the opposite of Red. It is a mix of Green and Blue.",
+              "interactive": "simulation reset.\n- **User Action:** Drag a 'Cyan Filter' into the white beam path.\n- **Result:** \n    1. The beam turns Cyan (light blue-green).\n    2. On the spectrum screen, the **Red band disappears** (becomes black).\n    3. The Green and Blue/Violet bands remain bright and visible.",
+              "testYourKnowledge": {
+                "question": "Based on this experiment, what does a Cyan filter actually do?",
+                "options": [
+                  {
+                    "option": "It adds cyan color to the white light.",
+                    "explanation": "No, filters cannot add light; they can only subtract (absorb) it.",
+                    "correct": false
+                  },
+                  {
+                    "option": "It blocks (absorbs) Red light and transmits Green and Blue.",
+                    "explanation": "Correct! Cyan is essentially a 'No Red' filter.",
+                    "correct": true
+                  },
+                  {
+                    "option": "It changes the frequency of red light to make it blue.",
+                    "explanation": "No, filters generally cannot change the frequency of a photon; they just block the ones they don't like.",
+                    "correct": false
+                  }
+                ]
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Task 3: The Camouflage Puzzle",
+          "content": "Now for a challenge. Understanding how light reflects off ink and paper can help you hide information in plain sight.",
+          "text": "You have a secret message written in **Red Ink** on a piece of **White Paper**. \n\n*   **White Paper:** Reflects ALL colors (Red, Green, Blue).\n*   **Red Ink:** Reflects RED, but absorbs Green and Blue.",
+          "image": "image shows a piece of paper with the text 'TOP SECRET' written in bright red marker. The background is white.",
+          "interactive": "simulation of a dark room with the 'Secret Message' paper on a table and a variable-color flashlight.\n- **Controls:** A slider to change the Flashlight color (White, Red, Green, Blue).\n- **Task:** Find the light color that makes the text disappear (become invisible/camouflaged against the paper).",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "Try shining the **Green Light**.\n- The White paper reflects Green (looks Green).\n- The Red ink **absorbs** Green (looks Black).\n- **Result:** High contrast! Black text on Green paper. The message is clearly visible.",
+              "continueButton": true
+            },
+            {
+              "text": "Now, try shining the **Red Light**.\n- The White paper reflects Red (looks Red).\n- The Red ink reflects Red (looks Red).\n- **Result:** Red text on Red paper. \n\nSince the brightness of the ink and the paper is now the same (both reflecting the red light), the contrast vanishes. **The message disappears!**",
+              "buildYourVocab": {
+                "term": "Contrast",
+                "definition": "In computer vision, contrast is the difference in brightness or color that makes an object (like text) distinguishable from the background. If the object and background reflect light exactly the same way, contrast is zero, and the object becomes invisible."
+              },
+              "whyItMatters": {
+                "text": "This isn't just a puzzle; it's a technique used in Optical Character Recognition (OCR). If you are scanning a form that has red guide lines (boxes) but you only want to read the black handwritten text, scanning with a Red light makes the red boxes disappear (turn white), leaving only the black text visible!"
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "You have successfully manipulated the physics of light!",
+          "text": "In this experiment, you proved that:\n1.  **Prisms** separate white light into its component wavelengths (spectrum).\n2.  **Filters** work subtractively—a Red filter removes Green and Blue light.\n3.  **Camouflage** occurs when the object and the background reflect the incident light in the same way, eliminating contrast.\n\nNext time you look at a colored object, remember: you are seeing the light that 'survived' the absorption process.",
+          "stopAndThink": {
+            "question": "Think about 3D glasses (the old red/blue ones). Based on this lesson, how do you think they show a different image to your left eye (covered by a red filter) vs. your right eye (covered by a blue filter)?",
+            "revealText": "The movie screen displays two images: one in red and one in blue. The Red filter on your left eye makes the Red image 'invisible' (matches the white screen) but makes the Blue image look dark (black). The Blue filter does the reverse. This ensures each eye sees a completely different image, creating a 3D effect!"
+          }
+        }
+      ]
+    }
+  }

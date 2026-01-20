@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Warping Reality – Affine and Projective Transformations</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Split image showing a perfect square checkerboard on the left and a distorted, trapezoidal checkerboard viewed from an angle on the right." style="width: 100%; border-radius: 12px;">
+    </div>
+    <h1>Warping Reality – Affine and Projective Transformations</h1>
+    
+    <h2>Beyond the Rigid World</h2>
+    <p>Welcome back! In the last lesson, we moved images around using Translation, Rotation, and Scaling. We called these 'Rigid' or 'Similarity' transformations because, essentially, the object stayed the same shape. A square remained a square, just in a different spot or size.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>When Rectangles Become Parallelograms</h2>
+    <p>But look at the wall nearest to you. It's a rectangle, right? Now, stand up and look at it from a sharp angle. Does it still look like a rectangle in your visual field? No. It looks like a trapezoid.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>To describe the real world, we need to break the rules of rigid geometry. We need transformations that can warp shapes. First up: the <strong>Affine Transformation</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>Imagine a stack of playing cards. If you push the top of the stack sideways, the rectangle becomes a parallelogram. This is called <strong>Shearing</strong>.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Diagram illustrating an affine transformation where a rectangle is sheared into a parallelogram, with arrows indicating force along the top edge." style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>Mathematically, we achieve this by changing the $2 \times 2$ matrix inside our transformation. In an Affine transformation, we introduce non-zero values to the off-diagonal positions $a_{01}$ and $a_{10}$:</p>
+    <p>$$ \mathbf{M}_{aff} = \begin{pmatrix} a_{00} & a_{01} & t_x \\ a_{10} & a_{11} & t_y \\ 0 & 0 & 1 \end{pmatrix} $$</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>These new parameters allow for non-uniform scaling and shearing. Affine transformations preserve <strong>parallelism</strong> (parallel lines stay parallel), but they do <em>not</em> necessarily preserve angles or lengths.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Meme: Distracted Boyfriend representing Affine transformations. The boyfriend (Affine) is distracted by a girl (Parallelism) while his girlfriend (Angles & Lengths) looks on offended, illustrating that Affine transforms preserve parallelism but not angles or lengths." style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>So, Affine is powerful, but it still respects parallel lines. Train tracks in an Affine world would never look like they converge. To get true perspective, we need to go deeper.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <h2>The Projective Transformation (Homography)</h2>
+    <p>To model how a camera actually sees the world, where parallel lines converge at a horizon, we need the <strong>Projective Transformation</strong>, also known as a <strong>Homography</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>This is the most general linear transformation for 2D planar coordinates. Look at the matrix $\mathbf{H}$ below. Do you notice what changed compared to the Affine matrix?</p>
+    <p>$$ \mathbf{H} = \begin{pmatrix} h_{00} & h_{01} & h_{02} \\ h_{10} & h_{11} & h_{12} \\ \mathbf{h_{20}} & \mathbf{h_{21}} & \mathbf{h_{22}} \end{pmatrix} $$</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>We have unlocked the bottom row! In previous transformations, this row was always $(0, 0, 1)$. Now, we have values $h_{20}$ and $h_{21}$.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>When we multiply our homogeneous point $\tilde{\mathbf{x}} = (x, y, 1)^T$ by this matrix, the third coordinate (the weight $w$) changes:</p>
+    <p>$$ \tilde{w}' = h_{20}x + h_{21}y + h_{22} $$</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>Remember back to Lesson 1? To get the actual image pixel coordinates, we have to divide by this new weight:</p>
+    <p>$$ x' = \frac{h_{00}x + h_{01}y + h_{02}}{\tilde{w}'}, \quad y' = \frac{h_{10}x + h_{11}y + h_{12}}{\tilde{w}'} $$</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>This division by $\tilde{w}'$ (which depends on $x$ and $y$) causes the "shrinking" effect as points move further away, creating perspective distortion.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <h2>Interactive: The Perspective Warper</h2>
+    <p>Let's feel the difference between these two transformations. In the interactive element below, you have an image with control points at the four corners.</p>
+    <style>
+    /* Interactive Warper Specific Styles */
+    .interactive-warper-container {
+        background: #1a202c;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        color: white;
+    }
+    .controls-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .mode-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .mode-toggle .label {
+        color: #a0aec0;
+    }
+    .mode-toggle .label.active {
+        color: white;
+    }
+    /* Switch Style */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #4a5568;
+        transition: .4s;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+    }
+    input:checked + .slider {
+        background-color: #4fd1c5;
+    }
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+    .slider.round {
+        border-radius: 24px;
+    }
+    .slider.round:before {
+        border-radius: 50%;
+    }
+    .reset-btn {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+    .reset-btn:hover {
+        background: rgba(255,255,255,0.2);
+    }
+    .canvas-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        background: #000;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    #warpCanvas {
+        max-width: 100%;
+        height: auto !important; /* Allow responsive scaling */
+        cursor: crosshair;
+    }
+    .instruction-text {
+        text-align: center;
+        color: #a0aec0;
+    }
+    @media (max-width: 600px) {
+        .controls-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+    </style>
+    
+    <div class="interactive-warper-container">
+        <div class="controls-header">
+            <div class="mode-toggle">
+                <span class="label">Affine Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="projectionModeToggle">
+                    <span class="slider round"></span>
+                </label>
+                <span class="label">Projective Mode</span>
+            </div>
+            <button class="reset-btn" onclick="warperApp.reset()">Reset Shape</button>
+        </div>
+        
+        <div class="canvas-wrapper">
+            <canvas id="warpCanvas"></canvas>
+        </div>
+        <div class="instruction-text" id="instructionText">
+            <small>Drag the handles. In <strong>Affine Mode</strong>, lines stay parallel.</small>
+        </div>
+    </div>
+    
+    <script>
+    /**
+     * Perspective Warper Logic
+     * Uses texture subdivision to simulate projective transform on 2D Canvas
+     */
+    class PerspectiveWarper {
+        constructor(canvasId) {
+            this.canvas = document.getElementById(canvasId);
+            this.ctx = this.canvas.getContext('2d');
+            this.width = 600;
+            this.height = 400;
+            
+            // Handle high DPI displays
+            const dpr = window.devicePixelRatio || 1;
+            this.canvas.width = this.width * dpr;
+            this.canvas.height = this.height * dpr;
+            this.canvas.style.width = `${this.width}px`;
+            this.canvas.style.height = `${this.height}px`;
+            this.ctx.scale(dpr, dpr);
+    
+            // State
+            this.isProjective = false; // False = Affine, True = Projective
+            this.draggingPoint = null;
+            this.handles = [];
+            this.image = null;
+            
+            // Constants
+            this.HANDLE_RADIUS = 8;
+            this.GRID_RESOLUTION = 15; // Higher = smoother warp, Lower = faster
+    
+            this.init();
+        }
+    
+        init() {
+            // Generate a procedural city texture
+            this.image = this.createCityTexture(this.width, this.height);
+            
+            this.reset();
+            this.setupEvents();
+            this.animate();
+        }
+    
+        createCityTexture(w, h) {
+            const c = document.createElement('canvas');
+            c.width = w;
+            c.height = h;
+            const x = c.getContext('2d');
+            
+            // Sky/Ground gradient
+            const grd = x.createLinearGradient(0, 0, 0, h);
+            grd.addColorStop(0, "#87CEEB"); // Sky
+            grd.addColorStop(0.5, "#f0f0f0"); // Horizon
+            grd.addColorStop(0.5, "#555"); // Road
+            grd.addColorStop(1, "#222");
+            x.fillStyle = grd;
+            x.fillRect(0,0,w,h);
+    
+            // Road Lines (Perspective implied in texture, but we draw flat 2D)
+            x.strokeStyle = "#fbbf24";
+            x.lineWidth = 4;
+            x.setLineDash([20, 20]);
+            x.beginPath();
+            x.moveTo(w/2, h/2); // Vanishing point approx
+            x.lineTo(w/2, h);
+            x.stroke();
+            
+            x.beginPath();
+            x.moveTo(w/2 - 100, h);
+            x.lineTo(w/2, h/2);
+            x.lineTo(w/2 + 100, h);
+            x.stroke();
+    
+            // Buildings (Simple rectangles)
+            x.fillStyle = "#4a5568";
+            // Left buildings
+            for(let i=0; i<5; i++) {
+                x.fillRect(10 + i*60, h/2 - 50 - i*10, 40, 100);
+                // Windows
+                x.fillStyle = "#fbbf24";
+                x.fillRect(20 + i*60, h/2 - 40 - i*10, 10, 10);
+                x.fillStyle = "#4a5568";
+            }
+            // Right buildings
+            for(let i=0; i<5; i++) {
+                x.fillRect(w - 50 - i*60, h/2 - 50 - i*10, 40, 100);
+                 // Windows
+                x.fillStyle = "#fbbf24";
+                x.fillRect(w - 40 - i*60, h/2 - 40 - i*10, 10, 10);
+                x.fillStyle = "#4a5568";
+            }
+            
+            // Text
+            x.fillStyle = "rgba(255,255,255,0.8)";
+            x.font = "bold 40px sans-serif";
+            x.textAlign = "center";
+            x.fillText("CITY VIEW", w/2, 100);
+    
+            return c;
+        }
+    
+        reset() {
+            const padding = 50;
+            this.handles = [
+                { x: padding, y: padding }, // TL
+                { x: this.width - padding, y: padding }, // TR
+                { x: this.width - padding, y: this.height - padding }, // BR
+                { x: padding, y: this.height - padding } // BL
+            ];
+        }
+    
+        setupEvents() {
+            const getPos = (e) => {
+                const rect = this.canvas.getBoundingClientRect();
+                // Handle touch or mouse
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: (clientX - rect.left) * (this.width / rect.width),
+                    y: (clientY - rect.top) * (this.height / rect.height)
+                };
+            };
+    
+            const startDrag = (e) => {
+                e.preventDefault();
+                const pos = getPos(e);
+                // Find closest handle
+                for(let i=0; i<this.handles.length; i++) {
+                    const h = this.handles[i];
+                    const dist = Math.sqrt((h.x - pos.x)**2 + (h.y - pos.y)**2);
+                    if(dist < this.HANDLE_RADIUS * 3) {
+                        this.draggingPoint = i;
+                        return;
+                    }
+                }
+            };
+    
+            const moveDrag = (e) => {
+                if(this.draggingPoint === null) return;
+                e.preventDefault();
+                const pos = getPos(e);
+                
+                // Constrain to canvas
+                pos.x = Math.max(0, Math.min(this.width, pos.x));
+                pos.y = Math.max(0, Math.min(this.height, pos.y));
+    
+                const dx = pos.x - this.handles[this.draggingPoint].x;
+                const dy = pos.y - this.handles[this.draggingPoint].y;
+    
+                // Update the dragged point
+                this.handles[this.draggingPoint] = pos;
+    
+                // If Affine Mode, enforce constraints
+                if(!this.isProjective) {
+                    this.enforceAffineConstraints(this.draggingPoint, dx, dy);
+                }
+            };
+    
+            const endDrag = () => {
+                this.draggingPoint = null;
+            };
+    
+            this.canvas.addEventListener('mousedown', startDrag);
+            this.canvas.addEventListener('mousemove', moveDrag);
+            window.addEventListener('mouseup', endDrag);
+            
+            this.canvas.addEventListener('touchstart', startDrag, {passive: false});
+            this.canvas.addEventListener('touchmove', moveDrag, {passive: false});
+            window.addEventListener('touchend', endDrag);
+    
+            // Toggle Switch
+            document.getElementById('projectionModeToggle').addEventListener('change', (e) => {
+                this.isProjective = e.target.checked;
+                this.reset(); // Reset shape on mode change to avoid confusion
+                
+                const text = document.getElementById('instructionText');
+                if(this.isProjective) {
+                    text.innerHTML = "<small><strong>Projective Mode:</strong> Drag any corner. Create trapezoids!</small>";
+                } else {
+                    text.innerHTML = "<small><strong>Affine Mode:</strong> Lines remain parallel. (Parallelograms only)</small>";
+                }
+            });
+        }
+    
+        enforceAffineConstraints(movedIdx, dx, dy) {
+            // Indices: 0:TL, 1:TR, 2:BR, 3:BL
+            // Parallelogram rule: P0 + P2 = P1 + P3 (Vector sums)
+            // Or: Vector(TL -> TR) == Vector(BL -> BR)
+            
+            // If I move TL (0): 
+            // We want to keep TR(1) and BL(3) relative? Or allow shearing?
+            // Prompt says: "Dragging one corner causes adjacent corner to move automatically"
+            // Let's treat the shape as defined by 3 points, with the 4th dependent.
+            
+            // Simplified Logic: 
+            // 1. Move the dragged point.
+            // 2. Identify the "Opposite" point (i.e., if dragging TL(0), opposite is BR(2)).
+            // 3. Move the two ADJACENT points by 0? No.
+            
+            // Correct Affine Interaction:
+            // If I drag TL, I am changing the origin. 
+            // If I drag TR, I am changing the top vector.
+            // If I drag BL, I am changing the left vector.
+            // BR is strictly dependent: BR = BL + (TR - TL).
+            
+            // However, user might drag BR.
+            // Let's maintain the relationship: handles[2] = handles[3] + (handles[1] - handles[0])
+            
+            if (movedIdx === 0) { // TL moved
+                // Shift TR and BL to maintain shape (Translation)? 
+                // OR change shape? Usually handles change shape.
+                // Let's assume dragging ANY handle keeps the OTHER TWO fixed, and moves the DIAGONAL one.
+                
+                // Drag TL(0) -> Fix TR(1), BL(3) -> Update BR(2)
+                // Vector TR->BR must equal TL->BL
+                // BR = TR + (BL - TL) => but TL changed.
+                // BR_new = TR_old + (BL_old - TL_new) ... No.
+                
+                // Let's try: Dragging a point pushes the parallel edge.
+                // Drag TL(0): BL(3) stays. TR(1) stays.
+                // Vector Left: (BL - TL). Vector Top: (TR - TL).
+                // BR(2) must be TL + VecLeft + VecTop
+                // BR = TL + (BL - TL) + (TR - TL) = BL + TR - TL.
+                this.handles[2].x = this.handles[3].x + this.handles[1].x - this.handles[0].x;
+                this.handles[2].y = this.handles[3].y + this.handles[1].y - this.handles[0].y;
+            }
+            else if (movedIdx === 1) { // TR moved
+                // Fix TL, BR? No.
+                // Fix TL(0) and BR(2)? No.
+                // Let's Fix TL(0) and BL(3). 
+                // We are shearing the top. 
+                // BR(2) must move to match. 
+                // BR = BL + (TR - TL)
+                this.handles[2].x = this.handles[3].x + this.handles[1].x - this.handles[0].x;
+                this.handles[2].y = this.handles[3].y + this.handles[1].y - this.handles[0].y;
+            }
+            else if (movedIdx === 3) { // BL moved
+                // Fix TL(0) and TR(1).
+                // We are shearing the side.
+                // BR(2) must move.
+                // BR = BL + (TR - TL)
+                this.handles[2].x = this.handles[3].x + this.handles[1].x - this.handles[0].x;
+                this.handles[2].y = this.handles[3].y + this.handles[1].y - this.handles[0].y;
+            }
+            else if (movedIdx === 2) { // BR moved
+                // This is the tricky one. If we move BR, we have to break one of the anchors 
+                // or move the whole shape. 
+                // Let's make moving BR move TR (shear)
+                // TR = TL + (BR - BL)
+                 this.handles[1].x = this.handles[0].x + this.handles[2].x - this.handles[3].x;
+                 this.handles[1].y = this.handles[0].y + this.handles[2].y - this.handles[3].y;
+            }
+        }
+    
+        // --- MATH & DRAWING ---
+    
+        animate() {
+            this.draw();
+            requestAnimationFrame(() => this.animate());
+        }
+    
+        draw() {
+            // Clear background
+            this.ctx.fillStyle = "#1a202c";
+            this.ctx.fillRect(0, 0, this.width, this.height);
+    
+            // Draw Grid for reference
+            this.drawBackgroundGrid();
+    
+            // Calculate Homography Matrix
+            // Maps source (0,0,w,h) to destination (handles)
+            const H = this.computeHomography(
+                0, 0, this.width, 0, this.width, this.height, 0, this.height,
+                this.handles[0].x, this.handles[0].y,
+                this.handles[1].x, this.handles[1].y,
+                this.handles[2].x, this.handles[2].y,
+                this.handles[3].x, this.handles[3].y
+            );
+    
+            // Draw Warped Image
+            this.drawTexturedMesh(H);
+    
+            // Draw Handles and Outline
+            this.drawUI();
+        }
+    
+        drawBackgroundGrid() {
+            this.ctx.strokeStyle = "rgba(255,255,255,0.05)";
+            this.ctx.lineWidth = 1;
+            for(let i=0; i<this.width; i+=40) {
+                this.ctx.beginPath(); this.ctx.moveTo(i,0); this.ctx.lineTo(i,this.height); this.ctx.stroke();
+            }
+            for(let i=0; i<this.height; i+=40) {
+                this.ctx.beginPath(); this.ctx.moveTo(0,i); this.ctx.lineTo(this.width,i); this.ctx.stroke();
+            }
+        }
+    
+        drawUI() {
+            // Outline
+            this.ctx.strokeStyle = this.isProjective ? "#4fd1c5" : "#667eea";
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.handles[0].x, this.handles[0].y);
+            this.ctx.lineTo(this.handles[1].x, this.handles[1].y);
+            this.ctx.lineTo(this.handles[2].x, this.handles[2].y);
+            this.ctx.lineTo(this.handles[3].x, this.handles[3].y);
+            this.ctx.closePath();
+            this.ctx.stroke();
+    
+            // Handles
+            this.handles.forEach((h, i) => {
+                this.ctx.fillStyle = "white";
+                this.ctx.beginPath();
+                this.ctx.arc(h.x, h.y, this.HANDLE_RADIUS, 0, Math.PI*2);
+                this.ctx.fill();
+                this.ctx.strokeStyle = this.isProjective ? "#4fd1c5" : "#667eea";
+                this.ctx.stroke();
+            });
+        }
+    
+        // --- TEXTURE MAPPING ---
+    
+        drawTexturedMesh(H) {
+            // Divide image into grid
+            const cols = this.GRID_RESOLUTION;
+            const rows = this.GRID_RESOLUTION;
+            const cellW = this.width / cols;
+            const cellH = this.height / rows;
+    
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    // Source Coordinates
+                    const sx1 = c * cellW;
+                    const sy1 = r * cellH;
+                    const sx2 = (c + 1) * cellW;
+                    const sy2 = (r + 1) * cellH;
+    
+                    // Destination Coordinates (mapped via H)
+                    const p1 = this.applyHomography(H, sx1, sy1);
+                    const p2 = this.applyHomography(H, sx2, sy1);
+                    const p3 = this.applyHomography(H, sx2, sy2);
+                    const p4 = this.applyHomography(H, sx1, sy2);
+    
+                    // Draw 2 triangles per cell to form quad
+                    this.drawTexturedTriangle(
+                        sx1, sy1, sx2, sy1, sx2, sy2, // Source UVs
+                        p1.x, p1.y, p2.x, p2.y, p3.x, p3.y // Dest XYs
+                    );
+                    this.drawTexturedTriangle(
+                        sx1, sy1, sx2, sy2, sx1, sy2,
+                        p1.x, p1.y, p3.x, p3.y, p4.x, p4.y
+                    );
+                }
+            }
+        }
+    
+        drawTexturedTriangle(sx1, sy1, sx2, sy2, sx3, sy3, dx1, dy1, dx2, dy2, dx3, dy3) {
+            // Clip to destination triangle
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.moveTo(dx1, dy1);
+            this.ctx.lineTo(dx2, dy2);
+            this.ctx.lineTo(dx3, dy3);
+            this.ctx.closePath();
+            this.ctx.clip();
+    
+            // Compute Affine Transform for this specific triangle
+            // We need a transform T such that T(sx) = dx
+            // This is an approximation since we are doing piecewise affine
+            
+            // Solve for T: [a b tx]
+            //              [c d ty]
+            // x_dest = a*x_src + b*y_src + tx
+            // y_dest = c*x_src + d*y_src + ty
+            
+            // Denominator
+            const den = sx1 * (sy3 - sy2) + sx2 * (sy1 - sy3) + sx3 * (sy2 - sy1);
+            if (Math.abs(den) < 0.001) { this.ctx.restore(); return; }
+    
+            const a = (dx1 * (sy3 - sy2) + dx2 * (sy1 - sy3) + dx3 * (sy2 - sy1)) / den;
+            const b = (dx1 * (sx2 - sx3) + dx2 * (sx3 - sx1) + dx3 * (sx1 - sx2)) / den;
+            const c = (dy1 * (sy3 - sy2) + dy2 * (sy1 - sy3) + dy3 * (sy2 - sy1)) / den;
+            const d = (dy1 * (sx2 - sx3) + dy2 * (sx3 - sx1) + dy3 * (sx1 - sx2)) / den;
+            
+            const tx = dx1 - a * sx1 - b * sy1;
+            const ty = dy1 - c * sx1 - d * sy1;
+    
+            this.ctx.transform(a, c, b, d, tx, ty);
+            this.ctx.drawImage(this.image, 0, 0);
+            this.ctx.restore();
+        }
+    
+        // --- LINEAR ALGEBRA ---
+    
+        // Solves H that maps (src) -> (dst)
+        // Basic Gaussian elimination for 8 equations
+        computeHomography(srcX1, srcY1, srcX2, srcY2, srcX3, srcY3, srcX4, srcY4,
+                          dstX1, dstY1, dstX2, dstY2, dstX3, dstY3, dstX4, dstY4) {
+            
+            // For each point:
+            // x' = (h0 x + h1 y + h2) / (h6 x + h7 y + 1)
+            // y' = (h3 x + h4 y + h5) / (h6 x + h7 y + 1)
+            // Rearranged:
+            // h0 x + h1 y + h2 - h6 x x' - h7 y x' = x'
+            // h3 x + h4 y + h5 - h6 x y' - h7 y y' = y'
+    
+            let A = [];
+            let B = [];
+    
+            const addPoint = (sx, sy, dx, dy) => {
+                A.push([sx, sy, 1, 0, 0, 0, -sx*dx, -sy*dx]);
+                B.push(dx);
+                A.push([0, 0, 0, sx, sy, 1, -sx*dy, -sy*dy]);
+                B.push(dy);
+            };
+    
+            addPoint(srcX1, srcY1, dstX1, dstY1);
+            addPoint(srcX2, srcY2, dstX2, dstY2);
+            addPoint(srcX3, srcY3, dstX3, dstY3);
+            addPoint(srcX4, srcY4, dstX4, dstY4);
+    
+            const h = this.solveGaussian(A, B);
+            return [
+                [h[0], h[1], h[2]],
+                [h[3], h[4], h[5]],
+                [h[6], h[7], 1]
+            ];
+        }
+    
+        solveGaussian(A, B) {
+            const n = A.length;
+            for (let i = 0; i < n; i++) {
+                // Pivot
+                let maxEl = Math.abs(A[i][i]);
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(A[k][i]) > maxEl) {
+                        maxEl = Math.abs(A[k][i]);
+                        maxRow = k;
+                    }
+                }
+                // Swap
+                for (let k = i; k < n; k++) {
+                    let tmp = A[maxRow][k]; A[maxRow][k] = A[i][k]; A[i][k] = tmp;
+                }
+                let tmp = B[maxRow]; B[maxRow] = B[i]; B[i] = tmp;
+    
+                // Eliminate
+                for (let k = i + 1; k < n; k++) {
+                    const c = -A[k][i] / A[i][i];
+                    for (let j = i; j < n; j++) {
+                        if (i === j) A[k][j] = 0;
+                        else A[k][j] += c * A[i][j];
+                    }
+                    B[k] += c * B[i];
+                }
+            }
+            // Back sub
+            const x = new Array(n).fill(0);
+            for (let i = n - 1; i > -1; i--) {
+                let sum = 0;
+                for (let j = i + 1; j < n; j++) sum += A[i][j] * x[j];
+                x[i] = (B[i] - sum) / A[i][i];
+            }
+            return x;
+        }
+    
+        applyHomography(H, x, y) {
+            const w = H[2][0]*x + H[2][1]*y + H[2][2];
+            return {
+                x: (H[0][0]*x + H[0][1]*y + H[0][2]) / w,
+                y: (H[1][0]*x + H[1][1]*y + H[1][2]) / w
+            };
+        }
+    }
+    
+    // Initialize
+    window.warperApp = new PerspectiveWarper('warpCanvas');
+    </script>
+    <p>Did you notice that in Projective mode, you could make the top of the image narrow and the bottom wide? That destroys parallelism—vertical lines that used to be parallel now point towards a meeting spot.</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <h2>The Vanishing Point</h2>
+    <p>Let's think about those converging lines for a second.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>In a projective transformation, parallel train tracks appear to meet at the horizon (the vanishing point). In our homogeneous math, what happens to the point $\tilde{\mathbf{x}}$ at the exact moment those tracks meet?</h4>
+        <div id="cuy-vanishing-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> The weight component $w$ becomes 0. Remember, a point $(x, y, 0)$ is an Ideal Point, or a 'Point at Infinity'. The projective transformation maps a point very far away in 3D space to a specific pixel on your horizon.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-vanishing-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <h2>Summary and Applications</h2>
+    <p>We have now completed our hierarchy of 2D transformations. Here is how they stack up.</p>
+    <p>We can visualize the hierarchy based on what geometric properties each transformation keeps safe (preserves).</p>
+    <div class="image-placeholder">
+        <img src="images/4.jpg" alt="Comparison chart showing transformation properties: Affine preserves parallelism but not angles/lengths, while Projective (Homography) preserves straight lines but not parallelism." style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <p>Why does this matter? Anytime you use a document scanning app on your phone, you are taking a photo (Projective) of a paper (Rectangle). The app calculates the <strong>Homography</strong> matrix to reverse the perspective distortion and give you a nice, flat rectangular PDF.</p>
+    
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Projective transformations allow us to map any planar surface to any other. This is used for screen replacement in movies (overlaying a new image onto a TV screen in a shot), document scanning, and image stitching.</p>
+    </div>
+
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Homography</h4>
+        <p>A specific type of projective transformation represented by a $3 \times 3$ matrix that maps points from one plane to another. It preserves straight lines but does not preserve parallelism, angles, or distances.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <p>Let's check if you've mastered the warp.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which transformation preserves straight lines but *not* parallelism?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Affine transformations actually <em>do</em> preserve parallelism. If lines are parallel before the transform, they stay parallel after (like in shearing).')">Affine Transformation</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Similarity preserves angles, lengths (scaled), and parallelism. It is too rigid.')">Similarity Transformation</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Projective transformations (Homographies) can make parallel lines converge, which is exactly how perspective works.')">Projective Transformation</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Euclidean is just rotation and translation. It preserves everything except position and orientation.')">Euclidean Transformation</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If the bottom row of your transformation matrix is $[0, 0, 1]$, what kind of transformation is it *definitely not*?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Affine matrices always have $[0, 0, 1]$ as the bottom row.')">Affine</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Euclidean matrices always have $[0, 0, 1]$ as the bottom row.')">Euclidean</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! A general Projective matrix requires values in the bottom row (like $h_{20}, h_{21}$) to create perspective distortion. If the bottom row is $[0, 0, 1]$, it is merely an Affine (or simpler) transform.')">Projective / Homography</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<section id="section20">
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <h4>Is a Homography the same as a Panorama?</h4>
+        <p>Not exactly, but they are related! A Homography is the <em>math</em> used to create a panorama. When you take multiple photos from the same spot, a Homography matrix maps the pixels of the second photo to align with the first photo, allowing them to be stitched together seamlessly.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<section id="section21">
+    <h2>Review and Reflect</h2>
+    <p>In this lesson, we broke the rigid constraints of geometry.</p>
+    <p>You learned that:</p>
+    <ul>
+        <li><strong>Affine Transformations</strong> introduce shearing but keep lines parallel.</li>
+        <li><strong>Projective Transformations (Homographies)</strong> are the most general 2D transforms. They use the 'hidden' homogeneous coordinate $w$ to create perspective, causing parallel lines to converge.</li>
+    </ul>
+    <p>We now have the tools to manipulate 2D images in any way imaginable. But images don't just exist on flat planes; they come from a 3D world. In the next lesson, we will look <strong>Inside the Box</strong>—specifically, the Pinhole Camera Model—to see how 3D light becomes 2D pixels.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 21;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // These IDs are placeholders; ideally they should be dynamic or specific to the course map
+                let courseId = 'computer-vision';
+                let pathId = 'geometry-and-transforms'; 
+                let moduleId = 'cv-ch3-m1-transforms';
+                let lessonId = 'cv-ch3-l2-warping-reality';
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch3-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+        // Checking for completion via parent
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch3-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

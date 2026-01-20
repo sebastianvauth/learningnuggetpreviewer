@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The World Stage – Extrinsics and the Full Matrix P</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Split image showing a camera in an infinite void on the left versus a camera on a tripod positioned within a 3D city scene on the right." style="width: 100%; border-radius: 12px;">
+    </div>
+    <h1>The World Stage</h1>
+    <h2>Extrinsics and the Full Matrix P</h2>
+    <p>In the last lesson, we built the camera itself. We explored the <strong>Intrinsic Matrix</strong> (\(\mathbf{K}\)) which describes what happens <em>inside</em> the box—focal length, optical center, and skew. But a camera floating in a mathematical void captures nothing. To take a picture, the camera needs to exist <em>somewhere</em> relative to the scene. It needs a position and an orientation. In this lesson, we step out of the camera body and onto the world stage.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>Placing the Camera</h2>
+    <p>Objects in real life don't float around the camera; usually, the camera moves around the objects. To describe this mathematically, we need two coordinate systems.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>First, there is the <strong>World Coordinate System</strong>. This is the fixed stage—imagine the GPS coordinates of a building or the corners of a room that stay put.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>Second, there is the <strong>Camera Coordinate System</strong>. This moves with you. In this system, the camera is always at the origin \((0,0,0)\), looking down the Z-axis.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>To take a photo, we need to transform points from the <strong>World</strong> to the <strong>Camera</strong>. We do this using <strong>Extrinsic Parameters</strong>.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Extrinsic Parameters</h4>
+        <p>Parameters that define the position and orientation of the camera coordinate system relative to the world coordinate system. They consist of a Rotation Matrix (\(\mathbf{R}\)) and a Translation Vector (\(\mathbf{t}\)).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>Extrinsics describe a rigid body motion. We rotate the world to align with the camera's angle, and then translate (move) it to align with the camera's position.</p>
+    <!-- THE DIRECTOR'S CHAIR INTERACTIVE MODULE -->
+<div class="directors-chair-container">
+    <div class="dc-header">
+        <span>🎥 The Director's Chair</span>
+        <button onclick="resetCamera()" style="background:none; border:1px solid #cbd5e1; border-radius:4px; padding: 4px 8px; cursor:pointer; font-size:0.8rem;">Reset</button>
+    </div>
+
+    <div class="dc-layout">
+        <div class="dc-canvas-wrapper">
+            <canvas id="dcCanvas"></canvas>
+            <div class="view-label" style="left: 10px;">World Stage (Top-Down)</div>
+            <div class="view-label" style="left: 50%;">Camera Viewfinder</div>
+        </div>
+
+        <div class="dc-controls">
+            <div class="control-group">
+                <h4>Translation (Position)</h4>
+                <div class="slider-row">
+                    <label>Truck</label>
+                    <input type="range" id="camX" min="-5" max="5" step="0.1" value="0">
+                    <span class="slider-value" id="valX">0.0</span>
+                </div>
+                <div class="slider-row">
+                    <label>Boom</label>
+                    <input type="range" id="camY" min="-3" max="5" step="0.1" value="0">
+                    <span class="slider-value" id="valY">0.0</span>
+                </div>
+                <div class="slider-row">
+                    <label>Dolly</label>
+                    <input type="range" id="camZ" min="-8" max="-2" step="0.1" value="-5">
+                    <span class="slider-value" id="valZ">-5.0</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h4>Rotation (Orientation)</h4>
+                <div class="slider-row">
+                    <label>Tilt</label>
+                    <input type="range" id="rotX" min="-45" max="45" step="1" value="0">
+                    <span class="slider-value" id="valRotX">0°</span>
+                </div>
+                <div class="slider-row">
+                    <label>Pan</label>
+                    <input type="range" id="rotY" min="-45" max="45" step="1" value="0">
+                    <span class="slider-value" id="valRotY">0°</span>
+                </div>
+                <div class="slider-row">
+                    <label>Roll</label>
+                    <input type="range" id="rotZ" min="-180" max="180" step="1" value="0">
+                    <span class="slider-value" id="valRotZ">0°</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dc-matrix-display">
+        <div class="matrix-box">
+            <div class="matrix-title">Rotation Matrix (R)</div>
+            <div class="matrix-grid m-3x3">
+                <div class="m-cell" id="r00">1.00</div><div class="m-cell" id="r01">0.00</div><div class="m-cell" id="r02">0.00</div>
+                <div class="m-cell" id="r10">0.00</div><div class="m-cell" id="r11">1.00</div><div class="m-cell" id="r12">0.00</div>
+                <div class="m-cell" id="r20">0.00</div><div class="m-cell" id="r21">0.00</div><div class="m-cell" id="r22">1.00</div>
+            </div>
+        </div>
+        <div class="matrix-box">
+            <div class="matrix-title">Translation Vector (t)</div>
+            <div class="matrix-grid m-3x1">
+                <div class="m-cell" id="tx">0.00</div>
+                <div class="m-cell" id="ty">0.00</div>
+                <div class="m-cell" id="tz">5.00</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('dcCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas resolution
+            function resize() {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+            }
+            window.addEventListener('resize', resize);
+            setTimeout(resize, 100); // Initial resize
+
+            // --- State ---
+            const state = {
+                x: 0, y: 0, z: -5,
+                rx: 0, ry: 0, rz: 0
+            };
+
+            // --- Math Helpers ---
+            const deg2rad = d => d * Math.PI / 180;
+
+            // 3D Point class
+            class Point3 {
+                constructor(x, y, z) { this.x = x; this.y = y; this.z = z; }
+            }
+
+            // Simple Matrix Multiplication
+            function multMatVec(m, v) {
+                return new Point3(
+                    m[0]*v.x + m[1]*v.y + m[2]*v.z,
+                    m[3]*v.x + m[4]*v.y + m[5]*v.z,
+                    m[6]*v.x + m[7]*v.y + m[8]*v.z
+                );
+            }
+
+            // Matrix Transpose (for rotation inverse)
+            function transpose(m) {
+                return [
+                    m[0], m[3], m[6],
+                    m[1], m[4], m[7],
+                    m[2], m[5], m[8]
+                ];
+            }
+
+            // Multiply two 3x3 matrices
+            function multMatMat(a, b) {
+                const result = new Array(9);
+                for (let row = 0; row < 3; row++) {
+                    for (let col = 0; col < 3; col++) {
+                        let sum = 0;
+                        for (let k = 0; k < 3; k++) {
+                            sum += a[row * 3 + k] * b[k * 3 + col];
+                        }
+                        result[row * 3 + col] = sum;
+                    }
+                }
+                return result;
+            }
+
+            // Get Rotation Matrix from Euler Angles (XYZ order)
+            function getRotationMatrix(rx, ry, rz) {
+                const cx = Math.cos(rx), sx = Math.sin(rx);
+                const cy = Math.cos(ry), sy = Math.sin(ry);
+                const cz = Math.cos(rz), sz = Math.sin(rz);
+
+                // Rx
+                const mRx = [1,0,0, 0,cx,-sx, 0,sx,cx];
+                // Ry
+                const mRy = [cy,0,sy, 0,1,0, -sy,0,cy];
+                // Rz
+                const mRz = [cz,-sz,0, sz,cz,0, 0,0,1];
+
+                // Combined R = Rz * Ry * Rx (standard order)
+                // Note: We apply world-to-camera, which is inverse of camera rotation.
+                // Camera orientation R_cam. Extrinsic R = R_cam^T.
+                
+                let R = multMatMat(mRy, mRx); // Pitch then Pan
+                R = multMatMat(mRz, R);       // Then Roll
+                return R;
+            }
+
+            // Cube Geometry (centered at 0,0,0)
+            const cubeSize = 1;
+            const cubeVerts = [
+                new Point3(-1, -1, -1), new Point3(1, -1, -1), new Point3(1, 1, -1), new Point3(-1, 1, -1), // Front
+                new Point3(-1, -1, 1), new Point3(1, -1, 1), new Point3(1, 1, 1), new Point3(-1, 1, 1)      // Back
+            ].map(p => new Point3(p.x*cubeSize, p.y*cubeSize, p.z*cubeSize));
+
+            // Edges connecting vertices
+            const cubeEdges = [
+                [0,1], [1,2], [2,3], [3,0], // Front face
+                [4,5], [5,6], [6,7], [7,4], // Back face
+                [0,4], [1,5], [2,6], [3,7]  // Connecting edges
+            ];
+
+            // --- Drawing Functions ---
+
+            // Project 3D point to 2D canvas coordinates
+            // f: focal length, cx/cy: optical center
+            function project(p, f, cx, cy) {
+                if (p.z <= 0) return null; // Behind camera
+                const scale = f / p.z;
+                return { x: cx + p.x * scale, y: cy - p.y * scale }; // Invert Y for screen coords
+            }
+
+            function drawLine(ctx, p1, p2, color, thickness=1) {
+                if (!p1 || !p2) return;
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = thickness;
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+            }
+
+            function drawGrid(ctx, viewMat, f, cx, cy) {
+                const size = 10;
+                const step = 2;
+                ctx.lineWidth = 0.5;
+                // Draw floor lines
+                for(let i=-size; i<=size; i+=step) {
+                    // Lines parallel to X (varying Z)
+                    let p1 = {x: -size, y: -2, z: i};
+                    let p2 = {x: size, y: -2, z: i};
+                    // Transform: P_c = R * P_w + t
+                    let tp1_rot = multMatVec(viewMat.R, p1);
+                    let tp1 = {x: tp1_rot.x + viewMat.t.x, y: tp1_rot.y + viewMat.t.y, z: tp1_rot.z + viewMat.t.z};
+                    let tp2_rot = multMatVec(viewMat.R, p2);
+                    let tp2 = {x: tp2_rot.x + viewMat.t.x, y: tp2_rot.y + viewMat.t.y, z: tp2_rot.z + viewMat.t.z};
+                    drawLine(ctx, project(tp1, f, cx, cy), project(tp2, f, cx, cy), '#334155', 0.5);
+
+                    // Lines parallel to Z (varying X)
+                    p1 = {x: i, y: -2, z: -size};
+                    p2 = {x: i, y: -2, z: size};
+                    tp1_rot = multMatVec(viewMat.R, p1);
+                    tp1 = {x: tp1_rot.x + viewMat.t.x, y: tp1_rot.y + viewMat.t.y, z: tp1_rot.z + viewMat.t.z};
+                    tp2_rot = multMatVec(viewMat.R, p2);
+                    tp2 = {x: tp2_rot.x + viewMat.t.x, y: tp2_rot.y + viewMat.t.y, z: tp2_rot.z + viewMat.t.z};
+                    drawLine(ctx, project(tp1, f, cx, cy), project(tp2, f, cx, cy), '#334155', 0.5);
+                }
+            }
+
+            function render() {
+                const w = canvas.width;
+                const h = canvas.height;
+
+                // Guard against zero-sized canvas (e.g. when loaded while hidden)
+                if (w === 0 || h === 0) {
+                    resize();
+                    requestAnimationFrame(render);
+                    return;
+                }
+
+                const halfW = w / 2;
+                
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(0, 0, w, h);
+
+                // --- 1. Calculate Matrices ---
+                // Camera Rotation (Orientation)
+                const R_cam = getRotationMatrix(deg2rad(state.rx), deg2rad(state.ry), deg2rad(state.rz));
+                
+                // Extrinsic R is Transpose of Camera Orientation (World moves opposite to camera)
+                const R_ext = transpose(R_cam);
+                
+                // Camera Position in World
+                const C_world = new Point3(state.x, state.y, state.z);
+                
+                // Extrinsic t = -R * C
+                const t_ext_pt = multMatVec(R_ext, C_world);
+                const t_ext = { x: -t_ext_pt.x, y: -t_ext_pt.y, z: -t_ext_pt.z };
+                
+                // Update HTML UI
+                updateMatrixDisplay(R_ext, t_ext);
+
+                // --- 2. World View (Left Side) ---
+                // Fixed "God Camera" settings
+                const godCamPos = { x: 0, y: 5, z: -15 }; // Up and back
+                const godCamRot = getRotationMatrix(deg2rad(20), 0, 0); // Look down slightly
+                const godExtR = transpose(godCamRot); // Fixed
+                const godExtT = {x: 0, y: -2, z: 15}; // Manual tweak for good view
+                
+                const godFocal = 300;
+                const godCx = halfW / 2;
+                const godCy = h / 2;
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(0, 0, halfW, h);
+                ctx.clip(); // Restrict drawing to left side
+
+                // Draw Grid in World View
+                drawGrid(ctx, {R: godExtR, t: godExtT}, godFocal, godCx, godCy);
+
+                // Draw Subject Cube (at 0,0,0)
+                // World Coords -> God Camera Coords -> Project
+                cubeEdges.forEach(edge => {
+                    const p1w = cubeVerts[edge[0]];
+                    const p2w = cubeVerts[edge[1]];
+                    
+                    // Transform to God Cam
+                    const p1c = multMatVec(godExtR, {x: p1w.x+godExtT.x, y: p1w.y+godExtT.y, z: p1w.z+godExtT.z});
+                    const p2c = multMatVec(godExtR, {x: p2w.x+godExtT.x, y: p2w.y+godExtT.y, z: p2w.z+godExtT.z});
+
+                    drawLine(ctx, project(p1c, godFocal, godCx, godCy), project(p2c, godFocal, godCx, godCy), '#00f2fe', 2);
+                });
+
+                // Draw User Camera Icon
+                // We define a simple pyramid shape for the camera
+                const camScale = 0.5;
+                const camVertsLocal = [
+                    {x:0, y:0, z:0}, // Optical center
+                    {x:-1, y:-1, z:1}, {x:1, y:-1, z:1}, {x:1, y:1, z:1}, {x:-1, y:1, z:1} // Film plane
+                ].map(p => ({x:p.x*camScale, y:p.y*camScale, z:p.z*camScale}));
+
+                // Transform Camera Icon to World Position based on user sliders, THEN to God Camera
+                camVertsLocal.forEach((v, i) => {
+                    // 1. Rotate Icon by User Rotation
+                    let vRot = multMatVec(R_cam, v);
+                    // 2. Translate Icon by User Position
+                    let vWorld = {x: vRot.x + state.x, y: vRot.y + state.y, z: vRot.z + state.z};
+                    // 3. Transform to God Camera View
+                    let vGod = multMatVec(godExtR, {x: vWorld.x + godExtT.x, y: vWorld.y + godExtT.y, z: vWorld.z + godExtT.z});
+                    camVertsLocal[i].godProj = project(vGod, godFocal, godCx, godCy);
+                });
+
+                // Draw Camera Body Lines
+                const cp = camVertsLocal;
+                const camColor = '#fbbf24'; // Amber
+                [1,2,3,4,1].forEach((idx, i, arr) => {
+                    if(i<4) drawLine(ctx, cp[0].godProj, cp[arr[i]].godProj, camColor); // Center to corners
+                });
+                [1,2,3,4].forEach((idx, i) => {
+                     let next = i===3 ? 1 : idx+1;
+                     drawLine(ctx, cp[idx].godProj, cp[next].godProj, camColor); // Square back
+                });
+
+                // Draw "Frustum" lines sticking out of camera
+                const frustumLen = 20; // Length of rays
+                const frustumColor = 'rgba(251, 191, 36, 0.2)';
+                [1,2,3,4].forEach(idx => {
+                    // Local ray direction is just the vertex (since origin is 0,0,0)
+                    let v = camVertsLocal[idx]; // Reuse local geometry
+                     // 1. Rotate Ray by User Rotation
+                     let dir = {x:v.x, y:v.y, z:v.z}; // Approximation
+                     let dirRot = multMatVec(R_cam, dir);
+                     // 2. Start point is Camera Pos
+                     let startWorld = {x: state.x, y: state.y, z: state.z};
+                     let endWorld = {x: state.x + dirRot.x*frustumLen, y: state.y + dirRot.y*frustumLen, z: state.z + dirRot.z*frustumLen};
+                     
+                     // Transform to God View
+                     let sGod = multMatVec(godExtR, {x: startWorld.x + godExtT.x, y: startWorld.y + godExtT.y, z: startWorld.z + godExtT.z});
+                     let eGod = multMatVec(godExtR, {x: endWorld.x + godExtT.x, y: endWorld.y + godExtT.y, z: endWorld.z + godExtT.z});
+                     
+                     drawLine(ctx, project(sGod, godFocal, godCx, godCy), project(eGod, godFocal, godCx, godCy), frustumColor, 1);
+                });
+
+                ctx.restore();
+
+                // --- 3. Viewfinder (Right Side) ---
+                const viewCx = halfW + (halfW / 2);
+                const viewCy = h / 2;
+                const viewFocal = 400; // Simulating the lens
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(halfW, 0, halfW, h);
+                ctx.clip();
+                
+                // Draw separation line
+                ctx.strokeStyle = '#334155';
+                ctx.beginPath(); ctx.moveTo(halfW, 0); ctx.lineTo(halfW, h); ctx.stroke();
+
+                // Draw Grid seen by User Camera
+                drawGrid(ctx, {R: R_ext, t: t_ext}, viewFocal, viewCx, viewCy);
+
+                // Draw Cube seen by User Camera
+                cubeEdges.forEach(edge => {
+                    const p1w = cubeVerts[edge[0]];
+                    const p2w = cubeVerts[edge[1]];
+
+                    // Apply Extrinsics: P_c = R * P_w + t
+                    const p1c_rot = multMatVec(R_ext, p1w);
+                    const p1c = {x: p1c_rot.x + t_ext.x, y: p1c_rot.y + t_ext.y, z: p1c_rot.z + t_ext.z};
+
+                    const p2c_rot = multMatVec(R_ext, p2w);
+                    const p2c = {x: p2c_rot.x + t_ext.x, y: p2c_rot.y + t_ext.y, z: p2c_rot.z + t_ext.z};
+
+                    drawLine(ctx, project(p1c, viewFocal, viewCx, viewCy), project(p2c, viewFocal, viewCx, viewCy), '#00f2fe', 3);
+                });
+
+                // Crosshair
+                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(viewCx-10, viewCy); ctx.lineTo(viewCx+10, viewCy); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(viewCx, viewCy-10); ctx.lineTo(viewCx, viewCy+10); ctx.stroke();
+
+                ctx.restore();
+
+                requestAnimationFrame(render);
+            }
+
+            // Update DOM Elements
+            function updateMatrixDisplay(R, t) {
+                // R is array 9, t is object xyz
+                const els = [
+                    ['r00', R[0]], ['r01', R[1]], ['r02', R[2]],
+                    ['r10', R[3]], ['r11', R[4]], ['r12', R[5]],
+                    ['r20', R[6]], ['r21', R[7]], ['r22', R[8]]
+                ];
+                els.forEach(item => {
+                    document.getElementById(item[0]).innerText = item[1].toFixed(2);
+                });
+
+                document.getElementById('tx').innerText = t.x.toFixed(2);
+                document.getElementById('ty').innerText = t.y.toFixed(2);
+                document.getElementById('tz').innerText = t.z.toFixed(2);
+            }
+
+            // --- Event Listeners ---
+            const inputs = {
+                x: 'camX', y: 'camY', z: 'camZ',
+                rx: 'rotX', ry: 'rotY', rz: 'rotZ'
+            };
+
+            const displays = {
+                x: 'valX', y: 'valY', z: 'valZ',
+                rx: 'valRotX', ry: 'valRotY', rz: 'valRotZ'
+            };
+
+            function updateState() {
+                state.x = parseFloat(document.getElementById(inputs.x).value);
+                state.y = parseFloat(document.getElementById(inputs.y).value);
+                state.z = parseFloat(document.getElementById(inputs.z).value);
+                state.rx = parseFloat(document.getElementById(inputs.rx).value);
+                state.ry = parseFloat(document.getElementById(inputs.ry).value);
+                state.rz = parseFloat(document.getElementById(inputs.rz).value);
+
+                // Update text displays next to sliders
+                for (let key in displays) {
+                    const el = document.getElementById(displays[key]);
+                    const val = state[key];
+                    el.innerText = key.startsWith('r') ? val + '°' : val.toFixed(1);
+                }
+            }
+
+            // Attach listeners
+            Object.values(inputs).forEach(id => {
+                document.getElementById(id).addEventListener('input', updateState);
+            });
+
+            // Global reset function
+            window.resetCamera = function() {
+                document.getElementById(inputs.x).value = 0;
+                document.getElementById(inputs.y).value = 0;
+                document.getElementById(inputs.z).value = -5;
+                document.getElementById(inputs.rx).value = 0;
+                document.getElementById(inputs.ry).value = 0;
+                document.getElementById(inputs.rz).value = 0;
+                updateState();
+            }
+
+            // Init
+            resize();
+            updateState();
+            render();
+
+        })();
+    </script>
+</div>
+    <p>Notice that when you move the camera <em>left</em>, the object in the viewfinder moves <em>right</em>. The Extrinsics actually mathematically move the world in the opposite direction to place it in front of the camera.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <h2>The Math of Movement</h2>
+    <p>Let's formalize what you just did in the Director's Chair. We represent the 3D world point as \(\mathbf{p}_w\). We want to find its position relative to the camera, \(\mathbf{p}_c\).</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>The transformation is a combination of a \(3 \times 3\) <strong>Rotation Matrix</strong> (\(\mathbf{R}\)) and a \(3 \times 1\) <strong>Translation Vector</strong> (\(\mathbf{t}\)):</p>
+    <p>$$ \mathbf{p}_c = \mathbf{R}\mathbf{p}_w + \mathbf{t} $$</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>Because we love linear algebra, we want to do this in one step using homogeneous coordinates. We combine \(\mathbf{R}\) and \(\mathbf{t}\) into a single \(3 \times 4\) matrix called the <strong>Extrinsic Matrix</strong> or \([\mathbf{R}|\mathbf{t}]\).</p>
+    <p>$$ \tilde{\mathbf{p}}_c = [\mathbf{R}|\mathbf{t}] \tilde{\mathbf{p}}_w $$</p>
+    <p>Here, \(\tilde{\mathbf{p}}_w\) is the homogeneous world point \((X, Y, Z, 1)^T\). The matrix looks like this:</p>
+    <p>$$ [\mathbf{R}|\mathbf{t}] = \begin{pmatrix} r_{11} & r_{12} & r_{13} & t_x \\ r_{21} & r_{22} & r_{23} & t_y \\ r_{31} & r_{32} & r_{33} & t_z \end{pmatrix} $$</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If you are holding a camera and you simply walk forward towards a tree without turning your head, which part of the Extrinsic matrix changes?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Rotation only changes if you change your orientation (look up, down, left, right, or tilt). Walking straight is a change in position.')">The Rotation Matrix (\(\mathbf{R}\))</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Walking changes your position in the world, which is defined by the translation vector.')">The Translation Vector (\(\mathbf{t}\))</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Intrinsics describe the inside of the camera (like focal length). Walking does not change your lens.')">The Intrinsic Matrix (\(\mathbf{K}\))</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(11)" style="display: none;">Continue</div>
+</section>
+
+<section id="section11">
+    <h2>The Grand Equation: Matrix P</h2>
+    <p>We now have all the pieces. We can go from World \(\to\) Camera (Extrinsics) and from Camera \(\to\) Image (Intrinsics).</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>Let's chain them together. We take a world point \(\tilde{\mathbf{p}}_w\), multiply it by the Extrinsics \([\mathbf{R}|\mathbf{t}]\) to get it into the camera, and then multiply <em>that</em> by the Intrinsics \(\mathbf{K}\) to flatten it onto the sensor.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Coordinate Chain Diagram: Mapping a 3D World point through the Extrinsic matrix [R|t] to Camera coordinates, then through the Intrinsic matrix [K] to 2D Image pixels." style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>Mathematically, it looks like this:</p>
+    <p>$$ \lambda \tilde{\mathbf{x}}_s = \mathbf{K}[\mathbf{R}|\mathbf{t}]\tilde{\mathbf{p}}_w $$</p>
+    <p>We can compress \(\mathbf{K}\) and \([\mathbf{R}|\mathbf{t}]\) into one single master matrix, the <strong>Projection Matrix</strong> (\(\mathbf{P}\)).</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Projection Matrix (P)</h4>
+        <p>A 3x4 matrix that encapsulates the entire imaging process. It maps 3D homogeneous world points directly to 2D homogeneous image points.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p>$$ \mathbf{P} = \mathbf{K}[\mathbf{R}|\mathbf{t}] $$</p>
+    <p>So the final equation is simply \(\lambda \tilde{\mathbf{x}}_s = \mathbf{P}\tilde{\mathbf{p}}_w\). This single matrix multiplication does everything: moves the world to the camera, and projects the camera view onto the film.</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>The Projection Matrix P is created by multiplying a 3x3 matrix (K) and a 3x4 matrix ([R|t]). What are the dimensions of P?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Matrix multiplication of (3x3) * (3x4) results in a different size.')">3x3</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! When multiplying (M x N) by (N x P), the result is (M x P). Here, (3x3) * (3x4) = 3x4.')">3x4</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'We are working with homogeneous coordinates, but the output is a 2D point (3 elements), so the matrix has 3 rows.')">4x4</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge-2" onclick="showNextSection(16)" style="display: none;">Continue</div>
+</section>
+
+<section id="section16">
+    <h2>The Loss of Depth</h2>
+    <p>You might have noticed a mysterious symbol in our equation: \(\lambda\) (lambda).</p>
+    <p>In the equation \(\lambda \tilde{\mathbf{x}}_s = \mathbf{P}\tilde{\mathbf{p}}_w\), the value \(\lambda\) represents the depth of the point (the \(Z\) distance from the camera).</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <p>When we take a photo, we get the pixel coordinates on the left side, but the depth \(\lambda\) is usually absorbed into the scaling. Effectively, the 3D world is 'squashed' flat.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Meme: A funnel labeled 'Matrix P' taking in a '3D World' and outputting a '2D Image'. The caption reads 'Depth: Am I a joke to you?', illustrating the loss of depth information during projection." style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Once we take a picture and have the 2D pixels, can we simply multiply by the inverse of matrix P to get the 3D world point back?</h4>
+        <div id="cuy-depth-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> No, we cannot! Because \(\mathbf{P}\) is a 3x4 matrix, it is not square and has no standard inverse. More intuitively: knowing where a pixel is doesn't tell you how far away the object was. A tiny toy car close up looks the same as a real car far away. The depth information is lost.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-depth-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Understanding Extrinsics and Matrix \(\mathbf{P}\) is the core of <strong>Augmented Reality (AR)</strong>. When you play Pokémon GO or view IKEA furniture in your living room using your phone, your phone is constantly calculating the Extrinsics.</p>
+        <p>It tries to figure out where your phone (the camera) is relative to the floor (the world). If it knows \(\mathbf{P}\), it can mathematically project a 3D Pikachu model onto your 2D screen so it looks like it's standing on your table.</p>
+    </div>
+    <div class="faq-section">
+        <h3>FAQ</h3>
+        <p><strong>Q: What is the difference between Camera coordinates and World coordinates?</strong></p>
+        <p>A: World coordinates are fixed and universal (like a map or GPS). Camera coordinates are relative to the device itself (where '0,0,0' is the camera lens). Extrinsics are the bridge that converts the fixed World numbers into the relative Camera numbers.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <h2>Review and Reflect</h2>
+    <p>You have now completed the geometric pipeline of computer vision.</p>
+    <p>In this lesson, we stepped out of the camera and into the world:</p>
+    <ul>
+        <li><strong>Extrinsics</strong> (\([\mathbf{R}|\mathbf{t}]\)) define the camera's pose (orientation and position).</li>
+        <li>We combined Extrinsics and Intrinsics (\(\mathbf{K}\)) to form the full <strong>Projection Matrix</strong> (\(\mathbf{P}\)).</li>
+        <li>We learned that \(\mathbf{P}\) maps 3D world points to 2D pixels, but the process is <strong>lossy</strong>—depth is sacrificed to create the image.</li>
+    </ul>
+    <p>In the final lesson of this chapter, we will see how to put this math to work to create synthetic worlds and how we might try to recover that lost depth using more than one camera.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 19;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic to show continue button after a quiz answer
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        const continueButton = parentSection.querySelector('.continue-button');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Placeholder IDs - these would be dynamic in a real app
+                let courseId = 'computer-vision';
+                let pathId = 'geometry';
+                let moduleId = 'cv-ch3-extrinsics';
+                let lessonId = 'cv-ch3-l2-world-stage';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv_world_stage_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '📷', '🌍', '📐'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check LMS status
+    if (window.parent && window.parent.ProgressTracker) {
+         // Placeholder logic for LMS check
+    }
+    
+    const isCompleted = localStorage.getItem('lesson_cv_world_stage_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

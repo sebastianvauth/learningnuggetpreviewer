@@ -1,14 +1,45 @@
-/* Brilliant.org Inspired Design System */
+/* Import Fonts - Inter + Nunito for playful feel - MUST be first! */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
+/* Duolingo-Inspired Design System */
 
 /* CSS Custom Properties for Design System */
 :root {
-    /* Color Palette - Brilliant.org Inspired */
-    --color-primary: #2563eb;          /* Brilliant blue */
-    --color-primary-light: #3b82f6;    /* Lighter blue */
-    --color-primary-dark: #1d4ed8;     /* Darker blue */
-    --color-secondary: #059669;        /* Emerald green */
-    --color-accent: #7c3aed;           /* Purple accent */
-    
+    /* ========================================
+       DUOLINGO COLOR PALETTE
+       ======================================== */
+    --duo-green: #58CC02;              /* Primary Duolingo green */
+    --duo-green-dark: #46a302;         /* Darker green for shadows/hover */
+    --duo-green-light: #89e219;        /* Lighter green accent */
+    --duo-blue: #1CB0F6;               /* Duolingo blue */
+    --duo-blue-dark: #1899d6;          /* Darker blue */
+    --duo-purple: #CE82FF;             /* Purple for special elements */
+    --duo-yellow: #FFC800;             /* Gold/yellow for XP/achievements */
+    --duo-yellow-dark: #E5B400;        /* Darker yellow for shadows */
+    --duo-orange: #FF9600;             /* Orange for streaks */
+    --duo-orange-dark: #E58600;        /* Darker orange for shadows */
+    --duo-red: #FF4B4B;                /* Red for errors/hearts */
+    --duo-red-dark: #E54444;           /* Darker red */
+    --duo-gray: #AFAFAF;               /* Inactive/locked states */
+    --duo-gray-dark: #777777;          /* Darker gray */
+
+    /* Map to primary color system (now Duolingo green) */
+    --color-primary: var(--duo-green);
+    --color-primary-light: var(--duo-green-light);
+    --color-primary-dark: var(--duo-green-dark);
+    --color-secondary: var(--duo-blue);
+    --color-accent: var(--duo-purple);
+
+    /* Gamification-specific colors */
+    --color-streak: var(--duo-orange);
+    --color-streak-dark: var(--duo-orange-dark);
+    --color-xp: var(--duo-yellow);
+    --color-xp-dark: var(--duo-yellow-dark);
+    --color-locked: var(--duo-gray);
+    --color-completed: var(--duo-green);
+    --color-current: var(--duo-blue);
+    --color-error: var(--duo-red);
+
     /* Neutrals */
     --color-gray-50: #f9fafb;
     --color-gray-100: #f3f4f6;
@@ -20,16 +51,17 @@
     --color-gray-700: #374151;
     --color-gray-800: #1f2937;
     --color-gray-900: #111827;
-    
+
     /* Background Colors */
     --color-bg-primary: #ffffff;
     --color-bg-secondary: var(--color-gray-50);
     --color-bg-tertiary: var(--color-gray-100);
-    
-    /* Typography */
+
+    /* Typography - Playful Duolingo Style */
     --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    --font-family-display: 'Inter', sans-serif;
-    
+    --font-family-playful: 'Nunito', 'Inter', -apple-system, sans-serif;
+    --font-family-display: 'Nunito', 'Inter', sans-serif;
+
     /* Spacing Scale */
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -42,30 +74,33 @@
     --space-12: 3rem;
     --space-16: 4rem;
     --space-20: 5rem;
-    
-    /* Border Radius */
+
+    /* Border Radius - More playful/rounded */
     --radius-sm: 0.375rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
     --radius-2xl: 1.5rem;
-    
-    /* Shadows */
+    --radius-pill: 50px;
+    --radius-circle: 50%;
+
+    /* Shadows - Including 3D button shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    
+    --shadow-3d: 0 4px 0;              /* 3D button bottom shadow */
+    --shadow-3d-hover: 0 6px 0;        /* 3D button hover */
+    --shadow-3d-active: 0 2px 0;       /* 3D button pressed */
+
     /* Interactive */
-    --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    --shadow-focus: 0 0 0 3px rgba(88, 204, 2, 0.25);
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
-
-/* Import Modern Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* Reset and Base Styles */
 * {
@@ -4424,4 +4459,928 @@ mark {
 @media (prefers-reduced-motion: reduce) {
     .confetti-container { display: none; }
     .confetti { animation: none; }
+}
+
+/* ========================================
+   DUOLINGO-STYLE COMPONENTS
+   ======================================== */
+
+/* ----------------------------------------
+   3D BUTTON STYLES
+   ---------------------------------------- */
+.duo-btn {
+    font-family: var(--font-family-playful);
+    font-weight: 700;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-xl);
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.9rem;
+}
+
+.duo-btn-primary {
+    background: var(--duo-green);
+    color: white;
+    box-shadow: var(--shadow-3d) var(--duo-green-dark);
+}
+
+.duo-btn-primary:hover {
+    background: var(--duo-green-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-3d-hover) var(--duo-green-dark);
+}
+
+.duo-btn-primary:active {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-3d-active) var(--duo-green-dark);
+}
+
+.duo-btn-secondary {
+    background: white;
+    color: var(--duo-green);
+    border: 2px solid var(--color-gray-200);
+    box-shadow: var(--shadow-3d) var(--color-gray-200);
+}
+
+.duo-btn-secondary:hover {
+    border-color: var(--duo-green);
+    background: rgba(88, 204, 2, 0.05);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-3d-hover) var(--color-gray-200);
+}
+
+.duo-btn-secondary:active {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-3d-active) var(--color-gray-200);
+}
+
+/* ----------------------------------------
+   DUOLINGO HEADER STYLES
+   ---------------------------------------- */
+.duo-header {
+    background: white;
+    border-bottom: 2px solid var(--color-gray-200);
+    padding: var(--space-3) var(--space-6);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.duo-header .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-shrink: 0;
+}
+
+.duo-mascot {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--duo-green);
+    border-radius: var(--radius-circle);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-3d) var(--duo-green-dark);
+}
+
+.duo-mascot:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-3d-hover) var(--duo-green-dark);
+}
+
+.duo-mascot:active {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-3d-active) var(--duo-green-dark);
+}
+
+.mascot-icon {
+    font-size: 1.5rem;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+}
+
+.duo-logo {
+    font-family: var(--font-family-playful);
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--duo-green);
+    margin: 0;
+    cursor: pointer;
+    background: none !important;
+    -webkit-text-fill-color: var(--duo-green) !important;
+}
+
+/* ----------------------------------------
+   COURSE DROPDOWN
+   ---------------------------------------- */
+.course-dropdown {
+    position: relative;
+}
+
+.course-dropdown-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: white;
+    border: 2px solid var(--color-gray-200);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-family-playful);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--color-gray-700);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-3d) var(--color-gray-200);
+}
+
+.course-dropdown-btn:hover {
+    border-color: var(--duo-green);
+    color: var(--duo-green);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-3d-hover) var(--color-gray-200);
+}
+
+.course-dropdown-btn:active {
+    transform: translateY(1px);
+    box-shadow: var(--shadow-3d-active) var(--color-gray-200);
+}
+
+.current-course-icon {
+    font-size: 1.2rem;
+}
+
+.dropdown-arrow {
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+    color: var(--color-gray-400);
+}
+
+.course-dropdown.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.course-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 280px;
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--color-gray-200);
+    z-index: 1000;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+}
+
+.course-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.course-menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    font-family: var(--font-family-playful);
+    font-weight: 600;
+    color: var(--color-gray-700);
+}
+
+.course-menu-item:hover {
+    background: rgba(88, 204, 2, 0.1);
+}
+
+.course-menu-item.active {
+    background: var(--duo-green);
+    color: white;
+}
+
+.course-menu-item .course-icon {
+    font-size: 1.3rem;
+}
+
+.course-menu-divider {
+    height: 1px;
+    background: var(--color-gray-200);
+    margin: var(--space-2) 0;
+}
+
+.add-course-btn {
+    color: var(--duo-blue) !important;
+}
+
+.add-course-btn:hover {
+    background: rgba(28, 176, 246, 0.1) !important;
+}
+
+/* ----------------------------------------
+   HEADER STATS BAR (Streak + XP)
+   ---------------------------------------- */
+.header-center {
+    display: flex;
+    justify-content: center;
+    flex: 1;
+}
+
+.duo-stats-bar {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+}
+
+.duo-streak-display,
+.duo-xp-display {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-pill);
+    font-weight: 700;
+    font-family: var(--font-family-playful);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.duo-streak-display {
+    background: linear-gradient(135deg, #FFF5E6, #FFE8CC);
+    border-color: var(--duo-orange);
+}
+
+.duo-streak-display:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 150, 0, 0.3);
+}
+
+.streak-flame {
+    font-size: 1.2rem;
+    animation: flame-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes flame-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15) rotate(5deg); }
+}
+
+.streak-count {
+    color: var(--duo-orange);
+    font-size: 1rem;
+}
+
+.duo-xp-display {
+    background: linear-gradient(135deg, #FFFDE6, #FFF5B3);
+    border-color: var(--duo-yellow);
+}
+
+.duo-xp-display:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 200, 0, 0.3);
+}
+
+.xp-icon {
+    font-size: 1.2rem;
+}
+
+.xp-count {
+    color: #B38F00;
+    font-size: 1rem;
+}
+
+/* XP update animation */
+.xp-updated {
+    animation: xp-pulse 0.5s ease-out;
+}
+
+@keyframes xp-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+/* ----------------------------------------
+   HEADER NAVIGATION
+   ---------------------------------------- */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-shrink: 0;
+}
+
+.duo-nav {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.duo-nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: var(--space-2) var(--space-3);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-lg);
+    color: var(--color-gray-400);
+    font-weight: 700;
+    font-size: 0.7rem;
+    font-family: var(--font-family-playful);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.duo-nav-btn .nav-icon {
+    font-size: 1.4rem;
+    transition: transform 0.2s ease;
+}
+
+.duo-nav-btn:hover {
+    color: var(--duo-green);
+    background: rgba(88, 204, 2, 0.1);
+}
+
+.duo-nav-btn:hover .nav-icon {
+    transform: scale(1.1);
+}
+
+.duo-nav-btn.active {
+    color: var(--duo-green);
+    background: rgba(88, 204, 2, 0.15);
+    position: relative;
+}
+
+.duo-nav-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 3px;
+    background: var(--duo-green);
+    border-radius: 2px;
+}
+
+/* ----------------------------------------
+   XP POPUP ANIMATION
+   ---------------------------------------- */
+.xp-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    z-index: 12000;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.xp-popup.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.xp-popup.hide {
+    transform: translate(-50%, -80%) scale(0.8);
+    opacity: 0;
+}
+
+.xp-popup-content {
+    background: linear-gradient(135deg, var(--duo-yellow), #FFB800);
+    padding: var(--space-6) var(--space-8);
+    border-radius: var(--radius-2xl);
+    box-shadow: 0 8px 32px rgba(255, 200, 0, 0.4),
+                var(--shadow-3d) #CC9900;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    animation: xp-bounce 0.5s ease-out;
+}
+
+@keyframes xp-bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.xp-popup-icon {
+    font-size: 3rem;
+    animation: xp-spin 0.5s ease-out;
+}
+
+@keyframes xp-spin {
+    0% { transform: rotate(-20deg) scale(0); }
+    100% { transform: rotate(0deg) scale(1); }
+}
+
+.xp-popup-amount {
+    font-family: var(--font-family-playful);
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.xp-popup-reason {
+    font-family: var(--font-family-playful);
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* ----------------------------------------
+   CELEBRATION OVERLAY
+   ---------------------------------------- */
+.celebration-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 11000;
+    background: rgba(0, 0, 0, 0.4);
+    animation: celebration-appear 0.3s ease-out;
+}
+
+@keyframes celebration-appear {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.celebration-overlay.fade-out {
+    animation: celebration-fade-out 0.5s ease-out forwards;
+}
+
+@keyframes celebration-fade-out {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.celebration-content {
+    background: white;
+    padding: var(--space-10) var(--space-12);
+    border-radius: var(--radius-2xl);
+    text-align: center;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+    animation: celebration-bounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes celebration-bounce {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.celebration-icon {
+    font-size: 4rem;
+    margin-bottom: var(--space-4);
+    animation: icon-bounce 0.6s ease-out 0.2s both;
+}
+
+@keyframes icon-bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+}
+
+.celebration-text {
+    font-family: var(--font-family-playful);
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--duo-green);
+    margin-bottom: var(--space-2);
+}
+
+.celebration-xp {
+    font-family: var(--font-family-playful);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--duo-yellow);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    animation: xp-pop 0.4s ease-out 0.4s both;
+}
+
+@keyframes xp-pop {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Enhanced Confetti for Duolingo style */
+.duo-confetti {
+    animation-name: duo-confetti-fall !important;
+}
+
+@keyframes duo-confetti-fall {
+    0% {
+        transform: translateY(-10vh) rotate(0deg) scale(0);
+        opacity: 1;
+    }
+    10% {
+        transform: translateY(0vh) rotate(45deg) scale(1);
+    }
+    100% {
+        transform: translateY(110vh) rotate(720deg) scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* ----------------------------------------
+   VERTICAL LEARNING PATH TREE
+   ---------------------------------------- */
+.duo-learning-path-view {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: var(--space-6);
+    padding-bottom: var(--space-20);
+}
+
+.duo-path-header {
+    text-align: center;
+    margin-bottom: var(--space-10);
+}
+
+.duo-breadcrumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    font-size: 0.9rem;
+    font-family: var(--font-family-playful);
+}
+
+.duo-breadcrumb a {
+    color: var(--duo-blue);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.duo-breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.duo-breadcrumb .separator {
+    color: var(--color-gray-400);
+}
+
+.duo-breadcrumb .current {
+    color: var(--color-gray-600);
+    font-weight: 700;
+}
+
+.duo-path-title {
+    font-family: var(--font-family-playful);
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-gray-900);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.duo-path-description {
+    color: var(--color-gray-600);
+    font-size: 1rem;
+    margin: 0;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.duo-path-tree {
+    position: relative;
+    padding: var(--space-6) 0;
+}
+
+/* Unit Headers */
+.duo-unit-header {
+    background: linear-gradient(135deg, var(--duo-green), var(--duo-green-dark));
+    color: white;
+    padding: var(--space-4) var(--space-6);
+    border-radius: var(--radius-xl);
+    margin: var(--space-8) auto;
+    max-width: 300px;
+    text-align: center;
+    box-shadow: var(--shadow-3d) var(--duo-green-dark),
+                0 6px 20px rgba(88, 204, 2, 0.3);
+    position: relative;
+    z-index: 2;
+}
+
+.duo-unit-header .unit-badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-pill);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--space-2);
+}
+
+.duo-unit-header .unit-title {
+    font-family: var(--font-family-playful);
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+/* Nodes Container */
+.duo-nodes-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-4) 0;
+}
+
+/* Vertical connector line */
+.duo-nodes-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 4px;
+    background: var(--color-gray-200);
+    transform: translateX(-50%);
+    z-index: 0;
+}
+
+/* Path Nodes */
+.duo-path-node {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    margin: var(--space-4) 0;
+    z-index: 1;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.duo-path-node:hover:not(.locked) {
+    transform: scale(1.05);
+}
+
+/* Zigzag positioning */
+.duo-path-node:nth-child(odd) {
+    margin-left: -80px;
+}
+
+.duo-path-node:nth-child(even) {
+    margin-left: 80px;
+}
+
+/* Node Circles */
+.node-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-circle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+/* Node States */
+.duo-path-node.completed .node-circle {
+    background: var(--duo-green);
+    color: white;
+    box-shadow: var(--shadow-3d) var(--duo-green-dark);
+}
+
+.duo-path-node.completed:hover .node-circle {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 0 var(--duo-green-dark),
+                0 12px 24px rgba(88, 204, 2, 0.3);
+}
+
+.duo-path-node.current .node-circle {
+    background: var(--duo-blue);
+    color: white;
+    box-shadow: var(--shadow-3d) var(--duo-blue-dark);
+    animation: node-pulse 2s ease-in-out infinite;
+}
+
+@keyframes node-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: var(--shadow-3d) var(--duo-blue-dark);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 6px 0 var(--duo-blue-dark),
+                    0 8px 24px rgba(28, 176, 246, 0.4);
+    }
+}
+
+.duo-path-node.available .node-circle {
+    background: white;
+    color: var(--duo-green);
+    border: 3px solid var(--duo-green);
+    box-shadow: var(--shadow-3d) var(--color-gray-200);
+}
+
+.duo-path-node.available:hover .node-circle {
+    background: rgba(88, 204, 2, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 0 var(--color-gray-200);
+}
+
+.duo-path-node.locked .node-circle {
+    background: var(--color-gray-200);
+    color: var(--color-gray-400);
+    box-shadow: var(--shadow-3d) var(--color-gray-300);
+    cursor: not-allowed;
+}
+
+.duo-path-node.locked:hover {
+    transform: none;
+}
+
+.node-icon {
+    font-size: 1.5rem;
+}
+
+/* Connector lines between nodes */
+.duo-path-node::before {
+    content: '';
+    position: absolute;
+    top: -24px;
+    left: 50%;
+    width: 4px;
+    height: 24px;
+    background: var(--color-gray-200);
+    transform: translateX(-50%);
+    z-index: -1;
+}
+
+.duo-path-node:first-child::before {
+    display: none;
+}
+
+.duo-path-node.completed::before,
+.duo-path-node.current::before {
+    background: var(--duo-green);
+}
+
+/* Node Labels */
+.node-label {
+    font-family: var(--font-family-playful);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-gray-700);
+    text-align: center;
+    max-width: 140px;
+    line-height: 1.3;
+    background: white;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.duo-path-node.locked .node-label {
+    color: var(--color-gray-400);
+}
+
+/* Node type badges */
+.node-type-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 0.9rem;
+    background: white;
+    border-radius: var(--radius-circle);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+}
+
+/* ----------------------------------------
+   RESPONSIVE ADJUSTMENTS
+   ---------------------------------------- */
+@media (max-width: 768px) {
+    .duo-header .header-content {
+        flex-wrap: wrap;
+        gap: var(--space-3);
+    }
+
+    .header-left {
+        order: 1;
+    }
+
+    .header-center {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        padding-top: var(--space-2);
+        border-top: 1px solid var(--color-gray-100);
+    }
+
+    .header-right {
+        order: 2;
+        margin-left: auto;
+    }
+
+    .duo-stats-bar {
+        gap: var(--space-2);
+    }
+
+    .duo-streak-display,
+    .duo-xp-display {
+        padding: var(--space-1) var(--space-3);
+        font-size: 0.9rem;
+    }
+
+    .course-dropdown-btn {
+        padding: var(--space-1) var(--space-3);
+        font-size: 0.85rem;
+    }
+
+    .current-course-name {
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .duo-path-node:nth-child(odd),
+    .duo-path-node:nth-child(even) {
+        margin-left: 0;
+    }
+
+    .duo-path-node:nth-child(odd) {
+        margin-left: -40px;
+    }
+
+    .duo-path-node:nth-child(even) {
+        margin-left: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .duo-nav-btn .nav-text {
+        display: none;
+    }
+
+    .duo-nav-btn {
+        padding: var(--space-2);
+    }
+
+    .duo-path-node:nth-child(odd),
+    .duo-path-node:nth-child(even) {
+        margin-left: 0;
+    }
+
+    .node-circle {
+        width: 56px;
+        height: 56px;
+    }
+
+    .node-label {
+        font-size: 0.8rem;
+        max-width: 120px;
+    }
+}
+
+/* View Path Button */
+.view-path-btn {
+    margin-top: var(--space-3);
+    font-size: 0.9rem;
+    padding: var(--space-2) var(--space-4);
+}
+
+.view-path-btn:hover {
+    transform: translateY(-1px);
 }

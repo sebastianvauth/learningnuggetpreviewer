@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Math of Artificial Sight – Pinhole Cameras & Lenses</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Comparison between human eye cross-section and pinhole box model showing structural similarities" style="width: 100%; border-radius: 12px;">
+    </div>
+    <h1>The Math of Artificial Sight – Pinhole Cameras & Lenses</h1>
+    <h2>Introduction: From Biology to Boxes</h2>
+    
+    <p>We've spent the last few lessons exploring the wet, squishy hardware of human vision. Now, it's time to transition to the rigid, mathematical world of machines. To understand how a computer 'sees', we first need to understand how we can trap a 3D world onto a 2D surface.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Pinhole Model</h2>
+    <p>The simplest conceptual model of a camera is the <strong>Pinhole Camera</strong> (or <em>Camera Obscura</em>). Imagine a completely dark box with a tiny hole on one side and a screen on the back.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>Light travels in straight lines (rays). If you place a candle in front of the box, only a specific ray from the tip of the flame can pass through the hole to hit the bottom of the back screen. Similarly, a ray from the base of the candle travels through the hole to hit the top.</p>
+    <div class="interactive-container">
+        <canvas id="pinholeCanvas"></canvas>
+        <div class="controls">
+            <label for="distanceSlider">Object Distance (Z)</label>
+            <input type="range" id="distanceSlider" min="50" max="280" value="100">
+            <div class="labels">
+                <span>Close</span>
+                <span>Far</span>
+            </div>
+        </div>
+        <div class="canvas-caption">
+            <strong>Try it:</strong> Drag the slider. Notice how moving the object closer makes the inverted image larger?
+        </div>
+    </div>
+    
+    <script>
+    (function() {
+        const canvas = document.getElementById('pinholeCanvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('distanceSlider');
+        
+        // Set canvas resolution
+        canvas.width = 800;
+        canvas.height = 400;
+    
+        // Configuration
+        const config = {
+            pinholeX: 500,        // X position of the barrier
+            screenX: 700,         // X position of the image plane
+            groundY: 300,         // Base line
+            candleHeight: 80,
+            candleWidth: 20,
+            flameHeight: 30
+        };
+    
+        let time = 0; // For animation
+    
+        function drawCandle(x, y, scale, inverted = false) {
+            ctx.save();
+            ctx.translate(x, y);
+            if (inverted) {
+                ctx.scale(1, -1);
+            }
+            ctx.scale(scale, scale);
+    
+            // Draw Candle Body
+            ctx.fillStyle = '#E53E3E'; // Red candle
+            ctx.fillRect(-config.candleWidth/2, 0, config.candleWidth, -config.candleHeight);
+            
+            // Draw Wick
+            ctx.beginPath();
+            ctx.moveTo(0, -config.candleHeight);
+            ctx.lineTo(0, -config.candleHeight - 5);
+            ctx.strokeStyle = '#2D3748';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+    
+            // Draw Flame (Flickering)
+            const flicker = Math.sin(time * 0.2) * 2 + Math.cos(time * 0.5) * 2;
+            const flameBaseY = -config.candleHeight - 5;
+            
+            ctx.beginPath();
+            ctx.moveTo(-5, flameBaseY);
+            ctx.quadraticCurveTo(-10, flameBaseY - 15, 0 + flicker, flameBaseY - config.flameHeight);
+            ctx.quadraticCurveTo(10, flameBaseY - 15, 5, flameBaseY);
+            ctx.closePath();
+            
+            // Flame Gradient
+            const gradient = ctx.createRadialGradient(0, flameBaseY - 15, 2, 0, flameBaseY - 15, 20);
+            gradient.addColorStop(0, '#FFFFF0'); // White hot center
+            gradient.addColorStop(0.4, '#FFFF00'); // Yellow
+            gradient.addColorStop(1, '#FF4500'); // Orange/Red tip
+            ctx.fillStyle = gradient;
+            ctx.fill();
+    
+            ctx.restore();
+        }
+    
+        function drawScene() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Calculate Positions
+            // Slider value is distance from Left Edge (50) to Barrier (500)
+            // Let's map slider (50-280) directly to X position relative to pinhole
+            const objectDistZ = parseFloat(slider.value); // Distance from barrier
+            const objectX = config.pinholeX - objectDistZ;
+            
+            const focalLength = config.screenX - config.pinholeX;
+            const magnification = focalLength / objectDistZ;
+    
+            // 1. Draw Optical Axis
+            ctx.beginPath();
+            ctx.moveTo(0, config.groundY - (config.candleHeight/2));
+            ctx.lineTo(canvas.width, config.groundY - (config.candleHeight/2));
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+    
+            // 2. Draw Real Candle
+            drawCandle(objectX, config.groundY, 1, false);
+            
+            // Label: Object
+            ctx.fillStyle = '#4a5568';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("Object", objectX, config.groundY + 20);
+    
+            // 3. Draw Barrier & Pinhole
+            ctx.fillStyle = '#2d3748';
+            // Top part
+            ctx.fillRect(config.pinholeX - 2, 0, 4, config.groundY - config.candleHeight/2 - 5);
+            // Bottom part
+            ctx.fillRect(config.pinholeX - 2, config.groundY - config.candleHeight/2 + 5, 4, canvas.height);
+            
+            ctx.fillText("Pinhole", config.pinholeX, config.groundY + 20);
+    
+            // 4. Draw Projected Candle (Inverted)
+            // Height of image is usually negative in math, here we just flip drawing
+            drawCandle(config.screenX, config.groundY - config.candleHeight, magnification, true);
+            
+            // Label: Image
+            ctx.fillText("Inverted Image", config.screenX, config.groundY + 20);
+    
+            // 5. Draw Screen
+            ctx.beginPath();
+            ctx.moveTo(config.screenX, 50);
+            ctx.lineTo(config.screenX, 350);
+            ctx.strokeStyle = '#4a5568';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+    
+            // 6. Ray Tracing
+            ctx.lineWidth = 2;
+            
+            // Top Ray (Flame Tip -> Pinhole -> Bottom of Screen)
+            const flameTipY = config.groundY - config.candleHeight - 5 - config.flameHeight;
+            const projectedBottomY = config.groundY - config.candleHeight + ((config.candleHeight + 5 + config.flameHeight) * magnification);
+    
+            ctx.beginPath();
+            ctx.moveTo(objectX, flameTipY);
+            ctx.lineTo(config.screenX, projectedBottomY);
+            ctx.strokeStyle = 'rgba(255, 165, 0, 0.6)'; // Orange transparent
+            ctx.stroke();
+    
+            // Bottom Ray (Candle Base -> Pinhole -> Top of Screen)
+            const baseY = config.groundY;
+            const projectedTopY = config.groundY - config.candleHeight - (0 * magnification); // Actually slightly complex due to drawing origin, simplifying visual
+            
+            // Actually, let's trace Base to Projected Base (which is at top of image)
+            const projectedBaseY = config.groundY - config.candleHeight;
+            
+            ctx.beginPath();
+            ctx.moveTo(objectX, baseY);
+            ctx.lineTo(config.screenX, projectedBaseY);
+            ctx.strokeStyle = 'rgba(255, 165, 0, 0.6)';
+            ctx.stroke();
+    
+            // Add dots to show connection
+            // Top Point (Real)
+            ctx.beginPath(); ctx.arc(objectX, flameTipY, 4, 0, Math.PI*2); ctx.fillStyle = '#3182ce'; ctx.fill();
+            // Bottom Point (Projected)
+            ctx.beginPath(); ctx.arc(config.screenX, projectedBottomY, 4, 0, Math.PI*2); ctx.fillStyle = '#3182ce'; ctx.fill();
+            
+            // Base Point (Real)
+            ctx.beginPath(); ctx.arc(objectX, baseY, 4, 0, Math.PI*2); ctx.fillStyle = '#38a169'; ctx.fill();
+            // Base Point (Projected)
+            ctx.beginPath(); ctx.arc(config.screenX, projectedBaseY, 4, 0, Math.PI*2); ctx.fillStyle = '#38a169'; ctx.fill();
+    
+        }
+    
+        function animate() {
+            time++;
+            drawScene();
+            requestAnimationFrame(animate);
+        }
+    
+        animate();
+    })();
+    </script>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>The result? The image inside the camera is upside down and reversed left-to-right. This isn't a malfunction; it's geometry.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Pinhole Model</h4>
+        <p>The simplest camera model where light rays from an object pass through a single point (aperture) to project an inverted image onto a plane. It assumes no lens distortion and infinite depth of focus.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>Before we get into the equations, let's see how the size of that hole changes the image.</p>
+    <div class="interactive-container">
+        <canvas id="virtualPinholeCanvas"></canvas>
+        <div class="controls">
+            <label for="apertureSlider">Hole Diameter (Aperture)</label>
+            <input type="range" id="apertureSlider" min="1" max="60" value="5">
+            <div class="labels">
+                <span>Pinhole (Tiny)</span>
+                <span>Open Window (Large)</span>
+            </div>
+        </div>
+        <div class="stats-display">
+            <span id="stat-sharpness">Sharpness: High</span> | 
+            <span id="stat-brightness">Brightness: Low</span>
+        </div>
+    </div>
+    
+    <script>
+    (function() {
+        const canvas = document.getElementById('virtualPinholeCanvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('apertureSlider');
+        const statSharp = document.getElementById('stat-sharpness');
+        const statBright = document.getElementById('stat-brightness');
+    
+        // Set canvas resolution
+        canvas.width = 800;
+        canvas.height = 400;
+    
+        // Config
+        const config = {
+            setupWidth: 400, // Width of left side
+            barrierX: 250,
+            filmX: 350,
+            objectX: 50,
+            groundY: 350
+        };
+    
+        // Helper to draw the intricate object (Vase with flowers)
+        function drawVaseObject(ctx, x, y, scale) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+    
+            // Vase
+            ctx.beginPath();
+            ctx.moveTo(-15, 0); // Bottom left
+            ctx.lineTo(15, 0);  // Bottom right
+            ctx.quadraticCurveTo(30, -30, 10, -50); // Right bulge to neck
+            ctx.lineTo(15, -70); // Right lip
+            ctx.lineTo(-15, -70); // Left lip
+            ctx.lineTo(-10, -50); // Left neck
+            ctx.quadraticCurveTo(-30, -30, -15, 0); // Left bulge
+            ctx.fillStyle = '#4299e1'; // Blue vase
+            ctx.fill();
+            ctx.strokeStyle = '#2b6cb0';
+            ctx.stroke();
+    
+            // Stems
+            ctx.beginPath();
+            ctx.moveTo(0, -50); ctx.lineTo(-20, -100);
+            ctx.moveTo(0, -50); ctx.lineTo(0, -110);
+            ctx.moveTo(0, -50); ctx.lineTo(20, -100);
+            ctx.strokeStyle = '#48bb78';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+    
+            // Flowers
+            const drawFlower = (fx, fy, color) => {
+                ctx.beginPath();
+                ctx.arc(fx, fy, 10, 0, Math.PI*2);
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(fx, fy, 4, 0, Math.PI*2);
+                ctx.fillStyle = '#f6e05e'; // Center
+                ctx.fill();
+            };
+    
+            drawFlower(-20, -100, '#ed64a6'); // Pink
+            drawFlower(0, -110, '#9f7aea');   // Purple
+            drawFlower(20, -100, '#f56565');  // Red
+    
+            ctx.restore();
+        }
+    
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const holeSize = parseFloat(slider.value); // 1 to 60
+            
+            // --- 1. LEFT SIDE: The Setup (Side View) ---
+            ctx.save();
+            
+            // Background for lab
+            ctx.fillStyle = '#f7fafc';
+            ctx.fillRect(0, 0, config.setupWidth, canvas.height);
+            
+            // Divider
+            ctx.beginPath();
+            ctx.moveTo(config.setupWidth, 0);
+            ctx.lineTo(config.setupWidth, canvas.height);
+            ctx.strokeStyle = '#cbd5e0';
+            ctx.stroke();
+    
+            // Label
+            ctx.fillStyle = '#a0aec0';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText("SIDE VIEW: THE LAB", 20, 30);
+    
+            // Draw Object (Side view representation)
+            drawVaseObject(ctx, config.objectX + 30, config.groundY - 20, 0.8);
+    
+            // Draw Barrier
+            ctx.fillStyle = '#2d3748';
+            const barrierH = 140; // total height of barrier parts
+            const gapY = config.groundY - 100; // Center height of optical axis
+            
+            // Top part
+            ctx.fillRect(config.barrierX, gapY - 150, 4, 150 - (holeSize/2));
+            // Bottom part
+            ctx.fillRect(config.barrierX, gapY + (holeSize/2), 4, 150);
+    
+            // Draw Film Plane
+            ctx.beginPath();
+            ctx.moveTo(config.filmX, gapY - 60);
+            ctx.lineTo(config.filmX, gapY + 60);
+            ctx.strokeStyle = '#e53e3e';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+    
+            // Visualize "Circle of Confusion"
+            // Trace light from the Purple Flower (Top Middle)
+            // Flower position approx: (config.objectX + 30, config.groundY - 20 - 110*0.8) = (80, 242)
+            const flowerX = 80;
+            const flowerY = 242;
+            
+            ctx.beginPath();
+            // Top edge of hole
+            ctx.moveTo(flowerX, flowerY);
+            ctx.lineTo(config.barrierX, gapY - holeSize/2);
+            // Continue to screen
+            // Slope = (gapY - holeSize/2 - flowerY) / (barrierX - flowerX)
+            const m1 = (gapY - holeSize/2 - flowerY) / (config.barrierX - flowerX);
+            const y1AtScreen = (gapY - holeSize/2) + m1 * (config.filmX - config.barrierX);
+            ctx.lineTo(config.filmX, y1AtScreen);
+            
+            // Bottom edge of hole
+            ctx.lineTo(config.filmX, y1AtScreen + (holeSize * (config.filmX - config.barrierX)/(config.barrierX - flowerX)) + holeSize ); // Approx geometry
+            // Actually calculate second point properly
+            const m2 = (gapY + holeSize/2 - flowerY) / (config.barrierX - flowerX);
+            const y2AtScreen = (gapY + holeSize/2) + m2 * (config.filmX - config.barrierX);
+            ctx.lineTo(config.filmX, y2AtScreen);
+            
+            ctx.lineTo(config.barrierX, gapY + holeSize/2);
+            ctx.lineTo(flowerX, flowerY);
+            
+            ctx.fillStyle = 'rgba(246, 224, 94, 0.3)'; // Light beam color
+            ctx.fill();
+    
+            ctx.restore();
+    
+            // --- 2. RIGHT SIDE: The Result (Front View) ---
+            
+            const previewX = config.setupWidth + 40;
+            const previewY = 60;
+            const previewW = 320;
+            const previewH = 240;
+            const previewCX = previewX + previewW/2;
+            const previewCY = previewY + previewH/2;
+    
+            // Draw Film Frame
+            ctx.fillStyle = '#1a202c'; // Dark background of the camera interior
+            ctx.fillRect(previewX, previewY, previewW, previewH);
+            
+            ctx.fillStyle = '#a0aec0';
+            ctx.fillText("FRONT VIEW: THE FILM", previewX, 30);
+    
+            // Calculate Blur and Brightness
+            // Blur: proportional to hole size
+            // Brightness: proportional to Area (radius^2)
+            // Adjust these factors to make the simulation feel good
+            const blurAmount = (holeSize - 1) * 0.4; 
+            
+            // Brightness math: Area = pi * r^2. 
+            // Min size 1 -> Area 1. Max size 60 -> Area 3600.
+            // We need a log curve or clamped curve so it doesn't go from pitch black to blinding instantly.
+            let brightness = 0;
+            if (holeSize < 3) brightness = 0.2; // Tiny hole = Dim
+            else if (holeSize < 10) brightness = 0.5;
+            else brightness = 1.0; // Large hole = Full brightness
+            
+            // Or smoother:
+            brightness = Math.min(1.0, 0.15 + (holeSize * holeSize) / 200);
+    
+            // Update Text Stats
+            statSharp.innerText = `Sharpness: ${blurAmount < 2 ? 'High' : (blurAmount < 10 ? 'Medium' : 'Low')}`;
+            statBright.innerText = `Brightness: ${brightness < 0.3 ? 'Very Low' : (brightness < 0.8 ? 'Medium' : 'High')}`;
+    
+            // Render the Image
+            ctx.save();
+            
+            // Clip to frame
+            ctx.beginPath();
+            ctx.rect(previewX, previewY, previewW, previewH);
+            ctx.clip();
+    
+            // Apply Physics Effects
+            ctx.filter = `blur(${blurAmount}px) brightness(${brightness})`;
+            
+            // Draw Inverted Image
+            // Center the coordinate system in the film frame
+            ctx.translate(previewCX, previewCY);
+            ctx.rotate(Math.PI); // Rotate 180 degrees (Invert)
+            
+            // Draw the vase centered
+            drawVaseObject(ctx, 0, 70, 1.2); // Offset y slightly to center visuals
+            
+            ctx.restore();
+            
+            // Reset filter
+            ctx.filter = 'none';
+    
+            // Draw Film Perforations (Visual decoration)
+            ctx.fillStyle = 'white';
+            for(let i=0; i<10; i++) {
+                ctx.fillRect(previewX + 10 + (i*32), previewY + 5, 10, 10);
+                ctx.fillRect(previewX + 10 + (i*32), previewY + previewH - 15, 10, 10);
+            }
+        }
+    
+        // Loop
+        function animate() {
+            draw();
+            requestAnimationFrame(animate);
+        }
+        
+        // Init
+        animate();
+    
+    })();
+    </script>
+    <p>Did you notice the trade-off? A tiny hole gives you a sharp image because it restricts the light rays, preventing them from overlapping. But, it barely lets any light in! A large hole lets in light but creates a blurry mess. We'll solve this problem later with lenses, but first, let's quantify the geometry.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Based on the ray diagram, if we move the back screen (the image plane) further away from the pinhole, what happens to the size of the projected image?</h4>
+        <div id="cuy-screen-dist-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> The image gets larger! As the rays continue to travel through the pinhole and spread out, moving the screen further back allows them to spread more, creating a bigger (but dimmer) projection.</div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-screen-dist-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>The Projection Equations</h2>
+    <p>How do we map a point in the 3D world, say $(X, Y, Z)$, to a pixel on our 2D image, $(x', y')$? We use <strong>Similar Triangles</strong>.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Geometry diagram of a pinhole camera showing similar triangles formed by an object and its projected image" style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>Let's define our variables:</p>
+    <ul>
+        <li>\(f\): <strong>Focal Length</strong> (distance from pinhole to image plane).</li>
+        <li>\(Z\): Distance of the object from the camera.</li>
+        <li>\(Y\): Height of the object.</li>
+        <li>\(y'\): Height of the projected image.</li>
+    </ul>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Focal Length (f)</h4>
+        <p>In a pinhole camera, this is simply the distance between the pinhole and the image plane. It determines the magnification of the image.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>Looking at the diagram, the large triangle (outside) and small triangle (inside) are similar. Therefore, the ratio of their sides must be equal:</p>
+    <p>$$ \frac{Y}{Z} = \frac{y'}{f} $$</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>However, remember the image is inverted? If the object is up (\(+Y\)), the image is down (\(-y'\)). To account for this coordinate flip, we add a negative sign to our final projection equations:</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>$$ x' = -f \cdot \frac{X}{Z} $$</p>
+    <p>$$ y' = -f \cdot \frac{Y}{Z} $$</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>These two simple equations are the foundation of 3D reconstruction. If you know the focal length (\(f\)) and where a point appears on the image (\(x', y'\)), you can define a line in 3D space where that object <em>must</em> exist. This is how self-driving cars estimate distance using cameras.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <h2>Let's Calculate</h2>
+    <p>Let's try a real-world example. Suppose you are taking a picture of a tree.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>Here is the data:</p>
+    <ul>
+        <li>The tree is <strong>10 meters</strong> tall (\(Y=10\)).</li>
+        <li>The tree is <strong>50 meters</strong> away (\(Z=50\)).</li>
+        <li>Your camera has a focal length of <strong>0.05 meters</strong> (50mm) (\(f=0.05\)).</li>
+    </ul>
+    <p>How tall is the tree on your camera sensor?</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>Using our formula for the height \(y'\):</p>
+    <p>$$ y' = -f \cdot \frac{Y}{Z} $$</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p>Plug in the numbers:</p>
+    <p>$$ y' = -0.05 \cdot \frac{10}{50} $$</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <p>$$ y' = -0.05 \cdot 0.2 $$</p>
+    <p>$$ y' = -0.01 \text{ meters} $$</p>
+    <p>The tree appears as <strong>1 centimeter</strong> tall on the sensor. The negative sign just reminds us that the tree is upside down on the chip!</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>You are photographing a building 100 meters away (\(Z=100\)). A window on the building projects to a point 0.02 meters (\(x'=0.02\)) from the center of your sensor. If your focal length is 0.05 meters (\(f=0.05\)), what is the actual horizontal position (\(X\)) of the window relative to the camera center?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Rearranging the formula: \\(X = - (x\' \\cdot Z) / f\\). \\(X = - (0.02 \\cdot 100) / 0.05 = -2 / 0.05 = -40\\). The negative sign means it\'s on the opposite side of the center from the projection.')">X = -40 meters</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Close, but check your signs. \\(x\'\\) and \\(X\\) are usually on opposite sides due to the inversion.')">X = 40 meters</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Check your algebra. The ratio is \\(Z/f = 100/0.05 = 2000\\). The magnified world coordinate should be larger than the sensor coordinate.')">X = 10 meters</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(16)" style="display: none;">Continue</div>
+</section>
+
+<section id="section16">
+    <h2>Enter the Lens</h2>
+    <p>Recall our interactive experiment: Pinhole cameras force us to choose between a sharp, dark image or a bright, blurry one. We can't run computer vision algorithms on pitch-black images.</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <p>To solve this, we use a <strong>Lens</strong>. A lens allows us to use a much larger hole (Aperture) to gather plenty of light, but uses refraction to bend that cone of light back into a single sharp point.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Diagram showing how a large pinhole aperture causes blur, while a lens focuses light rays into a sharp point" style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <p>However, lenses introduce a new constraint: <strong>Focus</strong>. A pinhole keeps everything in focus (infinite Depth of Field). A lens can only perfectly focus objects at a specific distance. Everything else becomes slightly blurry.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Aperture</h4>
+        <p>The opening in a lens that controls the amount of light entering the camera. A larger aperture allows more light (brighter image) but reduces the Depth of Field.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <h4>Why is the equation negative?</h4>
+        <p>The negative sign exists because the image is physically inverted. If an object is above the optical axis (positive Y), its projection lands below the center of the image plane (negative y'). In digital systems, we often mathematically 'flip' this back to positive to make coordinates easier to work with, but the physics always starts with that minus sign!</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<section id="section20">
+    <h2>Review and Reflect</h2>
+    <p>We've successfully flattened the 3D world.</p>
+    <p>In this lesson, we explored the geometry of imaging:</p>
+    <ul>
+        <li><strong>The Pinhole Model</strong> maps 3D world points to 2D image points using similar triangles.</li>
+        <li>The projection equations are \(x' = -f \cdot \frac{X}{Z}\) and \(y' = -f \cdot \frac{Y}{Z}\).</li>
+        <li><strong>Lenses</strong> are necessary to gather enough light for a clear image, though they sacrifice the infinite depth of field of a pinhole.</li>
+    </ul>
+    <p>Now that we have light focused onto an image plane, how do we turn that light into digital numbers? In the next lesson, we will dive into the silicon chips—CCDs and CMOS sensors—that act as the 'retina' for our computers.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 20;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Reprocess MathJax in the new explanation
+    if (window.MathJax) {
+        window.MathJax.typesetPromise([explanationDiv]).catch((err) => console.log('MathJax error:', err));
+    }
+
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section15') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                let courseId = 'computer-vision';
+                let pathId = 'foundations-of-vision';
+                let moduleId = 'cv-ch02-image-formation';
+                let lessonId = 'cv-ch02-l1-pinhole-cameras';
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch02-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['📷', '📐', '✨', '🌟', '🔺', '🕶️', '👏', '📏'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+        let courseId = 'computer-vision';
+        let pathId = 'foundations-of-vision';
+        let moduleId = 'cv-ch02-image-formation';
+        let lessonId = 'cv-ch02-l1-pinhole-cameras';
+        if (window.parent.currentRoute) {
+            const route = window.parent.currentRoute;
+            if (route.courseId) courseId = route.courseId;
+            if (route.pathId) pathId = route.pathId;
+            if (route.moduleId) moduleId = route.moduleId;
+            if (route.lessonId) lessonId = route.lessonId;
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('course')) courseId = urlParams.get('course');
+        if (urlParams.get('path')) pathId = urlParams.get('path');
+        if (urlParams.get('module')) moduleId = urlParams.get('module');
+        if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+        const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+        if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+            button.classList.add('completed');
+            button.innerHTML = '✅ Completed!';
+            return;
+        }
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch02-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

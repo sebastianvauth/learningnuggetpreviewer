@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>The Constructive Brain – How Perception Deceives Us</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['$','$'], ['\\(','\\)']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="M.C. Escher's Waterfall illusion showing an impossible aqueduct" style="width: 100%; border-radius: 12px;">
+    </div>
+    <h1>The Constructive Brain</h1>
+    <p>Welcome back! In the previous lesson, we established that vision is a pipeline from the eye to the brain. We tend to trust our eyes implicitly; the phrase "seeing is believing" exists for a reason. However, your brain doesn't just record video like a camera. It actively <em>reconstructs</em> reality based on incomplete data.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>Global vs. Local Consistency</h2>
+    <p>Take a look at M.C. Escher's <em>Waterfall</em> above. If you look at any small section of the aqueduct, the water clearly flows downhill. The local geometry makes perfect sense.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>But when you step back and look at the whole picture, the water inexplicably ends up back at the top. Your brain struggles to reconcile the <strong>Local Consistency</strong> (downward flow) with the <strong>Global Impossibility</strong> (infinite loop).</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>This happens because your brain is constantly making assumptions about depth and perspective to reconstruct a 3D world from a 2D image. When those assumptions are violated, we experience an Optical Illusion.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Inference</h4>
+        <p>The conclusion the brain draws based on evidence, prior knowledge, and reasoning rather than just direct observation. Vision is largely an inference process.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>Let's explore three specific ways your brain 'fixes' the world for you: Lightness Constancy, Motion Interpretation, and Peripheral Filling.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6: Lightness Constancy -->
+<section id="section6">
+    <h2>Lightness Constancy</h2>
+    <p>Let's play a game. Look at the image below. It's the famous 'Checker Shadow Illusion' by Edward Adelson.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Checker Shadow Illusion: A cylinder casting a shadow on a checkerboard" style="width: 100%; border-radius: 12px;">
+    </div>
+    <p>Compare square A and square B. Square A is obviously a dark grey, and Square B is obviously white (just in a shadow), right?</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>What if I told you that the light physically entering your eye from Square A and Square B is exactly the same? They have the identical pixel intensity.</p>
+    <!-- High-Fidelity Interactive Container -->
+<div class="interactive-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; text-align: center; font-family: -apple-system, sans-serif;">
+    
+    <!-- Canvas Wrapper for responsive sizing -->
+    <div style="position: relative; width: 100%; max-width: 600px; margin: 0 auto;">
+        <canvas id="illusionCanvas"></canvas>
+    </div>
+
+    <!-- Controls -->
+    <div style="margin-top: 25px; max-width: 450px; margin-left: auto; margin-right: auto;">
+        <label for="revealSlider" style="display: flex; justify-content: space-between; font-weight: 700; color: #2d3748; font-size: 0.95rem; margin-bottom: 10px;">
+            <span>Illusory Context</span>
+            <span>Raw Pixel Data</span>
+        </label>
+        
+        <input type="range" id="revealSlider" min="0" max="100" value="0" 
+               style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 5px; outline: none; -webkit-appearance: none; cursor: pointer;">
+        
+        <p style="margin-top: 12px; color: #718096; font-size: 0.9rem; line-height: 1.4;">
+            Drag the slider to isolate the squares and connect them with a bridge of the exact same color.
+        </p>
+    </div>
+
+    <script>
+    (function() {
+        const canvas = document.getElementById('illusionCanvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('revealSlider');
+
+        // --- 1. CONFIGURATION ---
+        const cfg = {
+            width: 600,
+            height: 400,
+            tileW: 70,
+            tileH: 35, // Isometric squish
+            offsetX: 300,
+            offsetY: 60,
+            colors: {
+                // The illusion relies on: Dark Paint (120) == Light Paint (240) * Shadow (0.5)
+                high: 240, 
+                low: 120,
+                shadowMult: 0.5,
+                bg: '#ffffff',
+                cylinder: ['#2d3748', '#4a5568', '#1a202c']
+            },
+            posA: { r: 3, c: 1 }, // "Dark" tile in light
+            posB: { r: 1, c: 2 }  // "Light" tile in shadow
+        };
+
+        // --- 2. HIGH-DPI SETUP ---
+        function resizeCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            // CSS Size
+            canvas.style.width = `${cfg.width}px`;
+            canvas.style.height = `${cfg.height}px`;
+            // Internal Bitmap Size
+            canvas.width = cfg.width * dpr;
+            canvas.height = cfg.height * dpr;
+            // Normalize coordinate system
+            ctx.scale(dpr, dpr);
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // --- 3. GEOMETRY HELPERS ---
+        // Isometric projection: x = (c - r) * W, y = (c + r) * H
+        function getIso(r, c) {
+            return {
+                x: cfg.offsetX + (c - r) * cfg.tileW,
+                y: cfg.offsetY + (c + r) * cfg.tileH
+            };
+        }
+
+        function drawTile(r, c, color, alpha = 1) {
+            const p = getIso(r, c);
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = color;
+            ctx.strokeStyle = "rgba(0,0,0,0.05)";
+            
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + cfg.tileW, p.y + cfg.tileH);
+            ctx.lineTo(p.x, p.y + cfg.tileH * 2);
+            ctx.lineTo(p.x - cfg.tileW, p.y + cfg.tileH);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.globalAlpha = 1.0;
+            return p;
+        }
+
+        // --- 4. SCENE LOGIC ---
+        function render() {
+            const t = slider.value / 100; // 0.0 to 1.0
+            
+            // Clear
+            ctx.clearRect(0, 0, cfg.width, cfg.height);
+            
+            // Background Fill (fades to white based on slider)
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0,0, cfg.width, cfg.height);
+
+            // -- LAYER 1: The Full Illusion --
+            // We fade this out as t goes to 1, leaving only white
+            ctx.save();
+            
+            // Draw 5x5 Grid
+            for (let r = 0; r < 5; r++) {
+                for (let c = 0; c < 5; c++) {
+                    // Checker pattern
+                    const isWhiteTile = (r + c) % 2 !== 0; 
+                    let baseVal = isWhiteTile ? cfg.colors.high : cfg.colors.low;
+                    
+                    // Shadow Logic:
+                    // Hardcoded shadow zone for the cylinder
+                    let inShadow = false;
+                    if (r <= 1 && c >= 2) inShadow = true;
+                    if (r === 2 && c >= 3) inShadow = true;
+                    // Force B to be in shadow
+                    if (r === cfg.posB.r && c === cfg.posB.c) inShadow = true;
+
+                    // Calculate final pixel value
+                    let val = inShadow ? baseVal * cfg.colors.shadowMult : baseVal;
+                    
+                    // Draw
+                    const colString = `rgb(${val},${val},${val})`;
+                    drawTile(r, c, colString);
+                }
+            }
+
+            // Draw Cylinder (The Occluder)
+            const cylX = cfg.offsetX + 3.5 * cfg.tileW;
+            const cylY = cfg.offsetY + 3.5 * cfg.tileH - 60;
+            
+            // Cylinder Gradient
+            const grad = ctx.createLinearGradient(cylX - 40, 0, cylX + 40, 0);
+            grad.addColorStop(0, cfg.colors.cylinder[2]);
+            grad.addColorStop(0.5, cfg.colors.cylinder[1]);
+            grad.addColorStop(1, cfg.colors.cylinder[0]);
+            
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.ellipse(cylX, cylY - 80, 50, 20, 0, 0, Math.PI * 2); // Top
+            ctx.fillRect(cylX - 50, cylY - 80, 100, 120); // Body
+            ctx.closePath();
+            ctx.fill();
+            
+            // Cylinder Cap
+            ctx.fillStyle = '#a0aec0';
+            ctx.beginPath();
+            ctx.ellipse(cylX, cylY - 80, 50, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+
+            // -- LAYER 2: The Mask (Fade to White) --
+            // Instead of destination-out, we draw a semi-transparent white box over everything
+            if (t > 0) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${t * 0.95})`; // Max 95% opacity
+                ctx.fillRect(0,0, cfg.width, cfg.height);
+            }
+
+            // -- LAYER 3: The "Truth" (Redrawing A and B + Bridge) --
+            // We redraw A and B on top of the mask so they pop out
+            
+            if (t > 0.05) {
+                // Determine the shared color (120)
+                const sharedVal = cfg.colors.low; 
+                const colorStr = `rgb(${sharedVal},${sharedVal},${sharedVal})`;
+
+                // 1. Redraw Square A (The Anchor)
+                // We use globalAlpha to make them appear gradually if needed, but keeping them solid is better
+                drawTile(cfg.posA.r, cfg.posA.c, colorStr);
+                
+                // 2. Redraw Square B (The Target)
+                drawTile(cfg.posB.r, cfg.posB.c, colorStr);
+
+                // 3. The Bridge
+                // Instead of a line, we draw a polygon connecting the centers
+                const centerA = getIso(cfg.posA.r, cfg.posA.c); centerA.y += cfg.tileH;
+                const centerB = getIso(cfg.posB.r, cfg.posB.c); centerB.y += cfg.tileH;
+                
+                const bridgeWidth = 40 * t; // Bridge grows in width
+
+                // Calculate perpendicular vector for thickness
+                const dx = centerB.x - centerA.x;
+                const dy = centerB.y - centerA.y;
+                const len = Math.sqrt(dx*dx + dy*dy);
+                const perpX = (-dy / len) * (bridgeWidth / 2);
+                const perpY = (dx / len) * (bridgeWidth / 2);
+
+                ctx.fillStyle = colorStr;
+                ctx.beginPath();
+                ctx.moveTo(centerA.x - perpX, centerA.y - perpY);
+                ctx.lineTo(centerA.x + perpX, centerA.y + perpY);
+                ctx.lineTo(centerB.x + perpX, centerB.y + perpY);
+                ctx.lineTo(centerB.x - perpX, centerB.y - perpY);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // -- LAYER 4: Labels --
+            ctx.font = "700 28px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            const pA = getIso(cfg.posA.r, cfg.posA.c);
+            const pB = getIso(cfg.posB.r, cfg.posB.c);
+            
+            // Labels stay white/black contrast relative to the tile color (120 is darkish)
+            ctx.fillStyle = "white"; 
+            ctx.fillText("A", pA.x, pA.y + cfg.tileH);
+            
+            // B is perceptually "white" in context, so we usually use black text. 
+            // But as we reveal, it becomes dark. Let's interpolate text color?
+            // Actually, white text on 120 grey is readable. Let's keep it simple.
+            ctx.fillStyle = t > 0.5 ? "white" : "#1a202c"; 
+            ctx.fillText("B", pB.x, pB.y + cfg.tileH);
+        }
+
+        // Loop
+        function animate() {
+            render();
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+    })();
+    </script>
+</div>
+    <p>Surprising, isn't it? As you remove the context using the slider, you see the raw data. But as soon as the context returns, your brain forces you to see B as lighter.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>Why does this happen? Your brain calculates brightness using a logic that looks something like this:</p>
+    <p>$$ Perceived\_Brightness = Actual\_Intensity + Context\_Correction $$</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>Your brain 'knows' that objects in shadow reflect less light. To determine the true color of the object, it automatically adds a 'Context Correction' value to the raw 'Actual Intensity' it receives from the eye. It <em>infers</em> that Square B must be a white square to look that bright while hidden in the dark.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Lightness Constancy</h4>
+        <p>The ability of the visual system to perceive the relative reflectance (intrinsic color) of objects as constant, despite changes in illumination or shadow.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- SECTION 10: Comic Strip -->
+<section id="section10">
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Comic strip showing the eye reporting grey squares and the brain adjusting them for context" style="width: 100%; border-radius: 12px;">
+    </div>
+    <p>This mechanism is usually helpful, but it highlights a major difference between biological vision and computer vision: Humans see <em>meaning</em> (the object's true color), while cameras sees <em>intensity</em> (the amount of light).</p>
+    
+    <div class="stop-and-think">
+        <h3>Stop And Think</h3>
+        <h4>Why did our brains evolve to see illusions? Specifically, why is 'Lightness Constancy' actually useful for survival in the real world?</h4>
+        <div id="stop-think-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Think about a red apple. If it rolls under a tree into the shade, the amount of light reflecting off it changes. Without lightness constancy, you might think the apple turned black or rotten. This mechanism allows us to recognize objects (Object Permanence) regardless of lighting conditions.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('stop-think-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <h2>Interpreting Motion from Shadows</h2>
+    <p>Our brains also use shadows to infer 3D motion. Because we evolved in a world with a dominant light source from above (the sun), we rely heavily on shadow behavior to understand trajectory.</p>
+    <div class="interactive-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; font-family: -apple-system, sans-serif;">
+    
+        <!-- Canvas Wrapper -->
+        <div style="position: relative; width: 100%; max-width: 650px; margin: 0 auto; overflow: hidden; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <canvas id="shadowCanvas" style="display: block; width: 100%;"></canvas>
+        </div>
+    
+        <!-- Controls -->
+        <div style="margin-top: 20px; text-align: center;">
+            
+            <!-- Mode Switcher -->
+            <div style="display: inline-flex; background: #e2e8f0; padding: 4px; border-radius: 50px; margin-bottom: 15px;">
+                <button class="mode-btn active" onclick="setShadowMode('roll')" id="btn-roll" 
+                    style="padding: 8px 20px; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                    Rolling
+                </button>
+                <button class="mode-btn" onclick="setShadowMode('bounce')" id="btn-bounce"
+                    style="padding: 8px 20px; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #4a5568;">
+                    Bouncing
+                </button>
+            </div>
+    
+            <!-- Truth Toggle -->
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #718096; font-size: 0.9rem;">
+                <input type="checkbox" id="showTruth" onchange="toggleTruth()" style="accent-color: #f56565; cursor: pointer;">
+                <label for="showTruth" style="cursor: pointer;">Show "Straight Line" Guide</label>
+            </div>
+        </div>
+    
+        <script>
+        (function() {
+            const canvas = document.getElementById('shadowCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // --- Configuration ---
+            const cfg = {
+                width: 800,
+                height: 450,
+                ballRadius: 40,
+                ballY: 225, // Vertically centered
+                speed: 4,
+                floorY: 300, // Where the "wall" meets the "floor"
+                perspective: 0.6 // For the grid
+            };
+    
+            // State
+            let ballX = 40;
+            let direction = 1;
+            let mode = 'roll'; // 'roll' or 'bounce'
+            let showTruth = false;
+            let time = 0;
+    
+            // --- Setup Canvas ---
+            function resize() {
+                const dpr = window.devicePixelRatio || 1;
+                // Display size handled by CSS
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = cfg.width * dpr;
+                canvas.height = cfg.height * dpr;
+                ctx.scale(dpr, dpr);
+                
+                // CSS aspect ratio fix
+                canvas.style.height = (canvas.style.width * (cfg.height/cfg.width)) + 'px';
+            }
+            resize();
+    
+            // --- Drawing Functions ---
+    
+            function drawRoom() {
+                // 1. Wall (Top Gradient)
+                const wallGrad = ctx.createLinearGradient(0, 0, 0, cfg.floorY);
+                wallGrad.addColorStop(0, '#e6fffa');
+                wallGrad.addColorStop(1, '#b2f5ea');
+                ctx.fillStyle = wallGrad;
+                ctx.fillRect(0, 0, cfg.width, cfg.floorY);
+    
+                // 2. Floor (Bottom Gradient)
+                const floorGrad = ctx.createLinearGradient(0, cfg.floorY, 0, cfg.height);
+                floorGrad.addColorStop(0, '#ebf8ff');
+                floorGrad.addColorStop(1, '#bee3f8');
+                ctx.fillStyle = floorGrad;
+                ctx.fillRect(0, cfg.floorY, cfg.width, cfg.height - cfg.floorY);
+    
+                // 3. Perspective Grid
+                ctx.strokeStyle = "rgba(44, 82, 130, 0.15)";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                // Horizon Line
+                ctx.moveTo(0, cfg.floorY);
+                ctx.lineTo(cfg.width, cfg.floorY);
+    
+                // Vertical Lines (Fans out)
+                const centerX = cfg.width / 2;
+                for (let i = -10; i <= 10; i++) {
+                    const xStart = centerX + (i * 40);
+                    const xEnd = centerX + (i * 200); // Fanning out perspective
+                    ctx.moveTo(xStart, cfg.floorY);
+                    ctx.lineTo(xEnd, cfg.height);
+                }
+                
+                // Horizontal Lines (Getting closer further away)
+                // Simple exponential spacing
+                for(let i = 0; i < 6; i++) {
+                    const y = cfg.floorY + Math.pow(i, 2.5) + 10;
+                    if(y > cfg.height) break;
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(cfg.width, y);
+                }
+                ctx.stroke();
+            }
+    
+            function drawShadow(bx, by) {
+                let sy, sw, sh, alpha;
+    
+                if (mode === 'roll') {
+                    // Shadow is attached to ball
+                    sy = by + cfg.ballRadius + 10;
+                    sw = cfg.ballRadius * 1.5;
+                    sh = cfg.ballRadius * 0.4;
+                    alpha = 0.3;
+                } else {
+                    // Bounce Mode
+                    // Shadow oscillates based on X position to simulate bounces
+                    // Using sine wave relative to X
+                    const freq = 0.015;
+                    const amp = 90;
+                    const offset = Math.abs(Math.sin(bx * freq + time)); 
+                    
+                    // Calculate "Height" of ball (virtual)
+                    // When offset is high, ball is "high", shadow is low
+                    const virtualHeight = offset * amp; 
+                    
+                    // Shadow Y position drops as ball "rises"
+                    // Base floor position for shadow is fixed, but perspective makes it move down
+                    const baseFloorY = by + cfg.ballRadius + 10;
+                    sy = baseFloorY + virtualHeight; 
+    
+                    // Shadow shrinks and fades as ball "rises"
+                    const scale = 1 - (offset * 0.6); // Shrink to 40%
+                    sw = (cfg.ballRadius * 1.5) * scale;
+                    sh = (cfg.ballRadius * 0.4) * scale;
+                    alpha = 0.3 * scale;
+                }
+    
+                ctx.save();
+                ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+                ctx.beginPath();
+                ctx.ellipse(bx, sy, sw, sh, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Blur the shadow slightly
+                ctx.shadowColor = `rgba(0, 0, 0, ${alpha})`;
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.restore();
+            }
+    
+            function drawBall(x, y) {
+                // Draw Ball
+                const grad = ctx.createRadialGradient(
+                    x - 15, y - 15, 5,  // Highlight offset
+                    x, y, cfg.ballRadius
+                );
+                grad.addColorStop(0, '#fff'); // Specular
+                grad.addColorStop(0.3, '#f56565'); // Main Red
+                grad.addColorStop(1, '#742a2a'); // Shadow side
+    
+                ctx.beginPath();
+                ctx.arc(x, y, cfg.ballRadius, 0, Math.PI * 2);
+                ctx.fillStyle = grad;
+                ctx.fill();
+    
+                // Rim light/Stroke
+                ctx.strokeStyle = "rgba(0,0,0,0.1)";
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+    
+            function drawTruthLine() {
+                if (!showTruth) return;
+                ctx.save();
+                ctx.strokeStyle = "#fc8181"; // Light Red
+                ctx.lineWidth = 2;
+                ctx.setLineDash([10, 10]);
+                ctx.beginPath();
+                // Line goes through center of ball
+                ctx.moveTo(0, cfg.ballY);
+                ctx.lineTo(cfg.width, cfg.ballY);
+                ctx.stroke();
+                
+                // Text Label
+                ctx.fillStyle = "#e53e3e";
+                ctx.font = "bold 14px sans-serif";
+                ctx.fillText("ACTUAL PATH (CONSTANT Y)", 20, cfg.ballY - 50);
+                
+                // Vertical Guides
+                ctx.beginPath();
+                ctx.setLineDash([5, 5]);
+                ctx.moveTo(ballX, cfg.ballY);
+                ctx.lineTo(ballX, cfg.ballY - 45); // Arrow up to text
+                ctx.stroke();
+    
+                ctx.restore();
+            }
+    
+            // --- Animation Loop ---
+            function animate() {
+                ctx.clearRect(0, 0, cfg.width, cfg.height);
+                
+                // 1. Draw Environment
+                drawRoom();
+    
+                // 2. Update Physics
+                ballX += cfg.speed * direction;
+                if (ballX > cfg.width - cfg.ballRadius || ballX < cfg.ballRadius) {
+                    direction *= -1;
+                }
+    
+                // 3. Draw Elements (Order matters for depth!)
+                // We draw shadow first, then ball on top
+                drawShadow(ballX, cfg.ballY);
+                drawTruthLine();
+                drawBall(ballX, cfg.ballY);
+    
+                requestAnimationFrame(animate);
+            }
+    
+            // --- Interactions ---
+            window.setShadowMode = function(newMode) {
+                mode = newMode;
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('btn-' + newMode).classList.add('active');
+            };
+    
+            window.toggleTruth = function() {
+                const cb = document.getElementById('showTruth');
+                showTruth = cb.checked;
+            };
+    
+            // Init
+            animate();
+    
+        })();
+        </script>
+    </div>
+    <p>In the animation above, the ball itself never changes its path. Only the shadow changes. Yet, your brain creates a vivid 3D story about rolling or bouncing based entirely on the black oval underneath.</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>In the 'Motion from Shadows' example, what happens when the shadow moves horizontally while the object moves vertically?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'If the shadow tracks the object horizontally, we typically assume contact with the ground.')">
+                We interpret the object as rolling on the floor.
+            </div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! If the shadow detaches or moves differently than the object\'s vertical position, we infer height (levitation or bouncing).')">
+                We perceive the object as floating or bouncing.
+            </div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Shadows do not cause invisibility!')">
+                The object becomes invisible.
+            </div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-quiz" onclick="showNextSection(13)" style="display: none;">Continue</div>
+</section>
+
+<!-- SECTION 13: Hermann Grid -->
+<section id="section13">
+    <h2>Peripheral Vision and Hallucinations</h2>
+    <p>Finally, let's talk about what happens in the corner of your eye. Your peripheral vision is low-resolution, so your brain often 'fills in the blanks' or detects motion where there is none.</p>
+    <div class="image-placeholder">
+        <img src="images/4.jpg" alt="Hermann Grid Illusion: Black squares with white lines where grey spots appear at intersections" style="width: 100%; border-radius: 12px;">
+    </div>
+    <p>Do you see the dark spots appearing at the intersections in the grid above? If you look directly at one, it disappears. This is the <strong>Hermann Grid</strong> illusion.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p>This is often attributed to <strong>Lateral Inhibition</strong> in the retina—a biological mechanism where excited neurons reduce the activity of their neighbors to sharpen edges. In the periphery, this creates 'ghost' data.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Lateral Inhibition</h4>
+        <p>A biological process in the retina where an excited neuron reduces the activity of its neighbors. This creates contrast at edges but can cause artifacts (like ghost dots) in repetitive patterns.</p>
+    </div>
+    <p>Sometimes, the brain even invents colors that aren't there. Consider the <strong>Lilac Chaser</strong> illusion.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If you stare at a cross in the center of a ring of disappearing magenta dots, you eventually see a green dot moving. Why?</h4>
+        <div id="check-lilac-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Retinal fatigue creating an afterimage. Staring at magenta fatigues your color receptors. When the dot disappears, you see the 'opposite' color (green) as a negative afterimage. Your brain then interprets the sequence of afterimages as a moving object.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('check-lilac-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <h2>Why It Matters</h2>
+    <p>We've seen that human vision is context-dependent. We don't see pixels; we see stories, objects, and relative relationships.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>This is crucial for Computer Vision. Algorithms often fail because they lack this 'common sense' context (like knowing that a shadow isn't a dark object). Conversely, computers sometimes succeed where humans fail because they don't get fooled by these illusions—they see the raw numbers.</p>
+    </div>
+    
+    <div class="faq-section">
+        <div class="faq-question">Q: Do animals see the same optical illusions we do?</div>
+        <div class="faq-answer">Surprisingly, yes! Many do. Studies show that cats and monkeys are fooled by similar motion and depth illusions (like the 'Rotating Snakes' illusion), suggesting their visual cortexes process edges and motion similarly to ours.</div>
+    </div>
+    
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>We have explored how the brain acts as a reconstruction engine rather than a passive recorder. In this lesson, we discovered:</p>
+    <ul>
+        <li><strong>Global vs. Local:</strong> How local cues (like in Escher's art) can be locally valid but globally impossible.</li>
+        <li><strong>Constancy:</strong> How we hallucinate brightness ($ Perceived = Actual + Context $) to account for shadows.</li>
+        <li><strong>Inference:</strong> How we use shadows and afterimages to infer motion.</li>
+    </ul>
+    <p>This proves that biological vision is subjective. But what happens when we strip away the brain and look only at the raw data? In the next lesson, we will look at the <strong>Semantic Gap</strong>: the massive divide between human understanding and the grid of numbers that a computer sees.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    
+    if (!nextSectionElement) return;
+    
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    
+    setTimeout(() => { 
+        nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic specifically for Section 12 quiz to reveal the next continue button
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section12') {
+        const continueButton = document.getElementById('continue-after-quiz');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = button.classList.contains('completed');
+    
+    if (!isCompleted) {
+        // Attempt LMS communication
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Default placeholders - typically these would be populated by the LMS context
+                let courseId = 'computer-vision';
+                let pathId = 'foundations-of-vision';
+                let moduleId = 'perception-module';
+                let lessonId = 'constructive-brain-illusion';
+                
+                // Try to read from URL or parent route if available
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv_constructive_brain_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🧠', '👁️', '👏', '💡'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    
+    setTimeout(() => { 
+        if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); 
+    }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Perspective Shifted! 🎉';
+    document.body.appendChild(successMessage);
+    
+    setTimeout(() => { 
+        if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); 
+    }, 2500);
+}
+
+// Check completion on load
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    const isCompleted = localStorage.getItem('lesson_cv_constructive_brain_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

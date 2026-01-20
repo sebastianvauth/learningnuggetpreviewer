@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Digital Sensors – CMOS, CCD, and the Rolling Shutter</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Macro shot of a camera lens sensor reflecting rainbow colors">
+    </div>
+    <h1>Capturing the Light</h1>
+    <p>In the last lesson, we mastered the geometry of vision—how lenses focus the chaotic world onto a flat plane. But a focused image is useless if we can't record it. In the old days, we used chemical film. Today, we use silicon. In this lesson, we are going to look at the 'retina' of the computer: the image sensor. We'll explore how we turn photons into electricity, why digital cameras are obsessed with the color green, and why fast-moving objects sometimes look like Jell-O in videos.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Bucket Analogy</h2>
+    <p>To understand how a sensor works, imagine it is raining. To measure how much it rained, you put out a grid of buckets on the ground.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>In this analogy, the rain drops are <strong>Photons</strong> (light particles), and the buckets are <strong>Photodiodes</strong> (pixels).</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>When a photon hits the silicon bucket, it knocks an electron loose. The more photons hit the bucket, the more electrons accumulate. This is the <strong>Photoelectric Effect</strong>. By counting the electrons in each bucket at the end of the exposure, we know how bright that part of the image is.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Photodiode</h4>
+        <p>A semiconductor device (usually made of silicon) that converts light into an electrical current. It is the fundamental building block of a digital image sensor.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>But there is a problem. A bucket measures <em>amount</em>, not <em>type</em>. A bucket full of water looks the same whether the rain was red, green, or blue. Similarly, photodiodes are colorblind—they only measure intensity (brightness).</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <p>So, how do we get color? We put a lid on the bucket that only lets through specific colors.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <h2>The Bayer Filter</h2>
+    <p>To capture color, engineers place a mosaic of colored glass over the sensor, called a <strong>Bayer Filter</strong>.</p>
+    <div class="image-placeholder">
+        <img src="images/2.jpg" alt="Cross-section diagram of a sensor: Micro-lens, Color Filter, and Photodiode">
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>This filter ensures that each pixel only counts photons of a specific wavelength range. But if you look closely at the pattern, you'll notice something strange.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Bayer Filter Grid pattern (RGGB) showing 50% Green, 25% Red, and 25% Blue">
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>There are twice as many green filters as there are red or blue ones. The pattern is usually RGGB (Red-Green-Green-Blue).</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Bayer Filter</h4>
+        <p>A color filter array (CFA) for arranging RGB color filters on a square grid of photosensors. Its particular arrangement of color filters is used in most single-chip digital image sensors.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Why do you think camera engineers decided to dedicate 50% of the pixels to green light, leaving only 25% for red and 25% for blue?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Cost isn\'t the main factor here. It\'s about perception.')">Green glass is cheaper to manufacture.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'While the sun peaks in the green spectrum, that\'s not the primary reason for the sensor design.')">The sun emits mostly green light.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! As we learned in previous lessons, human eyes are most sensitive to green light. Since the goal of a camera is to create images for humans, we prioritize gathering data in the green spectrum to maximize perceived sharpness and luminance accuracy.')">To mimic the human eye's sensitivity.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-quiz-10" onclick="showNextSection(11)" style="display: none;">Continue</div>
+</section>
+
+<section id="section11">
+    <p>Exactly. The camera is designed to prioritize what <em>we</em> care about. This means the raw data from a sensor looks like a checkerboard, and we have to mathematically guess the missing colors later (a process called Demosaicing, which we'll cover next lesson).</p>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <h2>CCD vs. CMOS: The Readout Race</h2>
+    <p>We have our buckets (photodiodes) full of electrons. Now, how do we measure what's in them? This brings us to the two main sensor technologies: <strong>CCD</strong> and <strong>CMOS</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>Think of the buckets arranged in rows and columns. We need to empty them to count the electrons.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p><strong>CCD (Charge-Coupled Device)</strong> acts like a bucket brigade.</p>
+    <ul>
+        <li>Every bucket collects rain at the exact same time (Global Shutter).</li>
+        <li>The buckets shift their contents row by row to the edge.</li>
+        <li>A single counter at the corner measures every bucket one by one.</li>
+    </ul>
+    <p><em>Result:</em> Perfect synchronization, high quality, but slow and power-hungry.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>CCD</h4>
+        <p>Charge-Coupled Device. An older sensor technology that captures the whole image at once (Global Shutter) and reads it out serially. Known for high quality but high power consumption.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <p><strong>CMOS (Complementary Metal-Oxide-Semiconductor)</strong> acts like self-service.</p>
+    <ul>
+        <li>Each bucket has its own tiny electronics to measure itself.</li>
+        <li>The computer reads the data row by row, scanning down the image.</li>
+    </ul>
+    <p><em>Result:</em> Fast, cheap, uses very little battery. This is what is in your phone and almost all modern cameras.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>CMOS</h4>
+        <p>Complementary Metal-Oxide-Semiconductor. The dominant sensor technology today. Each pixel has its own amplifier, allowing for parallel readout. It is fast and efficient but typically uses a Rolling Shutter.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <p>CMOS won the market war because it's cheaper and faster. But its method of reading—scanning line by line rather than grabbing the whole frame at once—introduces a weird artifact.</p>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <h2>The Rolling Shutter Effect</h2>
+    <p>Because a CMOS sensor reads the top row first and the bottom row last, there is a time delay. The bottom of your photo captures a moment in time slightly <em>after</em> the top of your photo.</p>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <p>For a still landscape, this doesn't matter. But if objects are moving fast, they move <em>during</em> the time it takes to scan the image.</p>
+    <div class="interactive-container" id="rollingShutterSim">
+        <div class="canvas-wrapper">
+            <canvas id="shutterCanvas"></canvas>
+            <div class="scanline-overlay" id="scanline"></div>
+        </div>
+        
+        <div class="controls-area">
+            <div class="control-header">
+                <span class="control-label">Sensor Readout Speed</span>
+                <span class="control-value" id="readoutValue">Global Shutter (Instant)</span>
+            </div>
+            <input type="range" id="shutterSlider" min="0" max="100" value="0" step="1">
+            <div class="slider-labels">
+                <span>Global (CCD)</span>
+                <span>Rolling (CMOS)</span>
+            </div>
+            <p class="simulation-note">
+                <strong>Observation:</strong> As you move the slider to the right, the sensor takes longer to scan from top to bottom. The propeller moves <em>during</em> the scan, causing the straight blades to appear curved.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+    (function() {
+        const canvas = document.getElementById('shutterCanvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('shutterSlider');
+        const readoutDisplay = document.getElementById('readoutValue');
+        const scanline = document.getElementById('scanline');
+        
+        // Configuration
+        let width, height, cx, cy;
+        let baseTime = 0;
+        const propSpeed = 15; // Speed of rotation
+        let readoutDelay = 0; // Controlled by slider (0 to 100)
+        
+        // Resize handler
+        function resize() {
+            const parent = canvas.parentElement;
+            if (!parent) return;
+            
+            const rect = parent.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+            
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            width = canvas.width;
+            height = canvas.height;
+            cx = width / 2;
+            cy = height / 2;
+        }
+        
+        window.addEventListener('resize', resize);
+        
+        // Use ResizeObserver to detect when the section becomes visible
+        if (window.ResizeObserver) {
+            const observer = new ResizeObserver(entries => {
+                for (let entry of entries) {
+                    if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+                        resize();
+                    }
+                }
+            });
+            observer.observe(canvas.parentElement);
+        }
+        
+        resize();
+    
+        // Propeller drawing logic
+        function drawPropeller(angle) {
+            const bladeLength = Math.min(width, height) * 0.4;
+            const bladeWidth = bladeLength * 0.15;
+            
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(angle);
+            
+            // Draw 3 blades
+            ctx.fillStyle = '#2d3748';
+            for(let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.ellipse(0, -bladeLength/2, bladeWidth, bladeLength/2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Yellow tips for visibility
+                ctx.fillStyle = '#F6E05E';
+                ctx.beginPath();
+                ctx.ellipse(0, -bladeLength + (bladeLength*0.1), bladeWidth*0.8, bladeLength*0.1, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#2d3748'; // Reset for next blade
+                
+                ctx.rotate((Math.PI * 2) / 3);
+            }
+            
+            // Center hub
+            ctx.fillStyle = '#A0AEC0';
+            ctx.beginPath();
+            ctx.arc(0, 0, bladeWidth, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#718096';
+            ctx.beginPath();
+            ctx.arc(0, 0, bladeWidth * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+    
+        // Main Animation Loop
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Update base time (the world keeps spinning)
+            baseTime += 0.05;
+    
+            // If Global Shutter (Delay 0), simple draw
+            if (readoutDelay === 0) {
+                drawPropeller(baseTime * propSpeed);
+                scanline.style.display = 'none';
+            } 
+            // If Rolling Shutter, scanline rendering
+            else {
+                scanline.style.display = 'block';
+                
+                // Optimization: Strip height. 
+                // Smaller = smoother curve but more CPU. 4px is a good balance.
+                const stripHeight = 4; 
+                
+                for (let y = 0; y < height; y += stripHeight) {
+                    // Determine the time at this specific vertical row
+                    // The bottom of the image is captured LATER than the top
+                    const rowProgress = y / height;
+                    const timeOffset = rowProgress * (readoutDelay / 20); // Scale factor for effect
+                    
+                    const angleAtThisRow = (baseTime + timeOffset) * propSpeed;
+                    
+                    ctx.save();
+                    // Define the clipping region for this strip
+                    ctx.beginPath();
+                    ctx.rect(0, y, width, stripHeight);
+                    ctx.clip();
+                    
+                    // Draw the propeller at the angle specific to this time
+                    drawPropeller(angleAtThisRow);
+                    
+                    ctx.restore();
+                }
+                
+                // Animate the red scanline visual
+                // Visual loop of the scanline moving down
+                // readoutDelay 100 (slow readout / heavy distortion) should have a slow visual scan
+                // readoutDelay 1 (fast readout / minor distortion) should have a fast visual scan
+                const visualScanSpeed = 500 + (readoutDelay * 20);
+                const scanPos = (Date.now() % visualScanSpeed) / visualScanSpeed * 100;
+                scanline.style.top = `${scanPos}%`;
+            }
+            
+            requestAnimationFrame(animate);
+        }
+    
+        // UI Controls
+        slider.addEventListener('input', (e) => {
+            readoutDelay = parseInt(e.target.value);
+            
+            if(readoutDelay === 0) {
+                readoutDisplay.textContent = "Global Shutter (Instant)";
+                readoutDisplay.style.color = "#48bb78"; // Green
+            } else if (readoutDelay < 40) {
+                readoutDisplay.textContent = "Fast Readout (Minor Distortion)";
+                readoutDisplay.style.color = "#667eea"; // Blue
+            } else {
+                readoutDisplay.textContent = "Slow Readout (Heavy Distortion)";
+                readoutDisplay.style.color = "#e53e3e"; // Red
+            }
+        });
+    
+        // Start
+        animate();
+    })();
+    </script>
+    <p>Weird, right? The blade isn't actually bending. The camera just saw the top part at time \(t=0\) and the bottom part at time \(t=10ms\), and by then, the blade had moved.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Rolling Shutter</h4>
+        <p>A method of image capture where a still picture (or each frame of a video) is captured not by taking a snapshot of the entire scene at a single instant in time, but rather by scanning across the scene rapidly, usually vertically.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <p>This effect can ruin computer vision algorithms that rely on geometry. If an autonomous car sees a leaning signpost, it might think it's falling over, when really the car was just turning quickly.</p>
+    <div class="image-placeholder">
+        <img src="images/4.jpg" alt="Photograph illustrating rolling shutter distortion: slanted fence posts and oval wheels">
+    </div>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<section id="section20">
+    <div class="check-your-knowledge">
+        <h3>Stop And Think</h3>
+        <h4>If you were building a high-speed camera for analyzing bullet trajectories in a ballistics lab, would you choose a standard CMOS or a CCD sensor? Why?</h4>
+        <div id="cuy-shutter-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> You would likely choose a CCD (or a specialized Global Shutter CMOS). With a standard CMOS rolling shutter, a bullet is so fast that it might be in the frame when the top rows are read, but gone when the bottom rows are read, or it would appear incredibly stretched or compressed. To measure physics accurately, you need to freeze time globally.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-shutter-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<section id="section21">
+    <div class="faq-section">
+        <h3>Frequently Asked Question</h3>
+        <h4>Are pixels actually colored red, green, and blue?</h4>
+        <p>No! This is a common misconception. The silicon photodiode itself is 'black and white'—it just counts energy. It sits underneath a colored filter. If you peeled off the Bayer Filter, you would just get a grayscale image (and actually a much sharper one, which is why some specialized monochrome cameras lack the filter).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(22)">Continue</div>
+</section>
+
+<section id="section22">
+    <p>Let's test your ability to distinguish between these technologies.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Match the sensor characteristic to the correct technology.</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This describes the Charge-Coupled Device (CCD), not the other way around.')">Global Shutter (Snapshot), Serial Readout, High Power</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'This describes the CMOS sensor, not the other way around.')">Rolling Shutter (Scanning), Parallel Readout, Low Power</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct. CCDs capture the whole moment at once but read out slowly. CMOS sensors scan quickly and efficiently but can distort motion.')">A: CCD, B: CMOS</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'You have them swapped. CCDs are known for global shutter and higher power consumption.')">A: CMOS, B: CCD</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-quiz-22" onclick="showNextSection(23)" style="display: none;">Continue</div>
+</section>
+
+<section id="section23">
+    <h2>Review and Reflect</h2>
+    <p>We've gone from light to data. Here is the summary of our hardware journey:</p>
+    <div class="image-placeholder">
+        <div class="placeholder-box" aria-label="Visual Placeholder">A flowchart graphic summarizing the pipeline: Photons -> Photodiode (Intensity) -> Bayer Filter (Color separation) -> Readout (CCD vs CMOS) -> Digital Value.</div>
+    </div>
+    <p><strong>1. Photodiodes</strong> convert photons into electrons.<br>
+    <strong>2. The Bayer Filter</strong> (RGGB) sits on top to separate colors, prioritizing green to match human vision.<br>
+    <strong>3. CMOS sensors</strong> dominate the market because they are efficient, but their <strong>Rolling Shutter</strong> readout mechanism scans the image line-by-line.<br>
+    <strong>4.</strong> This scanning can cause <strong>visual artifacts</strong> (distortion) when recording fast motion.</p>
+    <p>Now that we have these raw values, how do we turn this checkerboard of red, green, and blue pixels into a recognizable image? In the next and final lesson of this chapter, we will look at the digital representation of images.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 23;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Auto-show continue button logic for quizzes
+    const parentSection = element.closest('section');
+    if (parentSection) {
+        // Specific logic for section 10 and 22 which act as gates
+        const sectionId = parentSection.id;
+        const continueButton = document.getElementById(`continue-after-quiz-${sectionId.replace('section', '')}`);
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Example route params, assuming context. 
+                // These would usually be dynamically populated.
+                let courseId = 'computer-vision';
+                let pathId = 'hardware-foundations';
+                let moduleId = 'cv-ch2-sensors';
+                let lessonId = 'cv-ch2-l2-cmos-ccd';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch2-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['📸', '⚡', '🌈', '💾', '🔋'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+        // Checking status via parent (LMS context)
+        // ... (Similar logic to toggleCompleted to get IDs)
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch2-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

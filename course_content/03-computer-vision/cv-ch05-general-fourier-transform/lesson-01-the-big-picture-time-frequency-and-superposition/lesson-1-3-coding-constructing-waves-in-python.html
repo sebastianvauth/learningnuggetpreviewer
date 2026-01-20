@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Coding: Constructing Waves in Python</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+.code-block {
+    background: #1a202c;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    position: relative;
+}
+.code-block pre {
+    margin: 0;
+    color: #e2e8f0;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+.code-block .comment { color: #68d391; }
+.code-block .keyword { color: #f687b3; }
+.code-block .string { color: #fbd38d; }
+.code-block .function { color: #63b3ed; }
+.code-block .number { color: #fc8181; }
+.code-label {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 0.75rem;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.output-block {
+    background: #2d3748;
+    border-left: 4px solid #4facfe;
+    border-radius: 0 8px 8px 0;
+    padding: 15px 20px;
+    margin: 1rem 0;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 0.9rem;
+    color: #e2e8f0;
+}
+.output-label {
+    font-size: 0.75rem;
+    color: #a0aec0;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.scenario-card {
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 1.5rem 0;
+    border-left: 4px solid #4facfe;
+}
+.scenario-card h4 {
+    color: #4facfe;
+    margin-bottom: 10px;
+}
+.math-display {
+    background: rgba(79, 172, 254, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 1rem 0;
+    text-align: center;
+    font-size: 1.1rem;
+}
+.logic-steps {
+    background: #2d3748;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin: 1rem 0;
+}
+.logic-steps ol {
+    margin: 0;
+    padding-left: 20px;
+    color: #e2e8f0;
+}
+.logic-steps li {
+    margin: 8px 0;
+}
+</style>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <h1>Coding Lesson: Constructing Waves in Python</h1>
+    <h2>Introduction</h2>
+    <p>Welcome to the lab! In the previous lesson, you learned that any complex signal can be built by adding simple sine waves together. You even built a square wave using sliders.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>Now it's time to get your hands dirty with real code. We are going to implement the <strong>Superposition Principle</strong> in Python, building waves from scratch using NumPy and visualizing them with Matplotlib.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <h2>The Math: The Sine Wave Formula</h2>
+    <p>Every sine wave can be described by three parameters:</p>
+    <div class="math-display">
+        $$ y(t) = A \cdot \sin(2\pi f t + \phi) $$
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>Let's break down what each parameter means:</p>
+    <ol>
+        <li><strong>$A$ (Amplitude):</strong> How tall is the wave? (The "loudness")</li>
+        <li><strong>$f$ (Frequency):</strong> How fast does it oscillate? (Cycles per second, in Hz)</li>
+        <li><strong>$\phi$ (Phase):</strong> Where does the wave start? (The horizontal shift)</li>
+        <li><strong>$t$ (Time):</strong> The input variable (our x-axis)</li>
+    </ol>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>The key insight is that $2\pi f$ converts frequency (cycles per second) into <strong>angular frequency</strong> (radians per second). One full cycle is $2\pi$ radians.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Angular Frequency ($\omega$)</h4>
+        <p>Often written as $\omega = 2\pi f$. It tells us how many radians the wave travels per unit time. This is the "speed" of the oscillation in mathematical terms.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>Step 1: Import the Toolset</h2>
+    <p>We need two libraries: <strong>NumPy</strong> for efficient math on arrays, and <strong>Matplotlib</strong> to visualize our waves.</p>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+<span class="function">print</span>(<span class="string">"Libraries loaded! Ready to build some waves."</span>)</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <h2>Step 2: Create the Time Axis</h2>
+    <p>Before we can plot a wave, we need a timeline. Think of it as creating the x-axis of our graph.</p>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="comment"># Create a time array from 0 to 1 second</span>
+<span class="comment"># We use 1000 points for a smooth curve</span>
+duration = <span class="number">1.0</span>  <span class="comment"># seconds</span>
+sample_rate = <span class="number">1000</span>  <span class="comment"># samples per second</span>
+
+t = np.linspace(<span class="number">0</span>, duration, sample_rate, endpoint=<span class="keyword">False</span>)
+
+<span class="function">print</span>(<span class="string">f"Time array created: {len(t)} samples over {duration} second"</span>)
+<span class="function">print</span>(<span class="string">f"First 5 values: {t[:5]}"</span>)</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <div class="output-block">
+        <div class="output-label">Expected Output</div>
+        Time array created: 1000 samples over 1.0 second<br>
+        First 5 values: [0.    0.001 0.002 0.003 0.004]
+    </div>
+    <p><strong>Explanation:</strong> <code>np.linspace</code> creates evenly spaced points. With 1000 samples over 1 second, each sample is 0.001 seconds (1 millisecond) apart.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <h2>Step 3: Generate a Single Sine Wave</h2>
+    <p>Let's create our first wave! We'll make a simple 5 Hz sine wave (5 complete cycles per second).</p>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="comment"># Define wave parameters</span>
+frequency = <span class="number">5</span>  <span class="comment"># Hz (cycles per second)</span>
+amplitude = <span class="number">1.0</span>  <span class="comment"># peak height</span>
+
+<span class="comment"># Generate the sine wave using our formula: A * sin(2*pi*f*t)</span>
+wave = amplitude * np.sin(<span class="number">2</span> * np.pi * frequency * t)
+
+<span class="function">print</span>(<span class="string">f"Wave generated: {frequency} Hz, amplitude {amplitude}"</span>)
+<span class="function">print</span>(<span class="string">f"Wave shape: {wave.shape}"</span>)</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>Now let's visualize it!</p>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="comment"># Plot the wave</span>
+plt.figure(figsize=(<span class="number">12</span>, <span class="number">4</span>))
+plt.plot(t, wave, color=<span class="string">'#4facfe'</span>, linewidth=<span class="number">2</span>)
+plt.xlabel(<span class="string">'Time (seconds)'</span>)
+plt.ylabel(<span class="string">'Amplitude'</span>)
+plt.title(<span class="string">'A Simple 5 Hz Sine Wave'</span>)
+plt.grid(<span class="keyword">True</span>, alpha=<span class="number">0.3</span>)
+plt.axhline(y=<span class="number">0</span>, color=<span class="string">'gray'</span>, linestyle=<span class="string">'--'</span>, linewidth=<span class="number">0.5</span>)
+plt.show()</pre>
+    </div>
+    <p>Count the peaks! You should see exactly <strong>5 complete cycles</strong> in 1 second. That's what "5 Hz" means.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <h2>Step 4: Build a Function for Reusability</h2>
+    <p>Let's wrap our wave generation into a clean function that we can reuse.</p>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="keyword">def</span> <span class="function">generate_sine_wave</span>(frequency, amplitude, t, phase=<span class="number">0</span>):
+    <span class="string">"""
+    Generate a sine wave.
+
+    Args:
+        frequency (float): Frequency in Hz
+        amplitude (float): Peak amplitude
+        t (numpy.array): Time array
+        phase (float): Phase offset in radians (default: 0)
+
+    Returns:
+        numpy.array: The generated sine wave
+    """</span>
+    <span class="keyword">return</span> amplitude * np.sin(<span class="number">2</span> * np.pi * frequency * t + phase)
+
+<span class="comment"># Test it</span>
+test_wave = <span class="function">generate_sine_wave</span>(<span class="number">10</span>, <span class="number">0.5</span>, t)
+<span class="function">print</span>(<span class="string">f"Function works! Generated a 10 Hz wave with amplitude 0.5"</span>)</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <h2>Step 5: Superposition - Adding Waves Together</h2>
+    <p>Here's where the magic happens. Remember: <strong>complex signals = sum of simple sine waves</strong>.</p>
+    <p>Let's add three different frequencies together:</p>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="comment"># Create three waves with different frequencies</span>
+wave_1 = <span class="function">generate_sine_wave</span>(<span class="number">3</span>, <span class="number">1.0</span>, t)   <span class="comment"># 3 Hz, full amplitude</span>
+wave_2 = <span class="function">generate_sine_wave</span>(<span class="number">7</span>, <span class="number">0.5</span>, t)   <span class="comment"># 7 Hz, half amplitude</span>
+wave_3 = <span class="function">generate_sine_wave</span>(<span class="number">13</span>, <span class="number">0.3</span>, t)  <span class="comment"># 13 Hz, smaller amplitude</span>
+
+<span class="comment"># Superposition: just add them!</span>
+combined_wave = wave_1 + wave_2 + wave_3
+
+<span class="function">print</span>(<span class="string">"Three waves combined using superposition!"</span>)</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>Let's visualize all four waves (the three ingredients and the final recipe):</p>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="comment"># Create a 4-panel figure</span>
+fig, axes = plt.subplots(<span class="number">4</span>, <span class="number">1</span>, figsize=(<span class="number">12</span>, <span class="number">10</span>), sharex=<span class="keyword">True</span>)
+
+<span class="comment"># Plot individual waves</span>
+axes[<span class="number">0</span>].plot(t, wave_1, color=<span class="string">'#667eea'</span>, linewidth=<span class="number">1.5</span>)
+axes[<span class="number">0</span>].set_title(<span class="string">'Wave 1: 3 Hz (Fundamental)'</span>)
+axes[<span class="number">0</span>].set_ylabel(<span class="string">'Amplitude'</span>)
+
+axes[<span class="number">1</span>].plot(t, wave_2, color=<span class="string">'#764ba2'</span>, linewidth=<span class="number">1.5</span>)
+axes[<span class="number">1</span>].set_title(<span class="string">'Wave 2: 7 Hz'</span>)
+axes[<span class="number">1</span>].set_ylabel(<span class="string">'Amplitude'</span>)
+
+axes[<span class="number">2</span>].plot(t, wave_3, color=<span class="string">'#ec4899'</span>, linewidth=<span class="number">1.5</span>)
+axes[<span class="number">2</span>].set_title(<span class="string">'Wave 3: 13 Hz'</span>)
+axes[<span class="number">2</span>].set_ylabel(<span class="string">'Amplitude'</span>)
+
+<span class="comment"># Plot the combined wave</span>
+axes[<span class="number">3</span>].plot(t, combined_wave, color=<span class="string">'#4facfe'</span>, linewidth=<span class="number">2</span>)
+axes[<span class="number">3</span>].set_title(<span class="string">'Combined Wave (Superposition)'</span>)
+axes[<span class="number">3</span>].set_xlabel(<span class="string">'Time (seconds)'</span>)
+axes[<span class="number">3</span>].set_ylabel(<span class="string">'Amplitude'</span>)
+
+<span class="keyword">for</span> ax <span class="keyword">in</span> axes:
+    ax.grid(<span class="keyword">True</span>, alpha=<span class="number">0.3</span>)
+    ax.axhline(y=<span class="number">0</span>, color=<span class="string">'gray'</span>, linestyle=<span class="string">'--'</span>, linewidth=<span class="number">0.5</span>)
+
+plt.tight_layout()
+plt.show()</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <p><strong>Observe:</strong> The bottom plot looks complex, but it's literally just the sum of the three simple waves above it. This is exactly what the Fourier Transform will later "undo" - it finds these hidden ingredients!</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <h2>Step 6: Building a Square Wave from Harmonics</h2>
+    <p>Now let's implement what you learned in the theory lesson. A square wave is built from <strong>odd harmonics only</strong>:</p>
+    <div class="math-display">
+        $$ \text{Square}(t) = \sum_{k=1,3,5,...}^{\infty} \frac{1}{k} \sin(2\pi k f_0 t) $$
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="keyword">def</span> <span class="function">build_square_wave</span>(fundamental_freq, t, num_harmonics=<span class="number">10</span>):
+    <span class="string">"""
+    Build a square wave using Fourier series (odd harmonics).
+
+    Args:
+        fundamental_freq (float): The base frequency f0
+        t (numpy.array): Time array
+        num_harmonics (int): How many odd harmonics to include
+
+    Returns:
+        numpy.array: The approximated square wave
+    """</span>
+    wave = np.zeros_like(t)
+
+    <span class="comment"># Add odd harmonics: 1, 3, 5, 7, 9, ...</span>
+    <span class="keyword">for</span> k <span class="keyword">in</span> <span class="function">range</span>(<span class="number">1</span>, num_harmonics * <span class="number">2</span>, <span class="number">2</span>):  <span class="comment"># Step by 2 for odd numbers</span>
+        <span class="comment"># Each harmonic has amplitude 1/k</span>
+        wave += (<span class="number">1</span> / k) * np.sin(<span class="number">2</span> * np.pi * k * fundamental_freq * t)
+
+    <span class="comment"># Scale by 4/pi to get amplitude of 1</span>
+    wave *= (<span class="number">4</span> / np.pi)
+
+    <span class="keyword">return</span> wave
+
+<span class="function">print</span>(<span class="string">"Square wave builder function created!"</span>)</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <p>Let's visualize how the approximation gets better with more harmonics:</p>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="comment"># Compare different numbers of harmonics</span>
+f0 = <span class="number">2</span>  <span class="comment"># 2 Hz fundamental</span>
+
+fig, axes = plt.subplots(<span class="number">4</span>, <span class="number">1</span>, figsize=(<span class="number">12</span>, <span class="number">10</span>), sharex=<span class="keyword">True</span>)
+
+harmonic_counts = [<span class="number">1</span>, <span class="number">3</span>, <span class="number">10</span>, <span class="number">50</span>]
+colors = [<span class="string">'#667eea'</span>, <span class="string">'#764ba2'</span>, <span class="string">'#ec4899'</span>, <span class="string">'#4facfe'</span>]
+
+<span class="keyword">for</span> i, n <span class="keyword">in</span> <span class="function">enumerate</span>(harmonic_counts):
+    wave = <span class="function">build_square_wave</span>(f0, t, num_harmonics=n)
+    axes[i].plot(t, wave, color=colors[i], linewidth=<span class="number">1.5</span>)
+    axes[i].set_title(<span class="string">f'{n} harmonic(s) - Using f0, '</span> +
+                      <span class="string">', '</span>.join([<span class="string">f'{k}f0'</span> <span class="keyword">for</span> k <span class="keyword">in</span> <span class="function">range</span>(<span class="number">3</span>, n*<span class="number">2</span>, <span class="number">2</span>)][:min(<span class="number">4</span>,n-<span class="number">1</span>)]) +
+                      (<span class="string">'...'</span> <span class="keyword">if</span> n > <span class="number">5</span> <span class="keyword">else</span> <span class="string">''</span>))
+    axes[i].set_ylabel(<span class="string">'Amplitude'</span>)
+    axes[i].grid(<span class="keyword">True</span>, alpha=<span class="number">0.3</span>)
+    axes[i].set_ylim(-<span class="number">1.5</span>, <span class="number">1.5</span>)
+
+axes[<span class="number">3</span>].set_xlabel(<span class="string">'Time (seconds)'</span>)
+plt.tight_layout()
+plt.show()</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <div class="stop-and-think">
+        <h3>Stop & Think</h3>
+        <h4>Observe the Gibbs Phenomenon</h4>
+        <p>Even with 50 harmonics, notice the little "overshoot" at the corners. This is called the <strong>Gibbs Phenomenon</strong> - no matter how many harmonics you add, there's always about a 9% overshoot at discontinuities. This is a fundamental limit of Fourier approximation!</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <h2>Step 7: Exploring Phase</h2>
+    <p>Remember the phase parameter $\phi$? It shifts the wave horizontally. Let's see it in action:</p>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="comment"># Create waves with different phases</span>
+freq = <span class="number">3</span>  <span class="comment"># 3 Hz</span>
+
+wave_phase_0 = <span class="function">generate_sine_wave</span>(freq, <span class="number">1</span>, t, phase=<span class="number">0</span>)
+wave_phase_90 = <span class="function">generate_sine_wave</span>(freq, <span class="number">1</span>, t, phase=np.pi/<span class="number">2</span>)  <span class="comment"># 90 degrees</span>
+wave_phase_180 = <span class="function">generate_sine_wave</span>(freq, <span class="number">1</span>, t, phase=np.pi)    <span class="comment"># 180 degrees</span>
+
+<span class="comment"># Plot them</span>
+plt.figure(figsize=(<span class="number">12</span>, <span class="number">5</span>))
+plt.plot(t, wave_phase_0, label=<span class="string">'Phase = 0 (sine)'</span>, linewidth=<span class="number">2</span>)
+plt.plot(t, wave_phase_90, label=<span class="string">'Phase = 90 deg (cosine)'</span>, linewidth=<span class="number">2</span>)
+plt.plot(t, wave_phase_180, label=<span class="string">'Phase = 180 deg (inverted)'</span>, linewidth=<span class="number">2</span>)
+plt.xlabel(<span class="string">'Time (seconds)'</span>)
+plt.ylabel(<span class="string">'Amplitude'</span>)
+plt.title(<span class="string">'Same Frequency, Different Phases'</span>)
+plt.legend()
+plt.grid(<span class="keyword">True</span>, alpha=<span class="number">0.3</span>)
+plt.show()</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<section id="section20">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Sine vs Cosine</h4>
+        <p>A cosine wave is just a sine wave shifted by 90 degrees ($\frac{\pi}{2}$ radians). In fact: $\cos(\theta) = \sin(\theta + \frac{\pi}{2})$. This is why the Fourier Transform can be expressed using either sines and cosines, or complex exponentials!</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(21)">Continue</div>
+</section>
+
+<section id="section21">
+    <div class="test-your-knowledge">
+        <h3>Challenge: Build a Sawtooth Wave</h3>
+        <h4>Apply what you've learned!</h4>
+        <p>A <strong>Sawtooth Wave</strong> uses ALL integer harmonics (not just odd ones):</p>
+        <div class="math-display">
+            $$ \text{Sawtooth}(t) = \sum_{k=1}^{\infty} \frac{(-1)^{k+1}}{k} \sin(2\pi k f_0 t) $$
+        </div>
+        <p><strong>Task:</strong> Modify the <code>build_square_wave</code> function to create a <code>build_sawtooth_wave</code> function. Hint: change the loop to include ALL integers, not just odd ones.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(22)">Continue</div>
+</section>
+
+<section id="section22">
+    <p><strong>Solution:</strong></p>
+    <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><span class="keyword">def</span> <span class="function">build_sawtooth_wave</span>(fundamental_freq, t, num_harmonics=<span class="number">20</span>):
+    <span class="string">"""
+    Build a sawtooth wave using Fourier series (all harmonics).
+    """</span>
+    wave = np.zeros_like(t)
+
+    <span class="comment"># Add ALL harmonics: 1, 2, 3, 4, 5, ...</span>
+    <span class="keyword">for</span> k <span class="keyword">in</span> <span class="function">range</span>(<span class="number">1</span>, num_harmonics + <span class="number">1</span>):
+        <span class="comment"># Alternating sign: (-1)^(k+1) gives +1, -1, +1, -1, ...</span>
+        sign = (<span class="number">-1</span>) ** (k + <span class="number">1</span>)
+        wave += (sign / k) * np.sin(<span class="number">2</span> * np.pi * k * fundamental_freq * t)
+
+    <span class="comment"># Scale by 2/pi</span>
+    wave *= (<span class="number">2</span> / np.pi)
+
+    <span class="keyword">return</span> wave
+
+<span class="comment"># Test it</span>
+sawtooth = <span class="function">build_sawtooth_wave</span>(<span class="number">2</span>, t, num_harmonics=<span class="number">30</span>)
+
+plt.figure(figsize=(<span class="number">12</span>, <span class="number">4</span>))
+plt.plot(t, sawtooth, color=<span class="string">'#ec4899'</span>, linewidth=<span class="number">2</span>)
+plt.title(<span class="string">'Sawtooth Wave (30 harmonics)'</span>)
+plt.xlabel(<span class="string">'Time (seconds)'</span>)
+plt.ylabel(<span class="string">'Amplitude'</span>)
+plt.grid(<span class="keyword">True</span>, alpha=<span class="number">0.3</span>)
+plt.show()</pre>
+    </div>
+    <div class="continue-button" onclick="showNextSection(23)">Continue</div>
+</section>
+
+<section id="section23">
+    <h2>Summary</h2>
+    <p>Congratulations! You've just implemented the foundation of Fourier analysis from scratch.</p>
+    <ul>
+        <li><strong>Sine waves</strong> are defined by amplitude, frequency, and phase: $y = A \sin(2\pi f t + \phi)$</li>
+        <li><strong>Superposition</strong> means adding waves together: <code>combined = wave1 + wave2 + wave3</code></li>
+        <li>A <strong>square wave</strong> uses only odd harmonics ($f_0, 3f_0, 5f_0, ...$)</li>
+        <li>A <strong>sawtooth wave</strong> uses all harmonics ($f_0, 2f_0, 3f_0, ...$)</li>
+        <li>The <strong>Gibbs phenomenon</strong> causes overshoot at sharp transitions</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(24)">Continue</div>
+</section>
+
+<section id="section24">
+    <div class="why-it-matters">
+        <h3>Why It Matters for Computer Vision</h3>
+        <p>In the next chapter, you'll learn that images are 2D signals. Sharp edges in images (like the boundary between a dark object and a bright background) are like square waves - they contain high frequencies. Understanding how to decompose and reconstruct signals is the key to:</p>
+        <ul>
+            <li><strong>Image compression</strong> (JPEG removes high frequencies you can't see)</li>
+            <li><strong>Noise removal</strong> (filter out unwanted frequencies)</li>
+            <li><strong>Edge detection</strong> (find where the high frequencies are)</li>
+        </ul>
+    </div>
+    <p>In the next lesson, we'll explore the intuition behind the Fourier Transform itself - the mathematical tool that extracts these frequency ingredients from any signal!</p>
+
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 24;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = (window.event && window.event.target) || null;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                let courseId = 'computer-vision';
+                let pathId = 'signal-processing';
+                let moduleId = 'cv-ch05-m1-fourier';
+                let lessonId = 'cv-ch05-l1-3-coding-waves';
+
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = 'Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch05-l1-3-coding-waves_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '🐍', '📊'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch05-l1-3-coding-waves_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = 'Completed!';
+    }
+});
+</script>
+</body>
+</html>

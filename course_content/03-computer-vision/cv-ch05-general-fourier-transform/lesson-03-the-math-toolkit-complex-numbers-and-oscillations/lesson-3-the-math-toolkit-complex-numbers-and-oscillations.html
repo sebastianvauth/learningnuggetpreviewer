@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Lesson 3: The Math Toolkit – Complex Numbers & Oscillations</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+/* Interactive Specific Styles */
+canvas {
+    max-width: 100%;
+    height: auto;
+    background: transparent;
+    border-radius: 12px;
+    margin: 1.5rem 0;
+}
+
+.phasor-container, .euler-interactive {
+    margin: 2rem auto;
+    padding: 2.5rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    max-width: 850px;
+    text-align: center;
+}
+
+.canvas-wrapper {
+    background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 2rem;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
+    height: auto;
+}
+
+/* Legend */
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 1rem;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4a5568;
+}
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+.bg-real { background-color: #3182ce; }
+.bg-imag { background-color: #d53f8c; }
+
+/* Controls */
+.phasor-controls, .controls-wrapper {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+.phasor-btn {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+.phasor-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+.phasor-btn.secondary {
+    background: #f1f5f9;
+    color: #475569;
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+}
+.phasor-btn.secondary:hover {
+    background: #e2e8f0;
+}
+
+.euler-slider {
+    width: 100%;
+    max-width: 400px;
+    height: 6px;
+    -webkit-appearance: none;
+    background: #e2e8f0;
+    border-radius: 5px;
+    outline: none;
+    margin: 1rem 0;
+}
+.euler-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #667eea;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    width: 100%;
+    margin-top: 1.5rem;
+}
+.stat-item {
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid #edf2f7;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: #718096;
+}
+.stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+.color-angle { color: #805ad5; }
+.color-real { color: #3182ce; }
+.color-imag { color: #d53f8c; }
+
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+</style>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <h1>Lesson 3: The Math Toolkit – Complex Numbers & Oscillations</h1>
+    <h2>Unlocking the Code: Why Complex Numbers?</h2>
+    <p>Welcome back, future visionaries! In our last lesson, we built an intuitive understanding of how we can dissect complex signals into simpler sine waves by 'probing' them. We saw that our 'probe' needs to match both the <em>frequency</em> and the <em>phase</em> of the hidden sine wave to get a strong signal. But handling both frequency and phase separately in our equations can get a little messy, like juggling too many balls.</p>
+    <div class="continue-button" onclick="showNextSection(2, event)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>To do this math elegantly and make those equations much, much shorter, we need to leave the 'real world' for a moment and venture into a fascinating mathematical landscape: the <strong>Complex Plane</strong>. Trust me, this will be worth it!</p>
+    <div class="continue-button" onclick="showNextSection(3, event)">Continue</div>
+</section>
+
+<section id="section3">
+    <h2>Visualizing Complex Oscillations: The Rotating Phasor</h2>
+    <p>Before we dive into the formulas, let's visualize what we're talking about. Imagine a point spinning around a circle. As it spins, its position can be described by two components: how far it is along the horizontal axis (let's call that the X-axis) and how far it is along the vertical axis (the Y-axis).</p>
+    <!-- START OF PHASOR ANIMATION MODULE -->
+<div class="phasor-container">
+    <div class="legend">
+        <div class="legend-item">
+            <div class="dot bg-real"></div>
+            <span>Real (Cosine)</span>
+        </div>
+        <div class="legend-item">
+            <div class="dot bg-imag"></div>
+            <span>Imaginary (Sine)</span>
+        </div>
+    </div>
+    
+    <div class="canvas-wrapper">
+        <canvas id="phasorCanvas" width="500" height="500"></canvas>
+    </div>
+    
+    <div class="phasor-controls">
+        <button class="phasor-btn" onclick="togglePhasorAnimation()">Play / Pause</button>
+        <button class="phasor-btn secondary" onclick="resetPhasorAnimation()">Reset</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('phasorCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Config
+    const originX = 150; // Center of the Unit Circle
+    const originY = 150;
+    const radius = 80;   // Radius of Unit Circle
+    const speed = 0.02;  // Rotation speed
+    
+    // State
+    let angle = 0;
+    let isAnimating = true;
+    let animationId;
+    let trail = []; // Stores history of points {angle, x, y}
+    const maxTrail = 150; // Length of the wave trails
+
+    // Colors (Matched to lesson theme)
+    const colReal = '#3182ce';   // Blue
+    const colImag = '#d53f8c';   // Pink
+    const colVector = '#2d3748'; // Dark
+    const colGrid = '#cbd5e1';
+    
+    // Global control functions attached to window for the buttons
+    window.togglePhasorAnimation = function() {
+        isAnimating = !isAnimating;
+        if (isAnimating) animate();
+    };
+
+    window.resetPhasorAnimation = function() {
+        angle = 0;
+        trail = [];
+        draw();
+    };
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 1. Calculate current Phaser tip position
+        // Canvas Y is inverted (positive down), so we subtract sin
+        const tipX = originX + radius * Math.cos(angle);
+        const tipY = originY - radius * Math.sin(angle);
+        
+        // Add to history
+        trail.unshift({
+            angle: angle,
+            x: tipX,
+            y: tipY,
+            cos: Math.cos(angle),
+            sin: Math.sin(angle)
+        });
+        if (trail.length > maxTrail) trail.pop();
+
+        drawGrid();
+        drawProjections(tipX, tipY);
+        drawWaves();
+        drawCircleAndPhasor(tipX, tipY);
+    }
+
+    function drawGrid() {
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        
+        // 1. Sine Wave Grid (Right)
+        const sineGridStart = originX + radius + 20;
+        // Central Axis
+        ctx.beginPath();
+        ctx.moveTo(sineGridStart, originY);
+        ctx.lineTo(canvas.width - 20, originY);
+        ctx.stroke();
+        // Bounds
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(sineGridStart, originY - radius);
+        ctx.lineTo(canvas.width - 20, originY - radius);
+        ctx.moveTo(sineGridStart, originY + radius);
+        ctx.lineTo(canvas.width - 20, originY + radius);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 2. Cosine Wave Grid (Bottom)
+        const cosGridStart = originY + radius + 20;
+        // Central Axis
+        ctx.beginPath();
+        ctx.moveTo(originX, cosGridStart);
+        ctx.lineTo(originX, canvas.height - 20);
+        ctx.stroke();
+        // Bounds
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(originX - radius, cosGridStart);
+        ctx.lineTo(originX - radius, canvas.height - 20);
+        ctx.moveTo(originX + radius, cosGridStart);
+        ctx.lineTo(originX + radius, canvas.height - 20);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    function drawCircleAndPhasor(tipX, tipY) {
+        // Unit Circle
+        ctx.beginPath();
+        ctx.arc(originX, originY, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = colGrid;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Axes for Circle
+        ctx.beginPath();
+        ctx.moveTo(originX - radius - 10, originY);
+        ctx.lineTo(originX + radius + 10, originY);
+        ctx.moveTo(originX, originY - radius - 10);
+        ctx.lineTo(originX, originY + radius + 10);
+        ctx.strokeStyle = colGrid;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Angle Arc
+        if (angle % (Math.PI*2) > 0.1) {
+            ctx.beginPath();
+            ctx.arc(originX, originY, 30, 0, -(angle % (Math.PI*2)), true);
+            ctx.strokeStyle = '#805ad5';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            // Label phi
+            ctx.fillStyle = '#805ad5';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('φ', originX + 35, originY - 10);
+        }
+
+        // The Phaser Vector
+        ctx.beginPath();
+        ctx.moveTo(originX, originY);
+        ctx.lineTo(tipX, tipY);
+        ctx.strokeStyle = colVector;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // The Tip Dot
+        ctx.beginPath();
+        ctx.arc(tipX, tipY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = colVector;
+        ctx.fill();
+    }
+
+    function drawProjections(tipX, tipY) {
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 1.5;
+
+        // 1. Horizontal Dashed Line (Towards Sine Graph on Right)
+        ctx.beginPath();
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(canvas.width, tipY); // Go all the way to right edge visual
+        ctx.strokeStyle = colImag + '66'; // semi-transparent
+        ctx.stroke();
+
+        // 2. Vertical Dashed Line (Towards Cosine Graph Below)
+        ctx.beginPath();
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(tipX, canvas.height); // Go all the way to bottom edge
+        ctx.strokeStyle = colReal + '66'; // semi-transparent
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+    }
+
+    function drawWaves() {
+        const graphOffsetX = originX + radius + 40; // Where Sine graph starts (x-pos)
+        const graphOffsetY = originY + radius + 40; // Where Cosine graph starts (y-pos)
+        const timeScale = 1.5; // Pixels per frame of history
+
+        // --- DRAW SINE WAVE (Right Side) ---
+        // History moves to the RIGHT.
+        // Y position = stored Y. 
+        // X position = graphStart + time index.
+        
+        ctx.beginPath();
+        ctx.strokeStyle = colImag;
+        ctx.lineWidth = 2;
+
+        for (let i = 0; i < trail.length; i++) {
+            const pt = trail[i];
+            // Plot: (Time increasing to right, Value is Y-height)
+            const px = graphOffsetX + (i * timeScale);
+            const py = pt.y; 
+            
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Sine Label
+        ctx.fillStyle = colImag;
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('sin(φ)', graphOffsetX, originY - radius - 10);
+
+
+        // --- DRAW COSINE WAVE (Bottom Side) ---
+        // History moves DOWN.
+        // X position = stored X.
+        // Y position = graphStart + time index.
+        
+        ctx.beginPath();
+        ctx.strokeStyle = colReal;
+        ctx.lineWidth = 2;
+
+        for (let i = 0; i < trail.length; i++) {
+            const pt = trail[i];
+            // Plot: (Value is X-width, Time increasing downwards)
+            const px = pt.x;
+            const py = graphOffsetY + (i * timeScale);
+            
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Cosine Label
+        ctx.fillStyle = colReal;
+        ctx.fillText('cos(φ)', originX - radius - 40, graphOffsetY);
+    }
+
+    function animate() {
+        if (!isAnimating) return;
+        angle += speed;
+        draw();
+        animationId = requestAnimationFrame(animate);
+    }
+
+    // Initialize
+    animate();
+
+})();
+</script>
+<!-- END OF PHASOR ANIMATION MODULE -->
+    <p>Notice how the X-axis projection perfectly traces out a <strong>cosine wave</strong>? And the Y-axis projection gives us a <strong>sine wave</strong>? This simple rotating point is the key to elegantly representing both sine and cosine oscillations together. Keep this image in your mind as we introduce the mathematical notation.</p>
+    <div class="continue-button" onclick="showNextSection(4, event)">Continue</div>
+</section>
+
+<section id="section4">
+    <h2>Your New Math Toolkit: Complex Numbers</h2>
+    <p>Alright, let's get mathematical. The core idea here is to combine these two dimensions—the real (X-axis) and imaginary (Y-axis)—into a single 'complex' number.</p>
+    <h3>1. The Imaginary Unit</h3>
+    <p>First, we need the <strong>imaginary unit</strong>, denoted by $j$ (or $i$ in pure mathematics). Its defining characteristic is that when you square it, you get -1:</p>
+    <p>$$j^2 = -1$$</p>
+    <div class="continue-button" onclick="showNextSection(5, event)">Continue</div>
+</section>
+
+<section id="section5">
+    <h3>2. Cartesian Form of a Complex Number</h3>
+    <p>A complex number, let's call it $z$, can be written in its <strong>Cartesian form</strong> as:</p>
+    <p>$$z = x + jy$$</p>
+    <p>Here, $x$ is the <strong>Real Part</strong> (corresponding to our X-axis) and $y$ is the <strong>Imaginary Part</strong> (corresponding to our Y-axis). They are just two regular numbers, but $y$ is multiplied by $j$.</p>
+    <div class="continue-button" onclick="showNextSection(6, event)">Continue</div>
+</section>
+
+<section id="section6">
+    <h3>3. Euler's Formula: The Game Changer</h3>
+    <p>Now, for the magic! The Swiss mathematician Leonhard Euler discovered a profound connection between complex exponentials and trigonometric functions (sine and cosine). It's called <strong>Euler's Formula</strong>:</p>
+    <p>$$e^{j\phi} = \cos \phi + j \sin \phi$$</p>
+    <p>This formula is a cornerstone of signal processing. It tells us that a complex exponential with an angle $\phi$ <em>is</em> a combination of a cosine (the real part) and a sine (the imaginary part) with that same angle.</p>
+    <div class="continue-button" onclick="showNextSection(7, event)">Continue</div>
+</section>
+
+<section id="section7">
+    <h3>4. Defining a Complex Oscillation</h3>
+    <p>Remember our rotating phasor? We can represent its angle $\phi$ as something that changes linearly with time $t$. We introduce <strong>angular frequency</strong>, $\omega$ (omega), which determines how fast the point rotates. So, we let $\phi = \omega t$.</p>
+    <p>Plugging this into Euler's Formula gives us the <strong>complex oscillation</strong>:</p>
+    <p>$$z(t) = A e^{j\omega t}$$</p>
+    <p>Where $A$ is the <strong>amplitude</strong> or <strong>magnitude</strong> of our oscillation. It's the radius of the circle our point rotates on.</p>
+    <div class="continue-button" onclick="showNextSection(8, event)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>Expanding this, we get:</p>
+    <p>$$z(t) = A (\cos(\omega t) + j \sin(\omega t))$$</p>
+    <p>This equation <em>perfectly</em> describes our rotating phasor from the visual aid: the real part, $A\cos(\omega t)$, is a cosine wave, and the imaginary part, $A\sin(\omega t)$, is a sine wave.</p>
+    <div class="continue-button" onclick="showNextSection(9, event)">Continue</div>
+</section>
+
+<section id="section9">
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If $\omega$ (angular frequency) increases, what happens to our rotating vector on the complex plane?</h4>
+        <div id="cuy-omega-answer" style="display:none;" class="animate-in"><strong>Answer:</strong> If $\omega$ increases, the vector rotates faster! This means the corresponding sine and cosine waves will complete more cycles in the same amount of time, representing a higher frequency signal.</div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-omega-answer', event)">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10, event)">Continue</div>
+</section>
+
+<section id="section10">
+    <h2>Interactive: The Euler Clock</h2>
+    <p>Let's make this concrete! Use the interactive below to see Euler's formula in action. You can drag the time slider to make the point rotate, and watch how the real and imaginary components change.</p>
+    <!-- START OF INTERACTIVE MODULE -->
+<div class="euler-interactive">
+    <div class="canvas-wrapper">
+        <canvas id="eulerCanvas" width="400" height="400"></canvas>
+    </div>
+
+    <div class="controls-wrapper">
+        <label for="timeSlider" style="display:block; margin-bottom:10px; font-weight:600; color:#4a5568;">
+            Drag to rotate ($t$)
+        </label>
+        <input type="range" min="0" max="628" value="78" class="euler-slider" id="timeSlider">
+        
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-label color-angle">Angle ($\phi = \omega t$)</span>
+                <span class="stat-value" id="val-phi">0.78 rad</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Complex Value ($z$)</span>
+                <span class="stat-value" id="val-z">0.71 + j0.71</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label color-real">Real Part ($\cos \phi$)</span>
+                <span class="stat-value color-real" id="val-cos">0.71</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label color-imag">Imaginary Part ($\sin \phi$)</span>
+                <span class="stat-value color-imag" id="val-sin">0.71</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('eulerCanvas');
+    const ctx = canvas.getContext('2d');
+    const slider = document.getElementById('timeSlider');
+    
+    // UI Elements for updates
+    const valPhi = document.getElementById('val-phi');
+    const valZ = document.getElementById('val-z');
+    const valCos = document.getElementById('val-cos');
+    const valSin = document.getElementById('val-sin');
+
+    // Constants
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const scale = 140; // Size of the unit circle in pixels
+
+    // Colors
+    const colAxis = '#cbd5e1';
+    const colCircle = '#e2e8f0';
+    const colVector = '#2d3748';
+    const colReal = '#3182ce'; // Blue
+    const colImag = '#d53f8c'; // Pink/Purple
+    const colDash = '#94a3b8';
+
+    function draw() {
+        // 1. Clear Canvas
+        ctx.clearRect(0, 0, width, height);
+
+        // 2. Get Input
+        // Slider goes 0 to 628 (approx 2*PI * 100)
+        const t = slider.value / 100;
+        
+        // Calculate math coordinates
+        const cosVal = Math.cos(t);
+        const sinVal = Math.sin(t);
+        
+        // Calculate canvas coordinates (Y is inverted)
+        const vecX = centerX + (cosVal * scale);
+        const vecY = centerY - (sinVal * scale);
+
+        // 3. Draw Grid & Unit Circle
+        
+        // Unit Circle
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, scale, 0, 2 * Math.PI);
+        ctx.strokeStyle = colCircle;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Axes
+        ctx.beginPath();
+        ctx.moveTo(0, centerY);
+        ctx.lineTo(width, centerY); // X Axis
+        ctx.moveTo(centerX, 0);
+        ctx.lineTo(centerX, height); // Y Axis
+        ctx.strokeStyle = colAxis;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Axis Labels
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('Real (Re)', width - 60, centerY - 10);
+        ctx.fillText('Imaginary (Im)', centerX + 10, 20);
+
+        // 4. Draw Projections (The Core Concept)
+        
+        // Real Projection (Blue Line on X-axis)
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(vecX, centerY);
+        ctx.strokeStyle = colReal;
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Imaginary Projection (Pink Line on Y-axis)
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(centerX, vecY);
+        ctx.strokeStyle = colImag;
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Dashed "Ghost" Lines connecting vector to axes
+        ctx.setLineDash([5, 3]);
+        ctx.beginPath();
+        ctx.moveTo(vecX, vecY);
+        ctx.lineTo(vecX, centerY); // Down to Real axis
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(vecX, vecY);
+        ctx.lineTo(centerX, vecY); // Across to Imag axis
+        ctx.stroke();
+        ctx.setLineDash([]); // Reset
+
+        // 5. Draw The Rotating Vector
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(vecX, vecY);
+        ctx.strokeStyle = colVector;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Vector Tip (Dot)
+        ctx.beginPath();
+        ctx.arc(vecX, vecY, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = colVector;
+        ctx.fill();
+
+        // Angle Arc
+        if (t > 0.1) {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 30, 0, -t, true); // Counter clockwise canvas arc
+            ctx.strokeStyle = '#805ad5';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // 6. Update Text UI
+        updateStats(t, cosVal, sinVal);
+    }
+
+    function updateStats(t, cos, sin) {
+        // Format numbers
+        const cleanT = t.toFixed(2);
+        const cleanCos = cos.toFixed(2);
+        const cleanSin = sin.toFixed(2);
+
+        // Update HTML
+        valPhi.textContent = `${cleanT} rad`;
+        valCos.textContent = cleanCos;
+        valSin.textContent = cleanSin;
+        
+        // Format Complex Number String
+        const sign = sin >= 0 ? '+' : '-';
+        valZ.textContent = `${cleanCos} ${sign} j${Math.abs(cleanSin)}`;
+    }
+
+    // Init
+    slider.addEventListener('input', draw);
+    draw(); // First render
+})();
+</script>
+<!-- END OF INTERACTIVE MODULE -->
+    <p>Notice how the real part is the horizontal position and the imaginary part is the vertical position, just like our X and Y projections from the rotating phasor animation!</p>
+    <div class="continue-button" onclick="showNextSection(11, event)">Continue</div>
+</section>
+
+<section id="section11">
+    <h2>A Simpler Way: Drake's Take</h2>
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Meme: Drake rejecting separate Sine and Cosine equations and preferring Euler's form e^(jwt) to handle both magnitude and phase.">
+    </div>
+    <div class="continue-button" onclick="showNextSection(12, event)">Continue</div>
+</section>
+
+<section id="section12">
+    <div class="why-it-matters">
+        <h3>Why It Matters: Unifying Magnitude and Phase</h3>
+        <p>So, why go through all this trouble with complex numbers? The 'why it matters' here is massive. Using these complex exponential forms, especially $A e^{j\omega t}$, allows us to represent <em>both</em> the <strong>magnitude (amplitude)</strong> and the <strong>phase (shift)</strong> of an oscillation in a single, compact variable.</p>
+        <p>This isn't just about neatness. It vastly simplifies the mathematics involved in the Fourier Transform. Instead of dealing with pairs of sine and cosine terms (each needing its own amplitude and phase calculations), we can use a single complex number that encapsulates all that information. It's like going from two separate dials for volume and balance to one master control knob for sound.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13, event)">Continue</div>
+</section>
+
+<section id="section13">
+    <div class="vocab-section">
+        <h3>Build Your Vocabulary</h3>
+        <h4>Imaginary Unit ($j$)</h4>
+        <p>The mathematical unit defined by $j^2 = -1$. It extends real numbers to the complex plane.</p>
+        <h4>Complex Plane</h4>
+        <p>A two-dimensional plane where complex numbers are represented. The horizontal axis is the Real axis, and the vertical axis is the Imaginary axis.</p>
+        <h4>Euler's Formula</h4>
+        <p>$$e^{j\phi} = \cos \phi + j \sin \phi$$ A fundamental mathematical identity linking complex exponentials to trigonometric functions.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14, event)">Continue</div>
+</section>
+
+<section id="section14">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which component of a complex number $z = x + jy$ represents the amplitude or distance from the origin in the complex plane?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'x is the Real Part, representing the horizontal component, not the overall amplitude.')">x</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'y is the Imaginary Part, representing the vertical component, not the overall amplitude.')">y</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, '$\phi$ is the Phase, representing the angle, not the amplitude.')">$\phi$</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The magnitude, often denoted as A or $|z|$, represents the amplitude or distance from the origin.')">A (Magnitude/Modulus)</div>
+        </div>
+
+        <h4 style="margin-top: 30px;">Bonus: According to Euler's Formula, the real part of $e^{j\phi}$ is:</h4>
+        <div class="multiple-choice">
+             <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The real part of $e^{j\\phi}$ is $\\cos \\phi$.')">$\cos \phi$</div>
+             <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, '$\sin \phi$ is the imaginary part, not the real part.')">$\sin \phi$</div>
+             <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, '$j \sin \phi$ is the imaginary component, including the imaginary unit $j$.')">$j \sin \phi$</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(15, event)" style="display: none;">Continue</div>
+</section>
+
+<section id="section15">
+    <h2>Review and Reflect</h2>
+    <p>Great work! You've just equipped yourself with a powerful mathematical toolkit for understanding signals. In this lesson, we explored:</p>
+    <ul>
+        <li>The concept of <strong>complex numbers</strong> and their representation in <strong>Cartesian</strong> form ($z = x + jy$).</li>
+        <li>The crucial <strong>Euler's Formula</strong> ($e^{j\phi} = \cos \phi + j \sin \phi$), which elegantly links exponentials to trigonometric functions.</li>
+        <li>How a <strong>complex oscillation</strong> ($A e^{j\omega t}$) represents a rotating vector that combines both sine and cosine components, allowing us to simultaneously describe a signal's <strong>magnitude</strong> and <strong>phase</strong>.</li>
+    </ul>
+    <p>This unified representation simplifies everything that's coming next. We're now perfectly positioned to tackle the formal definition of the Fourier Transform itself, using these elegant mathematical shortcuts. Get ready to see how these tools make the 'Frequency Detective' job much easier!</p>
+    
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 15;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId, event) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id, event) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    // Find the parent multiple-choice container for this specific question
+    const container = element.parentNode;
+    const choices = container.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Only show continue button if we are in the Quiz section (section14)
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section14') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Tracking parameters - generic placeholders or extracted from URL
+                let courseId = 'signal-processing';
+                let pathId = 'fourier-transform';
+                let moduleId = 'sp-ch02-math-foundations';
+                let lessonId = 'sp-ch02-l3-complex-numbers';
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_sp-ch02-l3_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', 'e', 'j'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check local storage
+    const isCompleted = localStorage.getItem('lesson_sp-ch02-l3_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

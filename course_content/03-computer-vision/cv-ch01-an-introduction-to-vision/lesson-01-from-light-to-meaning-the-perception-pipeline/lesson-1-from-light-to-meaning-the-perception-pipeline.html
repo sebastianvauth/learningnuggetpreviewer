@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>From Light to Meaning – The Perception Pipeline</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<!-- SECTION 1: Intro -->
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="A shiny red apple on a white background">
+    </div>
+    <h1>From Light to Meaning – The Perception Pipeline</h1>
+    <h2>What Do You See?</h2>
+    
+    <p>Welcome to the world of Computer Vision. Let’s start with a surprisingly simple task. Look at the image above. Consciously observe it. What is this?</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<!-- SECTION 2: Recognition Intro -->
+<section id="section2">
+    <h2>It's Not Just a Fruit</h2>
+    <p>Most likely, your immediate thought was 'Apple' (or 'Apfel', or 'Manzana'). But why? It’s just a collection of pixels on a screen. You can't bite into it.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- SECTION 3: Recognition Definition -->
+<section id="section3">
+    <p>You recognized it because your brain matched the incoming patterns—the shape, the red texture, the stem—to a concept you have learned over years. This is <strong>Recognition</strong>.</p>
+    
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Recognition</h4>
+        <p>The cognitive process of matching sensory patterns (like visual shapes and colors) to internal abstract concepts or symbols stored in the brain.</p>
+    </div>
+
+    <p>Recognition is the process of mapping raw sensory input to an abstract mental symbol. Your brain triggers the concept 'Apple', linking it to memories of taste, crunch, and pie.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<!-- SECTION 4: The Catch -->
+<section id="section4">
+    <p>But here is the catch: to recognize the apple, your brain had to ignore almost everything else in the universe.</p>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<!-- SECTION 5: Selectivity + Meme -->
+<section id="section5">
+    <h2>The Selectivity of Perception</h2>
+    <p>Consider the space between you and your screen right now. Is it empty? No. It is filled with billions of airborne particles, Wi-Fi signals, radio waves, and perhaps even cosmic radiation.</p>
+    <div class="visual-placeholder">
+        <img src="images/2.jpg" alt="Meme: Human Brain ignoring cosmic radiation to look at a shiny red apple">
+    </div>
+    <p>We don't see any of that. Our perception is a highly selective filter. We perceive only a tiny fraction of the information that exists around us.</p>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<!-- SECTION 6: Survival + Spectrum -->
+<section id="section6">
+    <p>Why? Because seeing microscopic bacteria or radio waves didn't help our ancestors survive. Spotting a predator (like a tiger) or food (like an apple) did.</p>
+    <div class="visual-placeholder">
+        <img src="images/3.jpg" alt="Electromagnetic Spectrum Diagram showing the small sliver of visible light">
+    </div>
+    <p>This leads to the concept of <strong>Sensory Selectivity</strong>. Different organisms have different filters based on their evolutionary needs.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- SECTION 7: Check Knowledge (Bats vs Humans) -->
+<section id="section7">
+    <div class="test-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Why do humans perceive the world differently than a bat or an earthworm?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Brain size isn\'t the primary factor here; it\'s about the type of sensors we evolved.')">Because humans have smaller brains.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Exactly. Bats need echolocation to navigate in the dark; we needed color vision to find ripe fruit.')">Because evolution shaped our sensors to detect what was historically necessary for our survival.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Evolution isn\'t a ladder of \'better\' or \'worse\', it\'s about adaptation to a niche.')">Because humans are less evolved than bats.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-bats" style="display: none;" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<!-- SECTION 8: Interactive Filter -->
+<section id="section8">
+    <p>Let's see this filtering in action. Interact with the diagram below to see how different species filter the world.</p>
+    <div class="interactive-module-container">
+        <div style="position: relative; min-height: 350px; width: 100%; overflow: visible;">
+            <canvas id="sensoryCanvas"></canvas>
+            <div id="instruction" class="instruction-overlay">Drag signals to the heads</div>
+        </div>
+        
+        <div id="feedbackPanel" class="feedback-panel neutral">
+            <div class="feedback-content">
+                <span class="feedback-title" id="feedbackTitle">Ready to Test</span>
+                <p class="feedback-text" id="feedbackText">Drag a signal from the World Source (left) to a Subject (right) to see if they can perceive it.</p>
+            </div>
+        </div>
+    
+        <script>
+        (function() {
+            const canvas = document.getElementById('sensoryCanvas');
+            const ctx = canvas.getContext('2d');
+            const feedbackPanel = document.getElementById('feedbackPanel');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackText = document.getElementById('feedbackText');
+            const instruction = document.getElementById('instruction');
+    
+            // High DPI Setup
+            function resizeCanvas() {
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.getBoundingClientRect();
+                
+                // Only resize if canvas is actually visible and has dimensions
+                if (rect.width === 0 || rect.height === 0) {
+                    return;
+                }
+                
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                
+                // Reset transform before scaling to avoid compounding
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.scale(dpr, dpr);
+                
+                canvas.style.width = rect.width + 'px';
+                canvas.style.height = rect.height + 'px';
+            }
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Watch for section visibility changes
+            let isInitialized = false;
+            function initCanvas() {
+                const section = document.getElementById('section8');
+                if (section && section.classList.contains('visible')) {
+                    resizeCanvas();
+                    if (canvas.width > 0 && canvas.height > 0 && !isInitialized) {
+                        isInitialized = true;
+                        draw();
+                    } else if (!isInitialized) {
+                        // Canvas still not ready, try again
+                        setTimeout(initCanvas, 50);
+                    }
+                } else {
+                    // Section not visible yet, try again
+                    setTimeout(initCanvas, 100);
+                }
+            }
+            
+            // Use MutationObserver to detect when section8 becomes visible
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const section = document.getElementById('section8');
+                        if (section && section.classList.contains('visible') && !isInitialized) {
+                            setTimeout(() => {
+                                resizeCanvas();
+                                if (canvas.width > 0 && canvas.height > 0) {
+                                    isInitialized = true;
+                                    draw();
+                                }
+                            }, 200); // Delay to ensure CSS transitions and layout complete
+                            
+                            // Also trigger resize after any transitions complete
+                            setTimeout(() => {
+                                resizeCanvas();
+                            }, 700);
+                        }
+                    }
+                });
+            });
+            
+            const section8 = document.getElementById('section8');
+            if (section8) {
+                observer.observe(section8, { attributes: true, attributeFilter: ['class'] });
+            }
+            
+            initCanvas();
+    
+            // --- Game State ---
+            const signals = [];
+            let particles = [];
+            let draggingSignal = null;
+            let lastSpawn = 0;
+            
+            // --- Configuration ---
+            const config = {
+                signalRadius: 25,
+                targetRadius: 55,
+                spawnRate: 120, // Frames between auto-spawns
+                leftOffset: 20, // Left margin to prevent edge clipping
+                colors: {
+                    source: '#667eea',
+                    human: '#f6ad55', // Skin tone-ish
+                    bat: '#4a5568'    // Dark grey
+                }
+            };
+    
+            // --- Definitions ---
+            const signalTypes = [
+                { type: 'Light', icon: '☀️', color: '#ecc94b', desc: 'Visible Light' },
+                { type: 'Radio', icon: '📡', color: '#4fd1c5', desc: 'Radio Waves' },
+                { type: 'Smell', icon: '🌸', color: '#f687b3', desc: 'Chemical/Smell' },
+                { type: 'Sound', icon: '🔊', color: '#63b3ed', desc: 'Sound Waves' },
+                { type: 'Neutrino', icon: '👻', color: '#cbd5e1', desc: 'Neutrinos' }
+            ];
+    
+            const targets = [
+                { id: 'human', name: 'Human', x: 0.7, y: 0.3, icon: '👨', color: '#ebf8ff' },
+                { id: 'bat', name: 'Bat', x: 0.7, y: 0.7, icon: '🦇', color: '#e2e8f0' }
+            ];
+    
+            // --- The Perception Matrix (Logic) ---
+            const perceptionMatrix = {
+                human: {
+                    Light: { res: 'success', title: 'Perceived', text: 'Success! The retina contains photoreceptors sensitive to this wavelength. The brain constructs an image.' },
+                    Radio: { res: 'reject', title: 'Not Perceived', text: 'Bounced! Humans have no biological sensor for radio waves. They pass right through or reflect without us knowing.' },
+                    Smell: { res: 'success', title: 'Perceived', text: 'Success! Olfactory receptors bind to these molecules, sending signals to the brain.' },
+                    Sound: { res: 'success', title: 'Perceived', text: 'Success! The eardrum vibrates, translating air pressure into neural signals.' },
+                    Neutrino: { res: 'pass', title: 'Ignored', text: 'Ghostly pass! Neutrinos pass through the entire earth without hitting anything. Impossible to sense biologically.' }
+                },
+                bat: {
+                    Light: { res: 'partial', title: 'Weakly Perceived', text: 'Bats are not blind, but their vision is often less critical than hearing. They use it for navigation, not fine detail.' },
+                    Radio: { res: 'reject', title: 'Not Perceived', text: 'Just like humans, bats have no organic radio receivers.' },
+                    Smell: { res: 'success', title: 'Perceived', text: 'Success! Many bats have an excellent sense of smell to find fruit or pheromones.' },
+                    Sound: { res: 'success', title: 'Echolocation!', text: 'Super Effective! Bats process high-frequency sound to construct a precise 3D map of the world.' },
+                    Neutrino: { res: 'pass', title: 'Ignored', text: 'No biological organism on Earth can sense a neutrino.' }
+                }
+            };
+    
+            // --- Classes ---
+            class Signal {
+                constructor(x, y) {
+                    this.x = x;
+                    this.y = y;
+                    const template = signalTypes[Math.floor(Math.random() * signalTypes.length)];
+                    this.type = template.type;
+                    this.icon = template.icon;
+                    this.color = template.color;
+                    this.desc = template.desc;
+                    this.vx = (Math.random() * 1 + 0.5); // Drift right
+                    this.vy = (Math.random() - 0.5) * 1;
+                    this.radius = config.signalRadius;
+                    this.state = 'floating'; // floating, dragging, absorbed, rejected
+                    this.opacity = 0;
+                    this.scale = 0;
+                }
+    
+                update(width, height) {
+                    // Intro animation
+                    if (this.scale < 1) this.scale += 0.05;
+                    if (this.opacity < 1) this.opacity += 0.05;
+    
+                    if (this.state === 'floating') {
+                        this.x += this.vx;
+                        this.y += this.vy;
+                        // Bounce off walls (top/bottom/left with offset)
+                        if (this.y < this.radius || this.y > height - this.radius) this.vy *= -1;
+                        if (this.x < config.leftOffset + this.radius) this.vx *= -1;
+                        // Reset if goes off screen right
+                        if (this.x > width + 50) this.respawn();
+                    } else if (this.state === 'rejected') {
+                        this.x += this.vx;
+                        this.y += this.vy;
+                        this.vy += 0.5; // Gravity
+                        this.opacity -= 0.02;
+                    }
+                }
+    
+                respawn() {
+                    this.x = config.leftOffset + 60; // Add left offset
+                    // Use CSS dimensions for positioning
+                    const h = parseInt(canvas.style.height) || canvas.getBoundingClientRect().height || 350;
+                    this.y = h / 2; // center vertically
+                    const template = signalTypes[Math.floor(Math.random() * signalTypes.length)];
+                    this.type = template.type;
+                    this.icon = template.icon;
+                    this.color = template.color;
+                    this.state = 'floating';
+                    this.opacity = 0;
+                    this.scale = 0;
+                    this.vx = (Math.random() * 1 + 0.5);
+                    this.vy = (Math.random() - 0.5) * 1;
+                }
+    
+                draw(ctx) {
+                    if (this.opacity <= 0) return;
+                    ctx.globalAlpha = this.opacity;
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.scale(this.scale, this.scale);
+                    
+                    // Bubble
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'white';
+                    ctx.fill();
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = this.color;
+                    ctx.stroke();
+    
+                    // Icon
+                    ctx.font = '24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(this.icon, 0, 2); // Slight offset for emoji baseline
+                    
+                    // Text label below (only if dragging)
+                    if (this.state === 'dragging') {
+                        ctx.fillStyle = '#4a5568';
+                        ctx.font = 'bold 12px sans-serif';
+                        ctx.fillText(this.type, 0, -35);
+                    }
+    
+                    ctx.restore();
+                    ctx.globalAlpha = 1;
+                }
+            }
+    
+            class Particle {
+                constructor(x, y, color, type) {
+                    this.x = x;
+                    this.y = y;
+                    this.color = color;
+                    this.life = 1.0;
+                    this.vx = (Math.random() - 0.5) * 5;
+                    this.vy = (Math.random() - 0.5) * 5;
+                    this.type = type; // 'star' or 'circle'
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.life -= 0.02;
+                }
+                draw(ctx) {
+                    ctx.globalAlpha = Math.max(0, this.life);
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    if (this.type === 'star') {
+                        ctx.font = '12px Arial';
+                        ctx.fillText('✨', this.x, this.y);
+                    } else {
+                        ctx.arc(this.x, this.y, 3, 0, Math.PI*2);
+                        ctx.fill();
+                    }
+                    ctx.globalAlpha = 1;
+                }
+            }
+    
+            // --- Setup ---
+            // Spawn initial signals
+            for(let i=0; i<4; i++) {
+                const s = new Signal(config.leftOffset + 60, 150);
+                s.respawn(); // Randomize
+                s.x = config.leftOffset + 50 + Math.random() * 100;
+                s.y = 50 + Math.random() * 200;
+                signals.push(s);
+            }
+    
+            // --- Interaction Handlers ---
+            function getMousePos(evt) {
+                const rect = canvas.getBoundingClientRect();
+                
+                // Handle touch or mouse
+                const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+                const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+    
+                // Return CSS pixel coordinates (context is already scaled by DPR)
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            }
+    
+            function handleStart(e) {
+                if(e.type === 'touchstart') e.preventDefault(); // Stop scroll
+                const pos = getMousePos(e);
+                
+                // Check signals
+                for (let s of signals) {
+                    const dx = pos.x - s.x;
+                    const dy = pos.y - s.y;
+                    if (Math.sqrt(dx*dx + dy*dy) < s.radius + 10) {
+                        draggingSignal = s;
+                        s.state = 'dragging';
+                        instruction.style.opacity = 0; // Hide instruction once user interacts
+                        break;
+                    }
+                }
+            }
+    
+            function handleMove(e) {
+                if (!draggingSignal) return;
+                if(e.type === 'touchmove') e.preventDefault();
+                const pos = getMousePos(e);
+                draggingSignal.x = pos.x;
+                draggingSignal.y = pos.y;
+            }
+    
+            function handleEnd(e) {
+                if (!draggingSignal) return;
+                
+                // Check collisions
+                const w = canvas.getBoundingClientRect().width;
+                const h = canvas.getBoundingClientRect().height;
+                let hit = false;
+    
+                for (let t of targets) {
+                    const tx = t.x * w;
+                    const ty = t.y * h;
+                    const dx = draggingSignal.x - tx;
+                    const dy = draggingSignal.y - ty;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+    
+                    if (dist < config.targetRadius + config.signalRadius) {
+                        hit = true;
+                        processInteraction(draggingSignal, t, dx, dy);
+                        break;
+                    }
+                }
+    
+                if (!hit) {
+                    draggingSignal.state = 'floating';
+                    draggingSignal.vx = (Math.random() - 0.5);
+                    draggingSignal.vy = (Math.random() - 0.5);
+                }
+                draggingSignal = null;
+            }
+    
+            function processInteraction(signal, target, dx, dy) {
+                const result = perceptionMatrix[target.id][signal.type];
+                
+                // Update UI
+                feedbackTitle.innerText = result.title;
+                feedbackText.innerText = result.text;
+                
+                // Reset classes
+                feedbackPanel.className = 'feedback-panel';
+                
+                if (result.res === 'success' || result.res === 'partial') {
+                    // Absorb
+                    createParticles(signal.x, signal.y, signal.color, 'star');
+                    signal.respawn();
+                    feedbackPanel.classList.add(result.res === 'success' ? 'success' : 'partial');
+                } else if (result.res === 'reject') {
+                    // Bounce
+                    signal.state = 'rejected';
+                    // Calculate bounce vector (simple)
+                    const angle = Math.atan2(dy, dx);
+                    signal.vx = Math.cos(angle) * 8;
+                    signal.vy = Math.sin(angle) * 8;
+                    feedbackPanel.classList.add('reject');
+                    createParticles(signal.x + (Math.cos(angle)*-20), signal.y + (Math.sin(angle)*-20), '#cbd5e1', 'circle');
+                } else {
+                    // Pass through
+                    signal.state = 'floating';
+                    signal.vx = 2; // Keep going
+                    feedbackPanel.classList.add('neutral');
+                }
+            }
+    
+            function createParticles(x, y, color, type) {
+                for(let i=0; i<10; i++) {
+                    particles.push(new Particle(x, y, color, type));
+                }
+            }
+    
+            canvas.addEventListener('mousedown', handleStart);
+            canvas.addEventListener('mousemove', handleMove);
+            window.addEventListener('mouseup', handleEnd);
+            
+            canvas.addEventListener('touchstart', handleStart, {passive: false});
+            canvas.addEventListener('touchmove', handleMove, {passive: false});
+            window.addEventListener('touchend', handleEnd);
+    
+            // --- Main Loop ---
+            let animationId;
+            function draw() {
+                // Use the styled dimensions (CSS dimensions) which the context is scaled for
+                const w = parseInt(canvas.style.width) || canvas.getBoundingClientRect().width || 600;
+                const h = parseInt(canvas.style.height) || canvas.getBoundingClientRect().height || 350;
+                
+                // Skip drawing if canvas has no dimensions
+                if (w === 0 || h === 0) {
+                    animationId = requestAnimationFrame(draw);
+                    return;
+                }
+                
+                // Clear using CSS dimensions (context is already scaled by DPR)
+                ctx.clearRect(0, 0, w, h);
+    
+                // Draw Source (Left) - with offset to prevent edge clipping
+                const sourceX = config.leftOffset + 40;
+                const gradient = ctx.createRadialGradient(sourceX, h/2, 10, sourceX, h/2, 60);
+                gradient.addColorStop(0, '#a3bffa');
+                gradient.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(config.leftOffset, 0, 120, h);
+                
+                ctx.fillStyle = '#4a5568';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText("World Source", config.leftOffset + 5, h/2 + 80);
+    
+                // Draw Targets
+                targets.forEach(t => {
+                    const tx = t.x * w;
+                    const ty = t.y * h;
+    
+                    // Hitbox/Backing
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, config.targetRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = t.color;
+                    ctx.fill();
+                    ctx.strokeStyle = '#cbd5e1';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+    
+                    // Icon
+                    ctx.font = '50px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(t.icon, tx, ty);
+    
+                    // Label
+                    ctx.font = 'bold 14px sans-serif';
+                    ctx.fillStyle = '#2d3748';
+                    ctx.fillText(t.name, tx, ty + config.targetRadius + 20);
+                });
+    
+                // Draw Signals
+                signals.forEach(s => {
+                    s.update(w, h);
+                    s.draw(ctx);
+                });
+    
+                // Draw Particles
+                particles.forEach((p, index) => {
+                    p.update();
+                    p.draw(ctx);
+                    if(p.life <= 0) particles.splice(index, 1);
+                });
+    
+                animationId = requestAnimationFrame(draw);
+            }
+    
+        })();
+        </script>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<!-- SECTION 9: Pipeline Intro -->
+<section id="section9">
+    <h2>The Abstract Model of Perception</h2>
+    <p>We can formalize this process into a pipeline. Whether it is a human eye or a digital camera, the logic remains the same.</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- SECTION 10: Pipeline Steps & Image -->
+<section id="section10">
+    <p>The pipeline consists of four stages:</p>
+    <ul>
+        <li><strong>1. The World:</strong> Contains all information ($Matter$, $EM\_Waves$).</li>
+        <li><strong>2. Sensing:</strong> A sensor captures a subset of data (e.g., $Visible\_Light$).</li>
+        <li><strong>3. Processing:</strong> The system analyzes the raw intensity data.</li>
+        <li><strong>4. Modeling:</strong> The system assigns a symbolic meaning (e.g., "Apple").</li>
+    </ul>
+    <div class="visual-placeholder">
+        <img src="images/4.jpg" alt="Perception Pipeline Diagram: 3D World to Sensor to Processor to Symbol">
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<!-- SECTION 11: Vocab Abstract Symbol -->
+<section id="section11">
+    <p>It is crucial to understand that the <strong>Symbol</strong> is not the object. The symbol is an internal construction.</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Abstract Symbol</h4>
+        <p>The mental representation or concept of an object (e.g., the idea of an 'Apple') that is created by the brain after processing sensory data. It is independent of the specific visual instance.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<!-- SECTION 12: Stop and Think -->
+<section id="section12">
+    <p>Simpler organisms, like earthworms, have hardwired connections—input A always leads to action B. Humans, however, have unique neural wiring. We can form different symbols and even reflect on our own perception.</p>
+    
+    <div class="stop-and-think">
+        <h3>Stop And Think</h3>
+        <h4>If we could see ALL electromagnetic waves (Wi-Fi, Radio, UV) at once, how would that change our ability to recognize a simple object like an apple?</h4>
+        <div id="sat-filter-answer" style="display:none;" class="animate-in">
+            <strong>Insight:</strong> It would likely make recognition much harder! This is called 'information overload'. If you saw the Wi-Fi signals passing through the apple and the radio waves bouncing off it, the simple shape and red color of the apple might be drowned out by noise. Filtering is essential for meaning.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('sat-filter-answer')">Reveal Thought</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<!-- SECTION 13: Why It Matters -->
+<section id="section13">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Understanding that 'vision' is an internal construction, not a direct copy of reality, is the foundation of this course. When we program computers to 'see', we are not just connecting a camera to a hard drive. We are trying to teach a machine to take a grid of numbers (pixels) and construct an <strong>Abstract Symbol</strong>—just like your brain does.
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<!-- SECTION 14: FAQ -->
+<section id="section14">
+    
+    <div class="faq-section">
+        <h3>Frequently Asked</h3>
+        <p><strong>Is the image formed on our retina the same as the image in our brain?</strong></p>
+        <p>No. The retina captures raw light intensity—a 2D map of photons. The brain constructs a symbolic representation, which adds meaning, depth, and context. They are fundamentally different data types.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<!-- SECTION 15: Final Test -->
+<section id="section15">
+    <p>Before we move on to how the brain constructs (and sometimes misconstructs) this reality, let's test your understanding of the pipeline.</p>
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which component of the perception pipeline is responsible for turning raw light data into the concept of an object?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The cornea helps focus light, but it doesn\'t process meaning.')">The Cornea</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The retina is the sensor. It captures the light, but it doesn\'t \'know\' what an object is.')">The Retina</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The brain processes the raw data from the sensor to create the abstract model or symbol.')">The Neural Network (Brain)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The light source provides the energy, but not the interpretation.')">The Light Source</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" style="display: none;" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- SECTION 16: Review -->
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>In this lesson, we established the groundwork for perception.</p>
+    <p>We learned that:</p>
+    <ul>
+        <li><strong>Recognition</strong> is the mapping of sensory patterns to abstract symbols.</li>
+        <li><strong>Sensory Selectivity</strong> means we only perceive a fraction of reality, filtered by evolutionary necessity.</li>
+        <li>The <strong>Perception Pipeline</strong> transforms raw data (light) into meaning (symbols).</li>
+    </ul>
+    <p>However, because this process happens inside the brain, it is an interpretation, not a recording. In the next lesson, we will see what happens when this interpretation goes wrong and how our brain constructs reality through illusions.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Logic for Section 7 specific continue button
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section7') {
+        const continueButton = document.getElementById('continue-after-bats');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+    // Logic for Section 15 specific continue button
+    if (parentSection && parentSection.id === 'section15') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                let courseId = 'computer-vision';
+                let pathId = 'foundations-of-perception';
+                let moduleId = 'cv-ch1-m1-pipeline';
+                let lessonId = 'cv-ch1-l1-light-to-meaning';
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch1-l1_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '👁️', '🍎'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    if (window.parent && window.parent.ProgressTracker) {
+        let courseId = 'computer-vision';
+        let pathId = 'foundations-of-perception';
+        let moduleId = 'cv-ch1-m1-pipeline';
+        let lessonId = 'cv-ch1-l1-light-to-meaning';
+        // Check params and parent logic similar to markCompleted...
+        const progress = window.parent.ProgressTracker.getLessonProgress(courseId, pathId, moduleId, lessonId);
+        if (progress.state === window.parent.ProgressTracker.STATES.COMPLETED) {
+            button.classList.add('completed');
+            button.innerHTML = '✅ Completed!';
+            return;
+        }
+    }
+    const isCompleted = localStorage.getItem('lesson_cv-ch1-l1_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

@@ -149,14 +149,14 @@ window.MathJax = {
 <section id="section14">
     <p>Let's visualize this. Use the slider below to adjust the strictness (alpha) of the evaluation.</p>
     <div class="pckh-interactive-module">
-      <canvas id="pckhCanvas" width="600" height="350"></canvas>
-  
+      <canvas id="pckhCanvas" style="width: 100%; height: 350px;"></canvas>
+
       <div class="controls-container">
           <span class="slider-label">Alpha:</span>
           <input type="range" id="alphaSlider" min="0.1" max="1.5" step="0.1" value="0.5">
           <span class="value-display" id="alphaValue">0.5</span>
       </div>
-      
+
       <div class="legend">
           <div class="legend-item">
               <span class="dot" style="border: 2px solid #cbd5e0; background: white;"></span> Head Size (Reference)
@@ -165,36 +165,42 @@ window.MathJax = {
               <span class="dot" style="background: rgba(102, 126, 234, 0.3);"></span> Accepted Error Zone
           </div>
       </div>
-  
+
       <script>
       (function() {
           const canvas = document.getElementById('pckhCanvas');
+          if (!canvas) return;
+
           const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+
           const slider = document.getElementById('alphaSlider');
           const valueDisplay = document.getElementById('alphaValue');
-  
+
           // Configuration
           let alpha = 0.5;
-          
-          // Stick Figure Data
+          let canvasWidth = 600;
+          let canvasHeight = 350;
+
+          // Stick Figure Data (using percentages for responsive positioning)
           const figures = [
-              { x: 150, y: 300, scale: 1.0, label: "Foreground (Large)" }, // Large
-              { x: 450, y: 280, scale: 0.4, label: "Background (Small)" }  // Small
+              { xPercent: 0.25, yPercent: 0.86, scale: 1.0, label: "Foreground (Large)" },
+              { xPercent: 0.75, yPercent: 0.80, scale: 0.4, label: "Background (Small)" }
           ];
-  
+
       function syncCanvasSize() {
           if (!canvas) return false;
           const rect = canvas.getBoundingClientRect();
           if (!rect.width || !rect.height) return false;
+
+          canvasWidth = rect.width;
+          canvasHeight = rect.height;
+
           const dpr = window.devicePixelRatio || 1;
-          const targetWidth = Math.round(rect.width * dpr);
-          const targetHeight = Math.round(rect.height * dpr);
-          if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
-              canvas.width = targetWidth;
-              canvas.height = targetHeight;
-              ctx.setTransform(1, 0, 0, 1, 0, 0);
-              ctx.scale(dpr, dpr);
-          }
+          canvas.width = Math.round(canvasWidth * dpr);
+          canvas.height = Math.round(canvasHeight * dpr);
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.scale(dpr, dpr);
           return true;
       }
 
@@ -304,30 +310,33 @@ window.MathJax = {
   
           function draw() {
           if (!syncCanvasSize()) {
+              requestAnimationFrame(draw);
               return;
           }
               // Clear
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-              
+              ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
               // Grid background for depth feel
               ctx.strokeStyle = '#f7fafc';
               ctx.lineWidth = 1;
               ctx.beginPath();
-              for(let i=0; i<canvas.width; i+=40) { ctx.moveTo(i,0); ctx.lineTo(i, canvas.height); }
-              for(let i=0; i<canvas.height; i+=40) { ctx.moveTo(0,i); ctx.lineTo(canvas.width, i); }
+              for(let i=0; i<canvasWidth; i+=40) { ctx.moveTo(i,0); ctx.lineTo(i, canvasHeight); }
+              for(let i=0; i<canvasHeight; i+=40) { ctx.moveTo(0,i); ctx.lineTo(canvasWidth, i); }
               ctx.stroke();
-  
+
               // Ground line
               ctx.beginPath();
-              ctx.moveTo(0, 320);
-              ctx.lineTo(600, 320);
+              ctx.moveTo(0, canvasHeight * 0.91);
+              ctx.lineTo(canvasWidth, canvasHeight * 0.91);
               ctx.strokeStyle = '#e2e8f0';
               ctx.lineWidth = 2;
               ctx.stroke();
-  
+
               // Draw figures
               figures.forEach(fig => {
-                  drawStickFigure(ctx, fig.x, fig.y, fig.scale);
+                  const x = canvasWidth * fig.xPercent;
+                  const y = canvasHeight * fig.yPercent;
+                  drawStickFigure(ctx, x, y, fig.scale);
               });
           }
   
@@ -342,13 +351,15 @@ window.MathJax = {
               alpha = parseFloat(e.target.value);
               valueDisplay.textContent = alpha.toFixed(1);
           });
-  
-          animate();
-  
+
           // Handle resize
           window.addEventListener('resize', () => {
            syncCanvasSize();
           });
+
+          // Initialize
+          syncCanvasSize();
+          animate();
       })();
       </script>
   </div>

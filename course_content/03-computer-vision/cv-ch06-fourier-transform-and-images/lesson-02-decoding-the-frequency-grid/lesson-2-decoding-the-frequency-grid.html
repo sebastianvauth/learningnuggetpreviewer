@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Decoding the Frequency Grid</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+/* Section 6: DCT Explorer Styles */
+.dct-explorer-container {
+    display: flex;
+    gap: 2rem;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+.dct-grid-wrapper {
+    flex: 0 0 auto;
+    position: relative;
+    padding: 30px 0 0 30px;
+    margin: 0 auto;
+}
+.dct-grid-label-top {
+    position: absolute;
+    top: 0;
+    left: 30px;
+    right: 0;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.dct-grid-label-left {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    bottom: 0;
+    width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.dct-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 32px);
+    grid-template-rows: repeat(8, 32px);
+    gap: 2px;
+    background: #e2e8f0;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+.dct-cell {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    background: white;
+    transition: all 0.2s;
+}
+.dct-cell:hover, .dct-cell.active {
+    transform: scale(1.15);
+    z-index: 10;
+    outline: 2px solid #4facfe;
+    box-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
+}
+.dct-inspector {
+    flex: 1;
+    min-width: 280px;
+}
+.inspector-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    border: 1px solid #e2e8f0;
+}
+.inspector-card h4 {
+    margin: 0 0 1rem 0;
+    color: #2d3748;
+    font-size: 1.1rem;
+}
+.preview-canvas-container {
+    margin: 1rem auto;
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+}
+#previewCanvas {
+    width: 200px;
+    height: 200px;
+    image-rendering: pixelated;
+    border-radius: 4px;
+}
+.inspector-info {
+    text-align: left;
+}
+#inspectorDesc {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    min-height: 4.5em;
+}
+.meter-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+.meter-row span {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    min-width: 45px;
+}
+.meter-bg {
+    flex: 1;
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+.meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Section 15: Frequency Filter Sandbox Styles */
+.filter-sandbox-container {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+.sandbox-stage {
+    display: flex;
+    justify-content: space-around;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+}
+.stage-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+.stage-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.stage-item canvas {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.canvas-wrapper {
+    position: relative;
+    line-height: 0;
+}
+.mask-label {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: white;
+    text-transform: uppercase;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    pointer-events: none;
+    text-align: center;
+}
+.sandbox-controls {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 2rem;
+    text-align: left;
+}
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.control-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #2d3748;
+    display: flex;
+    justify-content: space-between;
+}
+#sliderValue {
+    color: #667eea;
+    font-family: monospace;
+    font-size: 1rem;
+}
+.toggle-switch {
+    display: flex;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 8px;
+    gap: 4px;
+}
+.toggle-switch label {
+    flex: 1;
+    margin: 0;
+}
+.toggle-switch input {
+    display: none;
+}
+.toggle-switch .mode-btn {
+    display: block;
+    padding: 0.6rem 0.4rem;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background: transparent;
+}
+.toggle-switch input:checked + .mode-btn {
+    background: white;
+    color: #667eea;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-top: -0.25rem;
+}
+
+@media (max-width: 768px) {
+    .sandbox-controls {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .dct-explorer-container {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <img src="images/1.jpg" alt="Transition from standard photo to 8x8 frequency grid">
+    <h1>Decoding the Frequency Grid</h1>
+    <h2>Introduction</h2>
+    <p>Welcome back! In the previous lesson, we established that images, just like audio, are made of waves. But unlike a sound wave that just wiggles up and down over time, an image wiggles across space—horizontally and vertically.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <h2>The Periodic Table of Images</h2>
+    <p>Now that we know images have frequencies, how do we map them? If you were painting, you’d have a palette of colors. In the world of JPEG and image processing, we have a palette of <strong>patterns</strong>.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>Specifically, we break the image down into tiny 8x8 pixel blocks. Mathematicians discovered that you can recreate <em>any</em> possible 8x8 pixel block by mixing together combinations of just 64 specific base patterns.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>Think of this 8x8 grid as the 'Periodic Table of Image Elements'.</p>
+    <img src="images/2.jpg" alt="64 DCT basis patterns arranged in an 8x8 grid">
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>To a computer, a beautiful landscape or a selfie isn't a collection of objects; it's just a weighted list of these 64 checkerboards.</p>
+    <img src="images/3.jpg" alt="Meme: 'What I see' (Painting) vs 'What JPEG sees' (Pattern Grid)">
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>Exploring the Basis Functions</h2>
+    <p>Let's get hands-on with this grid. It's not random; it is sorted by frequency.</p>
+    <!-- START INTERACTIVE MODULE -->
+<div class="dct-explorer-container">
+  <!-- Left Side: The 8x8 Grid -->
+  <div class="dct-grid-wrapper">
+      <div class="dct-grid-label-top">Horizontal Frequency (u) &rarr;</div>
+      <div class="dct-grid-label-left">Vertical Frequency (v) &darr;</div>
+      <div class="dct-grid" id="dctGrid">
+          <!-- 64 Canvases will be injected here by JS -->
+      </div>
+  </div>
+
+  <!-- Right Side: The Inspector Panel -->
+  <div class="dct-inspector">
+      <div class="inspector-card">
+          <h4 id="inspectorTitle">Basis Function (0, 0)</h4>
+          <div class="preview-canvas-container">
+              <canvas id="previewCanvas" width="200" height="200"></canvas>
+          </div>
+          <div class="inspector-info">
+              <p id="inspectorDesc" class="highlight-text">Hover over the grid to explore.</p>
+              <div class="freq-meters">
+                  <div class="meter-row">
+                      <span>Horiz:</span>
+                      <div class="meter-bg"><div id="meterH" class="meter-fill" style="width: 0%"></div></div>
+                  </div>
+                  <div class="meter-row">
+                      <span>Vert:</span>
+                      <div class="meter-bg"><div id="meterV" class="meter-fill" style="width: 0%"></div></div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const gridContainer = document.getElementById('dctGrid');
+  const previewCanvas = document.getElementById('previewCanvas');
+  const previewCtx = previewCanvas.getContext('2d');
+  const titleEl = document.getElementById('inspectorTitle');
+  const descEl = document.getElementById('inspectorDesc');
+  const meterH = document.getElementById('meterH');
+  const meterV = document.getElementById('meterV');
+
+  // 1. Generate the 8x8 Grid
+  for (let v = 0; v < 8; v++) { // Rows (Vertical Freq)
+      for (let u = 0; u < 8; u++) { // Cols (Horizontal Freq)
+          const canvas = document.createElement('canvas');
+          canvas.width = 32;
+          canvas.height = 32;
+          canvas.className = 'dct-cell';
+          canvas.dataset.u = u;
+          canvas.dataset.v = v;
+          
+          // Draw thumbnail
+          drawBasisFunction(canvas.getContext('2d'), u, v, 32);
+          
+          // Events
+          canvas.addEventListener('mouseenter', () => updateInspector(u, v));
+          
+          gridContainer.appendChild(canvas);
+      }
+  }
+
+  // Initial State (DC Component)
+  updateInspector(0, 0);
+
+  // --- Helper Functions ---
+
+  function drawBasisFunction(ctx, u, v, size) {
+      const imgData = ctx.createImageData(size, size);
+      const data = imgData.data;
+
+      for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+              // Map pixel coordinate to logical 8x8 block coordinate
+              // We stretch the 0-7 domain across the canvas size
+              const normX = (x / size) * 8; 
+              const normY = (y / size) * 8;
+
+              // DCT Type II Basis Function Formula
+              // Val is between -1 and 1
+              const val = Math.cos(((2 * normX + 1) * u * Math.PI) / 16) * 
+                          Math.cos(((2 * normY + 1) * v * Math.PI) / 16);
+
+              // Map -1..1 to 0..255
+              const color = Math.floor((val + 1) * 127.5);
+
+              const index = (y * size + x) * 4;
+              data[index] = color;     // R
+              data[index + 1] = color; // G
+              data[index + 2] = color; // B
+              data[index + 3] = 255;   // Alpha
+          }
+      }
+      ctx.putImageData(imgData, 0, 0);
+  }
+
+  function updateInspector(u, v) {
+      // 1. Update Preview
+      drawBasisFunction(previewCtx, u, v, 200);
+
+      // 2. Update Text
+      titleEl.textContent = `Basis Pattern (u=${u}, v=${v})`;
+      
+      let description = "";
+      let color = "#4a5568"; // Default gray text
+      let fontWeight = "normal";
+
+      // Logic for descriptions based on prompt requirements
+      if (u === 0 && v === 0) {
+          description = "<strong>DC Component (Average Brightness)</strong><br>This is the base coat of paint. It represents the average color of the entire block with zero variation.";
+          color = "#b7791f"; // Gold-ish for DC
+      } else if (u === 7 && v === 7) {
+          description = "<strong>Highest Frequency (Diagonal Detail)</strong><br>The finest checkerboard pattern. This handles the sharpest noise or finest textures.";
+          color = "#e53e3e"; // Red-ish for High Energy
+      } else {
+          // Generative description
+          const hText = getLevelText(u);
+          const vText = getLevelText(v);
+          
+          if (u === 0) {
+              description = `<strong>Pure Vertical Gradient</strong><br>Changes only happen vertically. Represents horizontal edges (like a horizon).`;
+          } else if (v === 0) {
+              description = `<strong>Pure Horizontal Gradient</strong><br>Changes only happen horizontally. Represents vertical edges (like a tree trunk).`;
+          } else {
+              description = `<strong>Composite Pattern</strong><br>Combines ${hText.toLowerCase()} horizontal frequency with ${vText.toLowerCase()} vertical frequency.`;
+          }
+      }
+
+      descEl.innerHTML = description;
+      descEl.style.color = color;
+
+      // 3. Update Meters
+      const pctH = (u / 7) * 100;
+      const pctV = (v / 7) * 100;
+      meterH.style.width = `${pctH}%`;
+      meterV.style.width = `${pctV}%`;
+
+      // 4. Update Grid Highlight
+      document.querySelectorAll('.dct-cell').forEach(c => c.classList.remove('active'));
+      const activeCell = document.querySelector(`.dct-cell[data-u="${u}"][data-v="${v}"]`);
+      if(activeCell) activeCell.classList.add('active');
+  }
+
+  function getLevelText(val) {
+      if (val === 0) return "Zero";
+      if (val < 3) return "Low";
+      if (val < 6) return "Medium";
+      return "High";
+  }
+})();
+</script>
+<!-- END INTERACTIVE MODULE -->
+    <p>Notice the trend? The top-left is the <strong>DC Component</strong>. It represents zero frequency—just a flat, solid color representing the average brightness of the block. As you move right, the vertical stripes get tighter (higher horizontal frequency). As you move down, the horizontal stripes get tighter (higher vertical frequency).</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>The bottom-right corner represents the highest energy diagonal changes—the finest details and sharpest noise.</p>
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>If you have a block of pixels that is perfectly grey with no texture or variation, which basis function is the only one you need to recreate it?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'That represents high-frequency variation. A solid grey block has no variation.')">The bottom-right checkerboard</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The DC component represents the average intensity. Since there is no variation, all other frequency coefficients would be zero.')">The top-left DC Component</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'You only need a mix if there are complex details. For a solid color, you only need the zero-frequency component.')">A mix of all of them</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <h2>The Mathematical Recipe</h2>
+    <p>So how do we actually build an image from these tiles? It's a recipe. We take a little bit of this pattern, a lot of that pattern, and subtract a bit of another.</p>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>Mathematically, an 8x8 image block \( I(x,y) \) is the <strong>weighted sum</strong> of all basis functions \( B_{u,v}(x,y) \).</p>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <p>The equation looks scary, but it's just a sum:</p>
+    <div style="font-size: 1.25rem; margin: 2rem 0; overflow-x: auto;">
+        $$I(x,y) = \sum_{u=0}^{7} \sum_{v=0}^{7} C(u,v) \cdot B_{u,v}(x,y)$$
+    </div>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>Here's what that means:</p>
+    <ul>
+        <li>\( C(u,v) \): The <strong>Coefficient</strong>. This is the 'weight' or amount of the ingredient. If this number is large, that specific pattern is very strong in the image block.</li>
+        <li>\( B_{u,v}(x,y) \): The <strong>Basis Function</strong>. The specific pattern from the grid we just looked at.</li>
+    </ul>
+    <p>We calculate this for every pixel \( (x,y) \) by summing up the contribution of all 64 patterns.</p>
+    
+    <div class="stop-and-think">
+        <h3>Stop and Think</h3>
+        <p>The coefficients \( C(u,v) \) can be negative numbers. Why would we need a 'negative' amount of a pattern?</p>
+        <div id="st-answer" style="display:none;" class="animate-in">
+            <strong>Insight:</strong> Patterns are waves of light and dark. A positive coefficient might make the wave start with 'light'. A negative coefficient flips the wave so it starts with 'dark'. This allows us to cancel out bright spots or create shadows perfectly.
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('st-answer')">Reveal Insight</button>
+    </div>
+    
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <h2>Frequency Domain Filtering</h2>
+    <p>Here is why this matters: Once we have the 'recipe' (the coefficients), we can change the image by changing the recipe <em>before</em> we cook it (transform it back to pixels).</p>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>This is called <strong>Filtering</strong>. We can choose to delete specific ingredients.</p>
+    <h3>1. Low-Pass Filter (Blurring)</h3>
+    <p>If we keep the low frequencies (top-left) and delete the high frequencies (bottom-right), we keep the general shape and color, but lose the sharp edges. The image gets blurry.</p>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <h3>2. High-Pass Filter (Edge Detection)</h3>
+    <p>If we do the opposite—delete the DC component and low frequencies, but keep the high frequencies—we lose the smooth colors and are left only with the sharp changes. The image looks like a sketch.</p>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <p>Try it yourself on this image of a cat:</p>
+    <!-- START FREQUENCY FILTER SANDBOX -->
+<div class="filter-sandbox-container">
+    
+  <!-- Visual Stage -->
+  <div class="sandbox-stage">
+      <!-- 1. Original -->
+      <div class="stage-item">
+          <span class="stage-label">Original (Spatial)</span>
+          <canvas id="canvasOriginal" width="150" height="150"></canvas>
+      </div>
+
+      <!-- 2. Spectrum -->
+      <div class="stage-item">
+          <span class="stage-label">DCT Spectrum</span>
+          <div class="canvas-wrapper">
+              <canvas id="canvasSpectrum" width="150" height="150"></canvas>
+              <!-- Overlay label for the mask -->
+              <div id="maskLabel" class="mask-label">Keeping Low Freq</div>
+          </div>
+      </div>
+
+      <!-- 3. Result -->
+      <div class="stage-item">
+          <span class="stage-label">Result</span>
+          <canvas id="canvasResult" width="150" height="150"></canvas>
+      </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="sandbox-controls">
+      
+      <div class="control-group">
+          <label class="control-title">Filter Mode:</label>
+          <div class="toggle-switch">
+              <label>
+                  <input type="radio" name="filterMode" value="lowpass" checked onchange="updateSandbox()">
+                  <span class="mode-btn">Low-Pass (Blur)</span>
+              </label>
+              <label>
+                  <input type="radio" name="filterMode" value="highpass" onchange="updateSandbox()">
+                  <span class="mode-btn">High-Pass (Edges)</span>
+              </label>
+          </div>
+      </div>
+
+      <div class="control-group">
+          <label class="control-title">
+              Frequency Cutoff (Mask Radius)
+              <span id="sliderValue">50%</span>
+          </label>
+          <input type="range" id="freqSlider" min="0" max="100" value="70" oninput="updateSandbox()">
+          <div class="slider-labels">
+              <span>Only DC</span>
+              <span>All Freqs</span>
+          </div>
+      </div>
+  </div>
+
+</div>
+
+<script>
+// Encapsulate to avoid global namespace pollution
+const FrequencySandbox = (function() {
+  const cvsOrig = document.getElementById('canvasOriginal');
+  const ctxOrig = cvsOrig.getContext('2d');
+  const cvsSpec = document.getElementById('canvasSpectrum');
+  const ctxSpec = cvsSpec.getContext('2d');
+  const cvsRes = document.getElementById('canvasResult');
+  const ctxRes = cvsRes.getContext('2d');
+  
+  const slider = document.getElementById('freqSlider');
+  const sliderVal = document.getElementById('sliderValue');
+  const maskLabel = document.getElementById('maskLabel');
+
+  let cachedCatImage = null;
+
+  // 1. Initialize: Draw the "Cat" programmatically
+  function init() {
+      // Draw a simple geometric cat so we don't rely on external images
+      ctxOrig.fillStyle = "#e2e8f0"; // Background
+      ctxOrig.fillRect(0, 0, 150, 150);
+      
+      // Cat Body
+      ctxOrig.fillStyle = "#2d3748";
+      ctxOrig.beginPath();
+      ctxOrig.ellipse(75, 110, 40, 30, 0, 0, Math.PI * 2);
+      ctxOrig.fill();
+
+      // Cat Head
+      ctxOrig.beginPath();
+      ctxOrig.arc(75, 65, 30, 0, Math.PI * 2);
+      ctxOrig.fill();
+
+      // Ears
+      ctxOrig.beginPath();
+      ctxOrig.moveTo(50, 45);
+      ctxOrig.lineTo(40, 15);
+      ctxOrig.lineTo(65, 38);
+      ctxOrig.fill();
+
+      ctxOrig.beginPath();
+      ctxOrig.moveTo(100, 45);
+      ctxOrig.lineTo(110, 15);
+      ctxOrig.lineTo(85, 38);
+      ctxOrig.fill();
+
+      // Whiskers (High Frequency details)
+      ctxOrig.strokeStyle = "#cbd5e1";
+      ctxOrig.lineWidth = 2;
+      ctxOrig.beginPath();
+      ctxOrig.moveTo(55, 65); ctxOrig.lineTo(20, 60);
+      ctxOrig.moveTo(55, 70); ctxOrig.lineTo(20, 75);
+      ctxOrig.moveTo(95, 65); ctxOrig.lineTo(130, 60);
+      ctxOrig.moveTo(95, 70); ctxOrig.lineTo(130, 75);
+      ctxOrig.stroke();
+
+      // Save this image state
+      cachedCatImage = ctxOrig.getImageData(0,0,150,150);
+
+      // Render initial state
+      updateSandbox();
+  }
+
+  // 2. Main Render Loop
+  function updateSandbox() {
+      const percent = parseInt(slider.value);
+      const mode = document.querySelector('input[name="filterMode"]:checked').value;
+      
+      sliderVal.innerText = percent + "%";
+
+      drawSpectrum(percent, mode);
+      drawResult(percent, mode);
+  }
+  window.updateSandbox = updateSandbox;
+
+  // 3. Draw the Spectrum (Heatmap + Mask)
+  function drawSpectrum(percent, mode) {
+      // A. Draw base heatmap (simulating DCT energy)
+      // Top-Left (DC) is white/yellow, fading to blue/black
+      const gradient = ctxSpec.createRadialGradient(0, 0, 10, 0, 0, 200);
+      gradient.addColorStop(0, "white");
+      gradient.addColorStop(0.1, "#ecc94b"); // Yellow
+      gradient.addColorStop(0.3, "#e53e3e"); // Red
+      gradient.addColorStop(0.6, "#2b6cb0"); // Blue
+      gradient.addColorStop(1, "black");
+      
+      ctxSpec.fillStyle = gradient;
+      ctxSpec.fillRect(0, 0, 150, 150);
+
+      // B. Apply Mask
+      const maxRadius = 220; // Diagonal approx
+      const radius = (percent / 100) * maxRadius;
+
+      ctxSpec.fillStyle = "rgba(0,0,0,0.9)";
+      ctxSpec.beginPath();
+      
+      if (mode === 'lowpass') {
+          // Low Pass: Keep Top-Left (Circle), block rest
+          // We draw a giant rectangle with a circular hole cut out? 
+          // Easier: Draw black rectangle, then use 'destination-out' to cut the circle
+          // But canvas composition is tricky.
+          // Let's draw the "kept" area then draw the black over the "rejected"
+          
+          // Actually, simpler: Fill black, cut hole at 0,0
+          ctxSpec.fillRect(0,0,150,150);
+          ctxSpec.globalCompositeOperation = 'destination-out';
+          ctxSpec.beginPath();
+          ctxSpec.moveTo(0,0);
+          ctxSpec.arc(0, 0, radius, 0, Math.PI * 2);
+          ctxSpec.fill();
+          ctxSpec.globalCompositeOperation = 'source-over'; // Reset
+          maskLabel.textContent = "Pass Low Freqs";
+      } else {
+          // High Pass: Block Top-Left (Circle), keep rest
+          ctxSpec.moveTo(0,0);
+          ctxSpec.arc(0, 0, radius, 0, Math.PI * 2);
+          ctxSpec.lineTo(0,0);
+          ctxSpec.fill();
+          maskLabel.textContent = "Pass High Freqs";
+      }
+  }
+
+  // 4. Draw the Result (Simulated visual effect)
+  function drawResult(percent, mode) {
+      // Reset context
+      ctxRes.filter = 'none';
+      ctxRes.globalCompositeOperation = 'source-over';
+      ctxRes.clearRect(0,0,150,150);
+      ctxRes.putImageData(cachedCatImage, 0, 0);
+
+      // Simulation Maths
+      // Slider 0 -> radius 0. Slider 100 -> radius max.
+      // For Low Pass:
+      // 100% slider = radius max = Keep all freqs = 0 blur.
+      // 0% slider = radius 0 = Keep no freqs = Max blur.
+      
+      // Max Blur amount in pixels
+      const maxBlur = 10; 
+      
+      // Calculate blur amount based on slider
+      // Note: It's inverted. High slider (big circle) = Low Blur.
+      let blurAmount = (1 - (percent/100)) * maxBlur;
+      if (blurAmount < 0) blurAmount = 0;
+
+      if (mode === 'lowpass') {
+          // Apply standard blur
+          if (blurAmount > 0) {
+              // We overwrite the image with the blurred version
+              ctxRes.filter = `blur(${blurAmount}px)`;
+              ctxRes.drawImage(cvsOrig, 0, 0);
+              ctxRes.filter = 'none';
+          }
+      } else {
+          // High Pass Mode
+          // Visual Sim: Original Image - Blurred Image = Edges
+          // Logic: High slider (big circle) = Remove BIG area of low freq = Remove all image = Black result?
+          // Wait, High Pass logic in UI:
+          // "Invert mask, blocking top-left".
+          // If slider is small (small blockage), we only lose DC.
+          // If slider is big (big blockage), we lose almost everything except finest details.
+          
+          // So: Blur Amount correlates to the size of the "Removed" Low Freqs.
+          // Big Circle (High Slider) = Big Blur removed = Only tiny edges left.
+          // Small Circle (Low Slider) = Small Blur removed = Mostly original image left.
+          
+          // Let's recalculate blur for High Pass feel:
+          // Radius controls what we *block*.
+          blurAmount = (percent/100) * 10; // Blur increases as we block more frequencies
+          if (blurAmount < 0.5) blurAmount = 0.5; // Min blur to make diff work
+
+          // 1. Draw Original
+          // (Already drawn at start of function)
+
+          // 2. Set Composite to Difference
+          ctxRes.globalCompositeOperation = 'difference';
+
+          // 3. Draw Blurred version on top
+          // The difference between Original and Blurred = Edges
+          const offscreen = document.createElement('canvas');
+          offscreen.width = 150; offscreen.height = 150;
+          const offCtx = offscreen.getContext('2d');
+          offCtx.filter = `blur(${blurAmount}px)`;
+          offCtx.drawImage(cvsOrig, 0, 0);
+          
+          ctxRes.drawImage(offscreen, 0, 0);
+
+          // 4. Optional: Invert to make it look like "Sketch" (White background)
+          // Or keep it "Glowing edges" (Black background). 
+          // Lesson description says: "Glowing white lines" -> Keep black background.
+          // However, Difference often results in dark grey. Let's boost contrast.
+          ctxRes.globalCompositeOperation = 'source-over';
+          ctxRes.filter = 'brightness(2.0) contrast(1.5) grayscale(100%)';
+          // We need to draw the result onto itself to apply the filter
+          ctxRes.drawImage(cvsRes, 0, 0); 
+          ctxRes.filter = 'none';
+      }
+  }
+
+  // Trigger init
+  init();
+
+})();
+</script>
+<!-- END FREQUENCY FILTER SANDBOX -->
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Basis Function</h4>
+        <p>The fundamental building block patterns (cosine waves) used to construct an image in the frequency domain. In JPEG, there are 64 of them for each 8x8 block.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(17)">Continue</div>
+</section>
+
+<section id="section17">
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>DC Component</h4>
+        <p>The coefficient at position (0,0) in the DCT grid. It represents the average intensity (brightness) of the entire pixel block. It stands for 'Direct Current', a borrowed term from electronics.</p>
+        
+        <h4>Low-Pass Filter</h4>
+        <p>A filter that allows low-frequency signals (smooth gradients) to pass through while reducing or eliminating high-frequency signals (fine details), resulting in a blurred image.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(18)">Continue</div>
+</section>
+
+<section id="section18">
+    <div class="why-it-matters">
+        <h3>Common Questions</h3>
+        <h4>Why do we always talk about 8x8 blocks? Why not transform the whole image at once?</h4>
+        <p>Great question! Two reasons:</p>
+        <ul>
+            <li><strong>Computation:</strong> Calculating the DCT for a massive 12-megapixel image all at once requires a huge amount of processing power. Breaking it into small 8x8 tiles makes it very fast.</li>
+            <li><strong>Local Variation:</strong> Images change a lot from one corner to the other. By looking at small blocks, we can adapt to the specific details in that tiny area (like a sharp edge in one block vs. a blue sky in another).</li>
+        </ul>
+    </div>
+    <div class="continue-button" onclick="showNextSection(19)">Continue</div>
+</section>
+
+<section id="section19">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>In the 8x8 DCT grid, where would you find the coefficients responsible for the finest details, such as the texture of hair or grain of sand?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The top-left is the DC component and low frequencies (smooth areas).')">Top-Left Corner (0,0)</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! Frequency increases as you move right and down. The bottom-right represents the highest combination of vertical and horizontal frequencies.')">Bottom-Right Corner (7,7)</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The center represents mid-range frequencies, not the finest details.')">The Center (4,4)</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(20)">Continue</div>
+</section>
+
+<section id="section20">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If you apply a High-Pass filter to an image (removing the DC component and low frequencies), what will the resulting image look like?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Blurring happens when you remove high frequencies (Low-Pass).')">It will be very blurry.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Removing the DC component does remove the average brightness, but removing low frequencies also removes smooth gradients.')">It will look like the original but darker.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The \'edges\' are where rapid changes happen (high frequency). By isolating these, you get an edge map.')">It will look like a sketch, showing only edges and outlines.</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(21)" style="display: none;">Continue</div>
+</section>
+
+<section id="section21">
+    <h2>Review and Reflect</h2>
+    <p>We've now successfully decoded the frequency grid. We learned that an image isn't just a grid of pixels; it's a sum of waves.</p>
+    <p>Summary of what we learned:</p>
+    <ul>
+        <li><strong>The Grid:</strong> Every 8x8 block of an image can be built from 64 specific cosine patterns.</li>
+        <li><strong>The Layout:</strong> Low frequencies live in the top-left, and high frequencies (details) live in the bottom-right.</li>
+        <li><strong>The Power:</strong> By selectively removing these frequencies, we can blur an image or extract its edges.</li>
+    </ul>
+    <p>But why is this useful for compression? Hint: Your eyes aren't very good at seeing those high-frequency patterns in the bottom-right corner. In the next lesson, we're going to see what happens when we simply throw them away.</p>
+</section>
+
+<button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 21;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = event && event.target;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = event && event.target;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+    
+    // Auto-advance logic for the final question in section 20
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section20') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Assuming standard parameters or fetching from URL like previous lesson
+                let courseId = 'computer-vision';
+                let pathId = 'fourier-transform-images';
+                let moduleId = 'cv-ch06-l2-decoding-frequency-grid';
+                let lessonId = 'cv-ch06-l2-main';
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('course')) courseId = urlParams.get('course');
+                if (urlParams.get('path')) pathId = urlParams.get('path');
+                if (urlParams.get('module')) moduleId = urlParams.get('module');
+                if (urlParams.get('lesson')) lessonId = urlParams.get('lesson');
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch06-l2-main_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    
+    // Check completion status via parent tracker or local storage
+    const isCompleted = localStorage.getItem('lesson_cv-ch06-l2-main_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>
+
+
+
+
+

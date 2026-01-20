@@ -1,0 +1,137 @@
+{
+    "lesson": {
+      "title": "Example Lesson: Seeing the Invisible (NDVI)",
+      "sections": [
+        {
+          "title": "Beyond Green",
+          "content": "# Seeing the Invisible",
+          "image": "image shows a split view of a farm field. On the left is a standard photo showing mostly green crops. On the right is a high-contrast false-color map (NDVI) where some 'green' areas are actually glowing red, indicating stress or disease invisible to the naked eye.",
+          "text": "As we learned in the previous lesson, human vision is limited to a tiny slice of the electromagnetic spectrum. We rely heavily on this visible slice to make decisions. For example, if you are a farmer, you look at your crops. If they are green, they are healthy, right?",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "Not necessarily. By the time a plant turns yellow or brown, it's often too late to save it. But plants start screaming for help long before our eyes can see it—they just do it in a 'color' we can't see: **Infrared**.",
+              "continueButton": true
+            },
+            {
+              "text": "In this real-world example, we will explore **NDVI** (Normalized Difference Vegetation Index), a technique used by satellites and drones to monitor the health of the planet by seeing the invisible.",
+              "whyItMatters": {
+                "text": "This is a perfect example of why computer vision is more than just mimicking the human eye. By designing sensors that capture data *outside* the visible spectrum (like Infrared), we can build systems that possess 'superhuman' perception."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "The Physics of Photosynthesis",
+          "content": "To understand NDVI, we need to look at how a plant interacts with sunlight. Sunlight contains Visible Light (Blue, Green, Red) and invisible Infrared light.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "Plants are smart biological machines. They need energy to grow, but they also need to avoid overheating.",
+              "continueButton": true
+            },
+            {
+              "text": "1.  **Visible Red Light:** Plants **absorb** this greedy for photosynthesis. It's their fuel.\n2.  **Near-Infrared (NIR):** This carries a lot of heat but isn't useful for photosynthesis. So, healthy plants strongly **reflect** NIR to stay cool.",
+              "image": "diagram illustrates the spectral reflectance curve of a leaf. It shows low reflectance in the visible Blue and Red regions (absorption), a small bump in Green (reflection), and a massive spike in reflectance in the Near-Infrared (NIR) region.",
+              "continueButton": true
+            },
+            {
+              "text": "Here is the key takeaway: \n*   **Healthy Plant:** Absorbs Red, Reflects NIR.\n*   **Sick/Dead Plant:** Stops absorbing Red (reflects it), Stops reflecting NIR (absorbs it).",
+              "stopAndThink": {
+                "question": "If you took a photo of a healthy forest using a camera that ONLY captures Near-Infrared light, would the trees look dark or bright?",
+                "revealText": "They would look very **bright**! Since healthy leaves reflect almost all NIR light, they would appear effectively white in an infrared photo. Water, on the other hand, absorbs NIR, so it would look pitch black."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "The NDVI Formula",
+          "content": "Satellites like NASA's Landsat or the European Sentinel mission carry multispectral cameras. They don't just capture R, G, and B; they capture a dedicated **NIR** channel.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "We can combine these channels using a simple mathematical formula to calculate the **Normalized Difference Vegetation Index (NDVI)**:",
+              "image": "image displays the NDVI equation: NDVI = (NIR - Red) / (NIR + Red), with a legend explaining that 'NIR' stands for Near-Infrared light and 'Red' stands for visible Red light.",
+              "continueButton": true
+            },
+            {
+              "text": "Let's break down the math. This formula compares the difference between NIR and Red to the sum of both. \n\n$$ \\text{NDVI} = \\frac{\\text{NIR} - \\text{Red}}{\\text{NIR} + \\text{Red}} $$",
+              "continueButton": true
+            },
+            {
+              "text": "The result is always a number between **-1.0** and **+1.0**.",
+              "buildYourVocab": {
+                "term": "Multispectral Imaging",
+                "definition": "A technique where image sensors capture image data within specific wavelength ranges across the electromagnetic spectrum, including wavelengths invisible to the human eye (like Infrared or Ultraviolet)."
+              },
+              "continueButton": true
+            },
+            {
+              "text": "Let's try a calculation. Imagine a satellite sensor measures light intensity on a scale of 0.0 to 1.0.",
+              "continueButton": true
+            },
+            {
+              "text": "**Scenario A: A Healthy Tree**\nIt reflects a lot of NIR (0.8) and absorbs most Red (reflects only 0.1).\n\n$$ \\text{NDVI} = \\frac{0.8 - 0.1}{0.8 + 0.1} = \\frac{0.7}{0.9} \\approx \\mathbf{0.78} $$",
+              "continueButton": true
+            },
+            {
+              "text": "A high positive value (close to 1) indicates dense, healthy vegetation.",
+              "continueButton": true
+            },
+            {
+              "text": "**Scenario B: Dry Soil / Dead Grass**\nIt reflects Red (0.3) and NIR (0.35) roughly equally.\n\n$$ \\text{NDVI} = \\frac{0.35 - 0.3}{0.35 + 0.3} = \\frac{0.05}{0.65} \\approx \\mathbf{0.08} $$",
+              "continueButton": true
+            },
+            {
+              "text": "A value close to zero means there is no green vegetation. If the value is negative (e.g., -0.2), it usually indicates water.",
+              "testYourKnowledge": {
+                "question": "You are analyzing satellite data for a vineyard. You calculate an NDVI value of 0.15 for a specific patch of land. What does this likely tell the farmer?",
+                "options": [
+                  {
+                    "option": "The vines are extremely healthy and lush.",
+                    "explanation": "Not quite. Healthy vegetation usually has an NDVI above 0.5.",
+                    "correct": false
+                  },
+                  {
+                    "option": "There is standing water or a lake there.",
+                    "explanation": "No, water typically results in negative NDVI values.",
+                    "correct": false
+                  },
+                  {
+                    "option": "The plants are stressed, sparse, or dying.",
+                    "explanation": "Correct! A low positive value (0.1 to 0.2) suggests bare soil or very unhealthy, sparse vegetation.",
+                    "correct": true
+                  }
+                ]
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Interactive Analysis",
+          "content": "Now it's your turn to be the satellite.",
+          "interactive": "Visual simulation of a crop field viewed from space. A slider allows the user to switch between 'Standard Human Vision (RGB)' and 'NDVI Analysis'. In RGB mode, the field looks uniform green. In NDVI mode, a patch in the center turns yellow/red, revealing a hidden irrigation leak causing plant stress.",
+          "textAfterInteractive": "Notice how the RGB image deceived you? The field looked perfectly green. But the NDVI view revealed a 'red' patch of low values in the center where the plants were stressed, likely due to a pest or water issue.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "frequentlyAsked": {
+                "question": "Can I do this with my smartphone camera?",
+                "answer": "Not easily! Standard cameras have an 'IR Cut Filter' physically installed over the sensor to block infrared light (because IR makes normal photos look blurry and pink). To shoot NDVI, you actually have to surgically remove that filter and replace it with a special blue-filter, or buy a specialized multispectral camera."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "",
+          "image": "collage showing a satellite, a spectral graph, and a colored map of the Amazon rainforest, representing the flow from sensor technology to data analysis to global monitoring.",
+          "text": "By understanding the physics of light—specifically that 'Red' is absorbed for energy and 'Infrared' is reflected for cooling—we can build mathematical tools like NDVI to see things the human eye cannot.\n\nKey Takeaways:\n*   **Visible light** is just one type of data.\n*   **NDVI** uses the formula $(NIR - Red) / (NIR + Red)$.\n*   **High NDVI** = Healthy Plants; **Low NDVI** = Stress or Soil.\n\nIn the next lesson, we will go back to the lab and experiment with splitting light using a virtual prism!"
+        }
+      ]
+    }
+  }
