@@ -2577,6 +2577,18 @@ function renderLessonContentView(course, path, module, lesson) {
         console.error("Main element not found for rendering lesson content.");
         return;
     }
+
+    // Detect if this is a coding lesson - use split-pane layout
+    const isCodingLesson = lesson.file && (
+        lesson.file.toLowerCase().includes('coding') ||
+        lesson.type === 'coding-lab'
+    );
+
+    if (isCodingLesson) {
+        renderSplitPaneCodingLesson(course, path, module, lesson);
+        return;
+    }
+
     mainElement.innerHTML = ''; // Clear previous content
     mainElement.classList.add('lesson-view-active'); // Add class for fullscreen styling
     document.body.classList.add('lesson-body-active'); // Add class to body for fullscreen styling
@@ -2592,18 +2604,18 @@ function renderLessonContentView(course, path, module, lesson) {
     backLink.textContent = `‹ Back to ${module.title}`;
     backLink.className = 'lesson-back-link';
     lessonNav.appendChild(backLink);
-    
+
     const lessonTitle = document.createElement('h2');
     lessonTitle.textContent = lesson.title;
     lessonTitle.className = 'lesson-view-title'; // Add a class for styling
-    
+
     // Container for the header elements
     const lessonHeaderContainer = document.createElement('div');
     lessonHeaderContainer.className = 'lesson-header-container';
     lessonHeaderContainer.appendChild(lessonNav);
     lessonHeaderContainer.appendChild(lessonTitle);
     mainElement.appendChild(lessonHeaderContainer);
-    
+
     // Container for the iframe
     const iframeContainer = document.createElement('div');
     iframeContainer.id = 'lesson-viewer-frame-container'; // New ID for iframe
@@ -2613,6 +2625,427 @@ function renderLessonContentView(course, path, module, lesson) {
 
 
     loadLessonInIframe(course, path, module, lesson); // Call the existing function to load content
+}
+
+// ===========================
+// SPLIT-PANE CODING LESSON VIEW
+// ===========================
+
+// Render split-pane layout for coding lessons with JupyterLite
+function renderSplitPaneCodingLesson(course, path, module, lesson) {
+    const mainElement = document.querySelector('main');
+    if (!mainElement) {
+        console.error("Main element not found for rendering split-pane lesson.");
+        return;
+    }
+
+    mainElement.innerHTML = ''; // Clear previous content
+    mainElement.classList.add('lesson-view-active');
+    document.body.classList.add('lesson-body-active');
+    document.documentElement.classList.add('lesson-body-active');
+
+    // Breadcrumb/Navigation for the lesson view
+    const lessonNav = document.createElement('nav');
+    lessonNav.className = 'lesson-view-nav';
+    lessonNav.setAttribute('aria-label', 'Lesson Navigation');
+
+    const backLink = document.createElement('a');
+    backLink.href = `#/${course.id}/${path.id}/${module.id}`;
+    backLink.textContent = `‹ Back to ${module.title}`;
+    backLink.className = 'lesson-back-link';
+    lessonNav.appendChild(backLink);
+
+    const lessonTitle = document.createElement('h2');
+    lessonTitle.textContent = lesson.title;
+    lessonTitle.className = 'lesson-view-title';
+
+    // Toggle button for Jupyter pane
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'jupyter-toggle-btn';
+    toggleBtn.id = 'jupyter-toggle-btn';
+    toggleBtn.innerHTML = '<span class="toggle-icon">◀</span> <span class="toggle-text">Hide Python</span>';
+    toggleBtn.title = 'Toggle Python environment';
+    toggleBtn.onclick = toggleJupyterPane;
+
+    // Container for the header elements
+    const lessonHeaderContainer = document.createElement('div');
+    lessonHeaderContainer.className = 'lesson-header-container';
+    lessonHeaderContainer.appendChild(lessonNav);
+    lessonHeaderContainer.appendChild(lessonTitle);
+    lessonHeaderContainer.appendChild(toggleBtn);
+    mainElement.appendChild(lessonHeaderContainer);
+
+    // Split-pane container
+    const splitPaneContainer = document.createElement('div');
+    splitPaneContainer.id = 'lesson-viewer-frame-container';
+    splitPaneContainer.className = 'lesson-viewer-frame-container split-pane';
+
+    // Left pane: Lesson content
+    const lessonPane = document.createElement('div');
+    lessonPane.className = 'lesson-content-pane';
+    lessonPane.id = 'lesson-content-pane';
+
+    // Resizable divider
+    const divider = document.createElement('div');
+    divider.className = 'pane-divider';
+    divider.id = 'pane-divider';
+
+    // Right pane: JupyterLite
+    const jupyterPane = document.createElement('div');
+    jupyterPane.className = 'jupyter-notebook-pane';
+    jupyterPane.id = 'jupyter-pane';
+
+    splitPaneContainer.appendChild(lessonPane);
+    splitPaneContainer.appendChild(divider);
+    splitPaneContainer.appendChild(jupyterPane);
+    mainElement.appendChild(splitPaneContainer);
+
+    // Load lesson content in left pane
+    loadLessonInLeftPane(course, path, module, lesson);
+
+    // Load JupyterLite in right pane
+    loadJupyterLite();
+
+    // Setup resizable divider
+    setupPaneDivider();
+}
+
+// Toggle Jupyter pane visibility
+function toggleJupyterPane() {
+    const container = document.getElementById('lesson-viewer-frame-container');
+    const jupyterPane = document.getElementById('jupyter-pane');
+    const divider = document.getElementById('pane-divider');
+    const toggleBtn = document.getElementById('jupyter-toggle-btn');
+    const lessonPane = document.getElementById('lesson-content-pane');
+
+    if (!container || !jupyterPane || !toggleBtn) return;
+
+    const isCollapsed = container.classList.toggle('jupyter-collapsed');
+
+    if (isCollapsed) {
+        jupyterPane.style.display = 'none';
+        if (divider) divider.style.display = 'none';
+        lessonPane.style.flex = '1';
+        toggleBtn.innerHTML = '<span class="toggle-icon">▶</span> <span class="toggle-text">Show Python</span>';
+    } else {
+        jupyterPane.style.display = '';
+        if (divider) divider.style.display = '';
+        lessonPane.style.flex = '';
+        toggleBtn.innerHTML = '<span class="toggle-icon">◀</span> <span class="toggle-text">Hide Python</span>';
+    }
+}
+
+// Load lesson HTML content into the left pane
+function loadLessonInLeftPane(course, path, module, lesson) {
+    const lessonPane = document.getElementById('lesson-content-pane');
+    if (!lessonPane) {
+        console.error("Lesson content pane not found!");
+        return;
+    }
+
+    lessonPane.innerHTML = '<p class="loading-indicator">Loading lesson content...</p>';
+
+    const lessonFilePath = `course_content/${path.folder}/${module.folder}/${lesson.file}`;
+    console.log(`Loading lesson in left pane from: ${lessonFilePath}`);
+
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('title', `Lesson content: ${lesson.title}`);
+    iframe.style.border = 'none';
+    iframe.setAttribute('sandbox', 'allow-scripts allow-popups allow-forms allow-same-origin');
+    iframe.setAttribute('allow', "fullscreen 'self'");
+
+    iframe.onload = () => {
+        console.log(`Lesson content loaded in left pane: ${lessonFilePath}`);
+
+        // Listen for completion messages
+        try {
+            const completionHandler = (event) => {
+                if (!event || !event.data) return;
+                const { type, status } = event.data;
+                if (type === 'lesson-complete' || status === 'completed') {
+                    ProgressTracker.markLessonCompleted(course.id, path.id, module.id, lesson.id);
+                } else if (type === 'lesson-viewed' || status === 'viewed') {
+                    ProgressTracker.markLessonViewed(course.id, path.id, module.id, lesson.id);
+                }
+            };
+            window.addEventListener('message', completionHandler, { once: true });
+        } catch (e) {
+            console.warn('postMessage completion hook failed to attach:', e);
+        }
+
+        // Inject completion hooks
+        try {
+            const cw = iframe.contentWindow;
+            const cd = iframe.contentDocument || cw.document;
+            if (cw && typeof cw.toggleCompleted === 'function') {
+                const original = cw.toggleCompleted.bind(cw);
+                cw.toggleCompleted = function(...args) {
+                    const result = original(...args);
+                    try {
+                        if (window && window.ProgressTracker) {
+                            ProgressTracker.markLessonCompleted(course.id, path.id, module.id, lesson.id);
+                        } else if (cw.parent) {
+                            cw.parent.postMessage({ type: 'lesson-complete' }, '*');
+                        }
+                    } catch (_) {}
+                    return result;
+                };
+            }
+            const btn = cd && cd.getElementById && cd.getElementById('markCompletedBtn');
+            if (btn && !btn.__parentHooked) {
+                btn.addEventListener('click', () => {
+                    setTimeout(() => {
+                        try {
+                            ProgressTracker.markLessonCompleted(course.id, path.id, module.id, lesson.id);
+                        } catch (_) {}
+                    }, 0);
+                }, { capture: true });
+                btn.__parentHooked = true;
+            }
+        } catch (e) {
+            console.warn('Lesson completion hook injection failed:', e);
+        }
+
+        // Inject copy code buttons into code blocks
+        try {
+            injectCopyCodeButtons(iframe);
+        } catch (e) {
+            console.warn('Failed to inject copy code buttons:', e);
+        }
+
+        const loadingIndicator = lessonPane.querySelector('.loading-indicator');
+        if (loadingIndicator) loadingIndicator.remove();
+    };
+
+    iframe.onerror = () => {
+        console.error(`Error loading lesson in left pane: ${lessonFilePath}`);
+        iframe.remove();
+        lessonPane.innerHTML = `<p class="error-message">Error: Could not load lesson content.</p>`;
+    };
+
+    lessonPane.innerHTML = '';
+    lessonPane.appendChild(iframe);
+    iframe.src = lessonFilePath;
+}
+
+// Load JupyterLite REPL in the right pane
+function loadJupyterLite() {
+    const jupyterPane = document.getElementById('jupyter-pane');
+    if (!jupyterPane) {
+        console.error("Jupyter pane not found!");
+        return;
+    }
+
+    jupyterPane.innerHTML = '<p class="loading-indicator" style="padding: 20px; text-align: center;">Loading Python environment...</p>';
+
+    // Use JupyterLite REPL - simple interface, no file browser
+    // Parameters: kernel=python (Pyodide), toolbar=1 (show toolbar)
+    // Add unique session ID to force fresh session for each lesson
+    const sessionId = Date.now();
+    const jupyterUrl = `https://jupyterlite.github.io/demo/repl/index.html?kernel=python&toolbar=1&_session=${sessionId}`;
+
+    const iframe = document.createElement('iframe');
+    iframe.id = 'jupyter-iframe';
+    iframe.setAttribute('title', 'JupyterLite Python REPL');
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms allow-downloads allow-modals');
+    iframe.setAttribute('allow', 'clipboard-read; clipboard-write');
+    iframe.style.border = 'none';
+
+    iframe.onload = () => {
+        console.log('JupyterLite REPL loaded successfully (session: ' + sessionId + ')');
+        const loadingIndicator = jupyterPane.querySelector('.loading-indicator');
+        if (loadingIndicator) loadingIndicator.remove();
+    };
+
+    iframe.onerror = () => {
+        console.error('Failed to load JupyterLite');
+        jupyterPane.innerHTML = `
+            <div style="padding: 20px; text-align: center; color: #666;">
+                <p>Could not load JupyterLite.</p>
+                <p style="font-size: 0.9em; margin-top: 10px;">
+                    <a href="${jupyterUrl}" target="_blank" rel="noopener">Open JupyterLite in new tab</a>
+                </p>
+            </div>
+        `;
+    };
+
+    jupyterPane.innerHTML = '';
+    jupyterPane.appendChild(iframe);
+    iframe.src = jupyterUrl;
+}
+
+// Setup resizable divider between panes
+function setupPaneDivider() {
+    const divider = document.getElementById('pane-divider');
+    const container = document.getElementById('lesson-viewer-frame-container');
+    const leftPane = document.getElementById('lesson-content-pane');
+    const rightPane = document.getElementById('jupyter-pane');
+
+    if (!divider || !container || !leftPane || !rightPane) {
+        console.warn('Pane divider setup: elements not found');
+        return;
+    }
+
+    let isDragging = false;
+    let startX = 0;
+    let startWidth = 0;
+
+    const startDrag = (e) => {
+        isDragging = true;
+        startX = e.clientX || (e.touches && e.touches[0].clientX);
+        startWidth = leftPane.offsetWidth;
+        divider.classList.add('dragging');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+
+        // Prevent iframe from capturing mouse events during drag
+        leftPane.style.pointerEvents = 'none';
+        rightPane.style.pointerEvents = 'none';
+    };
+
+    const doDrag = (e) => {
+        if (!isDragging) return;
+
+        const currentX = e.clientX || (e.touches && e.touches[0].clientX);
+        const delta = currentX - startX;
+        const containerWidth = container.offsetWidth;
+        const newWidth = startWidth + delta;
+
+        // Constrain between 25% and 75% of container width
+        const minWidth = containerWidth * 0.25;
+        const maxWidth = containerWidth * 0.75;
+        const clampedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+
+        const percentage = (clampedWidth / containerWidth) * 100;
+        leftPane.style.flex = `0 0 ${percentage}%`;
+    };
+
+    const stopDrag = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        divider.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+
+        // Re-enable iframe interactions
+        leftPane.style.pointerEvents = '';
+        rightPane.style.pointerEvents = '';
+    };
+
+    // Mouse events
+    divider.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', doDrag);
+    document.addEventListener('mouseup', stopDrag);
+
+    // Touch events for mobile
+    divider.addEventListener('touchstart', startDrag, { passive: true });
+    document.addEventListener('touchmove', doDrag, { passive: true });
+    document.addEventListener('touchend', stopDrag);
+}
+
+// Inject copy code buttons into code blocks within an iframe
+function injectCopyCodeButtons(iframe) {
+    const cd = iframe.contentDocument || iframe.contentWindow.document;
+    if (!cd) return;
+
+    // Find all code blocks
+    const codeBlocks = cd.querySelectorAll('.code-block');
+    if (codeBlocks.length === 0) return;
+
+    // Inject styles for copy button
+    const style = cd.createElement('style');
+    style.textContent = `
+        .code-block {
+            position: relative;
+        }
+        .copy-code-btn {
+            position: absolute;
+            top: 8px;
+            right: 50px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: #a0aec0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            z-index: 10;
+        }
+        .copy-code-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        .copy-code-btn.copied {
+            background: #48bb78;
+            color: #fff;
+            border-color: #48bb78;
+        }
+    `;
+    cd.head.appendChild(style);
+
+    // Add copy button to each code block
+    codeBlocks.forEach((block, index) => {
+        // Skip if already has a copy button
+        if (block.querySelector('.copy-code-btn')) return;
+
+        const copyBtn = cd.createElement('button');
+        copyBtn.className = 'copy-code-btn';
+        copyBtn.textContent = 'Copy';
+        copyBtn.setAttribute('data-block-index', index);
+
+        copyBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Get the code text (strip HTML tags)
+            const pre = block.querySelector('pre');
+            if (!pre) return;
+
+            // Get text content, preserving newlines
+            const code = pre.textContent || pre.innerText;
+
+            try {
+                await navigator.clipboard.writeText(code);
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('copied');
+
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            } catch (err) {
+                console.warn('Failed to copy code:', err);
+                // Fallback for older browsers
+                const textArea = cd.createElement('textarea');
+                textArea.value = code;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-9999px';
+                cd.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    cd.execCommand('copy');
+                    copyBtn.textContent = 'Copied!';
+                    copyBtn.classList.add('copied');
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copy';
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                } catch (e) {
+                    copyBtn.textContent = 'Failed';
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copy';
+                    }, 2000);
+                }
+                cd.body.removeChild(textArea);
+            }
+        });
+
+        block.appendChild(copyBtn);
+    });
+
+    console.log(`Injected copy buttons into ${codeBlocks.length} code blocks`);
 }
 
 // ===========================

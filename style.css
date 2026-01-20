@@ -858,6 +858,119 @@ main.lesson-view-active {
     background: var(--color-bg-primary);
 }
 
+/* Split-Pane Coding Lesson Layout */
+.lesson-viewer-frame-container.split-pane {
+    display: flex;
+    flex-direction: row;
+}
+
+.lesson-content-pane {
+    flex: 0 0 60%;
+    overflow: hidden;
+    border-right: 2px solid var(--color-gray-200);
+    background: var(--color-bg-primary);
+}
+
+.lesson-content-pane iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.jupyter-notebook-pane {
+    flex: 1;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.jupyter-notebook-pane iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Resizable divider */
+.pane-divider {
+    width: 6px;
+    cursor: col-resize;
+    background: var(--color-gray-200);
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+}
+
+.pane-divider:hover,
+.pane-divider.dragging {
+    background: var(--color-primary);
+}
+
+/* Jupyter toggle button */
+.jupyter-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-gray-600);
+    background: var(--color-gray-100);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.jupyter-toggle-btn:hover {
+    background: var(--color-gray-200);
+    color: var(--color-gray-800);
+}
+
+.jupyter-toggle-btn .toggle-icon {
+    font-size: 0.75rem;
+}
+
+/* Collapsed state */
+.lesson-viewer-frame-container.jupyter-collapsed .lesson-content-pane {
+    flex: 1;
+    border-right: none;
+}
+
+/* Responsive: Stack panes vertically on small screens */
+@media (max-width: 1024px) {
+    .lesson-viewer-frame-container.split-pane {
+        flex-direction: column;
+    }
+
+    .lesson-content-pane {
+        flex: 0 0 50%;
+        border-right: none;
+        border-bottom: 2px solid var(--color-gray-200);
+    }
+
+    .pane-divider {
+        width: 100%;
+        height: 6px;
+        cursor: row-resize;
+    }
+
+    .jupyter-notebook-pane {
+        flex: 1;
+    }
+
+    .jupyter-toggle-btn .toggle-text {
+        display: none;
+    }
+
+    .jupyter-toggle-btn .toggle-icon {
+        transform: rotate(90deg);
+    }
+
+    .lesson-viewer-frame-container.jupyter-collapsed .jupyter-toggle-btn .toggle-icon {
+        transform: rotate(-90deg);
+    }
+}
+
 /* No Content Messages */
 .no-modules-message {
     font-style: italic;
