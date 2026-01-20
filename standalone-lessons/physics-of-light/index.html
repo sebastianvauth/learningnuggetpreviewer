@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="style.css">
+<title>The Physics of Light – The Raw Material of Vision</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+.interactive-simulation-container {
+    background: #1a202c;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 2rem 0;
+    color: white;
+}
+#lightSimCanvas {
+    width: 100%;
+    height: 300px;
+    background: #000;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.controls-wrapper {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.control-group {
+    flex: 1;
+    min-width: 200px;
+}
+.control-group h4 {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #a0aec0;
+    text-align: left;
+}
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+}
+.color-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+.color-option:hover {
+    background: rgba(255,255,255,0.1);
+}
+.color-option.active {
+    background: rgba(255,255,255,0.2);
+    box-shadow: 0 0 0 2px #4facfe;
+}
+.color-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.2);
+    margin-bottom: 5px;
+}
+.color-label {
+    font-size: 0.8rem;
+    color: #e2e8f0;
+}
+.simulation-status {
+    background: rgba(255,255,255,0.05);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #4facfe;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    text-align: left;
+}
+</style>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/1.jpg" alt="Dark room with a prism splitting a beam of white light into a rainbow spectrum" style="width: 100%; border-radius: 12px;">
+    </div>
+    <h1>The Physics of Light – The Raw Material of Vision</h1>
+    <h2>Welcome to the Hardware</h2>
+    <p>Welcome to the "hardware" of computer vision. Before we can write a single line of code to detect a face or recognize a stop sign, we need to understand the raw signal that makes it all possible: light.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>It might feel strange to start a computer science topic with physics, but a camera is just a sensor designed to capture specific physical waves. If you don't understand the data coming in, you can't effectively process it.</p>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<section id="section3">
+    <p>Here is a humbling fact: what we humans call "vision" is just a tiny, tiny sliver of reality. We are practically blind to the vast majority of the universe's signals.</p>
+    <div class="visual-placeholder">
+        <img src="images/2.jpg" alt="Electromagnetic Spectrum Diagram from Gamma to Radio, highlighting the small 400-700nm visible light range" style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <p>As you can see in the diagram, Visible Light is just a small band of the Electromagnetic Spectrum, ranging from approximately <strong>400 nanometers (nm)</strong> to <strong>700 nm</strong>.</p>
+    
+    <div class="check-your-knowledge">
+        <h3>Check Your Understanding</h3>
+        <h4>Looking at the spectrum diagram, if a wave has very high energy (like a Gamma ray), does it have a long or a short wavelength?</h4>
+        
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Not quite. High energy correlates with high frequency and short wavelengths.')">Long Wavelength</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! High energy waves are tightly packed with short wavelengths.')">Short Wavelength</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <p>The energy carried by a wave is directly proportional to its frequency \(f\) and inversely proportional to its wavelength \(\lambda\). This is why radio waves (long wavelength) pass through us harmlessly, while gamma rays (short wavelength) are dangerous.</p>
+    <div class="image-placeholder">
+        <img src="images/3.jpg" alt="Meme showing a doctor telling a patient X-rays are harmless while running behind a lead wall. Caption: Frequency matters." style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <h2>Waves and Particles</h2>
+    <p>To understand how cameras work, we have to accept a bit of a paradox. Light behaves as both a wave and a particle.</p>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<section id="section7">
+    <p>When we talk about color, we are usually thinking about the <strong>wave</strong> nature of light. The wavelength determines the color we perceive:</p>
+    <ul>
+        <li><strong>~400 nm:</strong> Violet/Blue (Higher Energy)</li>
+        <li><strong>~550 nm:</strong> Green/Yellow</li>
+        <li><strong>~700 nm:</strong> Red (Lower Energy)</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <p>However, when we talk about sensors and cameras later in this course, we will treat light as a stream of particles called <strong>Photons</strong>. When a photon hits a sensor, it registers a "hit".</p>
+    <div class="vocab-section">
+        <h3>Build Your Vocab</h3>
+        <h4>Photon</h4>
+        <p>A photon is a fundamental particle of light. It carries energy proportional to the radiation frequency but has zero rest mass. In computer vision, we often think of image formation as counting how many photons hit a specific pixel.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <p>So, is it a wave or a particle? For our purposes: it travels like a wave (bending and refracting), but it hits the sensor like a particle.</p>
+    
+    <div class="faq-section">
+        <h3>Frequently Asked Question</h3>
+        <h4>Is light a particle or a wave?</h4>
+        <p>This is known as wave-particle duality. In quantum mechanics, light exhibits properties of both. For computer vision, the distinction matters based on context: we use wave theory to explain optics (lenses, focus, color) and particle theory to explain how the electronic sensor actually captures the image (counting photons).</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<section id="section10">
+    <h2>Interaction: Absorption and Reflection</h2>
+    <p>Unless you are looking directly at a lightbulb or the sun, everything you see is <strong>reflected</strong> light. This is crucial for understanding digital images.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>When white light (which contains all visible wavelengths) hits an object, the object's material absorbs some wavelengths and reflects others. The color you see is the color that was <strong>rejected</strong> (reflected) by the object.</p>
+    <div class="interactive-simulation-container">
+        <canvas id="lightSimCanvas"></canvas>
+    
+        <div class="controls-wrapper">
+            <div class="control-group">
+                <h4>Flashlight Source</h4>
+                <div id="lightControls" class="button-grid"></div>
+            </div>
+            <div class="control-group">
+                <h4>Object Material</h4>
+                <div id="materialControls" class="button-grid"></div>
+            </div>
+        </div>
+    
+        <div class="simulation-status" id="simStatusText">
+            Initializing Physics Engine...
+        </div>
+    
+        <script>
+        (function() {
+            const canvas = document.getElementById('lightSimCanvas');
+            const ctx = canvas.getContext('2d');
+            const statusText = document.getElementById('simStatusText');
+            
+            // Define Colors using normalized vectors (0-1) for multiplication
+            const colors = {
+                'White':  { r: 1, g: 1, b: 1, hex: '#ffffff' },
+                'Red':    { r: 1, g: 0, b: 0, hex: '#ff4444' },
+                'Green':  { r: 0, g: 1, b: 0, hex: '#44ff44' },
+                'Blue':   { r: 0, g: 0, b: 1, hex: '#4466ff' },
+                'Cyan':   { r: 0, g: 1, b: 1, hex: '#00ffff' } // Added Cyan to test mixing
+            };
+    
+            let state = {
+                light: 'White',
+                material: 'Red',
+                time: 0
+            };
+    
+            // --- Responsive Canvas ---
+            function resize() {
+                // Get the display width
+                const displayWidth = canvas.clientWidth;
+                if (displayWidth === 0) return;
+                // Set actual canvas size to match display (avoids scaling artifacts)
+                canvas.width = displayWidth;
+                canvas.height = 300; // Fixed height
+                draw();
+            }
+            window.addEventListener('resize', resize);
+            
+            // Use ResizeObserver to catch when the container becomes visible
+            const observer = new ResizeObserver(() => resize());
+            observer.observe(canvas);
+    
+            // --- UI Generation ---
+            function createButtons(containerId, settingKey) {
+                const container = document.getElementById(containerId);
+                Object.keys(colors).forEach(key => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = `color-option ${key === state[settingKey] ? 'active' : ''}`;
+                    wrapper.onclick = () => {
+                        state[settingKey] = key;
+                        updateUI(containerId, wrapper);
+                        updateText();
+                        draw();
+                    };
+    
+                    const btn = document.createElement('div');
+                    btn.className = 'color-btn';
+                    btn.style.backgroundColor = colors[key].hex;
+    
+                    const label = document.createElement('span');
+                    label.className = 'color-label';
+                    label.innerText = key;
+    
+                    wrapper.appendChild(btn);
+                    wrapper.appendChild(label);
+                    container.appendChild(wrapper);
+                });
+            }
+    
+            function updateUI(containerId, activeWrapper) {
+                const container = document.getElementById(containerId);
+                Array.from(container.children).forEach(c => c.classList.remove('active'));
+                activeWrapper.classList.add('active');
+            }
+    
+            // --- The Physics: Vector Multiplication ---
+            function calculatePhysics() {
+                const L = colors[state.light];
+                const M = colors[state.material];
+    
+                // R = L * M
+                const r = L.r * M.r;
+                const g = L.g * M.g;
+                const b = L.b * M.b;
+    
+                // Convert back to 0-255 for CSS
+                const to255 = (v) => Math.floor(v * 255);
+                return {
+                    r: r, g: g, b: b,
+                    css: `rgb(${to255(r)}, ${to255(g)}, ${to255(b)})`,
+                    isBlack: (r + g + b) < 0.05
+                };
+            }
+    
+            function updateText() {
+                const result = calculatePhysics();
+                const box = document.getElementById('simStatusText');
+                
+                let msg = "";
+                let borderColor = "";
+    
+                if (result.isBlack) {
+                    msg = `<strong>Absorption (Black).</strong> <br>Mathematical Proof: [${state.light} Light] × [${state.material} Material] = 0.<br>Since no photons reflect, the object is invisible.`;
+                    borderColor = "#f56565"; 
+                } else if (state.light === 'White') {
+                    msg = `<strong>True Color Reflection.</strong> <br>White light contains all wavelengths. The ${state.material} material rejects (reflects) its own color and absorbs the rest.`;
+                    borderColor = colors[state.material].hex;
+                } else if (state.light === state.material) {
+                    msg = `<strong>High Energy Reflection.</strong> <br>The light matches the material perfectly. Maximum photons are reflected to your eye.`;
+                    borderColor = colors[state.material].hex;
+                } else {
+                     msg = `<strong>Filtered Reflection.</strong> <br>Only the shared color components bounce back. The object appears as the intersection of Light and Material.`;
+                     borderColor = result.css;
+                }
+                
+                statusText.innerHTML = msg;
+                box.style.borderLeftColor = borderColor;
+            }
+    
+            // --- Drawing Engine ---
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const w = canvas.width;
+                const h = canvas.height;
+                const cy = h / 2 + 20;
+    
+                // Coordinates relative to width
+                const xFlashlight = w * 0.15;
+                const xCube = w * 0.5;
+                const xEye = w * 0.85;
+    
+                // Physics Calculation
+                const result = calculatePhysics();
+                const lightColor = colors[state.light].hex;
+    
+                // 1. Draw Flashlight
+                drawFlashlight(xFlashlight, cy, lightColor);
+    
+                // 2. Draw Incident Beam (Source -> Object)
+                // Even if absorbed, light travels TO the object
+                drawBeam(xFlashlight + 40, cy, xCube - 40, cy, lightColor, 0.6);
+    
+                // 3. Draw Reflected Beam (Object -> Eye)
+                // Only draws if not black
+                if (!result.isBlack) {
+                    drawBeam(xCube + 40, cy, xEye - 20, cy, result.css, 0.6);
+                }
+    
+                // 4. Draw Cube
+                drawIsoCube(xCube, cy, 60, result);
+    
+                // 5. Draw Eye
+                // The eye iris color is what it *sees* (the result)
+                drawEye(xEye, cy, result.isBlack ? '#333' : result.css);
+            }
+    
+            function drawIsoCube(x, y, size, physicsResult) {
+                ctx.save();
+                ctx.translate(x, y);
+    
+                const h = size * 0.5;
+                const v = size * 0.25;
+    
+                // Determine Face Colors
+                // In a dark room, only the face hit by light is visible.
+                // Top and Side are in shadow (Darkness).
+                
+                let frontFace, topFace, sideFace;
+    
+                if (physicsResult.isBlack) {
+                    // If absorbed, it's essentially invisible against black background.
+                    // We draw a very faint outline so user knows it exists, but fill is black.
+                    frontFace = "rgba(20,20,20, 1)";
+                    topFace = "rgba(10,10,10, 1)";
+                    sideFace = "rgba(5,5,5, 1)";
+                    ctx.strokeStyle = "#333";
+                    ctx.lineWidth = 1;
+                } else {
+                    frontFace = physicsResult.css; // The face hit by beam
+                    
+                    // Top and side get NO direct light, so they should be very dark version of material 
+                    // or just black to emphasize the "Dark Room" physics.
+                    // Let's make them extremely dim versions of the reflection to show 3D form 
+                    // but emphasize directionality.
+                    frontFace = physicsResult.css;
+                    topFace = adjustBrightness(physicsResult.r, physicsResult.g, physicsResult.b, 0.2);
+                    sideFace = adjustBrightness(physicsResult.r, physicsResult.g, physicsResult.b, 0.1);
+                }
+    
+                // Draw Top
+                ctx.fillStyle = topFace;
+                ctx.beginPath();
+                ctx.moveTo(0, -size);
+                ctx.lineTo(h * 1.7, -size + v);
+                ctx.lineTo(0, -size + (v*2));
+                ctx.lineTo(-h * 1.7, -size + v);
+                ctx.closePath();
+                ctx.fill();
+                if(physicsResult.isBlack) ctx.stroke();
+    
+                // Draw Side (Right)
+                ctx.fillStyle = sideFace;
+                ctx.beginPath();
+                ctx.moveTo(h * 1.7, -size + v);
+                ctx.lineTo(h * 1.7, size - (v*3));
+                ctx.lineTo(0, size - v);
+                ctx.lineTo(0, -size + (v*2));
+                ctx.closePath();
+                ctx.fill();
+                if(physicsResult.isBlack) ctx.stroke();
+    
+                // Draw Front (Left - facing light)
+                ctx.fillStyle = frontFace;
+                ctx.beginPath();
+                ctx.moveTo(-h * 1.7, -size + v);
+                ctx.lineTo(0, -size + (v*2));
+                ctx.lineTo(0, size - v);
+                ctx.lineTo(-h * 1.7, size - (v*3));
+                ctx.closePath();
+                ctx.fill();
+                if(physicsResult.isBlack) ctx.stroke();
+    
+                ctx.restore();
+            }
+    
+            function adjustBrightness(r, g, b, factor) {
+                return `rgb(${Math.floor(r*255*factor)}, ${Math.floor(g*255*factor)}, ${Math.floor(b*255*factor)})`;
+            }
+    
+            function drawFlashlight(x, y, color) {
+                ctx.save();
+                ctx.translate(x, y);
+                
+                // Handle
+                ctx.fillStyle = "#4a5568";
+                ctx.fillRect(-30, -10, 40, 20);
+                
+                // Bulb Head
+                ctx.fillStyle = "#718096";
+                ctx.beginPath();
+                ctx.moveTo(10, -10);
+                ctx.lineTo(25, -20);
+                ctx.lineTo(25, 20);
+                ctx.lineTo(10, 10);
+                ctx.fill();
+                
+                // Emitter
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.ellipse(25, 0, 4, 12, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+    
+            function drawBeam(x1, y1, x2, y2, color, alpha) {
+                ctx.save();
+                // "lighter" approximates additive light mixing on canvas
+                ctx.globalCompositeOperation = "lighter";
+                
+                const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+                grad.addColorStop(0, color);
+                grad.addColorStop(1, "transparent"); // Light falls off
+    
+                ctx.fillStyle = grad;
+                ctx.globalAlpha = alpha;
+                
+                // Fan shape
+                ctx.beginPath();
+                ctx.moveTo(x1, y1 - 8);
+                ctx.lineTo(x2, y2 - 30); // Hit the whole face
+                ctx.lineTo(x2, y2 + 30);
+                ctx.lineTo(x1, y1 + 8);
+                ctx.fill();
+    
+                // Core intenisty
+                ctx.globalAlpha = alpha * 0.5;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1 - 2);
+                ctx.lineTo(x2, y2);
+                ctx.lineTo(x1, y1 + 2);
+                ctx.fill();
+    
+                ctx.restore();
+            }
+    
+            function drawEye(x, y, pupilColor) {
+                ctx.save();
+                ctx.translate(x, y);
+                
+                // White of eye
+                ctx.fillStyle = "#e2e8f0";
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 20, 12, 0, 0, Math.PI*2);
+                ctx.fill();
+    
+                // Iris/Pupil
+                ctx.fillStyle = pupilColor;
+                ctx.beginPath();
+                ctx.arc(0, 0, 9, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Glint
+                ctx.fillStyle = "white";
+                ctx.beginPath();
+                ctx.arc(-3, -3, 2, 0, Math.PI*2);
+                ctx.fill();
+    
+                ctx.restore();
+            }
+    
+            function animate() {
+                state.time += 0.05;
+                // Redraw every frame to keep sharp on resize, 
+                // though for this static interaction strictly not needed, 
+                // it helps with the 'lighter' composite mode stability.
+                draw(); 
+                requestAnimationFrame(animate);
+            }
+    
+            // Init
+            createButtons('lightControls', 'light');
+            createButtons('materialControls', 'material');
+            resize(); // Trigger initial draw
+            updateText();
+            animate();
+    
+        })();
+        </script>
+    </div>
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <p>In the simulation above, did you notice what happened when you shone a blue light on the red cube? The cube appeared black. This is because the red material absorbs blue light. Since there was no red light in the flashlight beam to reflect, no light reached your eye.</p>
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Computer vision algorithms often fail when lighting changes. If you train a robot to recognize a "red apple," it looks for a specific pixel value. But if that apple is in a room with cool blue LED lighting, the apple might look dark purple or black to the camera, causing the algorithm to fail. Understanding that "color" is just reflected light helps you debug these issues.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>This principle applies to everything in nature.</p>
+    <div class="check-your-knowledge">
+        <h3>Stop and Think</h3>
+        <h4>Why do you think plants are green? Based on what you just learned about absorption, what color of light do plants find <em>least</em> useful for photosynthesis?</h4>
+        <div id="cuy-plants-answer" style="display:none;" class="animate-in">
+            <strong>Answer:</strong> Plants appear green because they <strong>reflect</strong> green light. This means they are actually rejecting green energy! They primarily absorb red and blue wavelengths to power photosynthesis. If they used green light efficiently, they would appear black (absorbing all light).
+        </div>
+        <button class="reveal-button" onclick="revealAnswer('cuy-plants-answer')">Reveal Answer</button>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Which of the following represents the approximate range of the visible light spectrum?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, that is largely the Ultraviolet (UV) range, which is invisible to humans.')">100 nm to 400 nm</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! 400nm is the violet end, and 700nm is the red end.')">400 nm to 700 nm</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, that is the Infrared (IR) range.')">700 nm to 1000 nm</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No, those are Microwaves and Radio waves.')">1 mm to 1 meter</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>If you double the frequency \(f\) of a light wave, what happens to its energy?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect. Energy is directly proportional to frequency.')">The energy is halved.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Incorrect.')">The energy stays the same.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! High frequency means high energy.')">The energy doubles.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<section id="section16">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>You have a pure blue object. You shine a pure red laser beam on it. What does the object look like?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No. Mixing red and blue paint makes purple, but here we are talking about light absorption. The blue object absorbs red light.')">Purple</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'No. The object only reflects blue light. It cannot reflect the red laser.')">Red</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Correct! The blue pigment absorbs the red photons. Since no light is reflected back to your eye, the spot appears black.')">Black (or very dark)</div>
+        </div>
+    </div>
+    <div class="continue-button" id="continue-after-test-knowledge" onclick="showNextSection(17)" style="display: none;">Continue</div>
+</section>
+
+<section id="section17">
+    <h2>Review and Reflect</h2>
+    <p>Great work! You've taken the first step into computer vision by understanding the signal itself.</p>
+    <p>In this lesson, we established that:</p>
+    <ul>
+        <li><strong>Light</strong> is an electromagnetic wave, and we only see a tiny fraction of it (400-700 nm).</li>
+        <li><strong>High Frequency</strong> = High Energy (Blue/Violet), while <strong>Low Frequency</strong> = Low Energy (Red).</li>
+        <li><strong>Color</strong> is the result of objects absorbing some wavelengths and reflecting others.</li>
+    </ul>
+    <p>Now that we understand the signal, we are ready to look at the sensor. In the next lesson, we will explore the <strong>Human Eye</strong> and how biology captures these photons.</p>
+    
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">✓ Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 17;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = (window.event && window.event.target) || null;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function revealAnswer(id) {
+    const revealText = document.getElementById(id);
+    const revealButton = (window.event && window.event.target) || null;
+    if (revealText) {
+        revealText.style.display = "block";
+        revealText.classList.add('animate-in');
+    }
+    if (revealButton) {
+        revealButton.style.display = "none";
+    }
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+    
+    // Only show continue button if answer is correct
+    if (!isCorrect) return;
+
+    
+    const parentSection = element.closest('section');
+    if (parentSection && parentSection.id === 'section16') {
+        const continueButton = document.getElementById('continue-after-test-knowledge');
+        if (continueButton && continueButton.style.display === 'none') {
+            setTimeout(() => {
+                continueButton.style.display = 'block';
+                continueButton.classList.add('show-with-animation');
+            }, 800);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                // Tracking IDs updated for the new lesson context
+                let courseId = 'computer-vision';
+                let pathId = 'foundations-of-vision';
+                let moduleId = 'cv-ch1-m1-physics';
+                let lessonId = 'cv-ch1-l2-physics-of-light';
+                
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch1-l2_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '💡', '🌈'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    // Check local storage for completion
+    const isCompleted = localStorage.getItem('lesson_cv-ch1-l2_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '✅ Completed!';
+    }
+});
+</script>
+</body>
+</html>

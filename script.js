@@ -1507,14 +1507,12 @@ function parseHash() {
         currentRoute.pathId = parts[1];
         currentRoute.moduleId = parts[2];
         currentRoute.lessonId = null;
-    } else if (parts.length === 2) { 
-        // Course and path - ambiguous, redirect to course view
-        console.warn(`Direct navigation to course/path '${parts[0]}/${parts[1]}' is ambiguous. Showing course learning paths.`);
+    } else if (parts.length === 2) {
+        // Course and path - show chapter scroll view
         currentRoute.courseId = parts[0];
-        currentRoute.pathId = null; 
+        currentRoute.pathId = parts[1];
         currentRoute.moduleId = null;
         currentRoute.lessonId = null;
-        window.location.hash = `#/${parts[0]}`; // Force redirect to course for clarity
     } else if (parts.length === 1) { // Course learning paths view OR courses list
         if (parts[0] === 'courses') {
             // Special route for showing all courses
@@ -1548,11 +1546,16 @@ function renderCoursesView(courses) {
     }
 
     mainElement.innerHTML = ''; // Clear previous content
+    mainElement.className = 'course-paths-view';
 
-    const pageTitle = document.createElement('h2');
-    pageTitle.textContent = 'Available Courses';
-    pageTitle.className = 'view-title';
-    mainElement.appendChild(pageTitle);
+    // Back button
+    const backButton = document.createElement('button');
+    backButton.className = 'back-button';
+    backButton.innerHTML = '← Back';
+    backButton.addEventListener('click', () => {
+        window.history.back();
+    });
+    mainElement.appendChild(backButton);
 
     if (!courses || courses.length === 0) {
         const noCoursesMessage = document.createElement('p');
@@ -1561,110 +1564,123 @@ function renderCoursesView(courses) {
         return;
     }
 
+    // Courses Section
+    const coursesSection = document.createElement('div');
+    coursesSection.className = 'learning-paths-section';
+
     const courseGrid = document.createElement('div');
-    courseGrid.className = 'course-grid';
+    courseGrid.className = 'learning-paths-grid';
 
     courses.forEach(course => {
-                const card = document.createElement('div');
-        card.className = 'course-card';
-                card.tabIndex = 0;
-                card.setAttribute('role', 'link');
+        const card = document.createElement('div');
+        card.className = 'modern-path-card chapter-card-simple';
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
         card.setAttribute('aria-label', `View ${course.title} course`);
         card.dataset.courseId = course.id;
 
-                card.addEventListener('click', () => {
-                    if (checkContentAccess()) {
-                        navigateToCourse(course.id);
-                    } else {
-                        showGatedContentModal(course.title);
-                    }
-                });
-                card.addEventListener('keydown', (event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        if (checkContentAccess()) {
-                            navigateToCourse(course.id);
-                        } else {
-                            showGatedContentModal(course.title);
-                        }
-                    }
-                });
+        const courseLocked = !checkContentAccess();
+        if (courseLocked) {
+            card.classList.add('course-card-locked');
+            card.setAttribute('aria-disabled', 'true');
+            card.tabIndex = -1;
+            const lockBadge = document.createElement('div');
+            lockBadge.className = 'course-card-lock';
+            lockBadge.textContent = '🔒 Locked';
+            card.appendChild(lockBadge);
+        }
+
+        // Card header with icon and info
+        const cardHeader = document.createElement('div');
+        cardHeader.className = 'path-card-header';
 
         if (course.icon) {
-                    const iconImg = document.createElement('img');
+            const iconImg = document.createElement('img');
             iconImg.src = course.icon;
-                    iconImg.alt = ""; // Decorative, as title is present
-            iconImg.className = 'course-card-icon';
-                    card.appendChild(iconImg);
-                }
+            iconImg.alt = '';
+            iconImg.className = 'path-card-icon';
+            cardHeader.appendChild(iconImg);
+        }
+
+        const cardInfo = document.createElement('div');
+        cardInfo.className = 'path-card-info';
 
         const courseTitleElement = document.createElement('h3');
+        courseTitleElement.className = 'path-card-title';
         courseTitleElement.textContent = course.title;
-        courseTitleElement.className = 'course-card-title';
-        card.appendChild(courseTitleElement);
+        cardInfo.appendChild(courseTitleElement);
 
-        if (course.description) {
-            const courseDescription = document.createElement('p');
-            courseDescription.textContent = course.description;
-            courseDescription.className = 'course-card-description';
-            card.appendChild(courseDescription);
-        }
+        const courseDescription = document.createElement('p');
+        courseDescription.className = 'path-card-description';
+        courseDescription.textContent = course.description || 'Explore interactive lessons and exercises.';
+        cardInfo.appendChild(courseDescription);
 
-        // Show progress and learning paths count
+        cardHeader.appendChild(cardInfo);
+        card.appendChild(cardHeader);
+
+        // Calculate course progress
         const pathCount = course.learningPaths ? course.learningPaths.length : 0;
         const courseProgress = ProgressTracker.getCourseProgress(course.id, course.learningPaths);
-        
-        const statsContainer = document.createElement('div');
-        statsContainer.className = 'course-card-stats-container';
-        
-        // Progress bar
-        if (courseProgress.total > 0) {
-            const progressContainer = document.createElement('div');
-            progressContainer.className = 'progress-container';
-            
-            const progressBar = document.createElement('div');
-            progressBar.className = 'progress-bar';
-            
-            const progressFill = document.createElement('div');
-            progressFill.className = 'progress-fill';
-            progressFill.style.width = `${courseProgress.percentage}%`;
-            
-            progressBar.appendChild(progressFill);
-            progressContainer.appendChild(progressBar);
-            
-            const progressText = document.createElement('div');
-            progressText.className = 'progress-text';
-            progressText.textContent = `${courseProgress.percentage}% Complete (${courseProgress.completed}/${courseProgress.total} lessons)`;
-            
-            progressContainer.appendChild(progressText);
-            statsContainer.appendChild(progressContainer);
-        }
-        
-        // Path count
-        const pathCountElement = document.createElement('div');
-        pathCountElement.textContent = `${pathCount} Learning Path${pathCount === 1 ? '' : 's'}`;
-        pathCountElement.className = 'course-card-stats';
-        statsContainer.appendChild(pathCountElement);
-        
-        card.appendChild(statsContainer);
 
-        // Add lock indicator for anonymous users
-        if (!checkContentAccess()) {
-            const lockIndicator = document.createElement('div');
-            lockIndicator.className = 'course-card-lock';
-            lockIndicator.innerHTML = '🔒';
-            lockIndicator.setAttribute('aria-label', 'Course requires sign-in');
-            card.appendChild(lockIndicator);
-            card.classList.add('course-card-locked');
+        // Progress section (same style as learning path cards)
+        const progressSection = document.createElement('div');
+        progressSection.className = 'chapter-progress-section';
+
+        const progressStats = document.createElement('div');
+        progressStats.className = 'chapter-progress-stats';
+        progressStats.innerHTML = `
+            <span class="chapter-lesson-count">${courseProgress.completed} / ${courseProgress.total} lessons</span>
+            <span class="chapter-progress-percent">${courseProgress.percentage}%</span>
+        `;
+        progressSection.appendChild(progressStats);
+
+        // Progress bar
+        const progressContainer = document.createElement('div');
+        progressContainer.className = 'chapter-progress-container';
+
+        const progressBar = document.createElement('div');
+        progressBar.className = 'chapter-progress-bar';
+
+        const progressFill = document.createElement('div');
+        progressFill.className = 'chapter-progress-fill';
+        progressFill.style.width = `${courseProgress.percentage}%`;
+        if (courseProgress.percentage === 100) {
+            progressFill.classList.add('completed');
+        }
+
+        progressBar.appendChild(progressFill);
+        progressContainer.appendChild(progressBar);
+        progressSection.appendChild(progressContainer);
+
+        card.appendChild(progressSection);
+
+        // Click handler
+        if (!courseLocked) {
+            const handleClick = () => {
+                navigateToCourse(course.id);
+            };
+            card.addEventListener('click', handleClick);
+            card.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handleClick();
+                }
+            });
+            card.style.cursor = 'pointer';
+        } else {
+            card.addEventListener('click', () => {
+                showGatedContentModal(course.title);
+            });
         }
 
         courseGrid.appendChild(card);
     });
 
-    mainElement.appendChild(courseGrid);
+    coursesSection.appendChild(courseGrid);
+    mainElement.appendChild(coursesSection);
 
     // Focus management: focus the first focusable element
-    const firstFocusable = courseGrid.querySelector('.course-card');
+    const firstFocusable = mainElement.querySelector('.chapter-card-simple');
     if (firstFocusable) {
         firstFocusable.focus();
     }
@@ -2110,36 +2126,28 @@ function renderLearningPathsView(course) {
     mainElement.innerHTML = ''; // Clear previous content
     mainElement.className = 'course-paths-view';
 
-    // Hero section with course info
-    const heroSection = document.createElement('div');
-    heroSection.className = 'course-hero-section';
-
-    // Breadcrumb navigation
-    const breadcrumb = document.createElement('nav');
-    breadcrumb.className = 'course-breadcrumb';
-    breadcrumb.setAttribute('aria-label', 'Breadcrumb');
-    breadcrumb.innerHTML = `
-        <a href="#/" class="breadcrumb-link">🏠 Home</a>
-        <span class="breadcrumb-separator">></span>
-        <span class="breadcrumb-current">${course.title}</span>
-    `;
-    heroSection.appendChild(breadcrumb);
-
-    mainElement.appendChild(heroSection);
+    // Back button
+    const backButton = document.createElement('button');
+    backButton.className = 'back-button';
+    backButton.innerHTML = '← Back';
+    backButton.addEventListener('click', () => {
+        window.history.back();
+    });
+    mainElement.appendChild(backButton);
 
     if (!course.learningPaths || course.learningPaths.length === 0) {
         const noPathsMessage = document.createElement('div');
         noPathsMessage.className = 'no-content-message';
         noPathsMessage.innerHTML = `
             <div class="no-content-icon">📚</div>
-            <h3>No Learning Paths Available</h3>
-            <p>This course doesn't have any learning paths configured yet.</p>
+            <h3>No Chapters Available</h3>
+            <p>This course doesn't have any chapters configured yet.</p>
         `;
         mainElement.appendChild(noPathsMessage);
         return;
     }
 
-    // Learning Paths Section
+    // Chapters Section
     const pathsSection = document.createElement('div');
     pathsSection.className = 'learning-paths-section';
 
@@ -2148,20 +2156,26 @@ function renderLearningPathsView(course) {
 
     course.learningPaths.forEach((path, pathIndex) => {
         const pathCard = document.createElement('div');
-        pathCard.className = 'modern-path-card';
+        pathCard.className = 'modern-path-card chapter-card-simple';
+        pathCard.tabIndex = 0;
+        pathCard.setAttribute('role', 'button');
+        pathCard.setAttribute('aria-label', `View ${path.title} chapter`);
+
         const pathLocked = shouldLockLearningPath(course, path);
         if (pathLocked) {
             pathCard.classList.add('course-card-locked');
+            pathCard.setAttribute('aria-disabled', 'true');
+            pathCard.tabIndex = -1;
             const lockBadge = document.createElement('div');
             lockBadge.className = 'course-card-lock';
             lockBadge.textContent = '🔒 Locked';
             pathCard.appendChild(lockBadge);
         }
-        
-        // Path header
+
+        // Path header with icon and info
         const pathHeader = document.createElement('div');
         pathHeader.className = 'path-card-header';
-        
+
         if (path.icon) {
             const pathIcon = document.createElement('img');
             pathIcon.src = path.icon;
@@ -2169,151 +2183,96 @@ function renderLearningPathsView(course) {
             pathIcon.alt = '';
             pathHeader.appendChild(pathIcon);
         }
-        
+
         const pathInfo = document.createElement('div');
         pathInfo.className = 'path-card-info';
-        
+
         const pathTitle = document.createElement('h3');
         pathTitle.className = 'path-card-title';
         pathTitle.textContent = path.title;
         pathInfo.appendChild(pathTitle);
-        
+
         const pathDescription = document.createElement('p');
         pathDescription.className = 'path-card-description';
         pathDescription.textContent = path.description || 'Interactive lessons and exercises to master the concepts.';
         pathInfo.appendChild(pathDescription);
 
-        // View Path button (navigates to Duolingo tree view)
-        if (!pathLocked) {
-            const viewPathBtn = document.createElement('button');
-            viewPathBtn.className = 'duo-btn duo-btn-secondary view-path-btn';
-            viewPathBtn.innerHTML = '🗺️ View Learning Path';
-            viewPathBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                window.location.hash = `#/${course.id}/${path.id}`;
-            });
-            pathInfo.appendChild(viewPathBtn);
-        }
-
         pathHeader.appendChild(pathInfo);
         pathCard.appendChild(pathHeader);
 
-        // Modules grid
+        // Calculate chapter progress from all modules
+        let totalLessons = 0;
+        let completedLessons = 0;
         if (path.modules && path.modules.length > 0) {
-            const modulesGrid = document.createElement('div');
-            modulesGrid.className = 'path-modules-grid';
-            
-            path.modules.forEach((module, moduleIndex) => {
-                const moduleCard = document.createElement('div');
-                moduleCard.className = 'modern-module-card';
-                moduleCard.tabIndex = 0;
-                moduleCard.setAttribute('role', 'button');
-                moduleCard.setAttribute('aria-label', `View ${module.title} module`);
-                if (pathLocked) {
-                    moduleCard.classList.add('course-card-locked');
-                    moduleCard.setAttribute('aria-disabled', 'true');
-                    moduleCard.tabIndex = -1;
-                    moduleCard.style.cursor = 'not-allowed';
-                    moduleCard.style.opacity = '0.6';
-                }
-                
-                const moduleProgress = ProgressTracker.getModuleProgress(course.id, path.id, module.id, module.lessons);
-                const lessonCount = module.lessons ? module.lessons.length : 0;
-                
-                // Module status indicator
-                const statusIndicator = document.createElement('div');
-                statusIndicator.className = 'module-status-indicator';
-                
-                if (moduleProgress.percentage === 100) {
-                    statusIndicator.innerHTML = '<div class="status-icon completed">✅</div>';
-                    moduleCard.classList.add('completed');
-                } else if (moduleProgress.percentage > 0) {
-                    statusIndicator.innerHTML = '<div class="status-icon in-progress">🎯</div>';
-                    moduleCard.classList.add('in-progress');
-                } else {
-                    statusIndicator.innerHTML = '<div class="status-icon not-started">⚪</div>';
-                    moduleCard.classList.add('not-started');
-                }
-                
-                moduleCard.appendChild(statusIndicator);
-
-                // Optional module icon in list
-                if (module.icon) {
-                    const moduleListIcon = document.createElement('img');
-                    moduleListIcon.src = module.icon;
-                    moduleListIcon.className = 'module-list-icon';
-                    moduleListIcon.alt = '';
-                    moduleCard.appendChild(moduleListIcon);
-                }
-                
-                // Module content
-                const moduleContent = document.createElement('div');
-                moduleContent.className = 'module-card-content';
-                
-                const moduleTitle = document.createElement('h4');
-                moduleTitle.className = 'module-card-title';
-                moduleTitle.textContent = module.title;
-                moduleContent.appendChild(moduleTitle);
-                
-                const moduleStats = document.createElement('div');
-                moduleStats.className = 'module-card-stats';
-                moduleStats.innerHTML = `
-                    <span class="module-lesson-count">${lessonCount} lessons</span>
-                    <span class="module-progress-percent">${moduleProgress.percentage}% complete</span>
-                `;
-                moduleContent.appendChild(moduleStats);
-                
-                // Progress bar
-                if (moduleProgress.total > 0) {
-                    const progressContainer = document.createElement('div');
-                    progressContainer.className = 'module-progress-container';
-                    
-                    const progressBar = document.createElement('div');
-                    progressBar.className = 'module-progress-bar';
-                    
-                    const progressFill = document.createElement('div');
-                    progressFill.className = 'module-progress-fill';
-                    progressFill.style.width = `${moduleProgress.percentage}%`;
-                    
-                    progressBar.appendChild(progressFill);
-                    progressContainer.appendChild(progressBar);
-                    moduleContent.appendChild(progressContainer);
-                }
-                
-                moduleCard.appendChild(moduleContent);
-                
-                // Click handler
-                if (!pathLocked) {
-                    moduleCard.addEventListener('click', () => {
-                        navigateToModule(course.id, path.id, module.id);
-                    });
-                    moduleCard.addEventListener('keydown', (event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            navigateToModule(course.id, path.id, module.id);
+            path.modules.forEach(module => {
+                if (module.lessons) {
+                    totalLessons += module.lessons.length;
+                    module.lessons.forEach(lesson => {
+                        const progress = ProgressTracker.getLessonProgress(course.id, path.id, module.id, lesson.id);
+                        if (progress.state === ProgressTracker.STATES.COMPLETED) {
+                            completedLessons++;
                         }
                     });
                 }
-                
-                modulesGrid.appendChild(moduleCard);
             });
-            
-            pathCard.appendChild(modulesGrid);
-        } else {
-            const noModules = document.createElement('div');
-            noModules.className = 'no-modules-message';
-            noModules.textContent = 'No modules available in this learning path.';
-            pathCard.appendChild(noModules);
         }
-        
+        const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+        // Progress section
+        const progressSection = document.createElement('div');
+        progressSection.className = 'chapter-progress-section';
+
+        const progressStats = document.createElement('div');
+        progressStats.className = 'chapter-progress-stats';
+        progressStats.innerHTML = `
+            <span class="chapter-lesson-count">${completedLessons} / ${totalLessons} lessons</span>
+            <span class="chapter-progress-percent">${progressPercentage}%</span>
+        `;
+        progressSection.appendChild(progressStats);
+
+        // Progress bar
+        const progressContainer = document.createElement('div');
+        progressContainer.className = 'chapter-progress-container';
+
+        const progressBar = document.createElement('div');
+        progressBar.className = 'chapter-progress-bar';
+
+        const progressFill = document.createElement('div');
+        progressFill.className = 'chapter-progress-fill';
+        progressFill.style.width = `${progressPercentage}%`;
+        if (progressPercentage === 100) {
+            progressFill.classList.add('completed');
+        }
+
+        progressBar.appendChild(progressFill);
+        progressContainer.appendChild(progressBar);
+        progressSection.appendChild(progressContainer);
+
+        pathCard.appendChild(progressSection);
+
+        // Click handler - navigate to learning path view
+        if (!pathLocked) {
+            const handleClick = () => {
+                window.location.hash = `#/${course.id}/${path.id}`;
+            };
+            pathCard.addEventListener('click', handleClick);
+            pathCard.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handleClick();
+                }
+            });
+            pathCard.style.cursor = 'pointer';
+        }
+
         pathsGrid.appendChild(pathCard);
     });
-    
+
     pathsSection.appendChild(pathsGrid);
     mainElement.appendChild(pathsSection);
 
-    // Focus management: focus the first focusable element (e.g., first module card if paths exist)
-    const firstFocusable = mainElement.querySelector('.module-card, .learning-path-title'); // Adjust selector as needed
+    // Focus management
+    const firstFocusable = mainElement.querySelector('.chapter-card-simple');
     if (firstFocusable) {
         firstFocusable.focus();
     }
@@ -2328,18 +2287,14 @@ function renderModuleLessonsView(course, path, module) {
     mainElement.innerHTML = ''; // Clear previous content
     mainElement.className = 'module-lessons-view';
 
-    // Breadcrumb navigation
-    const breadcrumb = document.createElement('nav');
-    breadcrumb.className = 'module-breadcrumb';
-    breadcrumb.setAttribute('aria-label', 'Breadcrumb');
-    breadcrumb.innerHTML = `
-        <a href="#/" class="breadcrumb-link">🏠 Home</a> 
-        <span class="breadcrumb-separator">></span>
-        <a href="#/${course.id}" class="breadcrumb-link">${course.title}</a>
-        <span class="breadcrumb-separator">></span>
-        <span class="breadcrumb-current">${module.title}</span>
-    `;
-    mainElement.appendChild(breadcrumb);
+    // Back button
+    const backButton = document.createElement('button');
+    backButton.className = 'back-button';
+    backButton.innerHTML = '← Back';
+    backButton.addEventListener('click', () => {
+        window.location.hash = `#/${course.id}/${path.id}`;
+    });
+    mainElement.appendChild(backButton);
 
     // Two-column layout container
     const moduleContainer = document.createElement('div');
@@ -2600,8 +2555,8 @@ function renderLessonContentView(course, path, module, lesson) {
     lessonNav.setAttribute('aria-label', 'Lesson Navigation');
 
     const backLink = document.createElement('a');
-    backLink.href = `#/${course.id}/${path.id}/${module.id}`;
-    backLink.textContent = `‹ Back to ${module.title}`;
+    backLink.href = `#/${course.id}/${path.id}`;
+    backLink.textContent = `‹ Back to ${path.title}`;
     backLink.className = 'lesson-back-link';
     lessonNav.appendChild(backLink);
 
@@ -2650,8 +2605,8 @@ function renderSplitPaneCodingLesson(course, path, module, lesson) {
     lessonNav.setAttribute('aria-label', 'Lesson Navigation');
 
     const backLink = document.createElement('a');
-    backLink.href = `#/${course.id}/${path.id}/${module.id}`;
-    backLink.textContent = `‹ Back to ${module.title}`;
+    backLink.href = `#/${course.id}/${path.id}`;
+    backLink.textContent = `‹ Back to ${path.title}`;
     backLink.className = 'lesson-back-link';
     lessonNav.appendChild(backLink);
 
@@ -3049,6 +3004,135 @@ function injectCopyCodeButtons(iframe) {
 }
 
 // ===========================
+// CHAPTER SCROLL VIEW - Duolingo-style with all modules and lessons
+// ===========================
+
+function renderChapterScrollView(course, path) {
+    const mainElement = document.querySelector('main');
+    if (!mainElement) return;
+
+    mainElement.innerHTML = '';
+    mainElement.className = 'chapter-scroll-view';
+
+    // Back button
+    const backButton = document.createElement('button');
+    backButton.className = 'back-button';
+    backButton.innerHTML = '← Back';
+    backButton.addEventListener('click', () => {
+        window.location.hash = `#/${course.id}`;
+    });
+    mainElement.appendChild(backButton);
+
+    // Modules container - this will hold all modules with their lessons
+    const modulesContainer = document.createElement('div');
+    modulesContainer.className = 'chapter-modules-container';
+
+    path.modules.forEach((module, moduleIdx) => {
+        // Module section
+        const moduleSection = document.createElement('div');
+        moduleSection.className = 'chapter-module-section';
+
+        // Module card header (small card showing module info)
+        const moduleCard = document.createElement('div');
+        moduleCard.className = 'chapter-module-card';
+
+        // Calculate module progress
+        const moduleProgress = ProgressTracker.getModuleProgress(course.id, path.id, module.id, module.lessons);
+
+        // Determine module status
+        let moduleStatus = 'not-started';
+        if (moduleProgress.percentage === 100) {
+            moduleStatus = 'completed';
+        } else if (moduleProgress.completed > 0 || moduleProgress.viewed > 0) {
+            moduleStatus = 'in-progress';
+        }
+
+        moduleCard.innerHTML = `
+            <div class="chapter-module-card-left">
+                <div class="chapter-module-number">Unit ${moduleIdx + 1}</div>
+                <div class="chapter-module-status ${moduleStatus}">
+                    ${moduleStatus === 'completed' ? '✓' : moduleStatus === 'in-progress' ? '▶' : '○'}
+                </div>
+            </div>
+            <div class="chapter-module-card-content">
+                <h3 class="chapter-module-title">${module.title}</h3>
+                <p class="chapter-module-meta">${module.lessons ? module.lessons.length : 0} lessons · ${moduleProgress.completed}/${moduleProgress.total} completed</p>
+            </div>
+        `;
+        moduleSection.appendChild(moduleCard);
+
+        // Lessons tree container (Duolingo style nodes)
+        const lessonsTree = document.createElement('div');
+        lessonsTree.className = 'chapter-lessons-tree';
+
+        const lessons = module.lessons || [];
+
+        lessons.forEach((lesson, lessonIdx) => {
+            const progress = ProgressTracker.getLessonProgress(course.id, path.id, module.id, lesson.id);
+
+            // Determine node state (no locking - all lessons accessible)
+            let nodeState = 'available';
+            if (progress.state === ProgressTracker.STATES.COMPLETED) {
+                nodeState = 'completed';
+            } else if (progress.state === ProgressTracker.STATES.VIEWED ||
+                       progress.state === ProgressTracker.STATES.IN_PROGRESS) {
+                nodeState = 'current';
+            }
+
+            // Create lesson node
+            const lessonNode = document.createElement('div');
+            lessonNode.className = `chapter-lesson-node ${nodeState}`;
+            lessonNode.dataset.courseId = course.id;
+            lessonNode.dataset.pathId = path.id;
+            lessonNode.dataset.moduleId = module.id;
+            lessonNode.dataset.lessonId = lesson.id;
+
+            // Node icon based on state
+            const nodeIcon = getChapterNodeIcon(nodeState, lesson);
+            const lessonType = getLessonTypeBadge(lesson);
+
+            // Zigzag positioning
+            const zigzagOffset = (lessonIdx % 2 === 0) ? 'left' : 'right';
+
+            lessonNode.innerHTML = `
+                <div class="lesson-node-circle ${zigzagOffset}">
+                    <span class="lesson-node-icon">${nodeIcon}</span>
+                    ${lessonType ? `<span class="lesson-node-badge">${lessonType}</span>` : ''}
+                </div>
+                <div class="lesson-node-label ${zigzagOffset}">${truncateText(lesson.title, 50)}</div>
+            `;
+
+            // Click handler - all lessons are clickable
+            lessonNode.style.cursor = 'pointer';
+            lessonNode.addEventListener('click', () => {
+                navigateToLesson(course.id, path.id, module.id, lesson.id);
+            });
+
+            lessonsTree.appendChild(lessonNode);
+        });
+
+        moduleSection.appendChild(lessonsTree);
+        modulesContainer.appendChild(moduleSection);
+    });
+
+    mainElement.appendChild(modulesContainer);
+
+    // Scroll to top
+    mainElement.scrollTop = 0;
+    window.scrollTo(0, 0);
+}
+
+function getChapterNodeIcon(state, lesson) {
+    switch (state) {
+        case 'completed': return '✓';
+        case 'current': return '▶';
+        case 'available': return '★';
+        case 'locked': return '🔒';
+        default: return '○';
+    }
+}
+
+// ===========================
 // DUOLINGO-STYLE LEARNING PATH TREE
 // ===========================
 
@@ -3059,17 +3143,19 @@ function renderDuoLearningPathTree(course, path) {
     mainElement.innerHTML = '';
     mainElement.className = 'duo-learning-path-view';
 
+    // Back button
+    const backButton = document.createElement('button');
+    backButton.className = 'back-button';
+    backButton.innerHTML = '← Back';
+    backButton.addEventListener('click', () => {
+        window.location.hash = `#/${course.id}`;
+    });
+    mainElement.appendChild(backButton);
+
     // Path header
     const header = document.createElement('div');
     header.className = 'duo-path-header';
     header.innerHTML = `
-        <nav class="duo-breadcrumb">
-            <a href="#/">🏠</a>
-            <span class="separator">›</span>
-            <a href="#/${course.id}">${course.title}</a>
-            <span class="separator">›</span>
-            <span class="current">${path.title}</span>
-        </nav>
         <h1 class="duo-path-title">${path.title}</h1>
         <p class="duo-path-description">${path.description || 'Master the fundamentals through interactive lessons.'}</p>
     `;
@@ -3079,9 +3165,8 @@ function renderDuoLearningPathTree(course, path) {
     const treeContainer = document.createElement('div');
     treeContainer.className = 'duo-path-tree';
 
-    // Track lesson index for zigzag and state
+    // Track lesson index for zigzag
     let globalLessonIndex = 0;
-    let previousLessonCompleted = true; // First lesson always available
 
     path.modules.forEach((module, moduleIdx) => {
         // Unit header
@@ -3105,20 +3190,13 @@ function renderDuoLearningPathTree(course, path) {
                 course.id, path.id, module.id, lesson.id
             );
 
-            // Determine node state
-            let nodeState = 'locked';
+            // Determine node state (no locking - all lessons accessible)
+            let nodeState = 'available';
             if (progress.state === ProgressTracker.STATES.COMPLETED) {
                 nodeState = 'completed';
-                previousLessonCompleted = true;
             } else if (progress.state === ProgressTracker.STATES.VIEWED ||
                        progress.state === ProgressTracker.STATES.IN_PROGRESS) {
                 nodeState = 'current';
-                previousLessonCompleted = false;
-            } else if (previousLessonCompleted || (moduleIdx === 0 && lessonIdx === 0)) {
-                nodeState = 'available';
-                previousLessonCompleted = false;
-            } else {
-                previousLessonCompleted = false;
             }
 
             // Create node
@@ -3143,12 +3221,10 @@ function renderDuoLearningPathTree(course, path) {
                 <div class="node-label">${truncateText(lesson.title, 40)}</div>
             `;
 
-            // Click handler for non-locked nodes
-            if (nodeState !== 'locked') {
-                node.addEventListener('click', () => {
-                    navigateToLesson(course.id, path.id, module.id, lesson.id);
-                });
-            }
+            // Click handler - all lessons are clickable
+            node.addEventListener('click', () => {
+                navigateToLesson(course.id, path.id, module.id, lesson.id);
+            });
 
             nodesContainer.appendChild(node);
             globalLessonIndex++;
@@ -3355,12 +3431,12 @@ function renderCurrentView() {
             displayError(`Course with ID '${currentRoute.courseId}' not found. Redirecting to home.`);
             navigateToHome();
         }
-    } else if (currentRoute.courseId && currentRoute.pathId) { // Course and path selected, show Duolingo-style learning path tree
+    } else if (currentRoute.courseId && currentRoute.pathId) { // Course and path selected, show chapter scroll view
         const course = courseData.courses.find(c => c.id === currentRoute.courseId);
         if (course) {
             const path = course.learningPaths.find(p => p.id === currentRoute.pathId);
             if (path) {
-                renderDuoLearningPathTree(course, path);
+                renderChapterScrollView(course, path);
             } else {
                 displayError(`Learning Path with ID '${currentRoute.pathId}' not found. Redirecting to course.`);
                 navigateToCourse(course.id);
@@ -3633,18 +3709,18 @@ function renderSearchResults(query, results) {
     mainElement.innerHTML = '';
     mainElement.className = 'search-results-view';
 
+    // Back button
+    const backButton = document.createElement('button');
+    backButton.className = 'back-button';
+    backButton.innerHTML = '← Back';
+    backButton.addEventListener('click', () => {
+        window.history.back();
+    });
+    mainElement.appendChild(backButton);
+
     // Search header
     const searchHeader = document.createElement('div');
     searchHeader.className = 'search-header';
-
-    const breadcrumb = document.createElement('nav');
-    breadcrumb.className = 'search-breadcrumb';
-    breadcrumb.innerHTML = `
-        <a href="#/" class="breadcrumb-link">🏠 Home</a>
-        <span class="breadcrumb-separator">></span>
-        <span class="breadcrumb-current">Search Results</span>
-    `;
-    searchHeader.appendChild(breadcrumb);
 
     const searchTitle = document.createElement('h1');
     searchTitle.className = 'search-title';
