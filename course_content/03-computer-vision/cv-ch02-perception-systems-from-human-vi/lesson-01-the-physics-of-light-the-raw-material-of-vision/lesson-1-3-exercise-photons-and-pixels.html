@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="../../styles/lesson.css">
+<title>Exercise: Photons and Pixels</title>
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+.level-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+.level-1 { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+.level-2 { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
+.level-3 { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
+
+.scenario-box {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 1.5rem 0;
+    border-left: 4px solid #4facfe;
+    color: #e2e8f0;
+}
+.scenario-box h4 {
+    color: #4facfe;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+.scenario-box p {
+    margin: 0;
+    line-height: 1.6;
+}
+
+.rules-box {
+    background: rgba(79, 172, 254, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 1.5rem 0;
+    border: 1px solid rgba(79, 172, 254, 0.3);
+}
+.rules-box h4 {
+    color: #4facfe;
+    margin-bottom: 12px;
+}
+.rules-box ol {
+    margin: 0;
+    padding-left: 20px;
+}
+.rules-box li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.calculation-box {
+    background: #0d1117;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 1.5rem 0;
+    font-family: 'Courier New', monospace;
+    border: 1px solid #30363d;
+}
+.calculation-box .step {
+    margin-bottom: 10px;
+    color: #c9d1d9;
+}
+.calculation-box .result {
+    color: #58a6ff;
+    font-weight: bold;
+}
+
+.items-list {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin: 1rem 0;
+}
+.items-list ol {
+    margin: 0;
+    padding-left: 20px;
+}
+.items-list li {
+    margin-bottom: 8px;
+}
+</style>
+</head>
+<body>
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+<div class="lesson-container">
+
+<section id="section1" class="visible">
+    <div class="image-placeholder">
+        <img src="images/exercise-lab.jpg" alt="A sleek, modern laboratory desk with a calculator, a prism, and a notebook" style="width: 100%; border-radius: 12px;">
+    </div>
+    <h1>Exercise: Photons and Pixels</h1>
+    <h2>Practice Makes Perfect</h2>
+    <p>You've learned the theory: Light is a wave, energy depends on frequency, and objects get their color by rejecting light. Now, let's put that theory to work.</p>
+    <div class="continue-button" onclick="showNextSection(2)">Continue</div>
+</section>
+
+<section id="section2">
+    <p>In this exercise lesson, we will simulate the job of a <strong>'Renderer'</strong>—calculating exactly what an eye or a camera would see in specific lighting conditions. We will move through three levels of difficulty:</p>
+    <ul>
+        <li><span class="level-badge level-1">Level 1</span> <strong>The Darkroom</strong> (Qualitative)</li>
+        <li><span class="level-badge level-2">Level 2</span> <strong>The Physicist</strong> (Ratios)</li>
+        <li><span class="level-badge level-3">Level 3</span> <strong>The Algorithm</strong> (RGB Math)</li>
+    </ul>
+    <div class="continue-button" onclick="showNextSection(3)">Continue</div>
+</section>
+
+<!-- LEVEL 1: THE DARKROOM -->
+<section id="section3">
+    <span class="level-badge level-1">Level 1</span>
+    <h2>The Darkroom (Qualitative)</h2>
+    <p>Let's start without numbers. We are going to predict color appearance based on absorption rules.</p>
+    <div class="continue-button" onclick="showNextSection(4)">Continue</div>
+</section>
+
+<section id="section4">
+    <div class="scenario-box">
+        <h4>The Scenario</h4>
+        <p>You are in a traditional photography darkroom developing film. The room is pitch black, illuminated ONLY by a <strong>Safe Light</strong>. A Safe Light emits <strong>pure Red</strong> photons (wavelength ~700nm). There are no other wavelengths in the room.</p>
+    </div>
+    <div class="image-placeholder">
+        <img src="images/darkroom.jpg" alt="A photography darkroom illuminated solely by a red light bulb, creating a high-contrast, monochromatic red environment" style="width: 100%; border-radius: 12px;">
+    </div>
+    <div class="continue-button" onclick="showNextSection(5)">Continue</div>
+</section>
+
+<section id="section5">
+    <div class="items-list">
+        <p>On the table, there are two items:</p>
+        <ol>
+            <li>A <strong>Blue</strong> shirt (which normally reflects blue and absorbs red/green).</li>
+            <li>A sheet of <strong>White</strong> printer paper (which normally reflects all visible wavelengths).</li>
+        </ol>
+    </div>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Under this pure Red light, what color does the <strong>Blue shirt</strong> appear to be?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'To see purple, you would need blue light mixing with the red light. But there is no blue light in the room, and the shirt doesn\'t reflect the red.')">Purple</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The shirt *wants* to reflect blue, but there is no blue light in the room to reflect.')">Blue</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'The shirt\'s material absorbs red light. Since red is the only light available, the shirt absorbs everything. No light bounces back to your eye, so it appears black.')">Black</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(6)">Continue</div>
+</section>
+
+<section id="section6">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Under the same pure Red light, what color does the <strong>White paper</strong> appear to be?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'White means the object is reflecting R, G, and B simultaneously. But there is no G or B in the room to reflect.')">White</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'White paper is a \'universal reflector.\' It reflects whatever hits it. Since only Red light hits it, only Red light bounces back.')">Red</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'White paper does not absorb visible light; it reflects it.')">Black</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(7)">Continue</div>
+</section>
+
+<!-- LEVEL 2: THE PHYSICIST -->
+<section id="section7">
+    <span class="level-badge level-2">Level 2</span>
+    <h2>The Physicist (Energy Ratios)</h2>
+    <p>Now, let's look at the relationship between wavelength and energy. You don't need a calculator, just logic.</p>
+    <div class="continue-button" onclick="showNextSection(8)">Continue</div>
+</section>
+
+<section id="section8">
+    <div class="rules-box">
+        <h4>The Rules</h4>
+        <ol>
+            <li>Energy ($E$) is directly proportional to Frequency ($f$).</li>
+            <li>Frequency ($f$) is <em>inversely</em> proportional to Wavelength ($\lambda$).</li>
+            <li>Therefore: <strong>Shorter Wavelength = Higher Energy</strong>.</li>
+        </ol>
+    </div>
+    <div class="continue-button" onclick="showNextSection(9)">Continue</div>
+</section>
+
+<section id="section9">
+    <div class="scenario-box">
+        <h4>The Scenario</h4>
+        <p>We are comparing two specific photons:</p>
+        <ul style="margin-top: 10px; padding-left: 20px;">
+            <li><strong>Photon A (Violet):</strong> Wavelength $\lambda = 400 \text{nm}$.</li>
+            <li><strong>Photon B (Infrared):</strong> Wavelength $\lambda = 800 \text{nm}$.</li>
+        </ul>
+    </div>
+
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>How much more energy does the Violet Photon (A) carry compared to the Infrared Photon (B)?</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Energy depends on wavelength.')">They have the same energy.</div>
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'The wavelength of Violet (400) is exactly half of Infrared (800). Since wavelength is cut in half, the frequency doubles. Since frequency doubles, the energy doubles.')">Violet has 2x the Energy.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'The relationship is linear, not squared.')">Violet has 4x the Energy.</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Infrared has a longer wavelength, which means it is \'lazier\' and carries less energy.')">Infrared has 2x the Energy.</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(10)">Continue</div>
+</section>
+
+<!-- LEVEL 3: THE ALGORITHM -->
+<section id="section10">
+    <span class="level-badge level-3">Level 3</span>
+    <h2>The Algorithm (RGB Arithmetic)</h2>
+    <p>Finally, let's simulate how a computer vision algorithm calculates the color of a pixel. This is exactly how rendering engines in video games work.</p>
+    <div class="continue-button" onclick="showNextSection(11)">Continue</div>
+</section>
+
+<section id="section11">
+    <p>The formula for what the camera sees is simple multiplication:</p>
+    <div class="calculation-box">
+        $$ \text{CameraPixel} = \text{LightSource} \times \text{ObjectReflectance} $$
+    </div>
+    <p><em>Note: We perform this calculation separately for the Red, Green, and Blue channels.</em></p>
+
+    <!-- RGB RENDERING LAB INTERACTIVE -->
+    <div class="interactive-container" style="margin-top: 2rem;">
+        <h3 style="color: #4facfe; margin-bottom: 1rem;">Interactive: RGB Rendering Lab</h3>
+        <p style="color: #a0aec0; margin-bottom: 1rem; font-size: 0.9rem;">Adjust the light source and object reflectance to see how the camera calculates the final pixel color.</p>
+
+        <div class="rgb-lab-wrapper">
+            <canvas id="rgbLabCanvas" width="600" height="280"></canvas>
+
+            <div class="rgb-controls-grid">
+                <!-- Light Source Controls -->
+                <div class="control-panel light-panel">
+                    <h4>Light Source RGB</h4>
+                    <div class="slider-group">
+                        <label><span class="channel-label red">R</span><span id="lightRVal">255</span></label>
+                        <input type="range" id="lightR" min="0" max="255" value="255" class="slider red-slider">
+                    </div>
+                    <div class="slider-group">
+                        <label><span class="channel-label green">G</span><span id="lightGVal">255</span></label>
+                        <input type="range" id="lightG" min="0" max="255" value="255" class="slider green-slider">
+                    </div>
+                    <div class="slider-group">
+                        <label><span class="channel-label blue">B</span><span id="lightBVal">255</span></label>
+                        <input type="range" id="lightB" min="0" max="255" value="255" class="slider blue-slider">
+                    </div>
+                    <div class="color-preview" id="lightPreview"></div>
+                </div>
+
+                <!-- Object Reflectance Controls -->
+                <div class="control-panel object-panel">
+                    <h4>Object Reflectance</h4>
+                    <div class="slider-group">
+                        <label><span class="channel-label red">R</span><span id="refRVal">1.0</span></label>
+                        <input type="range" id="refR" min="0" max="100" value="100" class="slider red-slider">
+                    </div>
+                    <div class="slider-group">
+                        <label><span class="channel-label green">G</span><span id="refGVal">1.0</span></label>
+                        <input type="range" id="refG" min="0" max="100" value="100" class="slider green-slider">
+                    </div>
+                    <div class="slider-group">
+                        <label><span class="channel-label blue">B</span><span id="refBVal">1.0</span></label>
+                        <input type="range" id="refB" min="0" max="100" value="100" class="slider blue-slider">
+                    </div>
+                    <div class="color-preview" id="objectPreview"></div>
+                </div>
+
+                <!-- Result Display -->
+                <div class="control-panel result-panel">
+                    <h4>Camera Sees</h4>
+                    <div class="result-display" id="resultPreview"></div>
+                    <div class="result-values" id="resultValues">RGB: [255, 255, 255]</div>
+                    <div class="calculation-display" id="calcDisplay"></div>
+                </div>
+            </div>
+
+            <div class="preset-buttons">
+                <button class="preset-btn" onclick="setPreset('sunset')">Sunset + Teal Vase</button>
+                <button class="preset-btn" onclick="setPreset('redRoom')">Red Light + Blue Shirt</button>
+                <button class="preset-btn" onclick="setPreset('daylight')">Daylight + Green Leaf</button>
+                <button class="preset-btn" onclick="setPreset('reset')">Reset to White</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .rgb-lab-wrapper {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border-radius: 16px;
+        padding: 20px;
+        margin: 1rem 0;
+    }
+    #rgbLabCanvas {
+        width: 100%;
+        max-width: 600px;
+        height: auto;
+        display: block;
+        margin: 0 auto 20px auto;
+        border-radius: 12px;
+        background: #000;
+    }
+    .rgb-controls-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    .control-panel {
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        padding: 15px;
+    }
+    .control-panel h4 {
+        color: #e2e8f0;
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+    .slider-group {
+        margin-bottom: 10px;
+    }
+    .slider-group label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        color: #a0aec0;
+        margin-bottom: 4px;
+    }
+    .channel-label {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        text-align: center;
+        line-height: 20px;
+        font-weight: bold;
+        font-size: 0.75rem;
+        color: white;
+    }
+    .channel-label.red { background: #e53e3e; }
+    .channel-label.green { background: #38a169; }
+    .channel-label.blue { background: #3182ce; }
+    .slider {
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+        background: #2d3748;
+    }
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+    .red-slider::-webkit-slider-thumb { background: #e53e3e; }
+    .green-slider::-webkit-slider-thumb { background: #38a169; }
+    .blue-slider::-webkit-slider-thumb { background: #3182ce; }
+    .color-preview {
+        width: 100%;
+        height: 30px;
+        border-radius: 8px;
+        margin-top: 10px;
+        border: 2px solid rgba(255,255,255,0.1);
+    }
+    .result-panel {
+        background: rgba(79, 172, 254, 0.1);
+        border: 1px solid rgba(79, 172, 254, 0.3);
+    }
+    .result-display {
+        width: 100%;
+        height: 60px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 2px solid rgba(79, 172, 254, 0.5);
+    }
+    .result-values {
+        text-align: center;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        color: #4facfe;
+        font-weight: bold;
+    }
+    .calculation-display {
+        margin-top: 10px;
+        font-size: 0.7rem;
+        color: #a0aec0;
+        text-align: center;
+        line-height: 1.4;
+    }
+    .preset-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    .preset-btn {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        border: none;
+        color: #1a1a2e;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .preset-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+    }
+    </style>
+
+    <script>
+    (function() {
+        const canvas = document.getElementById('rgbLabCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Slider references
+        const sliders = {
+            lightR: document.getElementById('lightR'),
+            lightG: document.getElementById('lightG'),
+            lightB: document.getElementById('lightB'),
+            refR: document.getElementById('refR'),
+            refG: document.getElementById('refG'),
+            refB: document.getElementById('refB')
+        };
+
+        // Value display references
+        const displays = {
+            lightRVal: document.getElementById('lightRVal'),
+            lightGVal: document.getElementById('lightGVal'),
+            lightBVal: document.getElementById('lightBVal'),
+            refRVal: document.getElementById('refRVal'),
+            refGVal: document.getElementById('refGVal'),
+            refBVal: document.getElementById('refBVal')
+        };
+
+        // Preview elements
+        const lightPreview = document.getElementById('lightPreview');
+        const objectPreview = document.getElementById('objectPreview');
+        const resultPreview = document.getElementById('resultPreview');
+        const resultValues = document.getElementById('resultValues');
+        const calcDisplay = document.getElementById('calcDisplay');
+
+        function getValues() {
+            return {
+                light: {
+                    r: parseInt(sliders.lightR.value),
+                    g: parseInt(sliders.lightG.value),
+                    b: parseInt(sliders.lightB.value)
+                },
+                ref: {
+                    r: parseInt(sliders.refR.value) / 100,
+                    g: parseInt(sliders.refG.value) / 100,
+                    b: parseInt(sliders.refB.value) / 100
+                }
+            };
+        }
+
+        function calculate(light, ref) {
+            return {
+                r: Math.round(light.r * ref.r),
+                g: Math.round(light.g * ref.g),
+                b: Math.round(light.b * ref.b)
+            };
+        }
+
+        function updateDisplays() {
+            const v = getValues();
+
+            // Update value labels
+            displays.lightRVal.textContent = v.light.r;
+            displays.lightGVal.textContent = v.light.g;
+            displays.lightBVal.textContent = v.light.b;
+            displays.refRVal.textContent = v.ref.r.toFixed(2);
+            displays.refGVal.textContent = v.ref.g.toFixed(2);
+            displays.refBVal.textContent = v.ref.b.toFixed(2);
+
+            // Update color previews
+            lightPreview.style.background = `rgb(${v.light.r}, ${v.light.g}, ${v.light.b})`;
+
+            // Object preview shows "true color" under white light
+            const objR = Math.round(v.ref.r * 255);
+            const objG = Math.round(v.ref.g * 255);
+            const objB = Math.round(v.ref.b * 255);
+            objectPreview.style.background = `rgb(${objR}, ${objG}, ${objB})`;
+
+            // Calculate result
+            const result = calculate(v.light, v.ref);
+            resultPreview.style.background = `rgb(${result.r}, ${result.g}, ${result.b})`;
+            resultValues.textContent = `RGB: [${result.r}, ${result.g}, ${result.b}]`;
+
+            // Show calculation breakdown
+            calcDisplay.innerHTML = `
+                R: ${v.light.r} × ${v.ref.r.toFixed(1)} = ${result.r}<br>
+                G: ${v.light.g} × ${v.ref.g.toFixed(1)} = ${result.g}<br>
+                B: ${v.light.b} × ${v.ref.b.toFixed(1)} = ${result.b}
+            `;
+
+            drawCanvas(v, result);
+        }
+
+        function drawCanvas(v, result) {
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Clear
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, w, h);
+
+            const lightColor = `rgb(${v.light.r}, ${v.light.g}, ${v.light.b})`;
+            const resultColor = `rgb(${result.r}, ${result.g}, ${result.b})`;
+            const objTrueColor = `rgb(${Math.round(v.ref.r*255)}, ${Math.round(v.ref.g*255)}, ${Math.round(v.ref.b*255)})`;
+
+            // Positions
+            const lightX = 80;
+            const objX = w / 2;
+            const eyeX = w - 80;
+            const cy = h / 2 + 10;
+
+            // Draw light source (bulb/sun)
+            drawLightSource(lightX, cy - 20, lightColor, v.light);
+
+            // Draw incident beam (light to object)
+            drawBeam(lightX + 30, cy, objX - 50, cy, lightColor, 0.7, true);
+
+            // Draw object (sphere)
+            drawSphere(objX, cy, 45, v, result);
+
+            // Draw reflected beam (object to eye) - only if there's light to reflect
+            const totalResult = result.r + result.g + result.b;
+            if (totalResult > 10) {
+                drawBeam(objX + 50, cy, eyeX - 25, cy, resultColor, 0.6, false);
+            }
+
+            // Draw eye/camera
+            drawCamera(eyeX, cy, resultColor, totalResult > 10);
+
+            // Labels
+            ctx.fillStyle = '#a0aec0';
+            ctx.font = '11px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Light Source', lightX, h - 15);
+            ctx.fillText('Object', objX, h - 15);
+            ctx.fillText('Camera', eyeX, h - 15);
+
+            // Formula reminder at top
+            ctx.fillStyle = '#4facfe';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText('CameraPixel = LightSource × ObjectReflectance', w/2, 20);
+        }
+
+        function drawLightSource(x, y, color, light) {
+            // Glow effect
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, 60);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(0.3, color.replace('rgb', 'rgba').replace(')', ', 0.3)'));
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(x, y, 60, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bulb body
+            ctx.fillStyle = '#2d3748';
+            ctx.beginPath();
+            ctx.arc(x, y, 25, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bulb inner glow
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // RGB values on bulb
+            ctx.fillStyle = light.r + light.g + light.b > 400 ? '#1a1a2e' : '#fff';
+            ctx.font = 'bold 9px Courier';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${light.r}`, x, y - 4);
+            ctx.fillText(`${light.g}`, x, y + 5);
+            ctx.fillText(`${light.b}`, x, y + 14);
+        }
+
+        function drawSphere(x, y, radius, v, result) {
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.beginPath();
+            ctx.ellipse(x + 5, y + radius + 10, radius * 0.8, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Main sphere with gradient to show 3D
+            const resultColor = `rgb(${result.r}, ${result.g}, ${result.b})`;
+            const darkColor = `rgb(${Math.floor(result.r * 0.3)}, ${Math.floor(result.g * 0.3)}, ${Math.floor(result.b * 0.3)})`;
+
+            const sphereGrad = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, 0, x, y, radius);
+            sphereGrad.addColorStop(0, resultColor);
+            sphereGrad.addColorStop(0.7, resultColor);
+            sphereGrad.addColorStop(1, darkColor);
+
+            ctx.fillStyle = sphereGrad;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.beginPath();
+            ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Show reflectance values
+            ctx.fillStyle = '#fff';
+            ctx.font = '9px Courier';
+            ctx.textAlign = 'center';
+            ctx.fillText(`×${v.ref.r.toFixed(1)}`, x, y - 8);
+            ctx.fillText(`×${v.ref.g.toFixed(1)}`, x, y + 2);
+            ctx.fillText(`×${v.ref.b.toFixed(1)}`, x, y + 12);
+        }
+
+        function drawBeam(x1, y1, x2, y2, color, alpha, isIncident) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(1, 'transparent');
+
+            ctx.fillStyle = gradient;
+            ctx.globalAlpha = alpha;
+
+            // Beam shape
+            const spread = isIncident ? 25 : 20;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1 - 8);
+            ctx.lineTo(x2, y2 - spread);
+            ctx.lineTo(x2, y2 + spread);
+            ctx.lineTo(x1, y1 + 8);
+            ctx.closePath();
+            ctx.fill();
+
+            // Core intensity
+            ctx.globalAlpha = alpha * 0.6;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1 - 2);
+            ctx.lineTo(x2, y2 - 5);
+            ctx.lineTo(x2, y2 + 5);
+            ctx.lineTo(x1, y1 + 2);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawCamera(x, y, irisColor, hasLight) {
+            // Camera body
+            ctx.fillStyle = '#2d3748';
+            ctx.fillRect(x - 20, y - 25, 40, 50);
+
+            // Lens housing
+            ctx.fillStyle = '#4a5568';
+            ctx.beginPath();
+            ctx.arc(x, y, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Lens
+            ctx.fillStyle = '#1a202c';
+            ctx.beginPath();
+            ctx.arc(x, y, 16, 0, Math.PI * 2);
+            ctx.fill();
+
+            // What the camera "sees" - the sensor
+            ctx.fillStyle = hasLight ? irisColor : '#111';
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Lens reflection
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.beginPath();
+            ctx.arc(x - 4, y - 4, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Attach event listeners
+        Object.values(sliders).forEach(slider => {
+            slider.addEventListener('input', updateDisplays);
+        });
+
+        // Preset configurations
+        window.setPreset = function(preset) {
+            switch(preset) {
+                case 'sunset':
+                    sliders.lightR.value = 255;
+                    sliders.lightG.value = 200;
+                    sliders.lightB.value = 100;
+                    sliders.refR.value = 0;
+                    sliders.refG.value = 50;
+                    sliders.refB.value = 100;
+                    break;
+                case 'redRoom':
+                    sliders.lightR.value = 255;
+                    sliders.lightG.value = 0;
+                    sliders.lightB.value = 0;
+                    sliders.refR.value = 0;
+                    sliders.refG.value = 0;
+                    sliders.refB.value = 100;
+                    break;
+                case 'daylight':
+                    sliders.lightR.value = 255;
+                    sliders.lightG.value = 255;
+                    sliders.lightB.value = 240;
+                    sliders.refR.value = 20;
+                    sliders.refG.value = 80;
+                    sliders.refB.value = 20;
+                    break;
+                case 'reset':
+                default:
+                    sliders.lightR.value = 255;
+                    sliders.lightG.value = 255;
+                    sliders.lightB.value = 255;
+                    sliders.refR.value = 100;
+                    sliders.refG.value = 100;
+                    sliders.refB.value = 100;
+                    break;
+            }
+            updateDisplays();
+        };
+
+        // Handle canvas resize
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const maxWidth = Math.min(600, container.clientWidth - 40);
+            canvas.style.width = maxWidth + 'px';
+            canvas.style.height = (maxWidth * 280 / 600) + 'px';
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Initial draw
+        updateDisplays();
+    })();
+    </script>
+
+    <div class="continue-button" onclick="showNextSection(12)">Continue</div>
+</section>
+
+<section id="section12">
+    <div class="scenario-box">
+        <h4>The Scenario</h4>
+        <p><strong>Light Source:</strong> A warm, sunset-like light. RGB values: $[255, 200, 100]$.</p>
+        <p style="margin-top: 10px;"><strong>The Object:</strong> A teal ceramic vase. It has the following physical properties:</p>
+        <ul style="margin-top: 10px; padding-left: 20px;">
+            <li>Absorbs 100% of Red (Reflectance = 0.0)</li>
+            <li>Reflects 50% of Green (Reflectance = 0.5)</li>
+            <li>Reflects 100% of Blue (Reflectance = 1.0)</li>
+        </ul>
+    </div>
+    <div class="continue-button" onclick="showNextSection(13)">Continue</div>
+</section>
+
+<section id="section13">
+    <p>Let's calculate the <strong>Green</strong> channel together:</p>
+    <div class="calculation-box">
+        <div class="step">$\text{Green}_{\text{in}} = 200$</div>
+        <div class="step">$\text{Reflectance} = 0.5$</div>
+        <div class="result">$\text{Green}_{\text{out}} = 200 \times 0.5 = 100$</div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(14)">Continue</div>
+</section>
+
+<section id="section14">
+    <div class="test-your-knowledge">
+        <h3>Test Your Knowledge</h3>
+        <h4>Calculate the final RGB vector that the camera sees. Remember: Light = [255, 200, 100] and Reflectance = [0.0, 0.5, 1.0].</h4>
+        <div class="multiple-choice">
+            <div class="choice-option" data-correct="true" onclick="selectChoice(this, true, 'Red: $255 \\times 0.0 = 0$<br>Green: $200 \\times 0.5 = 100$<br>Blue: $100 \\times 1.0 = 100$<br>The result is a dark teal color.')">[0, 100, 100]</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Check your Red calculation. The object absorbs all Red (Reflectance 0.0).')">[255, 100, 100]</div>
+            <div class="choice-option" data-correct="false" onclick="selectChoice(this, false, 'Check your Blue calculation. The object reflects 100% of the Blue light, but the light source only provided 100 units of Blue light to begin with. You can\'t reflect more light than exists!')">[0, 100, 255]</div>
+        </div>
+    </div>
+    <div class="continue-button" onclick="showNextSection(15)">Continue</div>
+</section>
+
+<section id="section15">
+    <div class="why-it-matters">
+        <h3>Why It Matters</h3>
+        <p>Notice that the 'Blue' channel result was 100, even though the object is perfectly blue (1.0 reflectance). The resulting color looks dark teal, not bright cyan. This explains why objects look dull in dim or warm lighting—the camera can only record the light that actually bounces back.</p>
+    </div>
+    <div class="continue-button" onclick="showNextSection(16)">Continue</div>
+</section>
+
+<!-- REVIEW AND REFLECT -->
+<section id="section16">
+    <h2>Review and Reflect</h2>
+    <p>You have successfully simulated the physics of light!</p>
+    <p>In this lesson, you proved that:</p>
+    <ol>
+        <li><strong>Color depends on the light source:</strong> A blue shirt is black in a red room.</li>
+        <li><strong>Energy depends on wavelength:</strong> Halving the wavelength doubles the energy.</li>
+        <li><strong>Vision is multiplication:</strong> What we see is the product of the light available and the material's properties.</li>
+    </ol>
+    <p>Keep these rules in mind. When your computer vision model struggles to recognize an object in a new environment, ask yourself: <em>'Did the light change?'</em></p>
+
+    <button id="markCompletedBtn" class="mark-completed-button" onclick="toggleCompleted()">&#10003; Mark as Completed</button>
+</section>
+
+</div>
+
+<script>
+let currentSection = 1;
+const totalSections = 16;
+
+updateProgress();
+if (currentSection === totalSections) {
+    const completedButton = document.getElementById('markCompletedBtn');
+    if (completedButton) completedButton.classList.add('show');
+}
+
+function showNextSection(nextSectionId) {
+    const nextSectionElement = document.getElementById(`section${nextSectionId}`);
+    const currentButton = (window.event && window.event.target) || null;
+    if (!nextSectionElement) return;
+    if (currentButton && currentButton.classList.contains('continue-button')) {
+        currentButton.style.display = 'none';
+    }
+    nextSectionElement.classList.add('visible');
+    currentSection = nextSectionId;
+    updateProgress();
+    if (currentSection === totalSections) {
+        const completedButton = document.getElementById('markCompletedBtn');
+        if (completedButton) completedButton.classList.add('show');
+    }
+    setTimeout(() => { nextSectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = (currentSection / totalSections) * 100;
+    progressBar.style.width = `${progress}%`;
+}
+
+function selectChoice(element, isCorrect, explanation) {
+    const choices = element.parentNode.querySelectorAll('.choice-option');
+    choices.forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+        const existing = choice.querySelector('.choice-explanation');
+        if (existing) existing.remove();
+    });
+    element.classList.add('selected');
+    element.classList.add(isCorrect ? 'correct' : 'incorrect');
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'choice-explanation';
+    explanationDiv.style.display = 'block';
+    explanationDiv.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${explanation}`;
+    element.appendChild(explanationDiv);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+        const btn = document.querySelector(`#section${currentSection} .continue-button`);
+        if (btn && btn.style.display !== 'none') {
+            e.preventDefault();
+            btn.click();
+        }
+    }
+});
+
+document.documentElement.style.scrollBehavior = 'smooth';
+
+function toggleCompleted() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = button.classList.contains('completed');
+    if (!isCompleted) {
+        try {
+            if (window.parent && window.parent.ProgressTracker) {
+                let courseId = 'computer-vision';
+                let pathId = 'foundations-of-vision';
+                let moduleId = 'cv-ch2-m1-physics';
+                let lessonId = 'cv-ch2-l1-3-exercise-photons-pixels';
+
+                if (window.parent.currentRoute) {
+                    const route = window.parent.currentRoute;
+                    if (route.courseId) courseId = route.courseId;
+                    if (route.pathId) pathId = route.pathId;
+                    if (route.moduleId) moduleId = route.moduleId;
+                    if (route.lessonId) lessonId = route.lessonId;
+                }
+                window.parent.ProgressTracker.markLessonCompleted(courseId, pathId, moduleId, lessonId);
+            }
+        } catch (error) {
+            console.error('Error with ProgressTracker:', error);
+        }
+        button.classList.add('completed');
+        button.innerHTML = '&#9989; Completed!';
+        triggerCelebration();
+        localStorage.setItem('lesson_cv-ch2-l1-3-exercise_completed', 'true');
+    }
+}
+
+function triggerCelebration() {
+    createConfetti();
+    showSuccessMessage();
+}
+
+function createConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    const emojis = ['🎉', '🎊', '✨', '🌟', '🎈', '🏆', '👏', '🥳', '💡', '🌈'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            if (Math.random() > 0.6) {
+                confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            } else {
+                confetti.innerHTML = '●';
+                confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.querySelector('.confetti-container').appendChild(confetti);
+        }, i * 50);
+    }
+    setTimeout(() => { if (confettiContainer.parentNode) confettiContainer.parentNode.removeChild(confettiContainer); }, 5000);
+}
+
+function showSuccessMessage() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.innerHTML = '🎉 Lesson Completed! Great Job! 🎉';
+    document.body.appendChild(successMessage);
+    setTimeout(() => { if (successMessage.parentNode) successMessage.parentNode.removeChild(successMessage); }, 2500);
+}
+
+window.addEventListener('load', function() {
+    const button = document.getElementById('markCompletedBtn');
+    if (!button) return;
+    const isCompleted = localStorage.getItem('lesson_cv-ch2-l1-3-exercise_completed') === 'true';
+    if (isCompleted) {
+        button.classList.add('completed');
+        button.innerHTML = '&#9989; Completed!';
+    }
+});
+</script>
+</body>
+</html>
