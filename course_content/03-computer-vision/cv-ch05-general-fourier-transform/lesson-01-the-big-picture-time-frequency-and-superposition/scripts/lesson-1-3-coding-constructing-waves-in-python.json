@@ -1,0 +1,123 @@
+{
+    "lesson": {
+      "title": "Coding: Constructing Waves in Python",
+      "sections": [
+        {
+          "title": "From Theory to Code",
+          "content": "# Coding the Matrix",
+          "image": "Close-up of a computer monitor displaying Python code on the left and a vibrant blue sine wave graph on the right. The background is slightly blurred, focusing on the syntax highlighting.",
+          "text": "We have drawn diagrams, watched animations, and even listened to the hum of frequencies. Now, it is time to get our hands dirty. In this lesson, we will use Python to act as our signal generator. You are going to translate the mathematical formula for a Square Wave directly into code."
+        },
+        {
+          "title": "Setting the Stage",
+          "content": "To simulate continuous signals on a digital computer, we need to create a list of discrete time points. We will use the `numpy` library for the math and `matplotlib` to see what we are doing.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "First, we need to define our 'Time'. In math, $t$ is continuous. In Python, we approximate it using an array of numbers.",
+              "code": "import numpy as np\nimport matplotlib.pyplot as plt\n\n# Create an array of time points from 0 to 4*pi\n# np.linspace(start, stop, number_of_steps)\nt = np.linspace(0, 4*np.pi, 1000)",
+              "continueButton": true
+            },
+            {
+              "text": "This `t` variable now holds 1,000 specific moments in time. Think of it as the x-axis of our graph.",
+              "buildYourVocab": {
+                "term": "np.linspace",
+                "definition": "A NumPy function that creates a sequence of evenly spaced numbers. It stands for 'Linear Space'. It is essential for plotting smooth curves in Python."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Step 1: The Fundamental Frequency",
+          "content": "Let's start by generating the foundation of our signal: the Fundamental Frequency ($f_0$).",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "We will create a simple sine wave: $y = \\sin(t)$.",
+              "code": "# The Fundamental Frequency (1st Harmonic)\ny = np.sin(t)\n\n# Visualize it\nplt.plot(t, y)\nplt.title('Fundamental Frequency')\nplt.grid(True)\nplt.show()",
+              "interactive": "A code editor window showing the code above. The output window below displays a smooth blue sine wave repeating twice (since we went to 4*pi).",
+              "textAfterInteractive": "Simple enough. We have a pure tone.",
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Step 2: Adding the Third Harmonic",
+          "content": "Now comes the Superposition. Remember the recipe for a Square Wave? We need **Odd Harmonics** with **Decreasing Amplitude**.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "The next ingredient is the 3rd Harmonic. \n1. **Frequency:** It must be $3$ times faster ($\\sin(3t)$).\n2. **Amplitude:** It must be $1/3$ as strong.",
+              "code": "# Add the 3rd Harmonic\ny = y + (1/3) * np.sin(3 * t)\n\nplt.plot(t, y)\nplt.show()",
+              "interactive": "The graph updates. The sine wave now looks squashed. It has a 'dip' at the top of every peak.",
+              "stopAndThink": {
+                "question": "Why do we divide by 3? What would happen if we multiplied by 3 instead?",
+                "revealText": "If we multiplied by 3, the high-frequency ripple would be HUGE—bigger than the main wave! To make a square, the high-frequency details must get smaller and smaller to simply sharpen the edges."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Step 3: Automating the Loop",
+          "content": "Writing `y = y + ...` over and over is tedious. Let's use the power of coding to add the 5th, 7th, and 9th harmonics automatically.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "We can translate the summation symbol $\\sum$ directly into a Python `for` loop.",
+              "code": "# Reset y to zeros\ny = np.zeros_like(t)\n\n# Loop through odd numbers: 1, 3, 5, 7, 9\nfor k in [1, 3, 5, 7, 9]:\n    # The Superposition Formula\n    y += (1/k) * np.sin(k * t)\n\nplt.plot(t, y)\nplt.title('Square Wave approximation (5 terms)')\nplt.show()",
+              "interactive": "The graph updates to show a shape that is clearly becoming boxy. The sides are steep, and the top is rippled but flat.",
+              "continueButton": true
+            },
+            {
+              "text": "Take a closer look at the line inside the loop:\n`y += (1/k) * np.sin(k * t)`\n\nThis single line of code captures the entire physics of the Square Wave.",
+              "buildYourVocab": {
+                "term": "Amplitude",
+                "definition": "The height or strength of a wave. In our code, the term (1/k) controls the amplitude. As frequency (k) increases, amplitude decreases."
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Mission: The Function",
+          "content": "Now it is your turn to package this logic.",
+          "continueButton": true,
+          "additionalContent": [
+            {
+              "text": "Write a function called `generate_square_wave` that takes one argument: `n_harmonics` (how many terms to add). It should return the wave array.",
+              "code": "def generate_square_wave(n_harmonics):\n    y = np.zeros_like(t)\n    # Your code here\n    # Hint: use range(1, n_harmonics * 2, 2) to get odd numbers\n    return y",
+              "testYourKnowledge": {
+                "question": "A student tries to modify the code to make a Sawtooth wave (which uses ALL harmonics: 1, 2, 3...). However, their wave looks like a fractal spike nightmare. They wrote: `y += k * np.sin(k*t)`. What did they do wrong?",
+                "options": [
+                  {
+                    "option": "They used cosine instead of sine.",
+                    "explanation": "Cosine would just shift the phase; it wouldn't cause spikes.",
+                    "correct": false
+                  },
+                  {
+                    "option": "They multiplied by 'k' instead of dividing by 'k'.",
+                    "explanation": "Correct! They made the high frequencies HUGE (Amplitude = k) instead of tiny (Amplitude = 1/k). High frequencies represent fine detail, not the main shape.",
+                    "correct": true
+                  },
+                  {
+                    "option": "They used a for loop instead of a while loop.",
+                    "explanation": "The type of loop doesn't matter for the math.",
+                    "correct": false
+                  }
+                ]
+              },
+              "continueButton": true
+            }
+          ]
+        },
+        {
+          "title": "Review and Reflect",
+          "content": "",
+          "image": "A split screen: On one side, the mathematical summation formula with Sigma notation. On the other side, the equivalent Python 'for' loop code, with arrows drawing connections between the math symbols and the code syntax.",
+          "text": "You have successfully bridged the gap between abstract math and executable code. \n\nWe learned:\n- **`np.linspace`** creates our discrete time axis.\n- The mathematical summation $\\sum$ is just a **`for` loop** in programming.\n- To create specific wave shapes, we adjust the **Amplitude** `(1/k)` based on the Frequency `(k)`.\n\nIn the next lesson, we will take a break from the screen and listen to a discussion about how these concepts explain the difference between a violin and a synthesizer."
+        }
+      ]
+    }
+  }
