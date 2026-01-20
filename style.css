@@ -4658,30 +4658,29 @@ mark {
 }
 
 .duo-mascot {
-    width: 44px;
-    height: 44px;
+    width: 52px;
+    height: 52px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--duo-green);
-    border-radius: var(--radius-circle);
+    background: transparent;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: var(--shadow-3d) var(--duo-green-dark);
 }
 
 .duo-mascot:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-3d-hover) var(--duo-green-dark);
 }
 
 .duo-mascot:active {
     transform: translateY(2px);
-    box-shadow: var(--shadow-3d-active) var(--duo-green-dark);
 }
 
 .mascot-icon {
     font-size: 1.5rem;
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
 }
 
